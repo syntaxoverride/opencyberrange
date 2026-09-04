@@ -1,0 +1,109 @@
+name: "Obsidian Analytics - Encrypted Exfiltration"
+description: "You have operator access to an Obsidian Analytics server. Sensitive data has been concealed using multiple encoding and encryption techniques. Locate and decode base64-encoded exports, decrypt GPG-protected archives, and reverse hex-encoded hidden files to prove full data exfiltration capability."
+
+difficulty: intermediate
+category: post-exploitation
+duration_minutes: 50
+randomize_ip_offsets: true
+visibility: course
+week: 12
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/28_Encrypted_Exfiltration/"
+flag: "OCR{3ncrypt_d3c0d3_3xf1l}"
+
+objectives:
+  - Locate and decode a base64-encoded export file on the compromised server
+  - Discover GPG decryption credentials from shell history artifacts
+  - Decrypt a GPG-encrypted archive to extract concealed data
+  - Reverse hex-encoded content from a hidden dotfile
+  - Assemble all three tokens into the final flag
+
+scenario: |
+  Obsidian Analytics, a threat intelligence firm based in Denver, has been
+  compromised. Your red team secured operator-level access on their primary
+  data processing server through a vulnerability chain documented in earlier
+  phases.
+
+  Now it's time for exfiltration. Your team lead, Maya Chen, wants proof of
+  impact: "We have access on the Obsidian box. I need you to demonstrate that
+  their data protection is insufficient. They've been using encoding, encryption,
+  and obfuscation to conceal sensitive exports - find everything. Show them that
+  security through obscurity doesn't cut it."
+
+  Your credentials are operator / 0bs1d14n_0ps# (with sudo access).
+
+  Three assessment markers have been hidden across the server using different
+  concealment techniques: base64 encoding, GPG symmetric encryption, and hex
+  encoding. Find and decode them all to demonstrate comprehensive exfiltration
+  capability.
+
+credentials:
+  - username: "operator"
+    password: "0bs1d14n_0ps#"
+    role: "operator"
+    description: "Compromised operator account with sudo access"
+
+hints:
+  - text: |
+      You have sudo access. Start by searching common data directories:
+      /var/backups, /opt, and hidden dotfiles. Look for files with unusual
+      extensions (.b64, .gpg) and hidden directories. The command
+      find / -name ".*" -type f 2>/dev/null can reveal concealed files.
+    unlock_after_minutes: 15
+  - text: |
+      Token 1 is in a base64-encoded file under /var/backups/obsidian/.
+      Token 2 is locked in a GPG-encrypted archive under /opt/obsidian/data/ -
+      check the operator's shell history for the decryption passphrase.
+      Token 3 is hex-encoded inside a hidden dotfile under /opt/obsidian/.
+    unlock_after_minutes: 25
+  - text: |
+      1. base64 -d /var/backups/obsidian/export.b64 and look for the assessment_marker value
+      2. Check ~/.bash_history for the gpg command with --passphrase, then run it
+      3. cat /opt/obsidian/.cache/.data_store | xxd -r -p
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "target"
+      label: "Obsidian Data Server"
+      type: "server"
+      ip_offset: "26"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH as operator with sudo"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'sudo whoami' 2>/dev/null"
+      expect: "root"
+      timeout: 15
+
+    - name: "Decode base64 file for token 1"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'base64 -d /var/backups/obsidian/export.b64 | grep -o \"assessment_marker: [a-z0-9_]*\" | awk \"{print \\$2}\"' 2>/dev/null"
+      expect: "3ncrypt"
+      timeout: 15
+
+    - name: "Read bash history for GPG password"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'grep passphrase /home/operator/.bash_history' 2>/dev/null"
+      expect: "0bs1d14n_Vault#"
+      timeout: 15
+
+    - name: "Decrypt GPG file for token 2"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'gpg --batch --passphrase 0bs1d14n_Vault# -d /opt/obsidian/data/archive.gpg 2>/dev/null | grep -o \"marker_value=[a-z0-9_]*\" | cut -d= -f2' 2>/dev/null"
+      expect: "d3c0d3"
+      timeout: 15
+
+    - name: "Decode hex file for token 3"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'cat /opt/obsidian/.cache/.data_store | xxd -r -p' 2>/dev/null"
+      expect: "3xf1l"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{3ncrypt_d3c0d3_3xf1l}'"
+      expect: "OCR{3ncrypt_d3c0d3_3xf1l}"

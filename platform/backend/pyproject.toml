@@ -1,0 +1,37 @@
+# Lint configuration for the OCR backend (app/ package).
+# Baseline is intentionally lenient: the codebase predates the linter,
+# so rules that would flood on legacy code are ignored here. Tighten
+# rule by rule as violations get cleaned up. Do not run `ruff --fix`
+# across the tree in bulk; fix files as they are touched.
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["app"]
+extend-exclude = [
+    "data",
+    "sql",
+    "binaries",
+    "stress_test.py",
+]
+
+[tool.ruff.lint]
+# E/W = pycodestyle, F = pyflakes, B = bugbear (real bug catchers).
+# Import sorting (I) and pyupgrade (UP) are deliberately off for now:
+# both would rewrite hundreds of legacy lines.
+select = ["E", "F", "W", "B"]
+ignore = [
+    "E501",  # line length: legacy code has many long lines; length capped loosely above
+    "E402",  # module-level import not at top: several routers do conditional setup first
+    "E712",  # comparison to True/False: SQLAlchemy filters use `== True` on purpose
+    "E722",  # bare except: widespread in legacy handlers, clean up incrementally
+    "B008",  # function call in default argument: FastAPI Depends()/Query() pattern
+    "B904",  # raise without `from` inside except: legacy style, low value to churn
+    "W291",  # trailing whitespace: pure noise on legacy files
+    "W293",  # whitespace on blank lines: 380+ hits across app/, pure noise
+    "E741",  # ambiguous variable names (l, O): renaming is churn, not a fix
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Seed and script files legitimately shadow names and use star-ish patterns.
+"app/data/*" = ["F401", "F841"]

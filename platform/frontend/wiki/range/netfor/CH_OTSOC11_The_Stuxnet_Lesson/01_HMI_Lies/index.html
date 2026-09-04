@@ -1,0 +1,1415 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise OTSOC-3.3: The Stuxnet Lesson, When the HMI Lies - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-otsoc-33-the-stuxnet-lesson-when-the-hmi-lies" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise OTSOC-3.3: The Stuxnet Lesson, When the HMI Lies
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-operator-cockpit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The operator cockpit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin-read-the-network-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin: Read the Network Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-look-at-what-the-operator-sees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Look at What the Operator Sees
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ask-an-independent-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Ask an Independent Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-watch-the-trend-diverge-over-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Watch the Trend Diverge Over Time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-prove-the-replay-flag-from-the-hmis-honest-state-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Prove the Replay Flag From the HMI's Honest State Endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-read-the-adversary-ground-truth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Read the Adversary Ground Truth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-map-and-recommend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Map and Recommend
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture the Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-otsoc-33-the-stuxnet-lesson-when-the-hmi-lies">Exercise OTSOC-3.3: The Stuxnet Lesson, When the HMI Lies</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Pecan Creek Creamery (fictional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>OT SOC Analyst, Cross-Check</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Reconstruction <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Detection Engineering</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Threat Hunting</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> The operator HMI shows a calm, steady freezer running at the right temperature. Quality is fine, the carton counter keeps ticking, and nobody is alarmed. The product is spoiling anyway. The operator screen is lying to the operator, the same trick Stuxnet ran against the centrifuge operators in Natanz.</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>A scripted adversary at Pecan Creek Creamery is running a record-and-replay attack against the continuous freezer. The operator HMI at <code>hmi.pcc.local</code> is being fed a recorded-normal loop of freezer telemetry while the real barrel temperature is being driven warm underneath it. The operator sees a steady minus 5 C and a carton counter that keeps climbing. The freezer is <code>freeze.pcc.local</code> on EtherNet/IP CIP, drifting warm under the adversary's control.</p>
+<p>A single data source is never trusted. The historian at <code>historian.pcc.local</code> polls the freezer ground truth directly over CIP, so it reads the real, warming barrel temperature while the HMI stays pinned at normal. You corroborate the HMI against the historian, prove the divergence, and confirm the operator screen is replaying recorded telemetry by reading the HMI's honest state view at <code>/api/state</code>, where <code>freeze.replay</code> is <code>true</code>. The adversary at <code>inject.pcc.local</code> exposes its own ground truth at <code>/truth</code>. Proving the divergence and mapping it to ATT&amp;CK T0832 Manipulation of View is the finding, and the two independent sources that expose the lie, the historian and the adversary feed, each hold one piece of the flag.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>The Stuxnet operators watched normal readings while their centrifuges tore themselves apart, because the malware replayed recorded-normal sensor data to the monitoring station. Manipulation of view is the most psychologically effective ICS attack class: it weaponizes the operator's trust in their own screen. An operator who trusts a single source has no defense against a screen that has been told to lie.</p>
+<p>The defense is corroboration. No competent OT SOC trusts one telemetry path. When the HMI and an independent historian that polls the PLC directly disagree, the disagreement itself is the detection, regardless of which one is correct. Learning to cross-check two independent data sources, and to treat divergence as a high-confidence signal, is the single most transferable skill in this entire track. The freezer is the lesson; the habit is the point.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HMI operator board</td>
+<td><code>operator</code></td>
+<td><code>PecanCreek#2026</code></td>
+<td>HTTP Basic login to the operator SCADA board</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-operator-cockpit">The operator cockpit</h3>
+<p>The freezer operator board at <code>hmi.pcc.local</code> is a live cockpit for the continuous freezer: the barrel, the dasher and overrun gauges, the carton conveyor, and a cold-chain integrity panel. Open it in a browser at the address shown for the HMI in the Exercise Network panel (HTTP, port 80). The whole attack turns on one fact: an operator trusts this screen, glances at it during a busy shift, and acts on what it shows. A manipulation-of-view attack abuses exactly that trust by feeding the cockpit a recorded-normal loop.</p>
+<figure>
+<p><img alt="Pecan Creek Creamery continuous freezer operator cockpit showing a calm normal screen" src="../img/freezer-operator.webp" width="820" />
+  </p>
+<figcaption>What the operator sees and trusts: the barrel holds -5.0 C, the gauges sit in band, and the cold-chain panel reads nominal. An operator acts on this screen without a second thought, which is exactly the trust a replayed HMI abuses. The barrel-temperature gauge runs a negative scale, so warm is the alarm side; under the replay the real barrel is climbing toward warm while this tile stays pinned cold.</figcaption>
+</figure>
+<p>Flip the cockpit into its Engineering view and every element is labelled with the live CIP tag behind it, so the barrel temperature reads <code>BarrelTempC</code> and the setpoint reads <code>BarrelSetpoint</code>. The Engineering view binds each tile to the tag a historian or an independent poller would read directly, which is the ground truth the replay loop is hiding from the operator tile.</p>
+<figure>
+<p><img alt="Engineering X-ray view mapping each cockpit element to its live CIP tag" src="../img/freezer-xray.webp" width="820" />
+  </p>
+<figcaption>The Engineering X-ray labels each element with its live CIP tag, binding the freezer barrel to `BarrelTempC` and the setpoint to `BarrelSetpoint`. The historian polls these same tags off the PLC directly, which is why its reading diverges from the replayed operator tile.</figcaption>
+</figure>
+<hr />
+<h2 id="learning-objectives">Learning Objectives</h2>
+<ul>
+<li>Observe the steady, normal freezer barrel temperature on the operator HMI</li>
+<li>Pull the freezer ground truth from the historian and notice the warm divergence</li>
+<li>Confirm the HMI is replaying recorded-normal telemetry (<code>freeze.replay</code> is true)</li>
+<li>Cross-check the historian and adversary ground truth against the HMI view</li>
+<li>Map the manipulation to ATT&amp;CK T0832 Manipulation of View and T0856 Spoof Reporting Message</li>
+<li>Assemble the flag from the historian integrity marker and the adversary drift signature</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Difficulty</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> Intermediate</td>
+</tr>
+<tr>
+<td>Estimated Time</td>
+<td>45 to 60 minutes</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>HTTP/JSON basics, the Purdue model, OTSOC-3.1 and 3.2</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Source</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OCR{historian_warm_truth_hmi_replay_&lt;masked&gt;}</code></td>
+<td>Piece 1 from the historian, piece 2 from the adversary ground-truth feed, joined</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="before-you-begin-read-the-network-panel">Before You Begin: Read the Network Panel</h2>
+<p>After the lab shows <strong>Running</strong>, read the four target IPs from the <strong>Exercise Network</strong> panel into shell variables. Copy the exact values shown; do not hardcode subnet octets.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - set target variables from the Exercise Network panel</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Replace each value with the IP shown in the Exercise Network panel.</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">HMI</span><span class="o">=</span>&lt;hmi-ip-from-panel&gt;<span class="w">              </span><span class="c1"># hmi.pcc.local, HTTP 80</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">HIST</span><span class="o">=</span>&lt;historian-ip-from-panel&gt;<span class="w">       </span><span class="c1"># historian.pcc.local, HTTP 3000</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nv">FREEZE</span><span class="o">=</span>&lt;freeze-ip-from-panel&gt;<span class="w">        </span><span class="c1"># freeze.pcc.local, CIP 44818</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nv">INJECT</span><span class="o">=</span>&lt;inject-ip-from-panel&gt;<span class="w">        </span><span class="c1"># inject.pcc.local, HTTP 8080</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;hmi=</span><span class="nv">$HMI</span><span class="s2"> hist=</span><span class="nv">$HIST</span><span class="s2"> freeze=</span><span class="nv">$FREEZE</span><span class="s2"> inject=</span><span class="nv">$INJECT</span><span class="s2">&quot;</span>
+</code></pre></div>
+</div>
+<p>Confirm the two web sources you cross-check against are reachable before you start comparing them.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - confirm the HMI and historian answer</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nc<span class="w"> </span>-zv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HMI</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">80</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>nc<span class="w"> </span>-zv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HIST</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">3000</span>
+</code></pre></div>
+</div>
+<p>Two <code>succeeded!</code> lines mean both telemetry paths are live and you can compare them.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-look-at-what-the-operator-sees">Step 1: Look at What the Operator Sees</h3>
+<p>Start where the operator starts: the HMI board, in a browser, the way a real operator watches it. Open the operator cockpit at the HMI IP from the Exercise Network panel on port 80 and look at the freezer tile, the same calm cockpit shown in the operator screenshot above. The whole point of the attack is that this screen looks fine.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - open the operator HMI in the browser</p>
+<p>In your browser address bar, enter the HMI IP from the Exercise Network panel on port 80, for example <code>http://HMI_IP/</code>. When the browser prompts for HTTP Basic auth, log in with <code>operator</code> / <code>PecanCreek#2026</code>.</p>
+</div>
+<p>The freezer tile you see (the calm view captured in <code>freezer-operator.png</code> above) shows a steady barrel temperature near minus 5 C and a carton counter that keeps climbing, exactly what a healthy freezer looks like. A small REPLAY badge sits on the board, but an operator glancing at a calm green tile during a busy shift would never notice it. The screen says the freezer is fine, which is precisely the lie you are here to catch.</p>
+<p>If you would rather confirm the tile contents from the command line as well, the same calm reading is present in the served HTML. The grep below pulls the barrel, freezer, and carton lines, but the browser is where the easy-to-miss REPLAY badge and the operator's actual experience live.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali (optional) - or confirm the same tile from the CLI</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-u<span class="w"> </span>operator:PecanCreek#2026<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$HMI</span><span class="s2">/&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;barrel|freezer|replay|-5|carton&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+</div>
+<h3 id="step-2-ask-an-independent-source">Step 2: Ask an Independent Source</h3>
+<p>Never trust one source. The historian polls the freezer over CIP directly and records the real barrel temperature, so it is the ground-truth view the replay loop can never reach. Open the historian trends dashboard in your browser and compare its freezer barrel trend against the calm HMI tile you just saw.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - open the historian dashboard in the browser</p>
+<p>In your browser, open the historian IP from the Exercise Network panel on port 3000, for example <code>http://HIST_IP:3000/</code>. The dashboard renders the plantwide trends the historian has logged straight from the PLCs.</p>
+</div>
+<p><img alt="Plantwide historian trends dashboard showing the real freezer barrel temperature climbing while the operator HMI reads normal" src="../img/historian-dashboard.webp" width="820" /></p>
+<p>The historian polls the freezer PLC for ground truth, so the warm drift is plainly visible on this dashboard even though the operator HMI tile stays pinned at minus 5 C. The freezer barrel trend climbs off its normal band while the operator screen reads calm, and the divergence between an operator screen and an independent historian polling the same PLC is the entire detection. You do not need to know the exact true temperature to know that one of these sources is lying.</p>
+<h3 id="step-3-watch-the-trend-diverge-over-time">Step 3: Watch the Trend Diverge Over Time</h3>
+<p>The dashboard shows the drift at a glance; for a defender who wants the raw samples behind the curve, the historian also serves its trend as JSON. Pull the barrel trend from the command line only as a cross-check that the dashboard curve matches the underlying data.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali (optional) - or pull the raw historian barrel trend</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$HIST</span><span class="s2">:3000/api/history&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;barrel|temp|ts&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-30
+</code></pre></div>
+</div>
+<p>The historian samples trend warm over the window while the HMI tile you saw in Step 1 stays pinned. Operations is making decisions off a frozen screen while the product spoils. The trend turns a suspicious single reading into a confident "the operator view is not tracking reality."</p>
+<p>The figure below shows what the operator cockpit would render if it were honest about the ground truth the historian is reporting: the barrel warm and over temperature, the spoilage banner firing, the cold-chain panel in critical alarm. Under the replay the operator never sees this screen; the recorded-normal loop keeps the calm tile on display while the real barrel climbs to here.</p>
+<figure>
+<p><img alt="Operator cockpit rendering the true warming barrel that the replay loop hides: barrel over-temperature and product spoilage" src="../img/freezer-attack.webp" width="820" />
+  </p>
+<figcaption>The ground truth the replay conceals: the barrel reads 3.1 C on the warm side of the scale, the BARREL OVER-TEMP - PRODUCT SPOILAGE banner fires, and the cold-chain panel drops to a critical spoilage alarm. The historian is reporting this reality while the operator tile stays pinned at -5.0 C, which is the divergence you prove. Stuxnet's centrifuge operators never saw their equivalent of this screen either.</figcaption>
+</figure>
+<h3 id="step-4-prove-the-replay-flag-from-the-hmis-honest-state-endpoint">Step 4: Prove the Replay Flag From the HMI's Honest State Endpoint</h3>
+<p>The browser tile will never admit it is lying, but the HMI exposes an honest state view at <code>/api/state</code> that does. Reading <code>/api/state</code> is the one place the CLI is the right tool: it is a programmatic cross-check that proves <code>freeze.replay</code> is true straight from the HMI's own state, not a rendered screen you have to eyeball. Pull it and look for the replay flag.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - prove freeze.replay from the HMI honest state endpoint</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-u<span class="w"> </span>operator:PecanCreek#2026<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$HMI</span><span class="s2">/api/state&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>json.tool
+</code></pre></div>
+</div>
+<p>Look for <code>freeze.replay</code> set to <code>true</code>. A true replay flag is the smoking gun: the operator tile is not live telemetry, it is a recorded-normal loop being played back. That is precisely the Stuxnet move, where the centrifuge monitoring station replayed recorded sensor data to hide the sabotage. Now corroborate from the adversary's own feed.</p>
+<h3 id="step-5-read-the-adversary-ground-truth">Step 5: Read the Adversary Ground Truth</h3>
+<p>The scripted adversary at <code>inject</code> exposes the ground-truth values it is driving at <code>/truth</code>. Reading it from the attacker side closes the loop: you have the HMI lie, the historian truth, and now the adversary admitting what it is forcing.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - read the adversary truth feed and run status</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$INJECT</span><span class="s2">:8080/truth&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$INJECT</span><span class="s2">:8080/status&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-o<span class="w"> </span><span class="s1">&#39;freeze-replay&#39;</span>
+</code></pre></div>
+</div>
+<p>The <code>/truth</code> response shows the real barrel temperature warming while the HMI stays at minus 5 C, and <code>/status</code> reports the <code>freeze-replay</code> attack is active. Three independent sources now agree on the same story: the HMI is pinned, the historian and the adversary both show warm drift, and the HMI itself admits <code>replay = true</code>. The cross-check is proven.</p>
+<h3 id="step-6-map-and-recommend">Step 6: Map and Recommend</h3>
+<p>Translate the finding into ATT&amp;CK and into a control recommendation, because a SOC finding that does not produce a recommendation is incomplete. The recorded-normal HMI loop is <strong>T0832 Manipulation of View</strong>: the adversary controls what the operator sees. Feeding the operator false telemetry as if it were real reporting is <strong>T0856 Spoof Reporting Message</strong>. The control that defeats both is corroboration you just performed: out-of-band sensor verification and an automated PLC-to-historian integrity comparison that alarms when the operator view and the independent poll diverge beyond a tolerance.</p>
+<div class="admonition example">
+<p class="admonition-title">The cross-check finding, written up</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Finding: freezer operator HMI shows steady -5 C (replay loop); historian
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  polls the freezer PLC directly and shows a warming barrel; HMI /api/state
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  reports freeze.replay = true; adversary /truth confirms forced warm drift.
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>Technique: T0832 Manipulation of View (recorded-normal HMI playback);
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  T0856 Spoof Reporting Message (false telemetry fed to the operator).
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>Control: out-of-band sensor verification plus an automated
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  PLC-to-historian integrity comparison that alarms on divergence.
+</code></pre></div>
+</div>
+<p>The divergence you proved is the finding. It also unlocks the flag: the two independent sources that exposed the lie each carry one piece of it.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>A calm operator tile is not evidence the process is healthy; it is only evidence of what the HMI was told to show. Trust the independent poll, not the screen.</li>
+<li>The detection is the disagreement, not the absolute value. You do not need the exact true temperature; an HMI pinned flat against a historian trending warm is already a high-confidence manipulation-of-view signal.</li>
+<li><code>freeze.replay = true</code> is the ground-truth admission that the tile is a recorded loop. In a real attack you will not get that flag for free; the historian divergence is what you would actually have to act on.</li>
+<li>Three sources telling the same story (HMI pinned, historian warm, adversary truth warm) is the corroboration standard. One source is a rumor; two that disagree is an investigation; three that resolve the disagreement is a finding.</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is the divergence between the HMI and the historian a stronger signal than either reading alone?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Either source can be wrong: an HMI can be replayed, a historian can lose a poll and show stale data. A single source gives you no way to tell a real process change from a manipulated view. Two independent sources that poll the same PLC over different paths should agree; when they diverge, you know with high confidence that one has been tampered with or has failed, and that disagreement is actionable even before you know which one is correct. Corroboration converts ambiguous telemetry into a decision.</p>
+</details>
+<p><strong>2. How is this attack the same as what Stuxnet did, and what makes manipulation of view so dangerous?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Stuxnet recorded normal sensor readings from the centrifuge process and replayed them to the operator monitoring station while it drove the centrifuges to destruction, so the operators saw calm, normal screens during the sabotage. The freezer replay here is the same pattern: recorded-normal telemetry on the operator view masks a real, harmful process change. Manipulation of view is dangerous because it defeats the human safety layer. Operators are trained to watch their screens and act on alarms; an attack that controls the screen disables that entire response loop.</p>
+</details>
+<p><strong>3. The recommended control is a PLC-to-historian integrity comparison. Why poll the PLC directly instead of trusting the HMI feed?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>The HMI is the component under attack, so any integrity check that reads from the HMI inherits the lie. An independent poller that reads the PLC directly over its own path gives you a second, harder-to-spoof view of the same ground truth. Comparing that independent poll against the operator view, and alarming on divergence beyond a tolerance, catches a replayed HMI automatically. The control works precisely because it does not trust the component that the adversary controls.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Manipulation of view (T0832) weaponizes the operator's trust in their own screen; it is the Stuxnet class of attack and the hardest to notice by eye.</li>
+<li>Cross-checking two independent telemetry paths is the core defense. The disagreement is the detection, regardless of which source is correct.</li>
+<li>A SOC finding ends in a control recommendation. Here it is out-of-band sensor verification plus an automated PLC-to-historian integrity comparison.</li>
+<li>An integrity check must read from a source the adversary does not control. Polling the PLC directly beats trusting the HMI feed, because the HMI is the thing being faked.</li>
+</ul>
+<h2 id="capture-the-flag">Capture the Flag</h2>
+<p>The flag is in two pieces, and the only way to assemble it is to do the cross-check. Neither piece is on the operator board, because the operator board is the thing that lies. Piece 1 lives on the independent historian, the source you consult to get ground truth. Piece 2 lives on the adversary's own ground-truth feed, and it is only present while the replay is running. Collect both, join them, and you have the flag.</p>
+<p>Piece 1 is the historian integrity marker. Consult the independent historian and read it off the "About This Historian" panel, or pull it from the info endpoint. Getting it means you went to the source that reports the real barrel temperature instead of trusting the screen.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - read piece 1 from the historian</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$HIST</span><span class="s2">:3000/api/info&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-o<span class="w"> </span><span class="s1">&#39;&quot;integrity_marker&quot;:&quot;[^&quot;]*&quot;&#39;</span>
+</code></pre></div>
+</div>
+<p>Piece 2 is the adversary's drift signature. Pull the ground-truth feed the adversary exposes (<code>/truth</code>), the same feed that reports the real warming barrel temperature the HMI is hiding. The signature is only present while the manipulation is live, so recovering it proves you caught the replay in the act.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - read piece 2 from the adversary ground-truth feed</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$INJECT</span><span class="s2">:8080/truth&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-o<span class="w"> </span><span class="s1">&#39;&quot;drift_signature&quot;:&quot;[^&quot;]*&quot;&#39;</span>
+</code></pre></div>
+</div>
+<p>Join the two marker values you just read, piece 1 then piece 2, with an underscore inside <code>OCR{...}</code>, giving <code>OCR{&lt;piece1&gt;_&lt;piece2&gt;}</code>. Submit the assembled flag in the platform to complete the exercise. It has the masked form below.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>OCR{historian_warm_truth_hmi_replay_&lt;masked&gt;}
+</code></pre></div>
+<p>Submit the assembled flag in the OCR platform to complete the exercise.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

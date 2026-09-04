@@ -1,0 +1,3442 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Windows penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 10: Hidden Login Discovery - Windows Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-10-hidden-login-discovery" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Windows Penetration Testing" class="md-header__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Windows Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 10: Hidden Login Discovery
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Windows Penetration Testing" class="md-nav__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Windows Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH01 -- Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH01 -- Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/01_Basic_Port_Scan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Basic Port Scan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/02_Multiple_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- Multiple Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/03_Service_Version_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- Service Version Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/04_OS_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- OS Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/05_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.5 -- Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH02 -- SMB Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH02 -- SMB Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/01_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/02_Share_Listing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- Share Listing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/03_Anonymous_Share_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- Anonymous Share Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/04_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/05_Null_Session_Connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Null Session Connection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/06_Null_Session_Share_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.6 -- Null Session Share Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/07_User_Enumeration_via_Null_Session/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.7 -- User Enumeration via Null Session
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/08_Comprehensive_Null_Session_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.8 -- Comprehensive Null Session Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/09_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH03 -- SMB Credential Attacks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH03 -- SMB Credential Attacks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/01_Manual_Credential_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Manual Credential Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/02_Multiple_Credential_Testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Multiple Credential Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/03_Single_User_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.3 -- Single User Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/04_Username_Enumeration_and_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.4 -- Username Enumeration and Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/05_Full_Credential_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.5 -- Full Credential Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH04 -- RDP Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH04 -- RDP Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/01_RDP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.1 -- RDP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/02_RDP_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.2 -- RDP Version Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/03_RDP_Manual_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.3 -- RDP Manual Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/04_RDP_Credential_Guessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.4 -- RDP Credential Guessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/05_RDP_Brute_Force_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.5 -- RDP Brute Force Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/06_RDP_Session_Access_and_Flag_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.6 -- RDP Session Access and Flag Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH05 -- WinRM Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH05 -- WinRM Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/01_WinRM_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.1 -- WinRM Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/02_WinRM_Version_Configuration_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.2 -- WinRM Version and Configuration Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/03_WinRM_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.3 -- WinRM Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/04_WinRM_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.4 -- WinRM Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/05_WinRM_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.5 -- WinRM Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/06_WinRM_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.6 -- WinRM File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH06 -- MSSQL Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH06 -- MSSQL Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/01_MSSQL_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.1 -- MS-SQL Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/02_MSSQL_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.2 -- MS-SQL Version and Instance Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/03_MSSQL_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.3 -- MS-SQL Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/04_MSSQL_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.4 -- MS-SQL Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/05_MSSQL_Basic_Query_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.5 -- MS-SQL Basic Query Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/06_MSSQL_xp_cmdshell_Activation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.6 -- MS-SQL xp_cmdshell Activation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/07_MSSQL_File_System_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.7 -- MS-SQL File System Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/08_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH07 -- LDAP Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH07 -- LDAP Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/01_LDAP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.1 -- LDAP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/02_LDAP_Anonymous_Bind_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.2 -- LDAP Anonymous Bind Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/03_LDAP_Base_DN_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.3 -- LDAP Base DN Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/04_LDAP_User_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.4 -- LDAP User Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/05_LDAP_Group_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.5 -- LDAP Group Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/06_LDAP_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.6 -- LDAP Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH08 -- Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH08 -- Credential Reuse
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/01_Single_Service_Credential_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.1 -- Single Service Credential Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/02_Cross_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.2 -- Cross-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/03_Multi_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.3 -- Multi-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/04_Credential_Discovery_and_Reuse_Chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.4 -- Credential Discovery and Reuse Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/05_CME_Credential_Reuse_Automation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.5 -- CME Credential Reuse Automation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH09 -- Assessment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH09 -- Assessment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/01_Windows_Network_Assessment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.1 -- Windows Network Assessment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/02_Multi_Service_Exploitation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.2 -- Multi-Service Exploitation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/03_Complete_Windows_Penetration_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.3 -- Complete Windows Penetration Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-directory-enumeration-and-default-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Directory Enumeration and Default Credentials
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Directory Enumeration and Default Credentials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#robotstxt-and-hidden-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        robots.txt and Hidden Paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#directory-brute-forcing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory Brute-Forcing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-hidden-admin-panels-exist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Hidden Admin Panels Exist
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-gobuster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: gobuster
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer: gobuster">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mysql-cli-basics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MySQL CLI Basics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-browse-the-main-site-and-check-robotstxt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Browse the Main Site and Check robots.txt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-run-gobuster-with-the-commontxt-wordlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run gobuster with the common.txt Wordlist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-access-the-staff-portal-and-examine-the-html-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Access the Staff Portal and Examine the HTML Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-login-with-default-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Login with Default Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-explore-the-dashboard-and-extract-database-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Explore the Dashboard and Extract Database Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-connect-to-mysql-and-query-for-the-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Connect to MySQL and Query for the Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-10-hidden-login-discovery">Exercise 10: Hidden Login Discovery</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 9 is behind you, and the course now returns to web application assessment techniques. You should have your VPN connected and a terminal ready. Exercise 5 introduced API enumeration and Exercise 6 covered command injection; the skills from both carry forward here, where you will combine directory discovery with credential-based access.</p>
+<h2 id="scenario">Scenario</h2>
+<p>NovaTech Solutions is a mid-size software development consultancy based in Austin, Texas. The company recently launched a redesigned corporate website and hired your firm, Blackridge Security, to perform a web application assessment before a SOC 2 (Service Organization Control Type 2) compliance audit next quarter.</p>
+<p>Your point of contact, Devon Harris (VP of Engineering), provided the following brief: "We pushed the new site to production last week. The dev team assures me everything is locked down, but I want a second opinion. We are particularly concerned about any leftover development or staging interfaces that might have been accidentally deployed. The site should be a marketing page; nothing interactive."</p>
+<p>The engagement scope covers the web application on the target host and any backend services you discover on the subnet. Devon mentioned that the team runs a MySQL database somewhere on the network but insisted it is "not internet-facing." A security token has been placed on each system as part of the assessment scope. Collect all three tokens and combine them as <code>OCR{...}</code> to complete the engagement.</p>
+<figure>
+<p><img alt="NovaTech Solutions public marketing homepage with no visible login link" src="../img/cw-10-portal.png" width="820" />
+  </p>
+<figcaption>The NovaTech public site is the marketing page Devon described. Nothing here links to a login, so the staff portal you are about to find is reachable only through enumeration.</figcaption>
+</figure>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Perform directory enumeration against the web application to discover hidden endpoints</li>
+<li>Analyze discovered pages for sensitive information and credentials</li>
+<li>Authenticate to a hidden staff portal using discovered default credentials</li>
+<li>Identify and connect to a backend database using leaked connection details</li>
+<li>Capture the flag</li>
+</ul>
+<hr />
+<h2 id="background-directory-enumeration-and-default-credentials">Background: Directory Enumeration and Default Credentials</h2>
+<p>Web applications often contain more than what is visible from the homepage. Developers frequently deploy administrative panels, staging pages, and internal tools alongside the public-facing site. When these hidden paths are not properly secured, an attacker can discover them through systematic enumeration.</p>
+<h3 id="robotstxt-and-hidden-paths">robots.txt and Hidden Paths</h3>
+<p>The file <code>robots.txt</code> sits in the root directory of a web server and tells search engine crawlers which paths they should not index. While the file is intended for search engine etiquette, security testers read it because it often lists the exact directories the site owners want to keep out of public search results. A <code>robots.txt</code> entry does not block access; it is a polite request, not an access control mechanism.</p>
+<h3 id="directory-brute-forcing">Directory Brute-Forcing</h3>
+<p>Directory brute-forcing works by sending HTTP (Hypertext Transfer Protocol) requests for thousands of common directory and file names and watching the response codes. A <code>200 OK</code> response means the path exists and returned content. A <code>301</code> or <code>302</code> means the server redirected you, which usually indicates a valid directory. A <code>404 Not Found</code> means nothing is there. Tools like gobuster automate sending these requests using a wordlist; a text file containing one directory name per line.</p>
+<h3 id="why-hidden-admin-panels-exist">Why Hidden Admin Panels Exist</h3>
+<p>Development teams often build internal dashboards, configuration pages, and staff portals during the development cycle. When the application moves to production, these interfaces sometimes remain accessible because no one removed them or placed them behind authentication. The risk compounds when these panels ship with default credentials; factory-set usernames and passwords that the team never changed. An attacker who discovers both the hidden panel and the default credentials gains authenticated access without any exploitation.</p>
+<pre class="mermaid"><code>graph TD
+    A["Attacker scans&lt;br/&gt;target website"] --&gt; B["Check robots.txt&lt;br/&gt;for hidden paths"]
+    A --&gt; C["Run gobuster with&lt;br/&gt;common wordlist"]
+    B --&gt; D["Discover&lt;br/&gt;/staff-portal/"]
+    C --&gt; D
+    D --&gt; E["View HTML source&lt;br/&gt;find token 1"]
+    E --&gt; F["Login with&lt;br/&gt;default credentials"]
+    F --&gt; G["Access dashboard&lt;br/&gt;find token 2"]
+    G --&gt; H["Extract DB creds&lt;br/&gt;from config page"]
+    H --&gt; I["Query MySQL&lt;br/&gt;find token 3"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style D fill:#e8a735,color:#fff
+    style E fill:#e8a735,color:#fff
+    style F fill:#e8a735,color:#fff
+    style G fill:#6aaa64,color:#fff
+    style H fill:#6aaa64,color:#fff
+    style I fill:#6aaa64,color:#fff</code></pre>
+<h2 id="tool-primer-gobuster">Tool Primer: gobuster</h2>
+<p>Gobuster is a command-line tool that brute-forces directories and files on web servers. You provide a target URL and a wordlist, and gobuster requests each entry from the list and reports which paths return valid responses.</p>
+<p><strong>Basic syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>gobuster<span class="w"> </span>dir<span class="w"> </span>-u<span class="w"> </span>http://&lt;target_ip&gt;<span class="w"> </span>-w<span class="w"> </span>&lt;wordlist_path&gt;
+</code></pre></div>
+<p><strong>Common flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dir</code></td>
+<td>Directory/file brute-forcing mode</td>
+</tr>
+<tr>
+<td><code>-u</code></td>
+<td>Target URL (include the scheme, e.g., <code>http://</code>)</td>
+</tr>
+<tr>
+<td><code>-w</code></td>
+<td>Path to the wordlist file</td>
+</tr>
+<tr>
+<td><code>-t</code></td>
+<td>Number of concurrent threads (default 10)</td>
+</tr>
+<tr>
+<td><code>-x</code></td>
+<td>File extensions to append (e.g., <code>-x php,html</code>)</td>
+</tr>
+<tr>
+<td><code>-s</code></td>
+<td>Status codes to treat as valid (default: 200, 204, 301, 302, 307)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Wordlist location on the lab VM:</strong></p>
+<p>The most commonly used wordlist for directory enumeration is located at:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>/usr/share/wordlists/dirb/common.txt
+</code></pre></div>
+<p><strong>Sample output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>===============================================================
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Gobuster v3.6
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>===============================================================
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>[+] Url:            http://10.100.5.23
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>[+] Wordlist:       /usr/share/wordlists/dirb/common.txt
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>[+] Threads:        10
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>===============================================================
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>/index.html           (Status: 200) [Size: 4532]
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>/robots.txt           (Status: 200) [Size: 87]
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>/staff-portal         (Status: 301) [Size: 0] [--&gt; /staff-portal/]
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>===============================================================
+</code></pre></div>
+<p>Each result line shows the discovered path, the HTTP status code, and the response size. A <code>301</code> redirect often indicates a directory; gobuster shows where the redirect points.</p>
+<h3 id="mysql-cli-basics">MySQL CLI Basics</h3>
+<p>MySQL provides a command-line client for connecting to database servers. You will use it later in the lab to query a backend database once you discover the connection credentials.</p>
+<p><strong>Connection syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>mysql<span class="w"> </span>--skip-ssl<span class="w"> </span>-h<span class="w"> </span>&lt;db_ip&gt;<span class="w"> </span>-u<span class="w"> </span>&lt;username&gt;<span class="w"> </span>-p<span class="s1">&#39;&lt;password&gt;&#39;</span><span class="w"> </span>&lt;database_name&gt;
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-h</code></td>
+<td>Hostname or IP of the database server</td>
+</tr>
+<tr>
+<td><code>-u</code></td>
+<td>Username to authenticate with</td>
+</tr>
+<tr>
+<td><code>-p</code></td>
+<td>Password (no space between <code>-p</code> and the password)</td>
+</tr>
+<tr>
+<td><code>-e</code></td>
+<td>Execute a single SQL query and exit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example; run a query without entering the interactive shell:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>mysql<span class="w"> </span>--skip-ssl<span class="w"> </span>-h<span class="w"> </span><span class="m">10</span>.100.5.41<span class="w"> </span>-u<span class="w"> </span>myuser<span class="w"> </span>-p<span class="s1">&#39;mypass&#39;</span><span class="w"> </span>mydb<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;SELECT * FROM my_table&quot;</span>
+</code></pre></div>
+<p>The <code>-e</code> flag is useful when you need to run one query and capture the output directly in the terminal.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. You need the containers running before any web requests will succeed.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the <strong>Web</strong> track</li>
+<li>Find <strong>Hidden Login Discovery</strong> and click <strong>Launch</strong></li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View; you will use it throughout the walkthrough</li>
+</ul>
+<h3 id="step-2-browse-the-main-site-and-check-robotstxt">Step 2: Browse the Main Site and Check robots.txt</h3>
+<p>Start by visiting the target website in your browser to see what is publicly visible. Open a second tab (or use curl) to check whether the site has a <code>robots.txt</code> file, since developers often list hidden directories there.</p>
+<div class="admonition kali">
+<p class="admonition-title">Browse the main page</p>
+<p>Replace <code>&lt;target_ip&gt;</code> with the IP shown in the Active Lab View. The <code>-s</code> flag runs curl in silent mode so progress meters do not clutter the output.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/
+</code></pre></div>
+<p>The response is the public marketing page HTML. Scan it for any links or comments that hint at additional paths.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Check for robots.txt</p>
+<p>A <code>robots.txt</code> file lists directories the site owners want crawlers to skip. Request it directly from the web root.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/robots.txt
+</code></pre></div>
+<p>Review the output carefully. Look for any <code>Disallow</code> entries; these paths are directories the site owners asked search engines not to index. Note each path you find; you will visit them in a later step.</p>
+</div>
+<h3 id="step-3-run-gobuster-with-the-commontxt-wordlist">Step 3: Run gobuster with the common.txt Wordlist</h3>
+<p>While robots.txt may reveal some paths, a full directory scan can uncover additional endpoints that the file does not mention. Run gobuster against the target using the standard common wordlist.</p>
+<div class="admonition kali">
+<p class="admonition-title">Brute-force directories with gobuster</p>
+<p>Gobuster requests every entry in the wordlist and reports paths that return valid responses. Replace <code>&lt;target_ip&gt;</code> with the target address before running it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>gobuster<span class="w"> </span>dir<span class="w"> </span>-u<span class="w"> </span>http://&lt;target_ip&gt;<span class="w"> </span>-w<span class="w"> </span>/usr/share/wordlists/dirb/common.txt
+</code></pre></div>
+<p>Wait for the scan to complete. Compare the gobuster results with the paths you found in robots.txt. You should see a <code>/staff-portal</code> entry among the results; a path that strongly suggests an internal login page.</p>
+</div>
+<h3 id="step-4-access-the-staff-portal-and-examine-the-html-source">Step 4: Access the Staff Portal and Examine the HTML Source</h3>
+<p>Navigate to the staff portal path discovered in the previous steps. The login page itself may contain useful information embedded in the HTML source code; developers sometimes leave build tags, version numbers, or debug comments in the markup.</p>
+<div class="admonition kali">
+<p class="admonition-title">Fetch the staff portal HTML source</p>
+<p>Request the staff portal page so the raw HTML lands in your terminal where you can read the markup, including comments a browser would hide.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/staff-portal/
+</code></pre></div>
+<p>Read the HTML output carefully. Look for HTML comments (lines wrapped in <code>&lt;!-- --&gt;</code>) that might contain version strings, build identifiers, or tokens. One of the assessment tokens is embedded as a build tag comment in the login page source. Record the token value you find; it is token 1.</p>
+</div>
+<figure>
+<p><img alt="Discovered NovaTech staff portal login form rendered in a browser" src="../img/cw-10-login.png" width="420" />
+  </p>
+<figcaption>The hidden NovaTech staff portal, reachable only after directory enumeration revealed `/staff-portal/`. A plain username and password form with no link from the public site.</figcaption>
+</figure>
+<h3 id="step-5-login-with-default-credentials">Step 5: Login with Default Credentials</h3>
+<p>The staff portal presents a login form. Many internal applications ship with default credentials that the development team sets during initial deployment and never changes. For a company-branded portal, the default username is often <code>admin</code> and the password follows a predictable pattern combining the company name with a year.</p>
+<p>Log in with the following credentials:</p>
+<ul>
+<li><strong>Username:</strong> <code>admin</code></li>
+<li><strong>Password:</strong> <code>NovaTech2024#</code></li>
+</ul>
+<p>You can authenticate using curl or through your browser:</p>
+<div class="admonition kali">
+<p class="admonition-title">Authenticate with default credentials</p>
+<p>Submit the discovered username and password to the login endpoint. The <code>-c</code> flag saves session cookies to a file so you can make authenticated requests afterward, and <code>-L</code> follows the post-login redirect.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/nova-cookies<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>http://&lt;target_ip&gt;/staff-portal/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;username=admin&amp;password=NovaTech2024#&#39;</span><span class="w"> </span>-L
+</code></pre></div>
+<p>Review the response; you should land on a dashboard page that displays the second assessment token.</p>
+</div>
+<h3 id="step-6-explore-the-dashboard-and-extract-database-credentials">Step 6: Explore the Dashboard and Extract Database Credentials</h3>
+<p>With authenticated access to the staff dashboard, explore the available pages. Configuration pages in internal tools frequently expose backend connection details, including database hostnames, usernames, and passwords.</p>
+<div class="admonition kali">
+<p class="admonition-title">Pull the authenticated dashboard</p>
+<p>The <code>-b</code> flag sends the saved session cookies from your earlier login, proving you are authenticated. Request the dashboard so its content prints to the terminal.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/nova-cookies<span class="w"> </span>http://&lt;target_ip&gt;/staff-portal/dashboard
+</code></pre></div>
+<p>Read through the dashboard content and look for database connection strings. You should find a MySQL hostname (or IP), a database username, and a password. Record all three values; you will need them in the next step.</p>
+</div>
+<figure>
+<p><img alt="NovaTech staff dashboard after login, showing a system status table and an exposed configuration panel with database credentials" src="../img/cw-10-dashboard.png" width="820" />
+  </p>
+<figcaption>The post-login staff dashboard. The Auth Token Prefix value is redacted to keep the flag hidden, but the Application Configuration panel leaks the live MySQL host, user, and password, the pivot you use to reach the backend database.</figcaption>
+</figure>
+<h3 id="step-7-connect-to-mysql-and-query-for-the-token">Step 7: Connect to MySQL and Query for the Token</h3>
+<p>Use the database credentials you extracted from the dashboard to connect to the MySQL server. The database server runs on a separate host within the lab subnet.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query the MySQL audit_tokens table</p>
+<p>Connect to the remote database with the leaked credentials and run a single query using the <code>-e</code> flag, which executes the statement and exits without dropping into the interactive shell.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>mysql<span class="w"> </span>--skip-ssl<span class="w"> </span>-h<span class="w"> </span>&lt;db_ip&gt;<span class="w"> </span>-u<span class="w"> </span>novatech_app<span class="w"> </span>-p<span class="s1">&#39;Pr0d_DB_2024#&#39;</span><span class="w"> </span>novatech<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>-e<span class="w"> </span><span class="s2">&quot;SELECT * FROM audit_tokens&quot;</span>
+</code></pre></div>
+<p>Replace <code>&lt;db_ip&gt;</code> with the database server IP shown in the lab topology or discovered from the dashboard configuration page. The query targets the <code>audit_tokens</code> table in the <code>novatech</code> database. The result contains the third and final assessment token.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Record the output and tokens from each phase of the assessment below.</p>
+<p><strong>robots.txt contents:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>(paste the robots.txt output here)
+</code></pre></div>
+<p><strong>gobuster results:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(paste your gobuster output here)
+</code></pre></div>
+<p><strong>Token 1 (from HTML source):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Token Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token 2 (from dashboard):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Token Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token 3 (from MySQL query):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Token Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Assembled flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>OCR{___________________________}
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-8-interpret-the-results">Step 8: Interpret the Results</h3>
+<p>Review the three tokens you collected and consider what each one represents in the context of a real-world assessment.</p>
+<ul>
+<li><strong>Token 1 (HTML source comment)</strong>: Sensitive information left in client-facing code. Any visitor who views the page source can see comments, build tags, and debug output. Production deployments should strip all development comments before release.</li>
+<li><strong>Token 2 (staff dashboard)</strong>: Accessible because the portal used default credentials. An attacker who guesses or brute-forces the login gains access to everything behind the authentication wall. Changing default credentials before deployment is a baseline security requirement.</li>
+<li><strong>Token 3 (MySQL database)</strong>: Reachable because the dashboard leaked connection strings and the database accepted remote connections. Storing plaintext credentials in a web interface and exposing a database port to the network creates a direct path from web access to data exfiltration.</li>
+</ul>
+<p>Each token maps to a common vulnerability category: information disclosure, weak authentication, and insecure backend configuration.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{&lt;htmlsource_token&gt;_&lt;dashboard_token&gt;_&lt;database_token&gt;}</code></p>
+<p>Where <code>&lt;htmlsource_token&gt;</code> is the value from the staff portal HTML comment, <code>&lt;dashboard_token&gt;</code> is from the login dashboard response, and <code>&lt;database_token&gt;</code> is from the MySQL audit_tokens table.</p>
+</div>
+<h3 id="step-9-submit-the-flag">Step 9: Submit the Flag</h3>
+<p>Combine the three tokens you collected into a single flag using the <code>OCR{...}</code> format. Separate each token with an underscore. Paste the assembled flag into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Consider each question carefully before checking the answer. These questions connect the lab techniques to broader security concepts.</p>
+<p><strong>1. An entry in robots.txt does not prevent access to a directory. Why do organizations still use the file, and why is it valuable to a penetration tester?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Organizations use robots.txt to prevent search engines from indexing pages that are not meant for public discovery; staging environments, admin panels, or internal tools. The file does not enforce access control; it relies on crawlers voluntarily obeying the directives. For a penetration tester, robots.txt is valuable precisely because it acts as a directory of paths the organization considers sensitive. Reading it provides enumeration results without sending a single brute-force request.</p>
+</details>
+<p><strong>2. The staff portal used the credentials admin / NovaTech2024#; a pattern combining a generic username with the company name and year. What makes default credentials particularly dangerous compared to weak passwords?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Default credentials are dangerous because they are predictable and widely known. A weak password might be short or simple, but an attacker still needs to guess or crack it. Default credentials follow documented patterns; vendor manuals, setup guides, and public databases list them. An attacker who recognizes the software or vendor can look up the default login without any brute-forcing. The combination of a generic username like "admin" with a company-themed password is especially common in internal tools that teams deploy quickly and forget to harden.</p>
+</details>
+<p><strong>3. The MySQL database was accessible from your attacker machine on port 3306. Devon Harris stated the database was "not internet-facing." What network segmentation failure does the lab demonstrate?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The database server accepted connections from any host on the subnet, not only from the web application server. In a properly segmented network, the database would sit in a restricted network zone with firewall rules allowing connections only from the application tier. The lab demonstrates that "not internet-facing" does not mean "not accessible"; a host on the same internal network (or VPN) can still reach the database if no firewall rules enforce segmentation between zones.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Directory enumeration</strong> using tools like gobuster and passive sources like robots.txt reveals web application paths that developers intended to keep hidden but failed to protect with access controls</li>
+<li><strong>Default credentials</strong> remain one of the most common entry points into internal applications; changing factory-set usernames and passwords before production deployment is a non-negotiable security step</li>
+<li><strong>HTML source code</strong> can leak sensitive information through comments, build tags, and debug output that developers leave in place during the transition from development to production</li>
+<li><strong>Backend database exposure</strong> occurs when connection credentials are displayed in web interfaces and the database server accepts connections from hosts outside the application tier; proper network segmentation and credential management prevent both issues</li>
+<li><strong>Chaining low-severity findings</strong> (a robots.txt entry, a default login, a leaked connection string) can produce high-impact access; Week 11 builds on these chaining techniques with more complex multi-stage assessments</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

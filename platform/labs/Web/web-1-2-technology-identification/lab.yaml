@@ -1,0 +1,141 @@
+name: Technology Identification
+description: Continuing your TechStart assessment, you've discovered directories. Now identify the underlying technologies to understand the attack surface.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Understand technology identification concepts
+  - Use Wappalyzer and browser DevTools to identify technologies
+  - Analyze HTTP headers for server information
+  - Identify web frameworks and CMS platforms
+  - Capture the flag
+
+scenario: |
+  Continuing your assessment of TechStart Inc.'s web application, you've successfully 
+  discovered several directories and files. Sarah Chen wants to understand what 
+  technologies are powering their application and whether any known vulnerabilities 
+  exist in those technologies.
+  
+  Your previous reconnaissance revealed the application is accessible at target.lab. 
+  Now you need to identify the web server, programming languages, frameworks, CMS 
+  platforms, and any other technologies in use. This information will help you 
+  identify potential attack vectors and known vulnerabilities.
+  
+  Your objective: Identify all technologies, frameworks, and server information 
+  running on the web application. Pay special attention to version numbers, as these 
+  can reveal known security issues.
+
+hostnames:
+  - ip_offset: "23"
+    hostname: "target.lab"
+    description: "Target web application"
+
+
+
+flag: "OCR{t3ch_1d3nt1f1c4t10n_b4s1c}"
+
+hints:
+  - text: |
+      **Technology identification** (also called fingerprinting) reveals the software stack powering a web application. This includes web servers, programming languages, frameworks, CMS platforms, and JavaScript libraries.
+
+      Why this matters:
+      - **Known vulnerabilities**: Specific versions may have public exploits
+      - **Attack surface**: Different technologies have different weaknesses
+      - **Configuration issues**: Default settings vary by platform
+      - **Targeted attacks**: Knowing the stack helps craft specific exploits
+
+      Your goal is to identify all technologies running on the TechStart application.
+    unlock_after_minutes: 0
+
+  - text: |
+      **HTTP headers** are the primary source of technology information. Servers often reveal their identity through response headers.
+
+      Common revealing headers:
+      - `Server`: Web server software and version (Apache, Nginx, IIS)
+      - `X-Powered-By`: Backend language/framework (PHP, ASP.NET)
+      - `X-AspNet-Version`: Specific .NET version
+      - `X-Generator`: CMS platform (WordPress, Drupal)
+
+      You can view headers using browser DevTools (F12 → Network tab) or command-line tools.
+    unlock_after_minutes: 5
+
+  - text: |
+      **curl** is a command-line tool for transferring data with URLs. It's perfect for examining HTTP headers without a browser.
+
+      Basic header inspection:
+
+      ```bash
+      curl -I <URL>
+      ```
+
+      The `-I` flag (or `--head`) fetches only headers, not the full page content.
+
+      Install curl: `sudo apt install curl` (usually pre-installed on Kali)
+    unlock_after_minutes: 10
+
+  - text: |
+      To fetch headers from a web server using curl:
+
+      ```bash
+      curl -I http://target.lab
+      ```
+
+      Useful curl flags for reconnaissance:
+      - `-I` or `--head`: Fetch headers only (HEAD request)
+      - `-v` or `--verbose`: Show full request and response
+      - `-L`: Follow redirects
+      - `-A <agent>`: Set custom User-Agent
+
+      Example verbose request: `curl -v http://target.lab`
+    unlock_after_minutes: 15
+
+  - text: |
+      **WhatWeb** is another powerful tool for technology identification. It recognizes thousands of web technologies including CMS platforms, blogging tools, analytics packages, and more.
+
+      ```bash
+      whatweb http://target.lab
+      ```
+
+      WhatWeb provides:
+      - Web server identification
+      - Programming languages and frameworks
+      - CMS and plugins
+      - JavaScript libraries
+      - Meta information
+
+      Install: `sudo apt install whatweb`
+    unlock_after_minutes: 20
+
+  - text: |
+      Run both curl and whatweb against the target:
+
+      ```bash
+      # Check HTTP headers
+      curl -I http://target.lab
+
+      # Comprehensive technology fingerprinting
+      whatweb http://target.lab
+      ```
+
+      Look for:
+      - **Server header**: Reveals web server (Apache, Nginx, etc.)
+      - **X-Powered-By**: Backend technology (PHP, Node.js, ASP.NET)
+      - **Version numbers**: Specific software versions
+      - **Framework signatures**: Rails, Django, Laravel, etc.
+
+      The flag relates to the identified technology stack. Examine the headers and whatweb output carefully.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/webpt/CH_WEB01_Web_Reconnaissance/02_Technology_Identification/"
+
+test:
+  steps:
+    - name: "Web server responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+    - name: "Technology headers are present"
+      command: "curl -sI http://{target.webserver}/ | grep -i 'X-Framework'"
+      expect: "WordPress"
+    - name: "Flag file exists in wp-admin directory"
+      command: "curl -s http://{target.webserver}/wp-admin/flag.txt"
+      expect: "OCR{t3ch_1d3nt1f1c4t10n_b4s1c}"

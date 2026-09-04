@@ -1,0 +1,1223 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.1: FTP Credential Extraction - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-21-ftp-credential-extraction" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.1: FTP Credential Extraction
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-why-ftp-is-dangerous" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Why FTP Is Dangerous
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-ftp-display-filters-in-tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: FTP Display Filters in tshark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise-and-note-your-target-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise and Note Your Target IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ssh-into-the-analyst-workstation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SSH into the Analyst Workstation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-locate-the-pcap-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Locate the PCAP File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-get-a-protocol-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Get a Protocol Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-find-the-successful-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Find the Successful Login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-extract-the-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Extract the Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-follow-the-tcp-stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Follow the TCP Stream
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-21-ftp-credential-extraction">Exercise 2.1: FTP Credential Extraction</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 2.1 is the first exercise in Chapter N2 (PCAP Forensics). The workflow here differs
+from Chapter N1. Instead of downloading log files with <code>curl</code>, you SSH into an
+analyst workstation where the packet capture is already staged. You then use
+tshark; the command-line version of Wireshark; to dissect the traffic directly
+from the terminal. If you completed Exercise 1.2, you already have the basics of
+tshark. this exercise builds on that foundation with protocol-specific filtering.</p>
+<p>Make sure you have:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Completed all Chapter N1 labs</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> VPN connected and verified</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> tshark installed on your local machine (<code>tshark --version</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SSH client available in your terminal</li>
+</ul>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>MediCare Regional Hospital's intrusion detection system has flagged unusual FTP
+activity on the medical records server. FTP transmits credentials in cleartext,
+meaning anyone who captures the network traffic can read usernames and passwords
+directly from the packets. The IDS alert suggests that unauthorized access may
+have occurred. Your task is to analyze the captured traffic, extract any
+credentials transmitted over FTP, and determine what data the attacker accessed
+after authentication.</p>
+<hr />
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>SSH into the analyst workstation and locate the PCAP file</li>
+<li>Use tshark to identify FTP authentication traffic in the capture</li>
+<li>Extract credentials from FTP USER and PASS commands</li>
+<li>Determine whether the login attempt succeeded or failed</li>
+<li>Identify what files were accessed after authentication</li>
+<li>Find and submit the flag</li>
+</ul>
+<hr />
+<h2 id="background-why-ftp-is-dangerous">Background: Why FTP Is Dangerous</h2>
+<p>FTP (File Transfer Protocol) dates from 1971 (RFC 114) and transmits everything
+in cleartext; usernames, passwords, commands, and file contents. Unlike SFTP,
+which tunnels through SSH, FTP has no encryption layer. Anyone capturing network
+traffic between the client and server can read FTP credentials directly from the
+packets, exactly as they were typed.</p>
+<p>In healthcare environments, using FTP to transfer patient data is a compliance
+violation under HIPAA, which requires encryption for protected health information
+(PHI) in transit. Despite this, legacy FTP servers remain common in organizations
+that have not modernized their file transfer infrastructure.</p>
+<hr />
+<h2 id="tool-primer-ftp-display-filters-in-tshark">Tool Primer: FTP Display Filters in tshark</h2>
+<p>Since this is the first protocol-specific tshark lab, the table below lists the
+display filters you will use throughout the walkthrough.</p>
+<table>
+<thead>
+<tr>
+<th>Filter</th>
+<th>What It Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ftp</code></td>
+<td>All FTP control channel traffic</td>
+</tr>
+<tr>
+<td><code>ftp.request.command == "USER"</code></td>
+<td>Username commands sent by the client</td>
+</tr>
+<tr>
+<td><code>ftp.request.command == "PASS"</code></td>
+<td>Password commands sent by the client</td>
+</tr>
+<tr>
+<td><code>ftp.request.command == "RETR"</code></td>
+<td>File download (retrieve) commands</td>
+</tr>
+<tr>
+<td><code>ftp.response.code == 230</code></td>
+<td>Successful login responses</td>
+</tr>
+<tr>
+<td><code>ftp.response.code == 530</code></td>
+<td>Failed login responses</td>
+</tr>
+</tbody>
+</table>
+<p>FTP response codes follow a pattern: codes beginning with 2 indicate success,
+codes beginning with 5 indicate permanent failure. The two you care about most
+during credential analysis are 230 (User logged in) and 530 (Login incorrect).</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise-and-note-your-target-ip">Step 1: Launch the Exercise and Note Your Target IP</h3>
+<p>Start the lab from the OpenCyberRange platform and note the target IP address
+displayed on the launch page.</p>
+<h3 id="step-2-ssh-into-the-analyst-workstation">Step 2: SSH into the Analyst Workstation</h3>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the analyst workstation</p>
+<p>Replace <code>&lt;target_ip&gt;</code> with the address shown on the launch page. The SSH session runs from your Kali terminal and lands you on the staged analyst host.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ssh<span class="w"> </span>analyst@&lt;target_ip&gt;
+</code></pre></div>
+<p>When prompted, enter the password: <code>MediCare2024#</code>. You should land in the <code>/home/analyst</code> directory.</p>
+</div>
+<h3 id="step-3-locate-the-pcap-file">Step 3: Locate the PCAP File</h3>
+<div class="admonition target">
+<p class="admonition-title">Confirm the packet capture is staged</p>
+<p>Run this on the analyst workstation after the SSH session connects. The listing verifies the capture file is present before you begin analysis.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ls<span class="w"> </span>-lh<span class="w"> </span>/home/analyst/captures/
+</code></pre></div>
+<p>You should see <code>medical-records-ftp.pcap</code> in the listing.</p>
+</div>
+<p>If you prefer to analyze the file on your local Kali machine, SCP it from a
+separate terminal.</p>
+<div class="admonition kali">
+<p class="admonition-title">Copy the capture to Kali (optional)</p>
+<p>Run this from a fresh Kali terminal, not from inside the SSH session. The file lands in your current directory for local analysis.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>scp<span class="w"> </span>analyst@&lt;target_ip&gt;:/home/analyst/captures/medical-records-ftp.pcap<span class="w"> </span>.
+</code></pre></div>
+<p>For this walkthrough, all remaining commands run directly on the analyst workstation.</p>
+</div>
+<h3 id="step-4-get-a-protocol-overview">Step 4: Get a Protocol Overview</h3>
+<div class="admonition target">
+<p class="admonition-title">Get a protocol hierarchy overview</p>
+<p>Run this on the analyst workstation. The protocol hierarchy statistics (<code>io,phs</code>) show a breakdown of every protocol in the PCAP by packet count and byte volume.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/medical-records-ftp.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+<p>Look for <code>ftp</code> in the output to confirm that FTP control channel traffic is present.</p>
+</div>
+<h3 id="step-5-find-the-successful-login">Step 5: Find the Successful Login</h3>
+<div class="admonition target">
+<p class="admonition-title">Filter for the successful login response</p>
+<p>Run this on the analyst workstation. The filter isolates the FTP response code that indicates a successful authentication.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/medical-records-ftp.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;ftp.response.code == 230&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ftp.response.arg
+</code></pre></div>
+<p>The <code>ftp.response.code == 230</code> filter captures packets where the server responded with code 230 (User logged in) and displays the frame number and response text.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Frame number of the 230 response: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Response text returned by the server: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-6-extract-the-credentials">Step 6: Extract the Credentials</h3>
+<div class="admonition target">
+<p class="admonition-title">Extract every credential pair</p>
+<p>Run this on the analyst workstation. The filter pulls every USER and PASS command transmitted in the capture so you can read the cleartext credentials.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/medical-records-ftp.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;ftp.request.command == &quot;USER&quot; || ftp.request.command == &quot;PASS&quot;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ftp.request.command<span class="w"> </span>-e<span class="w"> </span>ftp.request.arg
+</code></pre></div>
+<p>The output shows multiple USER/PASS pairs. Most are followed by 530 (failed login) responses. One pair succeeded. Identify the credentials that preceded the 230 response you found in Step 5.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Successful username: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Successful password (flag): <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Frame</th>
+<th>Command</th>
+<th>Argument</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>USER</td>
+<td></td>
+<td>530 (failed)</td>
+</tr>
+<tr>
+<td></td>
+<td>PASS</td>
+<td></td>
+<td>530 (failed)</td>
+</tr>
+<tr>
+<td></td>
+<td>USER</td>
+<td></td>
+<td>230 (success)</td>
+</tr>
+<tr>
+<td></td>
+<td>PASS</td>
+<td></td>
+<td>230 (success)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="step-7-follow-the-tcp-stream">Step 7: Follow the TCP Stream</h3>
+<p>To see the complete FTP conversation; including what the attacker did after
+logging in; follow the TCP stream that contains the successful login.</p>
+<div class="admonition target">
+<p class="admonition-title">Find the TCP stream for the successful login</p>
+<p>Run this on the analyst workstation. The stream number ties together every packet in the successful FTP conversation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/medical-records-ftp.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;ftp.response.code == 230&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>tcp.stream
+</code></pre></div>
+<p>Note the stream number returned; you feed it into the next command.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Reconstruct the full FTP conversation</p>
+<p>Run this on the analyst workstation. Replace <code>&lt;stream&gt;</code> with the number from the previous command to reassemble the entire conversation in readable form.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/medical-records-ftp.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>follow,tcp,ascii,&lt;stream&gt;
+</code></pre></div>
+<p>In the output, look for the <code>RETR</code> command, which tells you what file the attacker downloaded. The file <code>patient_records.db</code> confirms data exfiltration from the medical records server.</p>
+</div>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The PCAP contains several failed login attempts before the successful one.
+What usernames were tried, and what do they tell you about the attacker?</strong></p>
+<blockquote>
+<p>The failed attempts used common/default usernames; admin, root, test, backup,
+and ftp; all returning response code 530. The pattern is consistent with a
+brute-force dictionary attack or automated scanning. The successful login used
+"medrecords," which is specific to this system, suggesting the attacker had
+prior knowledge of the target or performed reconnaissance beforehand.</p>
+</blockquote>
+<p><strong>2. After logging in, the attacker downloaded <code>patient_records.db</code>. How would
+you find all files accessed using tshark?</strong></p>
+<blockquote>
+<p>Filter for the RETR command: <code>tshark -r captures/medical-records-ftp.pcap -Y 'ftp.request.command == "RETR"' -T fields -e ftp.request.arg</code>. The filter displays the
+filename for every RETR (file retrieval) command. You can also check for <code>STOR</code>
+(upload), <code>LIST</code> (directory listing), and <code>DELE</code> (delete) to build a complete
+picture of the attacker's activity.</p>
+</blockquote>
+<p><strong>3. What protocol should replace FTP for transferring sensitive files?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>SFTP (SSH File Transfer Protocol) or SCP (Secure Copy). Both encrypt the
+entire session including credentials and file contents. FTPS (FTP over TLS)
+is another option but less commonly deployed. In healthcare, HIPAA requires
+encryption in transit for protected health information; unencrypted FTP is a
+compliance violation regardless of whether an attacker is present.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>FTP transmits credentials and file contents in cleartext; a single packet
+  capture reveals everything, including usernames, passwords, and transferred
+  data</li>
+<li>Response code 230 means successful login; 530 means failure; filter on these
+  codes to find what matters quickly and skip the noise</li>
+<li>The tshark workflow you used here (protocol overview, broad filter, narrow
+  filter, stream follow) works for analyzing any protocol, not just FTP</li>
+<li>Always investigate what the attacker did after authentication, not just the
+  credentials themselves; the RETR command revealed data exfiltration</li>
+<li>SFTP or SCP should replace FTP wherever sensitive data is involved, especially
+  in environments subject to compliance requirements like HIPAA</li>
+</ul>
+<hr />
+<p><em>Next: Exercise 2.2; SMTP Email Analysis</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

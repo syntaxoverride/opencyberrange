@@ -1,0 +1,547 @@
+name: LDAP Group Enumeration
+description: Enumerate groups and memberships on FinanceCorp's Active Directory to understand privilege structure.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - enumerate groups and memberships
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your user enumeration of FinanceCorp's Active Directory has revealed numerous user 
+  accounts. James Mitchell wants to understand the group structure and memberships, 
+  as this information helps identify high-privilege accounts and potential attack 
+  paths.
+  
+  Group enumeration provides insight into privilege structure and helps identify 
+  accounts with elevated permissions. FinanceCorp needs to know if this information 
+  is exposed through LDAP.
+  
+  Your objective: Enumerate groups and group memberships on FinanceCorp's Active 
+  Directory. Document group structures and identify high-privilege groups and their 
+  members.
+
+flag: "OCR{ldap_gr0up_3num}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding LDAP Group Enumeration
+
+      ### Why Group Enumeration Matters
+
+      Groups define the **privilege structure** of an organization. In a
+      penetration test, enumerating groups reveals:
+
+      - **Who has administrative access** -- Members of admin groups
+      - **Privilege escalation paths** -- Users in multiple high-privilege groups
+      - **Service accounts** -- Often members of specific service groups
+      - **Organizational structure** -- Departments, teams, and roles
+      - **Access control boundaries** -- What resources are protected by groups
+      - **Nested group relationships** -- Groups that contain other groups
+
+      ### How Groups Work in LDAP
+
+      LDAP directories store groups as entries with specific object classes.
+      Each group entry contains references to its members. There are several
+      group types used in LDAP:
+
+      | Object Class       | Member Attribute   | Description                     |
+      |--------------------|--------------------|---------------------------------|
+      | `posixGroup`       | `memberUid`        | UNIX/Linux groups (stores UIDs) |
+      | `groupOfNames`     | `member`           | Standard LDAP group (stores DNs)|
+      | `groupOfUniqueNames`| `uniqueMember`    | Unique member group (stores DNs)|
+      | `group`            | `member`           | Active Directory group          |
+
+      ### Group Structure in a Typical Directory
+
+      ```
+      dc=financecorp,dc=local
+        ou=Groups
+          cn=admins          (posixGroup, gidNumber=1000)
+            memberUid: jmitchell
+            memberUid: admin
+          cn=developers      (posixGroup, gidNumber=1001)
+            memberUid: schen
+            memberUid: developer1
+          cn=finance         (posixGroup, gidNumber=1002)
+            memberUid: accountant1
+          cn=IT              (groupOfNames)
+            member: cn=James Mitchell,ou=Users,dc=financecorp,dc=local
+      ```
+
+      ### The Intelligence Value of Groups
+
+      From a penetration testing perspective, groups tell you:
+
+      1. **Who to target** -- Members of admin/privileged groups
+      2. **What exists** -- Groups named "Database", "VPN", "Backup"
+         reveal infrastructure
+      3. **Segregation of duties** -- Or lack thereof
+      4. **Stale accounts** -- Users in groups they should not be in
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tool Introduction: LDAP Filters for Group Enumeration
+
+      ### LDAP Filters for Finding Groups
+
+      Groups are identified by their **objectClass**. The primary filters
+      for group enumeration are:
+
+      ```bash
+      # POSIX groups (Linux/UNIX style)
+      "(objectClass=posixGroup)"
+
+      # Standard LDAP groups
+      "(objectClass=groupOfNames)"
+
+      # Unique member groups
+      "(objectClass=groupOfUniqueNames)"
+
+      # Any type of group (OR filter)
+      "(|(objectClass=posixGroup)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))"
+      ```
+
+      ### Key Group Attributes
+
+      When querying groups, request these attributes:
+
+      | Attribute        | Description                               |
+      |------------------|-------------------------------------------|
+      | `cn`             | Group name                                |
+      | `gidNumber`      | UNIX group ID (posixGroup)                |
+      | `memberUid`      | Member usernames (posixGroup)             |
+      | `member`         | Member DNs (groupOfNames)                 |
+      | `uniqueMember`   | Member DNs (groupOfUniqueNames)           |
+      | `description`    | Group description                         |
+
+      ### Basic ldapsearch for Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" \
+        cn gidNumber memberUid description
+      ```
+
+      This returns all POSIX groups with their names, GIDs, members,
+      and descriptions.
+
+      ### Searching for groupOfNames
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=groupOfNames)" \
+        cn member description
+      ```
+
+      Note the difference: `posixGroup` uses `memberUid` (stores plain
+      usernames), while `groupOfNames` uses `member` (stores full DNs).
+
+      ### Searching Within the Groups OU
+
+      If you know groups are in a specific OU:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "ou=Groups,dc=financecorp,dc=local" \
+        "(objectClass=*)"
+      ```
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Group Enumeration Techniques
+
+      ### Strategy 1: Discover All Group Types
+
+      Start by finding what group object classes are in use:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))" \
+        objectClass cn
+      ```
+
+      This reveals which group types are configured in the directory.
+
+      ### Strategy 2: Enumerate POSIX Groups and Members
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" \
+        cn gidNumber memberUid
+      ```
+
+      Example output:
+
+      ```
+      dn: cn=admins,ou=Groups,dc=financecorp,dc=local
+      cn: admins
+      gidNumber: 1000
+      memberUid: jmitchell
+      memberUid: admin
+
+      dn: cn=developers,ou=Groups,dc=financecorp,dc=local
+      cn: developers
+      gidNumber: 1001
+      memberUid: schen
+      memberUid: developer1
+      ```
+
+      ### Strategy 3: Find Privileged Groups
+
+      Search for groups with names suggesting elevated privileges:
+
+      ```bash
+      # Groups with "admin" in the name
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(&(objectClass=posixGroup)(cn=*admin*))" \
+        cn memberUid
+
+      # Groups with "root" or "sudo" in the name
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(cn=*root*)(cn=*sudo*)(cn=*admin*)(cn=*wheel*))" \
+        cn memberUid
+      ```
+
+      ### Strategy 4: Reverse Lookup -- Find Groups for a User
+
+      Once you know a username, find all groups they belong to:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(memberUid=jmitchell)" cn
+      ```
+
+      For groupOfNames, use the full DN:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(member=cn=James Mitchell,ou=Users,dc=financecorp,dc=local)" cn
+      ```
+
+      ### Strategy 5: Count Group Members
+
+      To understand group sizes:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" memberUid \
+        | grep "^memberUid:" | sort | uniq -c | sort -rn
+      ```
+
+      This helps identify the largest groups and most privileged users.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install Required Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils
+      ```
+
+      ### Step 2: Confirm LDAP Access and Get Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL namingContexts
+      ```
+
+      Note the Base DN for subsequent queries.
+
+      ### Step 3: Identify Group Container (OU)
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" -s one dn
+      ```
+
+      Look for an OU named `Groups`, `Group`, or similar.
+
+      ### Step 4: Enumerate All posixGroup Entries
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" \
+        cn gidNumber memberUid description
+      ```
+
+      Document each group, its GID, and all member UIDs.
+
+      ### Step 5: Enumerate groupOfNames Entries
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=groupOfNames)" \
+        cn member description
+      ```
+
+      Document each group and its member DNs.
+
+      ### Step 6: Identify Privileged Groups
+
+      Look for groups with names suggesting admin access:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(&(|(objectClass=posixGroup)(objectClass=groupOfNames))(|(cn=*admin*)(cn=*sudo*)(cn=*root*)))" \
+        cn memberUid member
+      ```
+
+      ### Step 7: Cross-Reference Users and Groups
+
+      For each admin user discovered, find their group memberships:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(memberUid=admin)" cn
+      ```
+
+      ### Step 8: Find the Flag
+
+      Search all group entries and their attributes for the flag:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames))" \
+        | grep -i "OCR{"
+      ```
+
+      If not found in group entries, search the entire directory:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for Group Enumeration
+
+      ### Enumerate All POSIX Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" \
+        cn gidNumber memberUid description
+      ```
+
+      ### Enumerate All groupOfNames Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=groupOfNames)" \
+        cn member description
+      ```
+
+      ### Enumerate All Group Types Combined
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))"
+      ```
+
+      ### Find Admin/Privileged Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(&(objectClass=posixGroup)(|(cn=*admin*)(cn=*sudo*)(cn=*root*)(cn=*wheel*)))" \
+        cn memberUid
+      ```
+
+      ### Reverse Lookup: Groups for a Specific User
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(memberUid=jmitchell)" cn
+      ```
+
+      ### List Only Group Names
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" cn \
+        | grep "^cn:" | awk '{print $2}'
+      ```
+
+      ### Search Groups Within Groups OU
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "ou=Groups,dc=financecorp,dc=local" \
+        "(objectClass=*)" cn memberUid member
+      ```
+
+      ### Search for Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils
+      ```
+
+      ### Step 2: Get the Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL namingContexts
+      ```
+
+      **Expected output:**
+
+      ```
+      dn:
+      namingContexts: dc=financecorp,dc=local
+      ```
+
+      ### Step 3: Identify the Groups OU
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" -s one dn
+      ```
+
+      **Expected output:**
+
+      ```
+      dn: ou=Users,dc=financecorp,dc=local
+      dn: ou=Groups,dc=financecorp,dc=local
+      ```
+
+      ### Step 4: Enumerate POSIX Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixGroup)" \
+        cn gidNumber memberUid description
+      ```
+
+      **Expected output:**
+
+      ```
+      dn: cn=admins,ou=Groups,dc=financecorp,dc=local
+      cn: admins
+      gidNumber: 1000
+      memberUid: jmitchell
+      memberUid: admin
+
+      dn: cn=developers,ou=Groups,dc=financecorp,dc=local
+      cn: developers
+      gidNumber: 1001
+      memberUid: schen
+      memberUid: developer1
+
+      dn: cn=finance,ou=Groups,dc=financecorp,dc=local
+      cn: finance
+      gidNumber: 1002
+      memberUid: accountant1
+      ```
+
+      ### Step 5: Check for groupOfNames
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=groupOfNames)" cn member
+      ```
+
+      ### Step 6: Find Privileged Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(&(objectClass=posixGroup)(cn=*admin*))" cn memberUid
+      ```
+
+      **Expected output:**
+
+      ```
+      dn: cn=admins,ou=Groups,dc=financecorp,dc=local
+      cn: admins
+      memberUid: jmitchell
+      memberUid: admin
+      ```
+
+      ### Step 7: Find the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+      The flag `OCR{...}` will appear in the directory entries.
+
+      ### Summary of Discovered Groups
+
+      | Group Name   | GID  | Members                | Type        |
+      |--------------|------|------------------------|-------------|
+      | admins       | 1000 | jmitchell, admin       | posixGroup  |
+      | developers   | 1001 | schen, developer1      | posixGroup  |
+      | finance      | 1002 | accountant1            | posixGroup  |
+
+      ### Penetration Testing Report Note
+
+      > **Finding**: Anonymous LDAP access permits complete group enumeration
+      > including membership lists. Administrative group members are fully
+      > disclosed, revealing high-value targets for credential attacks.
+      > The `admins` group membership (jmitchell, admin) identifies accounts
+      > with elevated privileges. **Risk**: High. **Recommendation**:
+      > Restrict anonymous read access to group entries. Implement ACLs
+      > that require authentication before group membership can be queried.
+      > Consider using LDAP referral integrity to prevent stale memberships.
+
+workbook: "wiki/range/winpt/CH07_LDAP_Enumeration/05_LDAP_Group_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify LDAP port 389 is open"
+      command: "nmap -Pn -p 389 {target.target} | grep '389/tcp'"
+      expect: "open"
+
+    - name: "Enumerate groups via anonymous LDAP bind"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' '(objectClass=posixGroup)' cn 2>&1 | grep '^cn:'"
+      expect: "admins"
+
+    - name: "LDAP search for flag"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{' || (sleep 3 && ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{')"
+      expect: "OCR{"

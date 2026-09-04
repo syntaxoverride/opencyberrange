@@ -1,0 +1,306 @@
+name: DNS Query Anomaly Detection
+description: MediCare Regional Hospital suspects malware on a workstation based on unusual network behavior. As a SOC analyst, analyze DNS query logs to identify suspicious domain lookups that indicate command-and-control (C2) communication.
+difficulty: beginner
+category: network-analysis
+duration_minutes: 45
+objectives:
+  - Understand DNS fundamentals and why attackers abuse DNS
+  - Analyze DNS query logs for suspicious patterns
+  - Identify characteristics of malware C2 domains
+  - Differentiate normal DNS traffic from data exfiltration
+  - Extract attacker infrastructure information
+  - Capture the flag
+
+scenario: |
+  You're a junior analyst at MediCare Regional Hospital's Security Operations Center (SOC).
+  Marcus Thompson, the CISO, has noticed unusual network behavior from a workstation in the
+  Radiology department. The workstation is generating an abnormally high volume of DNS queries,
+  and the EDR (Endpoint Detection and Response) system has flagged potential malware activity.
+
+  DNS (Domain Name System) is commonly abused by attackers for command-and-control (C2)
+  communication and data exfiltration. Malware often uses DNS queries to:
+  - Communicate with attacker-controlled servers
+  - Exfiltrate data encoded in subdomain names
+  - Bypass traditional firewall rules (DNS is rarely blocked)
+  - Establish persistence and receive commands
+
+  As a defender, recognizing malicious DNS patterns is critical for detecting compromised systems.
+
+  Your objective: Analyze the DNS query logs at 10.10.{user_id}.10 to identify suspicious
+  domain lookups. Determine what malware domain the infected workstation is communicating with
+  and document the pattern of the C2 communication.
+
+flag: "OCR{dns_3xf1ltr4t10n}"
+
+hints:
+  - text: |
+      **DNS Fundamentals for Security Analysts** - Understanding the protocol:
+
+      **What is DNS?**
+      - DNS translates human-readable domain names (google.com) to IP addresses (142.250.80.46)
+      - Every time you visit a website, your computer queries DNS first
+      - DNS operates on UDP port 53 (and TCP for large responses)
+      - Critical internet infrastructure that's essential for network communication
+
+      **Why attackers abuse DNS:**
+      - **Always allowed**: Firewalls rarely block DNS (would break internet access)
+      - **Blends in**: Legitimate networks generate thousands of DNS queries daily
+      - **Data channel**: Can encode data in subdomain names (data.evil.com)
+      - **Hard to detect**: Automated tools often miss malicious patterns
+      - **No encryption**: Standard DNS is plaintext (easy for attackers to use)
+
+      **Common DNS abuse techniques:**
+      1. **C2 Communication**: Malware queries attacker domains for commands
+      2. **Data Exfiltration**: Stolen data encoded in subdomain names
+      3. **Domain Generation Algorithms (DGA)**: Random domains to evade blocking
+      4. **DNS Tunneling**: Entire protocols tunneled through DNS queries
+      5. **Fast Flux**: Rapidly changing IPs to hide C2 servers
+
+      **Normal vs. Suspicious DNS Queries:**
+
+      **Normal (legitimate) queries:**
+      - google.com
+      - office365.com
+      - microsoft.com
+      - s3.amazonaws.com
+      - Known CDNs, cloud services, business applications
+
+      **Suspicious (malicious) patterns:**
+      - Long random subdomains: 7f4e9a2c1b8d.malware.tk
+      - Unusual TLDs: .tk, .xyz, .top, .cc (commonly used by attackers)
+      - High query frequency to same base domain
+      - Encoded data: base64-looking strings in subdomains
+      - Uncommon domains with no legitimate business purpose
+
+      DNS logs reveal what systems are communicating with - analyze them carefully!
+    unlock_after_minutes: 0
+
+  - text: |
+      **Analyzing DNS Query Logs** - A systematic approach:
+
+      **DNS log format basics:**
+      Most DNS logs include:
+      - Timestamp (when the query was made)
+      - Source IP (which workstation/device queried)
+      - Query Type (A, AAAA, TXT, etc.)
+      - Domain Name (what was looked up)
+      - Response (IP address or NXDOMAIN if not found)
+
+      **Example DNS log entry:**
+      ```
+      2024-01-04 14:23:15 10.50.1.45 A google.com -> 142.250.80.46
+      ```
+      This shows:
+      - Time: 14:23:15
+      - Source: 10.50.1.45 (Radiology workstation)
+      - Type: A record (IPv4 address lookup)
+      - Domain: google.com
+      - Result: 142.250.80.46
+
+      **Analysis workflow:**
+      1. **Access the DNS logs** - Connect to the DNS log server
+      2. **Identify queried domains** - What domains appear most frequently?
+      3. **Look for patterns** - Random strings? Unusual TLDs? High frequency?
+      4. **Check subdomain structure** - Are subdomains long and random?
+      5. **Correlate timing** - Rapid sequential queries to same domain?
+      6. **Investigate unknown domains** - Not recognized? Could be malicious
+
+      **Red flags in DNS logs:**
+      - Queries to domains you don't recognize
+      - Extremely long subdomain names (40+ characters)
+      - Random-looking strings (a7f9d2e4c1b8...)
+      - Uncommon TLDs (.tk, .xyz, .cc, .info, .top)
+      - High volume of queries to single domain (50+ queries)
+      - Base64-like encoding in subdomains
+      - Queries happening at regular intervals (automated)
+
+      **Tools for DNS log analysis:**
+      - `cat` or `less` - View log files
+      - `grep` - Search for specific domains or IPs
+      - `awk` - Extract specific fields (domains, IPs)
+      - `sort` and `uniq` - Find unique values and count occurrences
+      - `wc -l` - Count total queries
+
+      Malicious DNS queries leave distinct patterns - systematic analysis reveals them.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Finding Malicious Domains** - Practical detection techniques:
+
+      **Step 1: Access the DNS logs**
+      The DNS query logs are available via HTTP:
+      ```bash
+      # View logs in browser
+      http://10.10.{user_id}.10/dns.log
+
+      # Or download and analyze locally
+      curl http://10.10.{user_id}.10/dns.log > dns.log
+      ```
+
+      **Step 2: Identify most queried domains**
+      Count how many times each domain appears:
+      ```bash
+      # Extract domains and count occurrences
+      cat dns.log | grep -v '^#' | awk '{print $4}' | sort | uniq -c | sort -rn | head -20
+      ```
+
+      This shows the top 20 most queried domains. Look for:
+      - Unfamiliar domains with high query counts
+      - Domains that don't match normal business use
+      - Unusual TLDs or suspicious names
+
+      **Step 3: Examine suspicious domains**
+      Look at all queries to a specific domain:
+      ```bash
+      # Show all queries to a suspicious domain
+      grep "suspicious-domain.com" dns.log
+      ```
+
+      **Step 4: Check for data exfiltration patterns**
+      Malware often encodes data in subdomains:
+      ```bash
+      # Look for long random subdomains
+      grep -E "[a-z0-9]{20,}\." dns.log
+      ```
+
+      **Step 5: Identify the infected workstation**
+      Once you find a malicious domain, check which IP is querying it:
+      ```bash
+      # Extract source IPs querying the malicious domain
+      grep "malicious.domain" dns.log | awk '{print $3}' | sort -u
+      ```
+
+      **What to look for:**
+      - One domain with 30-50+ queries (way more than normal)
+      - Subdomains that look like random data or encoded strings
+      - Queries from a single workstation IP
+      - TLDs commonly used by attackers (.tk, .xyz, .top)
+
+      The malicious domain will stand out from normal business traffic.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Malware DNS Patterns** - Specific indicators of compromise:
+
+      **Data Exfiltration via DNS:**
+      Attackers encode stolen data in subdomain names:
+      ```
+      Normal query:      www.google.com
+      Malicious query:   7a9f2e1c4b8d.c2-server.tk
+      Data exfil:        dXNlcjpwYXNzd29yZA.exfil.evil.xyz
+      ```
+
+      **Characteristics of C2 DNS queries:**
+      1. **High frequency**: Same base domain queried 50-100+ times
+      2. **Random subdomains**: Long strings of random characters
+      3. **Regular intervals**: Queries every few seconds/minutes (automated)
+      4. **Unusual TLDs**: .tk, .xyz, .top, .cc, .info (free/cheap domains)
+      5. **No business context**: Domain doesn't match hospital operations
+      6. **Unknown domain**: Not in any legitimate service list
+
+      **Command-line analysis for this lab:**
+
+      **Find domains with most queries:**
+      ```bash
+      curl -s http://10.10.{user_id}.10/dns.log | \
+        grep -v '^#' | awk '{print $4}' | sort | uniq -c | sort -rn | head -10
+      ```
+
+      **Look for long random subdomains:**
+      ```bash
+      curl -s http://10.10.{user_id}.10/dns.log | \
+        grep -v '^#' | awk '{print $4}' | grep -E "^[a-z0-9]{15,}\."
+      ```
+
+      **Check unusual TLDs:**
+      ```bash
+      curl -s http://10.10.{user_id}.10/dns.log | \
+        grep -v '^#' | awk '{print $4}' | grep -E "\.(tk|xyz|top|cc|info)$"
+      ```
+
+      **Pattern to identify:**
+      - Look for domains with suspicious patterns
+      - The malware domain will have significantly more queries than legitimate domains
+      - Subdomains may contain encoded data or random strings
+      - The flag is hidden in the malicious domain pattern
+
+      Focus on anomalies - what doesn't fit normal hospital network traffic?
+    unlock_after_minutes: 15
+
+  - text: |
+      **Solution Approach** for MediCare's DNS logs:
+
+      **Step-by-step walkthrough:**
+
+      **1. Download the DNS logs:**
+      ```bash
+      curl http://10.10.{user_id}.10/dns.log -o dns.log
+      ```
+
+      **2. Find the most frequently queried domains:**
+      ```bash
+      cat dns.log | grep -v '^#' | awk '{print $4}' | sort | uniq -c | sort -rn | head -15
+      ```
+
+      Expected output will show:
+      - 8-12 queries to google.com, microsoft.com (normal)
+      - 40-60 queries to a suspicious domain (ABNORMAL)
+
+      **3. Identify the suspicious domain:**
+      Look for a domain with:
+      - Significantly more queries than others (30+ queries)
+      - Unusual TLD (.tk, .xyz, .cc)
+      - Random-looking name or suspicious pattern
+      - Not a recognized legitimate service
+
+      **4. Examine the suspicious domain queries:**
+      ```bash
+      grep "suspicious-domain.tk" dns.log
+      ```
+
+      Look for:
+      - Long random subdomains (data exfiltration)
+      - Pattern in the domain name itself
+      - Comments or analysis in the log
+
+      **5. Find the flag:**
+      The flag is embedded in the DNS logs. It may be:
+      - In the domain name pattern itself
+      - In a comment/analysis line
+      - Part of the malicious domain structure
+      - In a summary of the malware detection
+
+      **Search techniques:**
+      ```bash
+      # Search for flag directly
+      grep "OCR{" dns.log
+
+      # Search for analysis or alert comments
+      grep -i "flag\|malware\|c2\|exfiltration" dns.log
+
+      # Look at all comment lines
+      grep '^#' dns.log
+      ```
+
+      **Expected findings:**
+      - Malicious domain: One domain with 40-60 queries
+      - Pattern: Long random subdomains or suspicious base domain
+      - Source: Single infected workstation IP (10.50.x.x)
+      - TLD: Unusual extension like .tk or .xyz
+
+      The flag will be visible once you identify and analyze the malicious DNS traffic.
+      Look carefully at the domain names and log comments!
+    unlock_after_minutes: 20
+workbook: "wiki/range/netfor/CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/"
+
+test:
+  steps:
+    - name: "HTTP server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.dns-server}/"
+      expect: "200"
+    - name: "DNS log file accessible"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.dns-server}/dns.log"
+      expect: "200"
+    - name: "Flag found in DNS log"
+      command: "curl -s http://{target.dns-server}/dns.log | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{dns_3xf1ltr4t10n}"

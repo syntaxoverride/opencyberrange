@@ -1,0 +1,244 @@
+name: "DNS Data Exfiltration Analysis"
+description: |
+  Analyze DNS traffic to detect and decode data exfiltration via DNS tunneling.
+  Learn how attackers abuse DNS to bypass security controls and steal sensitive data.
+
+scenario: |
+  Marcus Thompson, MediCare Health Systems' Security Analyst, is investigating
+  a concerning alert from the network monitoring system. The IDS flagged an
+  unusual spike in DNS query volume from a single workstation in the billing
+  department. The queries are all valid DNS requests, so they passed through
+  the firewall without issue, but the sheer volume is suspicious.
+
+  Marcus suspects DNS tunneling - a technique where attackers encode data into
+  DNS queries to exfiltrate information while evading detection. The workstation
+  in question has access to the patient database, making this a potential HIPAA
+  breach if patient data was stolen.
+
+  Your task is to analyze the DNS traffic capture and determine if data
+  exfiltration occurred. If so, identify what was stolen and recover the
+  evidence of the attack.
+
+  **Analyst Workstation Credentials:**
+  - Host: 10.10.{user_id}.10
+  - Username: analyst
+  - Password: MediCare2024#
+  - PCAP Location: /home/analyst/captures/dns-tunnel.pcap
+
+objectives:
+  - SSH into network analyst workstation
+  - Analyze DNS traffic capture using Wireshark or tshark
+  - Identify suspicious DNS query patterns indicating tunneling
+  - Extract DNS query subdomains containing exfiltrated data
+  - Decode hexadecimal-encoded data from DNS queries
+  - Recover the exfiltrated information and evidence
+  - Understand how DNS tunneling bypasses security controls
+  - Capture the flag
+
+flag: "OCR{dns_tunn3l_d3t3ct3d}"
+
+hints:
+  - text: |
+      **DNS Tunneling Fundamentals** - Understanding the attack:
+
+      **What is DNS tunneling?**
+      - DNS tunneling works by encoding data into DNS query subdomains
+      - Instead of normal DNS queries like "www.google.com", attackers make queries like "encoded-data-here.malicious-domain.com"
+      - Each query carries a small chunk of data in the subdomain portion
+      - Attackers use this because DNS traffic is rarely inspected and usually allowed through firewalls
+
+      **Why DNS tunneling is dangerous:**
+      - Bypasses most firewalls (DNS is typically allowed)
+      - Hard to detect without specialized monitoring
+      - Can exfiltrate sensitive data in small chunks
+      - Often goes unnoticed in normal network traffic
+    unlock_after_minutes: 0
+
+  - text: |
+      **Wireshark Analysis - Identifying DNS Queries:**
+
+      **Basic DNS filtering in Wireshark:**
+      - Filter: `dns` - Shows all DNS traffic
+      - Filter: `dns.flags.response == 0` - Shows only DNS queries (not responses)
+      - Filter: `dns.flags.response == 1` - Shows only DNS responses
+
+      **What to look for:**
+      - Query names (dns.qry.name) show what domains are being requested
+      - Normal DNS traffic queries well-known domains (google.com, microsoft.com, etc.)
+      - Tunneling shows many queries to the same suspicious domain with different, long subdomains
+
+      **Using Wireshark Statistics:**
+      - Go to Statistics > DNS to see query frequency by domain
+      - Look for domains with 50+ queries that don't look like legitimate services
+      - Suspicious domains often have random-looking subdomains
+
+      **Command-line equivalent with tshark:**
+      ```bash
+      # Count DNS queries by domain
+      tshark -r captures/dns-tunnel.pcap -Y "dns.flags.response == 0" -T fields -e dns.qry.name | sort | uniq -c | sort -rn
+      ```
+    unlock_after_minutes: 5
+
+  - text: |
+      **Identifying Suspicious DNS Patterns** - What to look for:
+
+      **Suspicious DNS tunneling patterns:**
+      - **High frequency:** Many queries in a short time to the same domain
+      - **Long subdomains:** 20+ character random-looking subdomains
+      - **Same base domain:** All queries go to one suspicious domain (not google.com, etc.)
+      - **Sequential pattern:** Queries happening in order, like a data stream
+
+      **Comparison: Normal vs. Suspicious DNS:**
+      - **Normal:** Queries to various legitimate domains (google.com, microsoft.com, etc.)
+      - **Suspicious:** 50+ queries all to the same unknown domain with encoded subdomains
+
+      **Using tshark to identify the suspicious domain:**
+      ```bash
+      # Find domains with most queries
+      tshark -r captures/dns-tunnel.pcap -Y "dns.flags.response == 0" -T fields -e dns.qry.name | \
+        sed 's/\..*$//' | sort | uniq -c | sort -rn | head -10
+      ```
+
+      Look for a domain that appears many times with long, random-looking subdomains.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Extracting and Decoding Exfiltrated Data** - Recovering the stolen information:
+
+      **Once you identify the suspicious domain (e.g., data-exfil.tk):**
+
+      **Method 1: Using Wireshark GUI:**
+      1. Filter: `dns.qry.name contains "data-exfil.tk"`
+      2. You'll see 50+ queries with long hex-encoded subdomains
+      3. Extract the subdomains (the part before .data-exfil.tk)
+      4. Copy them in order and concatenate
+      5. Decode from hexadecimal to ASCII
+
+      **Method 2: Using tshark (command-line):**
+      ```bash
+      # Extract all query names for the suspicious domain
+      tshark -r captures/dns-tunnel.pcap -Y 'dns.qry.name contains "data-exfil.tk"' \
+        -T fields -e dns.qry.name
+      ```
+
+      **Method 3: Extract subdomains and decode automatically:**
+      ```bash
+      # Extract subdomains, concatenate, and decode from hex
+      tshark -r captures/dns-tunnel.pcap -Y 'dns.qry.name contains "data-exfil.tk"' \
+        -T fields -e dns.qry.name | cut -d. -f1 | tr -d '\n' | xxd -r -p
+      ```
+
+      The subdomains are encoded in hexadecimal. You need to extract them in order and decode them to reconstruct the exfiltrated data.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Complete Solution Walkthrough** - Step-by-step analysis:
+
+      **1. SSH to the analyst workstation:**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      Password: MediCare2024#
+      ```
+
+      **2. Navigate to captures directory:**
+      ```bash
+      cd ~/captures
+      ls -lh dns-tunnel.pcap
+      ```
+
+      **3. Open in Wireshark (GUI method):**
+      ```bash
+      wireshark dns-tunnel.pcap &
+      ```
+      - Filter: `dns.flags.response == 0` (DNS queries only)
+      - Go to Statistics > DNS > count by qry.name
+      - Identify the suspicious domain with many queries: `data-exfil.tk`
+
+      **4. Filter for the suspicious domain in Wireshark:**
+      - Filter: `dns.qry.name contains "data-exfil.tk"`
+      - You'll see 50+ queries with long hex-encoded subdomains
+      - Note the pattern: each query has a long random-looking subdomain
+
+      **5. Extract subdomains using tshark (command-line method):**
+      ```bash
+      # Extract all query names
+      tshark -r dns-tunnel.pcap -Y 'dns.qry.name contains "data-exfil.tk"' \
+        -T fields -e dns.qry.name
+      ```
+
+      **6. Decode the exfiltrated data:**
+      ```bash
+      # Extract subdomains, concatenate, and decode from hex to ASCII
+      tshark -r dns-tunnel.pcap -Y 'dns.qry.name contains "data-exfil.tk"' \
+        -T fields -e dns.qry.name | cut -d. -f1 | tr -d '\n' | xxd -r -p
+      ```
+
+      **7. Alternative: Use strings to search for the flag:**
+      ```bash
+      strings dns-tunnel.pcap | grep -i "OCR"
+      ```
+
+      **8. Extract the flag:**
+      The decoded data contains patient records and the flag: `OCR{...}`
+
+      **Prevention measures:**
+      - Monitor DNS query volume and length
+      - Implement DNS query inspection
+      - Block suspicious domains
+      - Use DNS security solutions that detect tunneling patterns
+      - Set rate limits on DNS queries per host
+    unlock_after_minutes: 20
+
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 60
+
+connection:
+  type: ssh
+  credentials:
+    username: analyst
+    password: "MediCare2024#"
+  port: 22
+
+files:
+  - path: /home/analyst/captures/dns-tunnel.pcap
+    description: Network capture showing DNS activity from billing workstation
+
+learning_objectives:
+  - Understand DNS tunneling and how it's used for data exfiltration
+  - Identify suspicious DNS query patterns in network traffic
+  - Use Wireshark to analyze DNS traffic and detect anomalies
+  - Extract and decode data hidden in DNS queries
+  - Recognize the importance of DNS monitoring in security operations
+
+tags:
+  - dns
+  - data-exfiltration
+  - dns-tunneling
+  - wireshark
+  - tshark
+  - encoding
+  - command-and-control
+workbook: "wiki/range/netfor/CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/"
+
+credentials:
+  - username: "analyst"
+    password: "MediCare2024#"
+    role: "analyst"
+    description: "Analyst workstation SSH credentials"
+
+test:
+  steps:
+    - name: "SSH accessible on analyst workstation"
+      command: "nc -w 5 {target.analyst-workstation} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "PCAP file exists on analyst workstation"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'ls /home/analyst/captures/dns-tunnel.pcap'"
+      expect: "dns-tunnel.pcap"
+    - name: "Flag found in PCAP captures"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'tshark -r /home/analyst/captures/dns-tunnel.pcap -Y \"dns.qry.name contains data-exfil.tk and dns.flags.response == 0\" -T fields -e dns.qry.name 2>/dev/null | sed \"s/\\.data-exfil\\.tk//\" | tr -d \"\\n\" | xxd -r -p | grep -o \"OCR{[^}]*}\"'"
+      expect: "OCR{dns_tunn3l_d3t3ct3d}"
+
+    - name: "Echo confirmed flag"
+      command: "echo 'OCR{dns_tunn3l_d3t3ct3d}'"
+      expect: "OCR{dns_tunn3l_d3t3ct3d}"

@@ -1,0 +1,1158 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.4: DNS Data Exfiltration - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-24-dns-data-exfiltration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.4: DNS Data Exfiltration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-dns-tunneling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: DNS Tunneling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ssh-into-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SSH into the Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-get-a-protocol-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Get a Protocol Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-list-dns-queries-and-count-by-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: List DNS Queries and Count by Domain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-filter-for-the-suspicious-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Filter for the Suspicious Domain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-check-for-long-query-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Check for Long Query Names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-extract-the-subdomain-portions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Extract the Subdomain Portions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-decode-the-exfiltrated-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Decode the Exfiltrated Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-read-the-decoded-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Read the Decoded Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-24-dns-data-exfiltration">Exercise 2.4: DNS Data Exfiltration</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 1.3 detected DNS anomalies in text-based logs. The current exercise takes DNS analysis further; instead of just identifying suspicious domains, you extract and decode data that was smuggled out through DNS queries. The key difference is the decode pipeline (<code>tshark</code> to <code>cut</code> to <code>tr</code> to <code>xxd</code>) that converts raw packet captures into readable stolen data. The decode pipeline is new and specific to this exercise.</p>
+<p>You should be comfortable using <code>tshark</code> display filters and field extraction from the previous labs. The new skill here is chaining multiple command-line tools together to transform raw network data into human-readable output.</p>
+<p>All analysis is performed via <code>tshark</code> over SSH. There is no Wireshark GUI available in this environment.</p>
+<h2 id="scenario">Scenario</h2>
+<p>MediCare's network monitoring system flagged a spike in DNS query volume from a billing department workstation. The alert triggered at 3:00 AM; well outside normal business hours for the billing department.</p>
+<p>DNS queries normally fly under the radar because firewalls never block them; every host on every network needs DNS to function. Marcus, the senior analyst, suspects DNS tunneling; a technique where attackers encode stolen data into DNS subdomain queries and send them to an attacker-controlled domain. The queries look legitimate on the surface, but the subdomains carry chunks of encoded information.</p>
+<p>If confirmed, this means patient data left the network through a channel that no firewall or proxy would have caught. For a healthcare organization handling protected health information, that constitutes a HIPAA breach with mandatory reporting requirements.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>SSH into the analysis container</li>
+<li>Identify the suspicious domain receiving high query volume</li>
+<li>Analyze the subdomain structure for signs of encoded data</li>
+<li>Extract and decode the exfiltrated data</li>
+<li>Determine what information was stolen</li>
+<li>Find and submit the flag</li>
+</ul>
+<h2 id="background-dns-tunneling">Background: DNS Tunneling</h2>
+<p>To understand DNS tunneling, you first need to understand what normal DNS traffic looks like.</p>
+<p>Normal DNS traffic consists of short, recognizable domain names queried sporadically. A user visits <code>mail.google.com</code>, their browser queries DNS, and the resolver returns an IP address. The domain names are human-readable, the queries are infrequent, and no meaningful data travels in the query itself. A typical workstation might generate a few hundred DNS queries per hour, spread across many different domains.</p>
+<p>DNS tunneling inverts this model. Instead of querying real domain names, the attacker's malware encodes stolen data into the subdomain portion of a DNS query. Each query carries a small chunk of hex-encoded data as a subdomain, sent to an attacker-controlled domain:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>4a6f686e20446f65.data-exfil.tk
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>3132332d34352d36.data-exfil.tk
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>37383920444f4220.data-exfil.tk
+</code></pre></div>
+<p>The attacker registers a domain (like <code>data-exfil.tk</code>) and runs an authoritative DNS server for it. Every query for <code>*.data-exfil.tk</code> reaches that server. The attacker collects the subdomains from each query and reassembles the hex data into the original stolen content.</p>
+<p>The encoding matters. Raw binary data or ASCII text cannot appear directly in a domain name; DNS labels have strict character restrictions. Hex encoding converts each byte of stolen data into two hexadecimal characters (0-9, a-f), which are valid in domain names. The trade-off is that each query can only carry a limited amount of data (DNS labels are capped at 63 characters), so the attacker must split the payload across many queries.</p>
+<p>DNS tunneling works because DNS is almost never blocked. Firewalls allow it. Proxies ignore it. Most security tools do not inspect the content of DNS queries.</p>
+<p>Detection indicators include:</p>
+<ul>
+<li><strong>High query volume</strong>: A single host sending 50 or more queries to a single domain in a short period</li>
+<li><strong>Long subdomains</strong>: Random-looking strings of hex or base64 characters where you would expect human-readable hostnames</li>
+<li><strong>Unusual TLDs</strong>: Free or inexpensive TLDs such as <code>.tk</code>, <code>.xyz</code>, <code>.top</code>, <code>.ml</code>, or <code>.ga</code> that attackers favor for disposable infrastructure</li>
+<li><strong>Rapid-fire timing</strong>: Queries arriving in quick succession with uniform intervals, suggesting automated generation</li>
+<li><strong>Single source</strong>: One IP address generating the bulk of the suspicious traffic</li>
+</ul>
+<p>this exercise differs from Exercise 1.3 in a critical way. Exercise 1.3 identified the anomaly; a suspicious domain with high query counts. Here, you go further: you extract the encoded subdomains from the packet capture and decode them to reveal exactly what data was stolen.</p>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Start the lab environment from the OpenCyberRange launcher. Wait for the container status to show as running before proceeding. this exercise uses a single container that provides SSH access to the analysis environment.</p>
+<h3 id="step-2-ssh-into-the-container">Step 2: SSH into the Container</h3>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the analysis container</p>
+<p>Run this from your Kali terminal. Replace <code>&lt;target_ip&gt;</code> with the address shown on the launch page. When prompted, enter the password <code>MediCare2024#</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ssh<span class="w"> </span>analyst@&lt;target_ip&gt;
+</code></pre></div>
+<p>You now have a shell on the analysis host.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Confirm the capture file is present</p>
+<p>Run this on the analysis container after the SSH session connects. The listing verifies the PCAP is staged before you start.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>captures/dns-tunnel.pcap
+</code></pre></div>
+<p>The file <code>~/captures/dns-tunnel.pcap</code> contains the network traffic captured from the billing department network segment during the time window identified by the monitoring alert.</p>
+</div>
+<h3 id="step-3-get-a-protocol-overview">Step 3: Get a Protocol Overview</h3>
+<div class="admonition target">
+<p class="admonition-title">Get a protocol hierarchy overview</p>
+<p>Run this on the analysis container. The <code>tshark -z io,phs</code> command displays a protocol hierarchy showing the byte and packet counts for each protocol in the capture.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/dns-tunnel.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+<p>The protocol hierarchy guides where to look next. You should see that DNS dominates the traffic. A capture that is overwhelmingly DNS; with very little HTTP, TLS, or other application traffic; is already unusual. In a normal network capture, you would expect a mix of protocols. A capture dominated by DNS suggests automated or programmatic query generation rather than organic browsing.</p>
+</div>
+<h3 id="step-4-list-dns-queries-and-count-by-domain">Step 4: List DNS Queries and Count by Domain</h3>
+<div class="admonition target">
+<p class="admonition-title">List all DNS queries</p>
+<p>Run this on the analysis container. The filter <code>dns.flags.response == 0</code> selects only DNS queries (not responses). The <code>-T fields</code> option outputs tab-separated values, and the <code>-e</code> flags specify which fields to include: frame number, source IP, and the queried domain name.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/dns-tunnel.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns.flags.response == 0&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>dns.qry.name
+</code></pre></div>
+<p>The output shows every outbound DNS query with its source IP and the domain name being queried.</p>
+</div>
+<p>To identify which domains receive the most queries, count by base domain.</p>
+<div class="admonition target">
+<p class="admonition-title">Count queries by base domain</p>
+<p>Run this on the analysis container. The <code>rev | cut | rev</code> pipeline reverses each domain name, extracts the last two fields (which become the base domain), reverses it back, and counts occurrences.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/dns-tunnel.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns.flags.response == 0&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>dns.qry.name<span class="w"> </span><span class="p">|</span><span class="w"> </span>rev<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d.<span class="w"> </span>-f1-2<span class="w"> </span><span class="p">|</span><span class="w"> </span>rev<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-rn<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+</code></pre></div>
+<p>The <code>sort -rn</code> flag sorts numerically in descending order, so the domains with the highest query counts appear first.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>What are the top queried domains in the capture?</li>
+<li>Which domain stands out with 50 or more queries?</li>
+<li>Is that query volume normal for a single domain from a single workstation?</li>
+<li>What TLD does the suspicious domain use, and is it commonly associated with legitimate services?</li>
+</ul>
+<hr />
+<h3 id="step-5-filter-for-the-suspicious-domain">Step 5: Filter for the Suspicious Domain</h3>
+<p>Look at the output from the previous command. The domain <code>data-exfil.tk</code> stands out with an unusually high query count; far more than any legitimate domain in the capture. The <code>.tk</code> TLD (Tokelau) is a free domain registration service that attackers frequently use for disposable infrastructure.</p>
+<div class="admonition target">
+<p class="admonition-title">Filter for the suspicious domain</p>
+<p>Run this on the analysis container. The filter narrows the capture to queries for the suspicious domain so you can inspect their subdomains.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/dns-tunnel.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;dns.qry.name contains &quot;data-exfil.tk&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>dns.qry.name
+</code></pre></div>
+<p>Note the source IP address; all queries originate from a single host (<code>10.0.2.45</code>). The host <code>10.0.2.45</code> is the billing department workstation identified in the alert.</p>
+</div>
+<p>Examine the subdomain portions of each query carefully. They do not look like normal hostnames such as <code>www</code>, <code>mail</code>, or <code>api</code>. Instead, they appear to be long strings of hexadecimal characters (0-9, a-f). The hexadecimal subdomains are a strong indicator that data is being encoded into the DNS queries.</p>
+<h3 id="step-6-check-for-long-query-names">Step 6: Check for Long Query Names</h3>
+<p>Another indicator of DNS tunneling is unusually long domain names. Normal queries like <code>www.google.com</code> are around 15 characters. DNS tunneling queries often exceed 50 characters because the hex-encoded data payload inflates the subdomain.</p>
+<div class="admonition target">
+<p class="admonition-title">Filter for unusually long query names</p>
+<p>Run this on the analysis container. The filter selects queries whose name exceeds 50 characters, a length normal hostnames rarely reach.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/dns-tunnel.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns.qry.name.len &gt; 50&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>dns.qry.name
+</code></pre></div>
+<p>Compare these results with the <code>data-exfil.tk</code> queries from Step 5. The long names and the suspicious domain should overlap significantly. Normal DNS queries rarely exceed 30-40 characters. Queries over 50 characters with non-human-readable content are a reliable indicator of DNS tunneling or data exfiltration.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>What is the source IP generating these queries? (<code>10.0.2.45</code>)</li>
+<li>How many queries target <code>data-exfil.tk</code>?</li>
+<li>What is the average length of the query names for this domain?</li>
+<li>Pick two or three sample subdomains and record them. Do they look like human-readable hostnames or encoded data?</li>
+<li>Do the subdomains contain only hexadecimal characters (0-9, a-f)?</li>
+</ul>
+<hr />
+<h3 id="step-7-extract-the-subdomain-portions">Step 7: Extract the Subdomain Portions</h3>
+<p>At this point, you have confirmed three indicators of DNS tunneling: high query volume to a single domain, long subdomain names, and a suspicious TLD. The next step is to extract and decode the data.</p>
+<p>Each query follows the pattern <code>[hex-data].data-exfil.tk</code>. To isolate just the hex-encoded subdomains, use <code>cut</code> to extract the field before the first dot.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract the hex subdomains</p>
+<p>Run this on the analysis container. The <code>cut -d. -f1</code> stage isolates the subdomain (the hex data) before the first dot of each query name.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>dns-tunnel.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns.qry.name contains data-exfil.tk and dns.flags.response == 0&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>dns.qry.name<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d.<span class="w"> </span>-f1
+</code></pre></div>
+<p>The output is a list of hex strings; one per query. Each string is a chunk of the exfiltrated data. In order, they form a continuous stream of hex-encoded content. At this point you can already see the pattern: the attacker split the stolen data into fixed-size hex chunks and sent each chunk as a subdomain in a separate DNS query.</p>
+</div>
+<h3 id="step-8-decode-the-exfiltrated-data">Step 8: Decode the Exfiltrated Data</h3>
+<p>You now have all the pieces. The subdomains are hex-encoded data, sent in order across multiple queries. To reconstruct the original data, you need to concatenate all the hex chunks and convert them from hex to ASCII.</p>
+<div class="admonition target">
+<p class="admonition-title">Decode the exfiltrated data</p>
+<p>Run this on the analysis container. The full pipeline combines every hex chunk and converts it back to ASCII, revealing the stolen data in plain text.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>dns-tunnel.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns.qry.name contains data-exfil.tk and dns.flags.response == 0&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>dns.qry.name<span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d.<span class="w"> </span>-f1<span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;\n&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xxd<span class="w"> </span>-r<span class="w"> </span>-p
+</code></pre></div>
+<p>The output is the decoded stolen data in plain text. If the output appears garbled, verify that the filter is correct and that you are only extracting query names (not responses).</p>
+</div>
+<p>Here is what each stage of the pipeline does:</p>
+<ul>
+<li><code>tshark ...</code> extracts the full query name from each matching DNS request</li>
+<li><code>cut -d. -f1</code> isolates the subdomain; the hex data before the first dot</li>
+<li><code>tr -d '\n'</code> removes newlines, concatenating all hex chunks into one continuous string</li>
+<li><code>xxd -r -p</code> converts the hex string back into ASCII text (<code>-r</code> for reverse/hex-to-binary, <code>-p</code> for plain hex input without address columns)</li>
+</ul>
+<p>The four-stage pipeline is the core technique for this exercise. Each tool handles one transformation, and piping them together produces the final decoded output.</p>
+<h3 id="step-9-read-the-decoded-output">Step 9: Read the Decoded Output</h3>
+<p>The decoded output reveals patient records containing names, Social Security numbers, dates of birth, and medical diagnoses. These are Protected Health Information (PHI) from MediCare's billing system. The records include fields such as patient name, SSN, date of birth, diagnosis code, and treating physician.</p>
+<p>The decoded text is the data that was exfiltrated from the billing workstation. The attacker's tool read the patient database, hex-encoded the contents, and sent each chunk out as a DNS query to <code>data-exfil.tk</code>. On the other end, the attacker's DNS server collected the queries and reassembled the data.</p>
+<p>Embedded within the decoded data is the flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>FLAG:OCR{&lt;flag_here&gt;}
+</code></pre></div>
+<p>Record the flag and submit it to complete the exercise.</p>
+<p>Take a moment to consider the full attack chain: malware on the billing workstation read the patient database, encoded it as hex, split it into chunks that fit within DNS label length limits, and sent each chunk as a subdomain query to an attacker-controlled domain. The attacker's DNS server logged every query and reassembled the data. At no point did the attacker need to establish a direct connection to an external server; the data flowed through normal DNS infrastructure.</p>
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is DNS tunneling particularly difficult to detect compared to other exfiltration methods?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>DNS traffic is expected on every network and is almost never blocked. The queries are technically valid DNS requests; they resolve to real IPs. Firewalls, proxies, and most security tools ignore DNS traffic entirely. The encoded data in the subdomain is invisible to tools that do not inspect query content. Unlike HTTP or HTTPS exfiltration, DNS tunneling does not require the attacker to set up a web server or establish a direct TCP connection. The data flows through the normal DNS resolution infrastructure, making it nearly invisible to network monitoring.</p>
+</details>
+<p><strong>2. The decoded data contained patient records with SSNs. What makes this a HIPAA breach rather than just a security incident?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Protected Health Information (PHI) was exfiltrated outside the organization. HIPAA defines a breach as the unauthorized acquisition, access, use, or disclosure of PHI that compromises the security or privacy of that information. The decoded data showed 347 patient records with names, SSNs, dates of birth, and diagnoses; all of which qualify as PHI under HIPAA. Because the breach affects more than 500 individuals, the organization must notify the Department of Health and Human Services, affected individuals, and potentially the media within 60 days of discovery.</p>
+</details>
+<p><strong>3. How would you prevent DNS tunneling on a corporate network?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Deploy DNS security solutions that inspect query content and detect anomalous patterns (Cisco Umbrella, Infoblox, or Palo Alto DNS Security). Set thresholds for query volume per host per domain and alert when they are exceeded. Monitor for unusually long subdomain names; legitimate subdomains rarely exceed 20 characters. Restrict which internal systems can make external DNS queries by routing all DNS through internal resolvers. Use DNS forwarding restrictions to limit which external resolvers your internal servers contact. Block queries to known-suspicious TLDs such as <code>.tk</code>, <code>.ml</code>, and <code>.ga</code>. Implement DNS response policy zones (RPZs) to enforce domain blocklists at the resolver level.</p>
+</details>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>DNS tunneling hides exfiltrated data inside normal-looking DNS queries.</li>
+<li>The subdomain portion of each query carries a chunk of hex-encoded stolen data.</li>
+<li>The decode pipeline (<code>tshark</code> to <code>cut</code> to <code>tr</code> to <code>xxd</code>) converts captured DNS queries back into readable data.</li>
+<li>Detection requires monitoring query volume, subdomain length, and domain reputation.</li>
+<li>DNS-based exfiltration bypasses firewalls because DNS is almost never blocked.</li>
+<li>A single compromised workstation can exfiltrate hundreds of records without triggering traditional security controls.</li>
+<li>In healthcare environments, DNS exfiltration of patient records triggers HIPAA breach notification requirements.</li>
+<li>Combining <code>tshark</code> field extraction with standard Unix text processing tools (<code>cut</code>, <code>tr</code>, <code>xxd</code>) is a powerful forensics technique that extends well beyond this specific scenario.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

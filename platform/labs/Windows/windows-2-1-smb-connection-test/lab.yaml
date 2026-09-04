@@ -1,0 +1,161 @@
+name: SMB Connection Test
+description: During your FinanceCorp assessment, you've discovered SMB services. The client wants to understand what information is exposed through SMB.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - Connect to SMB service using smbclient
+  - Understand basic smbclient connection syntax
+  - Test anonymous SMB access
+  - Capture the flag
+
+scenario: |
+  During your penetration test for FinanceCorp, your reconnaissance has identified SMB 
+  services running on their Windows server. James Mitchell wants to understand what 
+  information is exposed through SMB and whether the service is properly secured.
+  
+  SMB (Server Message Block) is commonly used for file sharing in Windows environments, 
+  but misconfigurations can expose sensitive information or allow unauthorized access. 
+  FinanceCorp is particularly concerned about information disclosure through SMB.
+  
+  Your objective: Test connectivity to FinanceCorp's SMB service and determine if 
+  anonymous access is permitted. This initial connection test will guide your subsequent 
+  enumeration activities.
+
+
+flag: "OCR{smb_c0nn3ct}"
+
+hints:
+  - text: |
+      **SMB (Server Message Block)** is a network protocol used primarily for file sharing in Windows environments. It allows applications and users to read and write files and request services from server programs.
+
+      **Why SMB matters in penetration testing:**
+      - **File sharing**: Access to network shares and files
+      - **Information disclosure**: Misconfigurations can expose sensitive data
+      - **Authentication testing**: Tests Windows authentication mechanisms
+      - **Common attack surface**: Often found on Windows servers
+      - **Enumeration vector**: Can reveal users, shares, and system information
+
+      Your goal is to establish a connection to FinanceCorp's SMB service to begin your enumeration.
+    unlock_after_minutes: 0
+
+  - text: |
+      **smbclient** is the primary Linux tool for interacting with SMB/CIFS shares. It provides an FTP-like interface for connecting to Windows file shares.
+
+      **Key smbclient capabilities:**
+      - Connect to SMB shares
+      - List available shares
+      - Browse directories
+      - Upload and download files
+      - Test authentication methods
+      - Enumerate share permissions
+
+      smbclient is part of the Samba suite and is pre-installed on most penetration testing distributions.
+    unlock_after_minutes: 5
+
+  - text: |
+      **SMB connection methods** vary based on authentication requirements:
+
+      **Anonymous connection:**
+      - No username or password required
+      - Uses anonymous/guest access
+      - Often allowed on misconfigured servers
+
+      **Null session:**
+      - Connection with empty username and password
+      - Different from anonymous access
+      - Can provide enumeration capabilities
+
+      **Authenticated connection:**
+      - Requires valid username and password
+      - Full access to permitted shares
+      - Most secure but requires credentials
+
+      Testing anonymous access first is standard practice in SMB enumeration.
+    unlock_after_minutes: 10
+
+  - text: |
+      **smbclient connection syntax:**
+
+      ```bash
+      smbclient //server/share [options]
+      ```
+
+      **Common options:**
+      - `-N`: No password (anonymous access)
+      - `-U username`: Specify username
+      - `-L host`: List shares on a host
+      - `-p port`: Specify port (default 445)
+
+      **Connection examples:**
+      ```bash
+      smbclient -L //server -N           # List shares anonymously
+      smbclient //server/share -N        # Connect to share anonymously
+      smbclient //server/share -U user   # Connect with username
+      ```
+
+      The `-N` flag is essential for testing anonymous access.
+    unlock_after_minutes: 15
+
+  - text: |
+      To test SMB connectivity to FinanceCorp's server:
+
+      ```bash
+      smbclient -L //<target> -N
+      ```
+
+      This command:
+      - Uses `-L` to list available shares
+      - Uses `-N` to attempt anonymous access (no password)
+      - Connects to the target SMB service
+      - Returns list of shares if successful
+
+      If anonymous access is permitted, you'll see a list of available shares. If denied, you'll receive an access error.
+
+      Alternative syntax (both work):
+      ```bash
+      smbclient -L \\\\<target> -N
+      ```
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful smbclient output shows available shares:
+
+      ```
+      Sharename       Type      Comment
+      ---------       ----      -------
+      ADMIN$          Disk      Remote Admin
+      C$              Disk      Default share
+      IPC$            IPC       Remote IPC
+      Public          Disk      Public Files
+      ```
+
+      **Understanding share types:**
+      - **Disk**: File system shares
+      - **IPC$**: Inter-Process Communication (used for enumeration)
+      - **ADMIN$/C$**: Administrative shares (usually restricted)
+      - **Custom shares**: User-created shares (like "Public")
+
+      **What to document:**
+      - All visible share names
+      - Share types
+      - Whether anonymous access was successful
+      - Any comments or descriptions
+
+      The flag may be displayed in the output or accessible through one of the listed shares.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/01_Connection_Test/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Test anonymous SMB connection and list shares"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "public"
+
+    - name: "Retrieve flag from SMB server string"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"

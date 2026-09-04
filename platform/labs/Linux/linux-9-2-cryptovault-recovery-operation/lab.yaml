@@ -1,0 +1,116 @@
+name: "CryptoVault: Recovery Operation"
+description: "A departed employee at CryptoVault Solutions left behind encrypted backups containing critical business data. Investigate the workstation, identify the encryption method, reconstruct the recovery passphrase from company policy, and decrypt the target archive."
+
+difficulty: intermediate
+category: forensics
+duration_minutes: 60
+randomize_ip_offsets: true
+visibility: course
+week: 9
+
+flag: "OCR{r3c0v3ry_pr0c3dur3_f0ll0w3d}"
+
+objectives:
+  - Enumerate the analyst workstation and departed employee's files
+  - Identify the encryption method used from shell history artifacts
+  - Locate and interpret the company password recovery policy
+  - Reconstruct the passphrase from policy format and employee records
+  - Decrypt the correct archive and retrieve the assessment finding
+  - Capture the flag
+
+scenario: |
+  CryptoVault Solutions is a cybersecurity consulting firm based in Austin, Texas.
+  A senior consultant, Marcus Webb, departed the company abruptly two weeks ago.
+  His laptop has been reimaged, but his encrypted backups remain on the shared
+  analyst workstation.
+
+  Your manager, Diana Reeves (Director of Operations), explains: "Marcus was
+  working on a sensitive internal audit before he left. The audit report is in
+  one of his encrypted backup files, but we can't access it. Our company has a
+  standard recovery procedure for encrypted data. The passphrase format is
+  documented in our internal policy. I need you to follow the recovery process,
+  decrypt the correct file, and retrieve the audit report."
+
+  Diana provides SSH credentials for the analyst workstation. She reminds you
+  that company policy dictates the passphrase construction method. You should
+  not need to brute force anything. "Everything you need is on that workstation."
+
+  **Credentials**
+
+  - Analyst Workstation SSH: `analyst` / `CV_4n4lyst_2024#`
+
+credentials:
+  - username: "analyst"
+    password: "CV_4n4lyst_2024#"
+    role: "analyst"
+    description: "Junior analyst account on the shared workstation"
+
+hints:
+  - text: |
+      Start by examining the departed employee's home directory. Look for
+      encrypted files, shell history, notes, and any personal documents.
+      The encryption method matters. Not all files use the same tool.
+    unlock_after_minutes: 10
+  - text: |
+      Check the .bash_history file in the departed employee's home directory.
+      It reveals that Marcus used openssl enc (not GPG) to encrypt his files.
+      The company's passphrase recovery policy is in /etc/company-policy/.
+      The passphrase follows a specific format combining company data with
+      employee information.
+    unlock_after_minutes: 18
+  - text: |
+      The passphrase format from /etc/company-policy/encryption-standard.txt is:
+      {Company_Prefix}-{Employee_ID}-{Year}
+      Marcus's employee ID is in /home/mwebb/employee-record.txt (EMP-4471).
+      The company prefix is CryptoVault. Assemble: CryptoVault-EMP-4471-2025
+      Then decrypt: openssl enc -aes-256-cbc -d -pbkdf2 -in audit_backup.enc
+      -out audit.txt -pass pass:CryptoVault-EMP-4471-2025
+    unlock_after_minutes: 25
+
+topology:
+  nodes:
+    - id: "workstation"
+      label: "Analyst Workstation"
+      type: "workstation"
+      ip_offset: "29"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "workstation"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH to workstation as analyst"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.workstation} 'whoami' 2>&1"
+      expect: "analyst"
+      timeout: 15
+
+    - name: "Departed employee home directory is readable"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.workstation} 'ls /home/mwebb/' 2>&1"
+      expect: "audit_backup.enc"
+      timeout: 15
+
+    - name: "Bash history reveals openssl encryption"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.workstation} 'cat /home/mwebb/.bash_history 2>/dev/null | grep openssl' 2>&1"
+      expect: "aes-256-cbc"
+      timeout: 15
+
+    - name: "Company encryption policy exists"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.workstation} 'cat /etc/company-policy/encryption-standard.txt' 2>&1"
+      expect: "Company_Prefix"
+      timeout: 15
+
+    - name: "Employee record contains employee ID"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.workstation} 'cat /home/mwebb/employee-record.txt' 2>&1"
+      expect: "EMP-4471"
+      timeout: 15
+
+    - name: "Decrypt the correct archive with reconstructed passphrase"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.workstation} 'openssl enc -aes-256-cbc -d -pbkdf2 -in /home/mwebb/audit_backup.enc -pass pass:CryptoVault-EMP-4471-2025 2>/dev/null' 2>&1"
+      expect: "OCR{"
+      timeout: 15

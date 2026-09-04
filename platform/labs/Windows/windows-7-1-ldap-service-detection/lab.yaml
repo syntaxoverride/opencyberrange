@@ -1,0 +1,438 @@
+name: LDAP Service Detection
+description: FinanceCorp's Active Directory infrastructure is in scope. Enumerate LDAP to understand their domain structure, users, and groups.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - identify ldap service on target
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your penetration test for FinanceCorp has identified Lightweight Directory Access 
+  Protocol (LDAP) services, indicating Active Directory infrastructure. James Mitchell 
+  is particularly concerned about LDAP security, as it contains critical information 
+  about users, groups, and domain structure.
+  
+  LDAP provides access to Active Directory information, making it a valuable target 
+  for attackers seeking to understand domain structure and identify potential targets. 
+  FinanceCorp wants to understand if their LDAP services are properly secured.
+  
+  Your objective: Identify and assess FinanceCorp's LDAP services. Begin by detecting 
+  LDAP on the network and gathering initial information about service availability 
+  and configuration.
+
+flag: "OCR{ldap_d3t3ct}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding LDAP Service Detection
+
+      **Lightweight Directory Access Protocol (LDAP)** is a protocol used to access
+      and manage directory information services over a network. In enterprise
+      environments, LDAP is the backbone of **Active Directory (AD)**, Microsoft's
+      directory service that stores information about users, computers, groups,
+      and organizational units.
+
+      ### Why LDAP Detection Matters in Penetration Testing
+
+      LDAP services are high-value targets during a penetration test because they
+      can expose:
+
+      - **User accounts** -- valid usernames for credential attacks
+      - **Group memberships** -- privilege structure and admin accounts
+      - **Organizational Units (OUs)** -- how the company is structured
+      - **Computer accounts** -- machines joined to the domain
+      - **Service accounts** -- often have weak or predictable passwords
+      - **Password policies** -- lockout thresholds, complexity requirements
+
+      ### LDAP Fundamentals
+
+      LDAP operates on a **client-server model**:
+
+      - **Port 389** -- Standard LDAP (cleartext)
+      - **Port 636** -- LDAPS (LDAP over SSL/TLS)
+      - **Port 3268** -- Global Catalog (multi-domain queries)
+      - **Port 3269** -- Global Catalog over SSL
+
+      In this lab, the target is running **OpenLDAP (slapd)** on the standard
+      port **389**. Your first task is simply to **detect** that this service
+      exists and is listening on the network.
+
+      ### The Reconnaissance Phase
+
+      Service detection is the first step in any LDAP assessment. Before you can
+      query the directory, bind anonymously, or enumerate users, you need to
+      confirm that LDAP is actually running and identify the implementation
+      (OpenLDAP, Active Directory, etc.).
+
+      Think of it like checking if a door exists before trying to open it.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tool Introduction: Nmap for LDAP Detection
+
+      **Nmap** (Network Mapper) is the industry-standard tool for network
+      discovery and service detection. For LDAP detection, you will use nmap's
+      **service version detection** capabilities.
+
+      ### Key Nmap Flags for This Lab
+
+      ```
+      -p <port>       Specify port(s) to scan
+      -sV             Service version detection (probes open ports)
+      -sC             Run default NSE scripts
+      -A              Aggressive scan (OS detection + version + scripts + traceroute)
+      --script        Run specific NSE scripts
+      ```
+
+      ### Installing Nmap (if needed)
+
+      ```bash
+      sudo apt update && sudo apt install -y nmap
+      ```
+
+      ### Basic Nmap Service Detection
+
+      The simplest way to detect an LDAP service:
+
+      ```bash
+      nmap -p 389 <target>
+      ```
+
+      This tells you if port 389 is **open**, **closed**, or **filtered**, but
+      does not identify the service. To identify what is actually running:
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      The `-sV` flag sends service-specific probes and analyzes responses to
+      determine the software name and version.
+
+      ### LDAP-Specific Nmap NSE Scripts
+
+      Nmap includes several scripts specifically for LDAP:
+
+      | Script              | Purpose                                    |
+      |---------------------|--------------------------------------------|
+      | `ldap-rootdse`      | Retrieves Root DSE (server information)    |
+      | `ldap-search`       | Performs LDAP search queries               |
+      | `ldap-brute`        | Brute-force LDAP authentication            |
+      | `ldap-novell-getpass` | Retrieve Universal Passwords (Novell)    |
+
+      For service detection, `ldap-rootdse` is especially useful as it reveals
+      the LDAP implementation and supported features.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical LDAP Detection Techniques
+
+      ### Understanding Nmap Version Detection Output
+
+      When nmap performs version detection on an LDAP service, it sends specially
+      crafted probes and analyzes the responses. Here is what typical output
+      looks like:
+
+      ```
+      PORT    STATE SERVICE VERSION
+      389/tcp open  ldap    OpenLDAP 2.2.X - 2.4.X
+      ```
+
+      The output tells you:
+
+      - **Port 389** is open
+      - **Service** is identified as `ldap`
+      - **Version** shows it is OpenLDAP (not Active Directory, 389DS, etc.)
+
+      ### Going Deeper with NSE Scripts
+
+      The `ldap-rootdse` script queries the **Root DSE** (DSA-Specific Entry),
+      which is a special LDAP entry that describes the server's capabilities:
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+      This can reveal:
+
+      - **namingContexts** -- the base DNs the server holds
+      - **supportedLDAPVersion** -- LDAP protocol versions (usually 3)
+      - **supportedSASLMechanisms** -- authentication methods available
+      - **subschemaSubentry** -- location of the schema definition
+      - **vendorName / vendorVersion** -- exact software details
+
+      ### Why Root DSE Matters
+
+      The Root DSE is almost always accessible without authentication because
+      it provides the information needed to begin an LDAP session. This is by
+      design in the LDAP specification (RFC 4512).
+
+      This means even if anonymous binds are restricted, you can often still
+      query the Root DSE to identify:
+
+      1. The LDAP implementation in use
+      2. The domain structure (from namingContexts)
+      3. Supported authentication mechanisms
+
+      ### Multiple Detection Methods
+
+      Consider combining approaches for thorough detection:
+
+      - **Port scan**: Confirms the port is open
+      - **Version detection**: Identifies the software
+      - **NSE scripts**: Extracts configuration details
+      - **Banner grabbing**: Some LDAP servers include version in responses
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      Follow this systematic approach to detect the LDAP service:
+
+      ### Step 1: Verify Network Connectivity
+
+      Before scanning, confirm you can reach the target:
+
+      ```bash
+      ping -c 3 <target>
+      ```
+
+      If ping is blocked (ICMP filtered), try:
+
+      ```bash
+      nmap -Pn -p 389 <target>
+      ```
+
+      The `-Pn` flag skips host discovery and scans even if ping fails.
+
+      ### Step 2: Quick Port Scan
+
+      Check if port 389 is open:
+
+      ```bash
+      nmap -p 389 <target>
+      ```
+
+      You should see `389/tcp open ldap` if the service is running.
+
+      ### Step 3: Service Version Detection
+
+      Identify the exact LDAP implementation:
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      Look for the `VERSION` column to show `OpenLDAP` and a version range.
+
+      ### Step 4: Run LDAP NSE Scripts
+
+      Get detailed server information:
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+      Review the output for namingContexts, supported versions, and
+      SASL mechanisms.
+
+      ### Step 5: Comprehensive Detection Scan
+
+      Combine version detection with default scripts:
+
+      ```bash
+      nmap -p 389 -sV -sC <target>
+      ```
+
+      This runs both version probes and all default scripts for LDAP.
+
+      ### Step 6: Retrieve the Flag
+
+      Once you have confirmed the LDAP service is detected and identified,
+      look for the flag. The flag file is located on the target system.
+      Consider how you might read files through LDAP or check if the flag
+      is embedded in the directory data itself.
+
+      ```bash
+      # Check if you can read files through LDAP queries
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for LDAP Service Detection
+
+      ### Primary Detection Command
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      Expected output:
+
+      ```
+      Starting Nmap ...
+      Nmap scan report for <target>
+      Host is up (0.001s latency).
+
+      PORT    STATE SERVICE VERSION
+      389/tcp open  ldap    OpenLDAP 2.2.X - 2.4.X
+
+      Service detection performed.
+      Nmap done: 1 IP address (1 host up) scanned in X.XX seconds
+      ```
+
+      ### Extended Detection with Scripts
+
+      ```bash
+      nmap -p 389 -sV --script ldap-rootdse <target>
+      ```
+
+      ### Broad LDAP Port Scan (All Common LDAP Ports)
+
+      ```bash
+      nmap -p 389,636,3268,3269 -sV <target>
+      ```
+
+      ### Install Required Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y nmap ldap-utils
+      ```
+
+      ### Verify with ldapsearch
+
+      After nmap confirms the service, verify with ldapsearch:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "objectClass=*" +
+      ```
+
+      This queries the Root DSE and returns operational attributes.
+
+      ### Reading the Flag
+
+      The flag is stored at `/tmp/flag.txt` on the target. Use ldapsearch
+      to explore the directory -- the flag may also be embedded in an LDAP
+      entry:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" "(objectClass=*)"
+      ```
+
+      Look through the results for the flag value, or check the description
+      fields of entries in the directory.
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y nmap ldap-utils
+      ```
+
+      ### Step 2: Detect the LDAP Service
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      **Expected output:**
+
+      ```
+      PORT    STATE SERVICE VERSION
+      389/tcp open  ldap    OpenLDAP 2.2.X - 2.4.X
+      ```
+
+      This confirms LDAP (OpenLDAP) is running on port 389.
+
+      ### Step 3: Gather Detailed Information with NSE Scripts
+
+      ```bash
+      nmap -p 389 -sV --script ldap-rootdse <target>
+      ```
+
+      **Expected output includes:**
+
+      ```
+      | ldap-rootdse:
+      |   LDAP Results
+      |     <ROOT>
+      |         namingContexts: dc=financecorp,dc=local
+      |         supportedLDAPVersion: 3
+      |         subschemaSubentry: cn=Subschema
+      |_        ...
+      ```
+
+      ### Step 4: Verify with ldapsearch
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      This confirms anonymous access and retrieves Root DSE data.
+
+      ### Step 5: Retrieve the Flag
+
+      Search the directory for the flag:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" "(objectClass=*)"
+      ```
+
+      Browse through the output for the flag. You can also try looking for
+      entries with description attributes:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        "(description=*)" description
+      ```
+
+      The flag format is `OCR{...}` -- look for it in the LDAP entries
+      or check if it is accessible through the directory data.
+
+      ### Summary of Key Findings
+
+      | Check              | Result                     |
+      |--------------------|----------------------------|
+      | Port 389           | Open                       |
+      | Service            | OpenLDAP                   |
+      | LDAP Version       | 3                          |
+      | Anonymous Access   | Allowed                    |
+      | Base DN            | dc=financecorp,dc=local    |
+
+      ### Penetration Testing Report Note
+
+      Document your finding as:
+
+      > **Finding**: LDAP service detected on port 389 running OpenLDAP.
+      > Anonymous access is permitted, allowing unauthenticated enumeration
+      > of directory contents. **Risk**: Medium-High. **Recommendation**:
+      > Disable anonymous binds and restrict LDAP access to authenticated
+      > clients only.
+
+workbook: "wiki/range/winpt/CH07_LDAP_Enumeration/01_LDAP_Service_Detection/"
+
+test:
+  steps:
+    - name: "Verify LDAP port 389 is open"
+      command: "nmap -Pn -p 389 {target.target} | grep '389/tcp'"
+      expect: "open"
+
+    - name: "Detect LDAP service version"
+      command: "nmap -Pn -sV -p 389 {target.target} | grep '389/tcp'"
+      expect: "ldap"
+
+    - name: "LDAP search for flag"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{' || (sleep 3 && ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{')"
+      expect: "OCR{"

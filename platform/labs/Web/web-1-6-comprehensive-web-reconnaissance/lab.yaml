@@ -1,0 +1,153 @@
+name: Comprehensive Web Reconnaissance
+description: Finalize your TechStart assessment by combining all reconnaissance techniques into a comprehensive security evaluation.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Perform complete web reconnaissance workflow
+  - Combine multiple enumeration techniques
+  - Document findings systematically
+  - Identify all attack surfaces
+  - Capture the flag
+
+scenario: |
+  You're completing the reconnaissance phase of your penetration test for TechStart Inc. 
+  Sarah Chen has requested a comprehensive security assessment report that combines 
+  all the techniques you've been using: directory enumeration, technology identification, 
+  HTTP method testing, header analysis, and subdomain discovery.
+  
+  This final reconnaissance exercise will demonstrate your ability to systematically 
+  assess a web application's attack surface. TechStart needs this information to 
+  prioritize their security improvements before launch.
+  
+  Your objective: Perform a complete reconnaissance assessment of target.lab, 
+  combining all techniques you've learned. Document your findings systematically and 
+  identify all potential attack vectors. This comprehensive report will form the 
+  foundation for the next phase of your engagement.
+
+hostnames:
+  - ip_offset: "149"
+    hostname: "target.lab"
+    description: "Target web application for comprehensive reconnaissance"
+
+
+
+flag: "OCR{c0mpr3h3ns1v3_r3c0n_b4s1c}"
+
+hints:
+  - text: |
+      **Comprehensive web reconnaissance** combines multiple enumeration techniques into a systematic security assessment. This lab tests your ability to apply all the reconnaissance skills you've learned.
+
+      **Reconnaissance workflow:**
+      1. **Directory enumeration**: Discover hidden paths and files
+      2. **Technology identification**: Fingerprint the tech stack
+      3. **HTTP method testing**: Identify allowed methods
+      4. **Header analysis**: Check security headers and information disclosure
+      5. **Subdomain discovery**: Map the complete attack surface
+
+      Your goal is to systematically assess the target using all available techniques to build a complete picture of the attack surface.
+    unlock_after_minutes: 0
+
+  - text: |
+      Start with **directory enumeration** to discover all accessible paths:
+
+      ```bash
+      gobuster dir -u http://target.lab -w /usr/share/wordlists/dirb/common.txt
+      ```
+
+      This reveals:
+      - Hidden administrative panels
+      - Backup files and directories
+      - Development/test resources
+      - Configuration files
+      - API endpoints
+
+      Document all discovered directories for further investigation.
+    unlock_after_minutes: 5
+
+  - text: |
+      Next, perform **technology identification** to understand the software stack:
+
+      ```bash
+      # Check HTTP headers
+      curl -I http://target.lab
+
+      # Comprehensive fingerprinting
+      whatweb http://target.lab
+      ```
+
+      Identify:
+      - Web server type and version
+      - Programming language/framework
+      - CMS platform if present
+      - JavaScript libraries
+      - Version numbers (for vulnerability research)
+    unlock_after_minutes: 10
+
+  - text: |
+      Test **HTTP methods** on discovered endpoints:
+
+      ```bash
+      # Check allowed methods
+      curl -X OPTIONS http://target.lab -v
+
+      # Test for dangerous methods
+      curl -X PUT http://target.lab -v
+      curl -X DELETE http://target.lab -v
+      curl -X TRACE http://target.lab -v
+      ```
+
+      Look for:
+      - PUT/DELETE access without authentication
+      - TRACE method enabled (XSS risk)
+      - Inconsistent method handling
+    unlock_after_minutes: 15
+
+  - text: |
+      Analyze **security headers** for misconfigurations:
+
+      ```bash
+      curl -v http://target.lab
+      ```
+
+      Check for:
+      - **Missing security headers**: CSP, HSTS, X-Frame-Options
+      - **Information disclosure**: Detailed Server, X-Powered-By headers
+      - **Custom headers**: Application-specific headers
+      - **Version information**: Any headers revealing software versions
+
+      Missing security headers indicate vulnerabilities to XSS, clickjacking, and other attacks.
+    unlock_after_minutes: 20
+
+  - text: |
+      Perform **subdomain discovery** if the domain supports subdomains:
+
+      ```bash
+      gobuster dns -d lab -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+      ```
+
+      Then investigate each discovered subdomain using the same techniques.
+
+      **Create a comprehensive report** documenting:
+      1. All discovered directories and files
+      2. Technology stack identification
+      3. HTTP method vulnerabilities
+      4. Security header analysis
+      5. Subdomain enumeration results
+
+      The flag can be found by thoroughly applying all reconnaissance techniques to the target. It may be in a hidden directory, revealed through a specific HTTP method, or disclosed in headers.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/webpt/CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/"
+
+test:
+  steps:
+    - name: "Web server responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+    - name: "Headers endpoint reveals internal path hint"
+      command: "curl -sI http://{target.webserver}/headers.php | grep -i 'X-Internal-Path'"
+      expect: "/var/www/html/private/flag.txt"
+    - name: "Flag file in private directory"
+      command: "curl -s http://{target.webserver}/private/flag.txt"
+      expect: "OCR{c0mpr3h3ns1v3_r3c0n_b4s1c}"

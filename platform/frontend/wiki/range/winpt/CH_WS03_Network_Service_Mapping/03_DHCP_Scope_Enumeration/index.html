@@ -1,0 +1,3345 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Windows penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise WS-3.3: DHCP Scope Reconnaissance - Windows Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-ws-33-dhcp-scope-reconnaissance" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Windows Penetration Testing" class="md-header__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Windows Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise WS-3.3: DHCP Scope Reconnaissance
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Windows Penetration Testing" class="md-nav__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Windows Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH01 -- Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH01 -- Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/01_Basic_Port_Scan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Basic Port Scan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/02_Multiple_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- Multiple Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/03_Service_Version_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- Service Version Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/04_OS_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- OS Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/05_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.5 -- Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH02 -- SMB Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH02 -- SMB Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/01_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/02_Share_Listing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- Share Listing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/03_Anonymous_Share_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- Anonymous Share Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/04_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/05_Null_Session_Connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Null Session Connection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/06_Null_Session_Share_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.6 -- Null Session Share Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/07_User_Enumeration_via_Null_Session/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.7 -- User Enumeration via Null Session
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/08_Comprehensive_Null_Session_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.8 -- Comprehensive Null Session Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/09_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH03 -- SMB Credential Attacks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH03 -- SMB Credential Attacks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/01_Manual_Credential_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Manual Credential Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/02_Multiple_Credential_Testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Multiple Credential Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/03_Single_User_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.3 -- Single User Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/04_Username_Enumeration_and_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.4 -- Username Enumeration and Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/05_Full_Credential_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.5 -- Full Credential Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH04 -- RDP Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH04 -- RDP Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/01_RDP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.1 -- RDP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/02_RDP_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.2 -- RDP Version Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/03_RDP_Manual_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.3 -- RDP Manual Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/04_RDP_Credential_Guessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.4 -- RDP Credential Guessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/05_RDP_Brute_Force_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.5 -- RDP Brute Force Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/06_RDP_Session_Access_and_Flag_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.6 -- RDP Session Access and Flag Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH05 -- WinRM Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH05 -- WinRM Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/01_WinRM_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.1 -- WinRM Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/02_WinRM_Version_Configuration_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.2 -- WinRM Version and Configuration Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/03_WinRM_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.3 -- WinRM Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/04_WinRM_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.4 -- WinRM Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/05_WinRM_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.5 -- WinRM Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/06_WinRM_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.6 -- WinRM File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH06 -- MSSQL Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH06 -- MSSQL Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/01_MSSQL_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.1 -- MS-SQL Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/02_MSSQL_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.2 -- MS-SQL Version and Instance Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/03_MSSQL_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.3 -- MS-SQL Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/04_MSSQL_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.4 -- MS-SQL Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/05_MSSQL_Basic_Query_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.5 -- MS-SQL Basic Query Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/06_MSSQL_xp_cmdshell_Activation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.6 -- MS-SQL xp_cmdshell Activation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/07_MSSQL_File_System_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.7 -- MS-SQL File System Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/08_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH07 -- LDAP Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH07 -- LDAP Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/01_LDAP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.1 -- LDAP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/02_LDAP_Anonymous_Bind_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.2 -- LDAP Anonymous Bind Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/03_LDAP_Base_DN_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.3 -- LDAP Base DN Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/04_LDAP_User_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.4 -- LDAP User Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/05_LDAP_Group_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.5 -- LDAP Group Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/06_LDAP_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.6 -- LDAP Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH08 -- Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH08 -- Credential Reuse
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/01_Single_Service_Credential_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.1 -- Single Service Credential Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/02_Cross_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.2 -- Cross-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/03_Multi_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.3 -- Multi-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/04_Credential_Discovery_and_Reuse_Chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.4 -- Credential Discovery and Reuse Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/05_CME_Credential_Reuse_Automation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.5 -- CME Credential Reuse Automation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH09 -- Assessment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH09 -- Assessment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/01_Windows_Network_Assessment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.1 -- Windows Network Assessment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/02_Multi_Service_Exploitation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.2 -- Multi-Service Exploitation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/03_Complete_Windows_Penetration_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.3 -- Complete Windows Penetration Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-dhcp-in-active-directory-environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: DHCP in Active Directory Environments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-nmap-dhcp-discovery-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Nmap DHCP Discovery Scripts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-lab-and-verify-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Lab and Verify Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-confirm-dhcp-service-on-dc01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Confirm DHCP Service on dc01
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-run-dhcp-discovery-against-dc01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run DHCP Discovery Against dc01
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-run-broadcast-dhcp-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Run Broadcast DHCP Discovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-analyze-the-wpad-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Analyze the WPAD Option
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-map-the-network-from-dhcp-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Map the Network from DHCP Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-examine-the-flag-in-the-dhcp-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Examine the Flag in the DHCP Response
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-find-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Find and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-ws-33-dhcp-scope-reconnaissance">Exercise WS-3.3: DHCP Scope Reconnaissance</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercises WS-3.1 and WS-3.2 focused on DNS; querying SRV records and detecting conditional forwarders. Exercise WS-3.3 shifts to a different protocol: Dynamic Host Configuration Protocol (DHCP). While DNS tells you what services exist and where they live, DHCP reveals how the network itself is structured; address ranges, gateways, DNS servers, and custom options that administrators configure for client machines. Combining DHCP data with DNS findings produces a much richer picture of the environment.</p>
+<ul>
+<li>Confirm your VPN connection is active and you can reach dc01.</li>
+<li>No credentials are needed; DHCP discovery uses broadcast packets that any client on the network can send.</li>
+<li>You should be comfortable running Nmap from a Linux terminal.</li>
+</ul>
+<h2 id="scenario">Scenario</h2>
+<p>Your team has mapped the DNS infrastructure of corp.ocr-range.lab across Exercises WS-3.1 and WS-3.2. The next task is to understand the network addressing layer. The Domain Controller dc01 also runs the DHCP server role; a common configuration in Windows Server environments. DHCP scopes define which IP ranges are assigned to clients, which gateways and DNS servers clients receive, and what custom options are pushed. Your objective is to enumerate the DHCP scope on dc01, identify its configuration, and examine custom DHCP options; particularly option 252, the Web Proxy Auto-Discovery (WPAD) URL, which has a well-documented history of abuse in man-in-the-middle (MITM) attacks.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Discover DHCP services running on dc01</li>
+<li>Enumerate DHCP scope details including address range, subnet mask, gateway, and DNS servers</li>
+<li>Identify custom DHCP options, particularly option 252 (WPAD)</li>
+<li>Understand the security implications of WPAD in enterprise environments</li>
+<li>Extract the flag from DHCP response data</li>
+</ul>
+<hr />
+<h2 id="background-dhcp-in-active-directory-environments">Background: DHCP in Active Directory Environments</h2>
+<p>DHCP assigns IP addresses and network configuration to clients automatically. When a client connects to a network, it sends a DHCP Discover broadcast. A DHCP server responds with an Offer containing an available IP address, subnet mask, default gateway, DNS servers, and any custom options the administrator has configured. The client then requests the offered configuration, and the server acknowledges the assignment.</p>
+<p>In many AD environments, the Domain Controller runs the DHCP server role alongside DNS and AD Directory Services (AD DS). Hosting DHCP on the DC centralizes management but also means that the DC responds to DHCP queries from any client on the network segment. A penetration tester can send a DHCP Discover packet and receive the full scope configuration without authentication.</p>
+<p>DHCP options extend the base configuration with additional parameters. Each option has a numeric code and a value. Some common options include:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Name</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Subnet Mask</td>
+<td>Defines the network mask for the assigned IP</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Router</td>
+<td>Default gateway address</td>
+</tr>
+<tr>
+<td>6</td>
+<td>DNS Servers</td>
+<td>DNS server addresses for name resolution</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Domain Name</td>
+<td>DNS domain suffix for the client</td>
+</tr>
+<tr>
+<td>252</td>
+<td>WPAD URL</td>
+<td>URL for proxy auto-configuration script</td>
+</tr>
+</tbody>
+</table>
+<p>Option 252 deserves special attention. WPAD allows clients to automatically discover a web proxy by fetching a configuration file from a URL pushed by DHCP. Attackers who can inject a malicious WPAD URL; through DHCP spoofing or DNS poisoning; can redirect all HTTP traffic through a proxy they control. Even when configured legitimately, the WPAD option reveals internal proxy infrastructure that may be vulnerable to attack.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C as Kali (Attacker)
+    participant S as dc01 (DHCP Server)
+
+    C-&gt;&gt;S: DHCP Discover (broadcast)
+    S-&gt;&gt;C: DHCP Offer
+    Note over C: Reads scope config:&lt;br/&gt;IP range, gateway,&lt;br/&gt;DNS, WPAD URL
+    C-&gt;&gt;S: DHCP Request
+    S-&gt;&gt;C: DHCP Acknowledge</code></pre>
+<p>The discovery process does not require the client to be domain-joined or authenticated. Any device on the network segment can send a DHCP Discover and receive the full scope configuration.</p>
+<h2 id="tool-primer-nmap-dhcp-discovery-scripts">Tool Primer: Nmap DHCP Discovery Scripts</h2>
+<p>Nmap includes Nmap Scripting Engine (NSE) scripts specifically designed for DHCP enumeration. Two scripts are relevant for this exercise.</p>
+<p><strong>dhcp-discover script:</strong></p>
+<p>The <code>dhcp-discover</code> script sends a DHCP Discover packet to a specific host and displays the response, including all DHCP options.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>dhcp-discover<span class="w"> </span>-sU<span class="w"> </span>-p<span class="w"> </span><span class="m">67</span><span class="w"> </span>&lt;target&gt;
+</code></pre></div>
+<p><strong>broadcast-dhcp-discover script:</strong></p>
+<p>The <code>broadcast-dhcp-discover</code> script sends a broadcast DHCP Discover packet. Any DHCP server on the network segment will respond, making this useful for discovering unknown DHCP servers.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>broadcast-dhcp-discover
+</code></pre></div>
+<p><strong>Key flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--script dhcp-discover</code></td>
+<td>Targeted DHCP query to a specific server</td>
+</tr>
+<tr>
+<td><code>--script broadcast-dhcp-discover</code></td>
+<td>Broadcast DHCP discovery on the local segment</td>
+</tr>
+<tr>
+<td><code>-sU</code></td>
+<td>UDP scan (DHCP uses UDP)</td>
+</tr>
+<tr>
+<td><code>-p 67</code></td>
+<td>Target DHCP server port (67/UDP)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sample output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>PORT   STATE SERVICE
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>67/udp open  dhcps
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>| dhcp-discover:
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>|   DHCP Message Type: DHCPACK
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>|   Server Identifier: &lt;dc01_ip&gt;
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>|   IP Address Lease Time: 8d00h00m00s
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>|   Subnet Mask: 255.255.255.0
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>|   Router: &lt;gateway_ip&gt;
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>|   Domain Name Server: &lt;dc01_ip&gt;
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>|   Domain Name: corp.ocr-range.lab
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>|   WPAD: http://wpad.corp.ocr-range.lab/wpad.dat
+</code></pre></div>
+<p>The output reveals the full DHCP configuration in a readable format. Each line corresponds to a DHCP option and its value. The WPAD entry shows the proxy auto-configuration URL pushed to all clients.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-lab-and-verify-connectivity">Step 1: Launch the Lab and Verify Connectivity</h3>
+<p>Navigate to <strong>Exercises</strong>, then <strong>Windows Server</strong>, then <strong>Level 3</strong>, and launch Exercise WS-3.3. Wait for the environment status to show <strong>Running</strong>.</p>
+<div class="admonition kali">
+<p class="admonition-title">Verify connectivity to dc01</p>
+<p>Verify you can reach dc01 with a short ping. The <code>-c 3</code> flag sends three packets and then exits.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ping<span class="w"> </span>-c<span class="w"> </span><span class="m">3</span><span class="w"> </span>dc01
+</code></pre></div>
+<p>You should see replies confirming network connectivity. If the ping times out, check your VPN connection.</p>
+</div>
+<hr />
+<h3 id="step-2-confirm-dhcp-service-on-dc01">Step 2: Confirm DHCP Service on dc01</h3>
+<p>Before enumerating DHCP options, confirm that dc01 is running a DHCP server. DHCP servers listen on UDP port 67. A targeted UDP scan reveals whether the port is open.</p>
+<div class="admonition kali">
+<p class="admonition-title">Scan for the DHCP port on dc01</p>
+<p>Run a UDP scan against port 67 to confirm dc01 is listening for DHCP. The <code>-sU</code> flag selects a UDP scan and <code>-p 67</code> limits it to the DHCP server port.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>nmap<span class="w"> </span>-sU<span class="w"> </span>-p<span class="w"> </span><span class="m">67</span><span class="w"> </span>dc01
+</code></pre></div>
+<p>The output should show port 67/udp as open. UDP scanning is inherently less reliable than TCP scanning because UDP does not use a three-way handshake; an open port may appear as <code>open|filtered</code> if no response is received. The DHCP discovery scripts in the next steps will confirm the service definitively by eliciting an actual DHCP response.</p>
+</div>
+<hr />
+<h3 id="step-3-run-dhcp-discovery-against-dc01">Step 3: Run DHCP Discovery Against dc01</h3>
+<p>With the DHCP port confirmed, run the <code>dhcp-discover</code> NSE script to retrieve the full scope configuration from dc01.</p>
+<div class="admonition kali">
+<p class="admonition-title">Run targeted DHCP discovery against dc01</p>
+<p>Execute the targeted DHCP discovery. The <code>dhcp-discover</code> NSE script sends a DHCP Discover packet to dc01 and prints every option the server returns.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>dhcp-discover<span class="w"> </span>-sU<span class="w"> </span>-p<span class="w"> </span><span class="m">67</span><span class="w"> </span>dc01
+</code></pre></div>
+<p>Examine the output carefully. The script sends a DHCP Discover packet directly to dc01 and displays the server's response. Look for the following fields in the output:</p>
+</div>
+<ul>
+<li><strong>Server Identifier</strong>: The IP address of the DHCP server (should match dc01)</li>
+<li><strong>Subnet Mask</strong>: Defines the size of the network (e.g., 255.255.255.0 for a /24)</li>
+<li><strong>Router</strong>: The default gateway clients will use</li>
+<li><strong>Domain Name Server</strong>: The DNS server(s) pushed to clients</li>
+<li><strong>Domain Name</strong>: The DNS suffix for the domain</li>
+<li><strong>WPAD</strong>: The Web Proxy Auto-Discovery URL (option 252)</li>
+</ul>
+<p>Record each value. Together, these fields describe the network architecture that every client on the subnet receives automatically.</p>
+<hr />
+<h3 id="step-4-run-broadcast-dhcp-discovery">Step 4: Run Broadcast DHCP Discovery</h3>
+<p>The broadcast method discovers all DHCP servers on the network segment, not a single target. Running both targeted and broadcast discovery ensures you do not miss rogue DHCP servers.</p>
+<div class="admonition kali">
+<p class="admonition-title">Run broadcast DHCP discovery</p>
+<p>Execute the broadcast discovery. The <code>broadcast-dhcp-discover</code> script sends its DHCP Discover to the whole segment, so any DHCP server present replies.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>broadcast-dhcp-discover
+</code></pre></div>
+<p>Compare the results with the targeted discovery from Step 3. The responding server should be dc01. If additional DHCP servers respond, note their IP addresses; rogue DHCP servers are a serious security concern in any network.</p>
+<p>The broadcast script does not require a target IP because the DHCP Discover packet is sent to the broadcast address (255.255.255.255). Every DHCP server on the local segment will respond.</p>
+</div>
+<hr />
+<h3 id="step-5-analyze-the-wpad-option">Step 5: Analyze the WPAD Option</h3>
+<p>Option 252 (WPAD) pushes a URL to clients that points to a Proxy Auto-Configuration (PAC) file. When a client receives the WPAD URL through DHCP, the operating system's proxy settings automatically fetch the PAC file and configure web traffic routing.</p>
+<p>Review the WPAD value from your DHCP discovery output. The URL typically follows the format:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>http://wpad.corp.ocr-range.lab/wpad.dat
+</code></pre></div>
+<p>The security implications of WPAD are significant:</p>
+<pre class="mermaid"><code>graph TD
+    A["DHCP Pushes&lt;br/&gt;WPAD URL"]
+    B["Client Fetches&lt;br/&gt;wpad.dat"]
+    C["Legitimate Proxy&lt;br/&gt;Configured"]
+    D["Attacker Spoofs&lt;br/&gt;WPAD URL"]
+    E["Traffic Routed&lt;br/&gt;Through Attacker"]
+
+    A --&gt; B
+    B --&gt; C
+    D --&gt; B
+    B --&gt; E
+
+    style A fill:#e8a735,stroke:#333,color:#fff
+    style B fill:#4a90d9,stroke:#333,color:#fff
+    style C fill:#6aaa64,stroke:#333,color:#fff
+    style D fill:#d9534f,stroke:#333,color:#fff
+    style E fill:#d9534f,stroke:#333,color:#fff</code></pre>
+<p>An attacker who can respond to DHCP requests (through ARP spoofing or a rogue DHCP server) can push a malicious WPAD URL. Clients that trust the DHCP response will route their HTTP traffic through the attacker's proxy, enabling credential interception and content manipulation. Tools like Responder exploit WPAD poisoning as a primary attack vector in Windows networks.</p>
+<hr />
+<h3 id="step-6-map-the-network-from-dhcp-data">Step 6: Map the Network from DHCP Data</h3>
+<p>The DHCP response provides enough information to sketch the network topology for the subnet. Combine the scope data into a network summary.</p>
+<p>Use the values from your DHCP discovery to fill in the network map:</p>
+<pre class="mermaid"><code>graph TD
+    A["Network Subnet&lt;br/&gt;(from DHCP scope)"]
+    B["Gateway"]
+    C["DNS / DHCP / DC&lt;br/&gt;dc01"]
+    D["Client Range&lt;br/&gt;(from DHCP scope)"]
+    E["WPAD Proxy&lt;br/&gt;(from option 252)"]
+
+    A --- B
+    A --- C
+    A --- D
+    C --- E
+
+    style A fill:#888,stroke:#333,color:#fff
+    style B fill:#6aaa64,stroke:#333,color:#fff
+    style C fill:#4a90d9,stroke:#333,color:#fff
+    style D fill:#e8a735,stroke:#333,color:#fff
+    style E fill:#d9534f,stroke:#333,color:#fff</code></pre>
+<p>The gateway address, DNS server, and DHCP server identify the core infrastructure. The client range defines where workstations and other devices receive addresses. The WPAD URL identifies proxy infrastructure. All of this data was obtained without credentials.</p>
+<hr />
+<h3 id="step-7-examine-the-flag-in-the-dhcp-response">Step 7: Examine the Flag in the DHCP Response</h3>
+<p>The flag for Exercise WS-3.3 is embedded in the DHCP response data. Review your output from Step 3 carefully. The flag value appears in the DHCP options; look at the WPAD option (option 252) or other custom options in the response.</p>
+<div class="admonition kali">
+<p class="admonition-title">Re-run discovery to inspect the flag</p>
+<p>If you need to see the raw DHCP response again, rerun the discovery and read every option value the server returns.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>dhcp-discover<span class="w"> </span>-sU<span class="w"> </span>-p<span class="w"> </span><span class="m">67</span><span class="w"> </span>dc01
+</code></pre></div>
+<p>Scan all option values in the output. The flag follows the <code>OCR{...}</code> format and appears as a value within one of the DHCP options.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>DHCP Server:</strong> dc01 (<strong><em>_</em></strong><strong><em>_</em></strong>_)</p>
+<table>
+<thead>
+<tr>
+<th>DHCP Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Server Identifier</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+<tr>
+<td>Subnet Mask</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+<tr>
+<td>Router (Gateway)</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+<tr>
+<td>DNS Server</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+<tr>
+<td>Domain Name</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+<tr>
+<td>WPAD URL (Opt 252)</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+<tr>
+<td>Lease Time</td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rogue DHCP Servers Found:</strong> (Yes / No) <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <code>OCR{_______________}</code></p>
+</blockquote>
+<hr />
+<h3 id="step-8-find-and-submit-the-flag">Step 8: Find and Submit the Flag</h3>
+<p>The flag for Exercise WS-3.3 is embedded in the DHCP response options. The flag value is:</p>
+<p>The flag follows the standard <code>OCR{...}</code> format. Submit it on the platform to complete the exercise.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is hosting DHCP on the Domain Controller a common but risky configuration?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Hosting DHCP on the DC centralizes network management and reduces the number of servers to maintain. The risk is that a compromise of the DC also compromises DHCP, allowing the attacker to push malicious configurations; rogue DNS servers, WPAD URLs, or incorrect gateways; to every client on the network. Separating roles limits the blast radius of a single server compromise.</p>
+</details>
+<p><strong>2. How can an attacker abuse the WPAD option in a DHCP response?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>An attacker who controls DHCP responses (through a rogue server or spoofing) can push a WPAD URL pointing to a malicious PAC file. Clients that auto-configure proxy settings will route HTTP traffic through the attacker's proxy. The attacker can then intercept credentials transmitted over HTTP, inject content into web pages, or redirect users to phishing sites. Tools like Responder automate WPAD poisoning in Windows environments.</p>
+</details>
+<p><strong>3. What defenses can an organization deploy against DHCP-based attacks?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>DHCP snooping on network switches restricts DHCP responses to trusted ports, preventing rogue servers from responding. Disabling WPAD through Group Policy removes the auto-configuration vector. 802.1X port-based authentication ensures only authorized devices receive network access. Monitoring DHCP logs for unexpected scope changes or option modifications provides detection capability.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>DHCP scopes reveal network architecture</strong>: address ranges, gateways, DNS servers, and domain suffixes are all visible without authentication</li>
+<li><strong>Nmap NSE scripts</strong> for DHCP discovery (<code>dhcp-discover</code> and <code>broadcast-dhcp-discover</code>) extract the full scope configuration from a DHCP server</li>
+<li><strong>Option 252 (WPAD)</strong> pushes proxy auto-configuration URLs to clients and is a well-known vector for MITM attacks</li>
+<li><strong>Broadcast DHCP discovery</strong> detects rogue DHCP servers that targeted scans would miss</li>
+<li><strong>DHCP data complements DNS findings</strong>: combining scope information with SRV records and conditional forwarders builds a complete network map</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

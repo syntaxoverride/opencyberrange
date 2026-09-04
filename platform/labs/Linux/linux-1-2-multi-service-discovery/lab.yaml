@@ -1,0 +1,242 @@
+name: Multi-Service Discovery
+description: TechStart's Linux servers run multiple services. Perform comprehensive enumeration to identify all accessible services and interact with them to gather complete information.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Scan multiple common ports simultaneously
+  - Identify multiple services on a single host
+  - Interact with discovered services (FTP, HTTP)
+  - Combine information from different sources
+  - Capture the flag
+
+scenario: |
+  Your Linux enumeration of TechStart's infrastructure continues. Sarah Chen has
+  informed you that their Linux servers typically run multiple services for different
+  administrative and business functions.
+
+  In real-world environments, servers rarely run just one service. Web servers may also
+  run SSH for administration, file servers may expose multiple protocols, and database
+  servers may have management interfaces. Comprehensive enumeration is critical to
+  understanding the full attack surface.
+
+  Your objective: Perform multi-port scanning to identify all services running on
+  TechStart's Linux server. Then interact with each discovered service to gather
+  complete information. The flag is split across multiple services - you'll need
+  to enumerate them all to find it.
+
+flag: "OCR{mult1_s3rv1c3}"
+
+hints:
+  - text: |
+      **Comprehensive Service Enumeration** is a critical skill in penetration testing:
+
+      **Why multi-service scanning matters:**
+      - **Attack Surface**: Each service is a potential entry point
+      - **Service Relationships**: Services may interact or share credentials
+      - **Information Gathering**: Different services reveal different system details
+      - **Prioritization**: Identifies the weakest link in security
+      - **Complete Picture**: Single-service scans miss critical information
+
+      **Common service combinations on Linux servers:**
+      - **SSH (22) + Web (80/443)**: Administration + application
+      - **FTP (21) + SSH (22)**: File transfer + management
+      - **Database (3306/5432) + SSH (22)**: Data + administration
+
+      **Enumeration strategy:**
+      1. Scan common ports first (21, 22, 80, etc.)
+      2. Use service version detection on all discovered ports
+      3. **Interact with each service** to gather more information
+      4. Document all findings systematically
+      5. Cross-reference information from multiple sources
+
+      Comprehensive enumeration reveals the complete attack surface.
+    unlock_after_minutes: 0
+
+  - text: |
+      **nmap multi-port scanning** allows efficient enumeration of multiple services:
+
+      **Port specification methods:**
+      - `-p 22`: Single port
+      - `-p 21,22,80`: Multiple specific ports (comma-separated)
+      - `-p 1-1000`: Port range
+      - `--top-ports 100`: Most common 100 ports
+
+      **Recommended scan for this lab:**
+      ```bash
+      nmap -p 21,22,80 -sV <target>
+      ```
+      - Scans three ports: FTP (21), SSH (22), HTTP (80)
+      - Detects service versions on all three
+      - Fast and focused enumeration
+
+      **What to look for:**
+      - Which ports are open?
+      - What services are running?
+      - Are there any that allow anonymous/unauthenticated access?
+
+      After discovering services, you need to **interact** with them to find information.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Interacting with discovered services** reveals more than port scanning alone:
+
+      **FTP Service (Port 21):**
+      FTP servers often allow anonymous access for public files.
+
+      **How to connect:**
+      ```bash
+      ftp <target>
+      ```
+      - Username: `anonymous`
+      - Password: (just press Enter, or use any email)
+
+      **FTP commands:**
+      - `ls` - List files/directories
+      - `cd <dir>` - Change directory
+      - `get <file>` - Download a file
+      - `cat <file>` - Some FTP clients support viewing files
+      - `quit` - Exit
+
+      **What to look for:**
+      - Public directories (`pub`, `public`, etc.)
+      - README files, text files
+      - Configuration files
+      - Anything with interesting information
+
+      FTP anonymous access is a common information disclosure vector.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Web Service Enumeration (Port 80):**
+
+      After discovering a web server, interact with it to gather information:
+
+      **Using curl:**
+      ```bash
+      curl http://<target>/
+      ```
+
+      **Using a browser:**
+      Navigate to `http://<target>/` in your browser
+
+      **What to examine:**
+      - Page content and text
+      - **HTML source code** (View Source)
+      - HTML comments (`<!-- comment -->`)
+      - Hidden fields and metadata
+      - Links to other pages
+
+      **View page source:**
+      - Browser: Right-click → "View Page Source"
+      - curl: Already shows raw HTML
+      - Developer tools: F12 → Elements tab
+
+      **Common hiding spots for information:**
+      - HTML comments
+      - Hidden form fields
+      - JavaScript variables
+      - Meta tags
+      - robots.txt
+
+      Always examine the HTML source, not just the rendered page!
+    unlock_after_minutes: 15
+
+  - text: |
+      **Putting it all together:**
+
+      **Step 1: Discover services**
+      ```bash
+      nmap -p 21,22,80 -sV <target>
+      ```
+      You should find: FTP, SSH, and HTTP
+
+      **Step 2: Check FTP for anonymous access**
+      ```bash
+      ftp <target>
+      # Login as: anonymous
+      # Password: (press Enter)
+      ls
+      cd pub
+      ls
+      get readme.txt
+      quit
+      cat readme.txt
+      ```
+
+      **Step 3: Examine the web server**
+      ```bash
+      curl http://<target>/
+      ```
+      Look at the HTML source carefully, including comments.
+
+      **Step 4: Combine the information**
+      The flag is split between what you find in:
+      - The FTP server (Part 1)
+      - The web server HTML (Part 2)
+
+      Combine both parts to get the complete flag!
+    unlock_after_minutes: 20
+
+  - text: |
+      **Solution walkthrough:**
+
+      **1. Scan for services:**
+      ```bash
+      nmap -p 21,22,80 -sV <target>
+      ```
+      Result: FTP (21), SSH (22), HTTP (80) are open
+
+      **2. Connect to FTP anonymously:**
+      ```bash
+      ftp <target>
+      # anonymous login
+      cd pub
+      get readme.txt
+      quit
+      cat readme.txt
+      ```
+      **Found:** `Flag Part 1: OCR{mult1_`
+
+      **3. Check web server source:**
+      ```bash
+      curl http://<target>/
+      ```
+      In the HTML source (look for comments):
+      **Found:** `<!-- Development notes: Flag Part 2: s3rv1c3} -->`
+
+      **4. Combine:**
+      - Part 1 (FTP): `OCR{mult1_`
+      - Part 2 (HTTP): `s3rv1c3}`
+      - **Complete flag:** `OCR{...}`
+
+      **Key lesson:** Real-world enumeration requires interacting with multiple
+      services. Information is often scattered - you must examine ALL discovered
+      services to get the complete picture.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/linpt/CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/"
+
+test:
+  steps:
+    - name: "Verify FTP port is open"
+      command: "nc -z -w 5 {target.target} 21 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Verify HTTP port is open"
+      command: "nc -z -w 5 {target.target} 80 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Scan all three services with nmap"
+      command: "nmap -Pn -n -p 21,22,80 -sV {target.target} 2>&1"
+      expect: "ftp"
+    - name: "Retrieve flag part 2 from HTTP page"
+      command: "curl -s http://{target.target}/ 2>&1 | grep -o 's3rv1c3}'"
+      expect: "s3rv1c3}"
+    - name: "Retrieve full flag from HTTP source"
+      command: "curl -s http://{target.target}/ 2>&1 | grep -o 'Flag Part 2: [^-]*' | head -1"
+      expect: "s3rv1c3}"
+    - name: "Combine flag parts from FTP and HTTP"
+      command: "FTP_PART=$( (curl -s --ftp-port - ftp://anonymous@{target.target}/pub/readme.txt --connect-timeout 10 || curl -s ftp://anonymous@{target.target}/pub/readme.txt --connect-timeout 10) | grep -o 'OCR{[^}]*') && HTTP_PART=$(curl -s http://{target.target}/ | grep -o 'Part 2: [^ <]*' | sed 's/Part 2: //') && echo \"${FTP_PART}${HTTP_PART}\""
+      expect: "OCR{"

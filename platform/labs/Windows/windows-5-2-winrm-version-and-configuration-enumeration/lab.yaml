@@ -1,0 +1,423 @@
+name: WinRM Version and Configuration Enumeration
+description: Enumerate WinRM version and configuration on FinanceCorp's systems to assess security posture.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - enumerate winrm version and authentication
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your detection of FinanceCorp's WinRM services has confirmed their presence. James 
+  Mitchell wants detailed information about the WinRM version and configuration, as 
+  misconfigurations can expose systems to unauthorized access.
+  
+  WinRM configuration enumeration helps identify authentication methods, supported 
+  protocols, and potential security issues. FinanceCorp needs to understand if their 
+  WinRM implementation is using secure configurations.
+  
+  Your objective: Enumerate the WinRM version, authentication methods, and configuration 
+  on FinanceCorp's systems. Document all security-relevant configuration details.
+
+flag: "OCR{w1nrm_3num}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    title: "Understanding WinRM Enumeration"
+    text: |
+      ## WinRM Version and Configuration Enumeration
+
+      **Enumeration** is the process of extracting detailed information about
+      a service after discovering it. For WinRM, enumeration reveals:
+
+      - **Server version** (e.g., Microsoft-HTTPAPI/2.0)
+      - **Authentication methods** supported (Negotiate, Basic, Kerberos)
+      - **Protocol details** (HTTP vs HTTPS, TLS configuration)
+      - **Configuration weaknesses** that could be exploited
+
+      ### How WinRM Responds to Requests
+
+      WinRM runs on top of Microsoft's HTTP API. When you send an HTTP
+      request to a WinRM endpoint, the server responds with headers like:
+
+      ```
+      HTTP/1.1 401 Unauthorized
+      Server: Microsoft-HTTPAPI/2.0
+      WWW-Authenticate: Negotiate
+      Date: Mon, 01 Jan 2024 00:00:00 GMT
+      ```
+
+      ### What These Headers Reveal
+
+      | Header | Information |
+      |--------|-------------|
+      | `Server` | Confirms Microsoft HTTP API (WinRM backend) |
+      | `WWW-Authenticate` | Lists supported auth methods |
+      | `Content-Type` | May reveal SOAP/XML configuration |
+
+      ### Why Enumeration Matters
+
+      Before attempting authentication or exploitation, you need to
+      understand the target's configuration:
+
+      - **Basic auth enabled?** Credentials sent in cleartext
+      - **Negotiate only?** Requires Kerberos/NTLM
+      - **HTTP vs HTTPS?** Determines if traffic is encrypted
+      - **Version info** helps identify known vulnerabilities
+
+      This lab has WinRM simulators responding on ports 5985 and 5986
+      that you will enumerate to extract configuration details.
+
+  - id: 2
+    unlock_after_minutes: 5
+    title: "Tools for WinRM Enumeration"
+    text: |
+      ## Enumeration Tools
+
+      ### Nmap with HTTP Scripts
+
+      Nmap includes NSE (Nmap Scripting Engine) scripts specifically
+      designed for HTTP header and service enumeration:
+
+      ```bash
+      # Retrieve HTTP headers from a service
+      nmap --script http-headers -p 5985 <target>
+
+      # Multiple enumeration scripts
+      nmap --script http-headers,http-methods -p 5985,5986 <target>
+
+      # Version detection with scripts
+      nmap -sV --script http-headers -p 5985,5986 <target>
+      ```
+
+      ### Key Nmap HTTP Scripts
+
+      | Script | Purpose |
+      |--------|---------|
+      | `http-headers` | Retrieves all HTTP response headers |
+      | `http-methods` | Discovers allowed HTTP methods |
+      | `http-title` | Gets the page title |
+      | `http-server-header` | Extracts server version string |
+      | `http-auth` | Identifies authentication methods |
+
+      ### curl for Manual Enumeration
+
+      `curl` is excellent for manual HTTP enumeration:
+
+      ```bash
+      # Verbose request showing headers
+      curl -v http://<target>:5985
+
+      # Show only response headers
+      curl -I http://<target>:5985
+
+      # HTTPS with self-signed cert bypass
+      curl -k -I https://<target>:5986
+      ```
+
+      ### What to Look For
+
+      When examining responses from WinRM endpoints:
+      - `Server: Microsoft-HTTPAPI/2.0` confirms WinRM
+      - `WWW-Authenticate: Negotiate` shows auth requirements
+      - `401 Unauthorized` is expected (confirms service is active)
+      - Compare HTTP (5985) vs HTTPS (5986) responses
+
+  - id: 3
+    unlock_after_minutes: 10
+    title: "Deep Dive into WinRM Enumeration Techniques"
+    text: |
+      ## Advanced WinRM Enumeration
+
+      ### Understanding WinRM Protocol Details
+
+      WinRM uses SOAP over HTTP/HTTPS. The authentication flow:
+
+      1. Client sends initial HTTP request
+      2. Server responds with `401 Unauthorized` + auth methods
+      3. Client selects an auth method and authenticates
+      4. Server grants access to the WinRM SOAP endpoint
+
+      ### Interpreting HTTP Headers
+
+      When you enumerate a WinRM service, analyze each header:
+
+      ```
+      HTTP/1.1 401 Unauthorized
+      Content-Type: text/html; charset=us-ascii
+      Server: Microsoft-HTTPAPI/2.0
+      WWW-Authenticate: Negotiate
+      Date: Mon, 01 Jan 2024 12:00:00 GMT
+      Content-Length: 0
+      ```
+
+      **Key findings from these headers:**
+      - `Microsoft-HTTPAPI/2.0` = WinRM is running
+      - `Negotiate` = Windows authentication (NTLM/Kerberos)
+      - `401` status = Service is active but requires authentication
+
+      ### Comparing HTTP vs HTTPS
+
+      This lab has both ports available:
+      - **Port 5985** (HTTP) - Unencrypted WinRM
+      - **Port 5986** (HTTPS) - Encrypted WinRM
+
+      Compare the responses from both to identify:
+      - Are both endpoints active?
+      - Do they offer different authentication methods?
+      - Is the HTTPS endpoint using valid certificates?
+
+      ### This Lab Also Has SSH
+
+      Remember that port 22 (SSH) is also available. After
+      gathering WinRM configuration information, you will need
+      to use SSH to access the system and retrieve the flag.
+
+      The credentials for this lab are: **admin** / **password123**
+
+      Enumerate the WinRM simulators on 5985/5986 first, then
+      use SSH on port 22 to authenticate and get the flag.
+
+  - id: 4
+    unlock_after_minutes: 15
+    title: "Step-by-Step Workflow for This Lab"
+    text: |
+      ## Lab Workflow
+
+      ### Step 1: Scan All Relevant Ports
+
+      Start by identifying all open services:
+      ```bash
+      nmap -sV -p 22,5985,5986 <target>
+      ```
+
+      You should find ports 22, 5985, and 5986 all open.
+
+      ### Step 2: Enumerate WinRM HTTP Headers (Port 5985)
+
+      Use nmap scripts to get HTTP headers:
+      ```bash
+      nmap --script http-headers -p 5985 <target>
+      ```
+
+      Also try curl for manual verification:
+      ```bash
+      curl -v http://<target>:5985/
+      ```
+
+      Look for `Microsoft-HTTPAPI/2.0` and `WWW-Authenticate`.
+
+      ### Step 3: Enumerate WinRM HTTPS Headers (Port 5986)
+
+      Repeat for the HTTPS endpoint:
+      ```bash
+      nmap --script http-headers -p 5986 <target>
+      ```
+
+      And with curl (using `-k` to skip certificate verification):
+      ```bash
+      curl -k -v https://<target>:5986/
+      ```
+
+      ### Step 4: Document Your Findings
+
+      Record the following for your report:
+      - Server version string
+      - Authentication methods supported
+      - HTTP vs HTTPS availability
+      - Any configuration differences between ports
+
+      ### Step 5: Authenticate and Retrieve the Flag
+
+      Use SSH to connect with the discovered credentials:
+      ```bash
+      ssh admin@<target>
+      ```
+      Password: `password123`
+
+      ### Step 6: Get the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    title: "Exact Commands for This Lab"
+    text: |
+      ## Commands to Complete This Lab
+
+      ### 1. Initial Port Scan
+
+      ```bash
+      nmap -sV -sC -p 22,5985,5986 <target>
+      ```
+
+      ### 2. Enumerate WinRM HTTP Headers on Port 5985
+
+      ```bash
+      nmap --script http-headers -p 5985 <target>
+      ```
+
+      ### 3. Enumerate WinRM HTTPS Headers on Port 5986
+
+      ```bash
+      nmap --script http-headers -p 5986 <target>
+      ```
+
+      ### 4. Manual Enumeration with curl
+
+      HTTP endpoint:
+      ```bash
+      curl -I http://<target>:5985/
+      ```
+
+      HTTPS endpoint:
+      ```bash
+      curl -k -I https://<target>:5986/
+      ```
+
+      ### 5. Verbose curl for Full Response Details
+
+      ```bash
+      curl -v http://<target>:5985/ 2>&1
+      ```
+
+      ### 6. Authenticate via SSH
+
+      ```bash
+      ssh admin@<target>
+      ```
+      Enter password: `password123`
+
+      ### 7. Retrieve the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Alternative One-Liner
+
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    title: "Complete Solution Walkthrough"
+    text: |
+      ## Full Solution Walkthrough
+
+      ### Step 1: Port Scan
+
+      ```bash
+      nmap -sV -p 22,5985,5986 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      PORT     STATE SERVICE VERSION
+      22/tcp   open  ssh     OpenSSH 8.9p1
+      5985/tcp open  http    Microsoft HTTPAPI httpd 2.0
+      5986/tcp open  ssl/http Microsoft HTTPAPI httpd 2.0
+      ```
+
+      ### Step 2: HTTP Header Enumeration on Port 5985
+
+      ```bash
+      nmap --script http-headers -p 5985 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      PORT     STATE SERVICE
+      5985/tcp open  wsman
+      | http-headers:
+      |   Content-Type: text/html; charset=us-ascii
+      |   Server: Microsoft-HTTPAPI/2.0
+      |   WWW-Authenticate: Negotiate
+      |   Date: ...
+      |_  (Request type: HEAD)
+      ```
+
+      ### Step 3: curl Verification
+
+      ```bash
+      curl -I http://<target>:5985/
+      ```
+
+      **Expected Output:**
+      ```
+      HTTP/1.1 401 Unauthorized
+      Server: Microsoft-HTTPAPI/2.0
+      WWW-Authenticate: Negotiate
+      Content-Type: text/html; charset=us-ascii
+      Content-Length: 0
+      ```
+
+      ### Step 4: HTTPS Enumeration on Port 5986
+
+      ```bash
+      curl -k -I https://<target>:5986/
+      ```
+
+      **Expected Output:**
+      ```
+      HTTP/1.1 401 Unauthorized
+      Server: Microsoft-HTTPAPI/2.0
+      WWW-Authenticate: Negotiate
+      Content-Type: text/html; charset=us-ascii
+      ```
+
+      ### Step 5: Authenticate and Get Flag
+
+      ```bash
+      ssh admin@<target>
+      # Password: password123
+      cat /home/admin/flag.txt
+      ```
+
+      **Expected Output:**
+      ```
+      OCR{...}
+      ```
+
+      ### Summary of Enumeration Findings
+
+      | Port | Service | Server Header | Auth Method |
+      |------|---------|--------------|-------------|
+      | 22   | SSH     | OpenSSH 8.9p1 | Password |
+      | 5985 | WinRM HTTP | Microsoft-HTTPAPI/2.0 | Negotiate |
+      | 5986 | WinRM HTTPS | Microsoft-HTTPAPI/2.0 | Negotiate |
+
+      Both WinRM endpoints confirm Microsoft HTTPAPI with Negotiate
+      authentication. The SSH service on port 22 provides shell access
+      for flag retrieval.
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "winrm-user"
+    description: "WinRM/SSH admin credentials"
+
+workbook: "wiki/range/winpt/CH05_WinRM_Exploitation/02_WinRM_Version_Configuration_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify SSH port 22 is open"
+      command: "nmap -Pn -p 22 {target.target} | grep '22/tcp'"
+      expect: "open"
+
+    - name: "Verify WinRM HTTP port 5985 is open"
+      command: "nmap -Pn -p 5985 {target.target} | grep '5985/tcp'"
+      expect: "open"
+
+    - name: "Enumerate WinRM HTTP headers"
+      command: "curl -s -I http://{target.target}:5985/ 2>&1"
+      expect: "Microsoft-HTTPAPI"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'cat /home/admin/flag.txt'"
+      expect: "OCR{"

@@ -1,0 +1,218 @@
+name: SMB Null Session Connection
+description: Test null session connections to FinanceCorp's SMB service to identify additional enumeration vectors.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - connect to smb using null session
+  - Understand SMB enumeration techniques
+  - Capture the flag
+
+scenario: |
+  Your assessment of FinanceCorp's SMB service has revealed anonymous access 
+  capabilities. James Mitchell wants you to test for null session connections, which 
+  can provide additional enumeration opportunities even when anonymous access is 
+  restricted.
+  
+  Null sessions allow connection to SMB services without valid credentials, potentially 
+  enabling enumeration of users, groups, and system information. This is a common 
+  misconfiguration in Windows environments that can significantly aid attackers.
+  
+  Your objective: Test null session connectivity to FinanceCorp's SMB service. If 
+  null sessions are permitted, this will open additional enumeration vectors for 
+  your assessment.
+
+flag: "OCR{smb_null_c0nn3ct}"
+
+hints:
+  - text: |
+      **Null sessions** are unauthenticated connections to Windows SMB services using empty credentials. Unlike anonymous access (which uses guest account), null sessions exploit the IPC$ share to access system information.
+
+      **What makes null sessions dangerous:**
+      - **User enumeration**: List all user accounts
+      - **Group enumeration**: Identify security groups
+      - **Share enumeration**: Discover network shares
+      - **System information**: Gather OS and domain details
+      - **Password policy**: Learn password complexity requirements
+      - **Privilege escalation aid**: Information for targeted attacks
+
+      Null sessions were common in older Windows versions but remain a vulnerability in misconfigured systems.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Null session vs anonymous access** are different authentication mechanisms:
+
+      **Anonymous access:**
+      - Uses guest account or anonymous user
+      - Typically provides file share access
+      - Permission-based restrictions apply
+      - Common for public shares
+
+      **Null session:**
+      - No credentials provided (empty username/password)
+      - Connects via IPC$ (Inter-Process Communication) share
+      - Bypasses normal authentication for enumeration
+      - Exploits legacy Windows trust mechanisms
+
+      **Historical context:**
+      - Pre-Windows 2000: Null sessions widely permitted
+      - Windows 2000+: Restricted by default (RestrictAnonymous)
+      - Modern Windows: Generally disabled
+      - Still found in misconfigured environments
+
+      Testing for null sessions is standard in Windows penetration testing.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Null session enumeration techniques** use the IPC$ share:
+
+      **IPC$ (Inter-Process Communication) share:**
+      - Special administrative share
+      - Used for remote procedure calls (RPC)
+      - Can be accessed with null credentials
+      - Provides API for system enumeration
+
+      **What can be enumerated:**
+      - User accounts and SIDs
+      - Group memberships
+      - Share information
+      - Password policies
+      - Domain information
+      - Trust relationships
+
+      **Tools for null session enumeration:**
+      - `enum4linux`: Comprehensive SMB enumeration
+      - `rpcclient`: Interactive RPC client
+      - `smbclient`: Connect to IPC$ share
+      - `nullinux`: Automated null session enumeration
+
+      rpcclient is the most versatile tool for null session operations.
+    unlock_after_minutes: 10
+
+  - text: |
+      **rpcclient null session syntax:**
+
+      ```bash
+      rpcclient -U "" -N target
+      ```
+
+      **Key flags:**
+      - `-U ""`: Empty username (null session)
+      - `-N`: No password
+      - `-c 'command'`: Execute command and exit
+
+      **Common rpcclient commands:**
+      ```bash
+      enumdomusers        # List domain users
+      enumdomgroups       # List domain groups
+      querydominfo        # Domain information
+      netshareenum        # Enumerate shares
+      srvinfo             # Server information
+      getdompwinfo        # Password policy
+      ```
+
+      **Interactive session example:**
+      ```bash
+      rpcclient -U "" -N <target_ip>
+      rpcclient $> enumdomusers
+      rpcclient $> querydominfo
+      rpcclient $> exit
+      ```
+
+      **Non-interactive example:**
+      ```bash
+      rpcclient -U "" -N target -c 'enumdomusers'
+      ```
+    unlock_after_minutes: 15
+
+  - text: |
+      To test null session connectivity to FinanceCorp's SMB service:
+
+      ```bash
+      rpcclient -U "" -N <target>
+      ```
+
+      This command:
+      - Attempts null session connection
+      - Uses empty username (`-U ""`)
+      - No password required (`-N`)
+      - Opens interactive RPC session if successful
+
+      **If null session works, you'll see:**
+      ```
+      rpcclient $>
+      ```
+
+      **If null session fails:**
+      ```
+      Cannot connect to server. Error was NT_STATUS_ACCESS_DENIED
+      ```
+
+      **Alternative test using smbclient:**
+      ```bash
+      smbclient //<target>/IPC$ -N -U ""
+      ```
+
+      This tests null session access to the IPC$ share specifically.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful null session connection output:
+
+      ```bash
+      $ rpcclient -U "" -N <target_ip>
+      rpcclient $>
+      ```
+
+      Once connected, test enumeration capabilities:
+
+      ```bash
+      rpcclient $> srvinfo
+      	FINANCECORP    Wk Sv PDC Tim NT
+      	platform_id     :	500
+      	os version      :	6.1
+      	server type     :	0x80102b
+
+      rpcclient $> querydominfo
+      Domain:		FINANCECORP
+      Server:		WIN-SERVER
+      Comment:
+      Total Users:	15
+      Total Groups:	0
+      Total Aliases:	0
+      ```
+
+      **What to test:**
+      1. **Connection success**: Can you establish null session?
+      2. **Server info**: `srvinfo` command
+      3. **Domain info**: `querydominfo` command
+      4. **User enum**: `enumdomusers` command
+      5. **Share enum**: `netshareenum` command
+
+      **Documentation checklist:**
+      - Null session successful (yes/no)
+      - Available enumeration commands
+      - Gathered system information
+      - Enumeration restrictions (if any)
+
+      The flag may be displayed upon successful connection or accessible through enumeration commands. Try various rpcclient commands to discover the flag.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/05_Null_Session_Connection/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Test null session connection via smbclient"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "IPC"
+
+    - name: "Verify null session via rpcclient srvinfo"
+      command: "rpcclient -U '' -N {target.target} -c 'srvinfo' 2>&1"
+      expect: "platform_id"
+
+    - name: "Retrieve flag from SMB server string"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"

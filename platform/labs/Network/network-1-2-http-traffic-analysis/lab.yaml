@@ -1,0 +1,324 @@
+name: HTTP Traffic Analysis
+description: MediCare Regional Hospital captured suspicious network traffic showing cleartext HTTP authentication. Analyze the packet capture in Wireshark to find credentials transmitted insecurely.
+difficulty: beginner
+category: network-analysis
+duration_minutes: 45
+objectives:
+  - Download and open PCAP files in Wireshark
+  - Apply display filters to isolate HTTP traffic
+  - Analyze HTTP POST requests for form data
+  - Extract cleartext credentials from unencrypted traffic
+  - Understand why HTTPS is critical for sensitive data
+
+scenario: |
+  You're a junior security analyst at MediCare Regional Hospital's Security Operations Center (SOC).
+  Marcus Thompson, the CISO, has escalated a concerning incident to you. During a routine
+  network security audit, the team captured traffic from the legacy medical records system.
+
+  The medical records application was supposed to be decommissioned last year, but a department
+  is still using it. Marcus suspects it's transmitting login credentials in cleartext over HTTP
+  instead of encrypted HTTPS.
+
+  Your mission: Download the packet capture file and analyze it in Wireshark to determine if
+  credentials are being transmitted without encryption. If you find cleartext credentials,
+  document them as evidence for the security incident report.
+
+  The packet capture is available at: http://10.10.{user_id}.10/capture.pcap
+
+  This lab demonstrates why HTTPS (not HTTP) must be used for all authentication systems.
+  Unencrypted credentials can be captured by anyone on the network path.
+
+flag: "OCR{http_cr3d3nt14ls}"
+
+hints:
+  - text: |
+      **Why Packet Analysis Matters** - Understanding network security fundamentals:
+
+      **What is packet capture (PCAP)?**
+      - Networks transmit data in small chunks called "packets"
+      - Packet captures record all network traffic passing through a point
+      - Analysts use tools like Wireshark to inspect these captures
+      - Unencrypted traffic reveals everything: passwords, emails, files, etc.
+
+      **HTTP vs HTTPS - The critical difference:**
+      - **HTTP** (port 80): Cleartext, anyone can read it
+        - Login credentials: Visible in plain text
+        - Session tokens: Exposed to attackers
+        - Personal data: Readable by anyone sniffing traffic
+
+      - **HTTPS** (port 443): Encrypted with TLS/SSL
+        - Login credentials: Encrypted, unreadable
+        - Session tokens: Protected from interception
+        - Personal data: Secured with strong cryptography
+
+      **Why this matters in healthcare:**
+      - HIPAA requires encryption for protected health information (PHI)
+      - Cleartext credentials allow unauthorized access to patient records
+      - Network sniffing is trivial on shared networks (WiFi, hospital LANs)
+      - A single captured password can compromise an entire system
+
+      **Real-world attack scenario:**
+      1. Attacker connects to hospital guest WiFi
+      2. Runs packet sniffer (tcpdump, Wireshark) in monitor mode
+      3. Captures all traffic on the network segment
+      4. Filters for HTTP POST requests (login attempts)
+      5. Extracts usernames and passwords in cleartext
+      6. Accesses medical records system with stolen credentials
+
+      **Your goal in this lab:**
+      Download the PCAP file and use Wireshark to find the cleartext credentials,
+      demonstrating why HTTP is unacceptable for authentication systems.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Wireshark Basics** - Getting started with packet analysis:
+
+      **Installing Wireshark:**
+      - **Linux**: `sudo apt install wireshark` or `sudo yum install wireshark`
+      - **macOS**: Download from wireshark.org or `brew install wireshark`
+      - **Windows**: Download installer from wireshark.org
+
+      **Opening a PCAP file:**
+      ```bash
+      # First, download the capture
+      curl http://10.10.{user_id}.10/capture.pcap -o capture.pcap
+
+      # Then open in Wireshark
+      wireshark capture.pcap
+      ```
+
+      **Understanding the Wireshark interface:**
+      - **Packet list** (top): All captured packets with timestamps
+      - **Packet details** (middle): Protocol layers for selected packet
+      - **Packet bytes** (bottom): Raw hexadecimal and ASCII data
+
+      **Common protocols you'll see:**
+      - **DNS**: Domain name lookups (port 53)
+      - **TCP**: Connection establishment (SYN, ACK packets)
+      - **HTTP**: Unencrypted web traffic (port 80) ← We're looking for this
+      - **TLS**: Encrypted handshakes for HTTPS (port 443)
+
+      **Display filter basics:**
+      Wireshark's filter bar lets you show only specific traffic:
+      ```
+      http                    # Show only HTTP traffic
+      tcp.port == 80          # Show traffic on port 80
+      ip.addr == <target_ip>    # Show traffic to/from specific IP
+      ```
+
+      **What makes HTTP traffic suspicious:**
+      - POST requests often contain form data (usernames, passwords)
+      - Unlike HTTPS, HTTP content is completely readable
+      - Look for login-related endpoints like `/login`, `/auth`, `/signin`
+
+      **Next steps:**
+      Download the PCAP and open it in Wireshark. Look at the different
+      protocols captured. Notice how some traffic (HTTPS) is encrypted
+      while other traffic (HTTP) is in cleartext.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Filtering HTTP Traffic** - Finding the relevant packets:
+
+      **Step 1: Apply HTTP filter**
+      In Wireshark's display filter bar (top of window), type:
+      ```
+      http
+      ```
+      Press Enter. This shows only HTTP packets, hiding DNS, TLS, and other protocols.
+
+      **What you'll see:**
+      - HTTP requests (client → server): GET, POST, PUT, etc.
+      - HTTP responses (server → client): 200 OK, 404 Not Found, etc.
+      - Cleartext headers and data
+
+      **Step 2: Identify POST requests**
+      POST requests often contain form data like login credentials. Filter further:
+      ```
+      http.request.method == "POST"
+      ```
+
+      This shows only HTTP POST requests. Look for:
+      - Request URIs like `/login`, `/auth`, `/api/authenticate`
+      - Form data in the packet details
+      - Usernames and passwords in cleartext
+
+      **Step 3: Examine packet details**
+      Click on a POST request packet. In the middle pane, expand:
+      ```
+      Hypertext Transfer Protocol
+        → Request Method: POST
+        → Request URI: /login (or similar)
+        → HTML Form URL Encoded
+           → username=...
+           → password=...
+      ```
+
+      **Alternative: Follow HTTP stream**
+      - Right-click any HTTP packet
+      - Select "Follow" → "HTTP Stream"
+      - This shows the entire conversation in a readable format
+      - Look for form data in the POST body
+
+      **Common form fields to look for:**
+      - `username=` or `user=` or `email=`
+      - `password=` or `pass=` or `pwd=`
+      - Sometimes base64-encoded (but still not secure)
+
+      **Pro tip:**
+      You can use this filter to find credentials-related keywords:
+      ```
+      http contains "password"
+      ```
+
+      This highlights any HTTP packets containing the word "password".
+
+      The flag is hidden in the credentials transmitted via HTTP POST.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Finding POST Requests with Credentials** - Detailed analysis approach:
+
+      **Method 1: Filter for POST requests**
+      ```
+      http.request.method == "POST"
+      ```
+
+      Look at each POST request:
+      1. Click on the packet
+      2. Expand "HTML Form URL Encoded" or "Media Type" in packet details
+      3. Read the form fields (username, password, etc.)
+
+      **Method 2: Search for keywords**
+      Use Wireshark's search function:
+      - Edit → Find Packet (or Ctrl+F)
+      - Set "Find by" to "String"
+      - Search for: `password`, `username`, `login`, `credentials`
+      - Check "Packet bytes"
+
+      **Method 3: Follow HTTP Stream**
+      The easiest way to see the full login attempt:
+      1. Right-click any HTTP packet
+      2. Follow → HTTP Stream
+      3. Wireshark shows the entire HTTP conversation
+      4. Look for the POST request body with form data
+
+      **Example of what you're looking for:**
+      ```
+      POST /api/login HTTP/1.1
+      Host: medical-records.medicare.local
+      Content-Type: application/x-www-form-urlencoded
+
+      username=dr.smith&password=OCR{...}
+      ```
+
+      **Why this is a critical vulnerability:**
+      - Anyone on the network path can see these credentials
+      - WiFi sniffing on the same network captures this traffic
+      - Man-in-the-middle (MITM) attacks can intercept HTTP
+      - Compromised routers/switches can log all HTTP traffic
+
+      **Red flags in the capture:**
+      - Protocol: HTTP (not HTTPS)
+      - Port: 80 (not 443)
+      - No TLS handshake before login
+      - Cleartext form data visible in packet details
+
+      **Defense recommendation:**
+      This medical records system must be:
+      1. Immediately taken offline
+      2. Configured to use HTTPS with valid TLS certificate
+      3. All existing passwords rotated (assume compromised)
+      4. HTTP port 80 disabled entirely
+
+      Examine the POST request carefully - the flag is in the credentials.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Solution Walkthrough** - Step-by-step instructions:
+
+      **Step 1: Download the packet capture**
+      ```bash
+      curl http://10.10.{user_id}.10/capture.pcap -o capture.pcap
+      ```
+
+      **Step 2: Open in Wireshark**
+      ```bash
+      wireshark capture.pcap
+      # Or on some systems:
+      wireshark-gtk capture.pcap
+      ```
+
+      **Step 3: Filter for HTTP POST requests**
+      In the display filter bar at the top, enter:
+      ```
+      http.request.method == "POST"
+      ```
+      Press Enter.
+
+      **Step 4: Examine the POST request**
+      You should see one or more HTTP POST packets. Click on one.
+
+      **Step 5: Expand packet details**
+      In the middle pane, expand these sections:
+      ```
+      Hypertext Transfer Protocol
+        → POST /login HTTP/1.1
+        → [Full request URI: http://...]
+        → Request Method: POST
+        → Request URI: /login
+        → [Truncated] or HTML Form URL Encoded:
+            Form item: "username" = "admin" or "dr.johnson"
+            Form item: "password" = "OCR{...}"
+      ```
+
+      **Alternative Method: Follow HTTP Stream**
+      1. Right-click on the HTTP POST packet
+      2. Select "Follow" → "HTTP Stream"
+      3. A new window opens showing the full HTTP conversation
+      4. Look for the POST body (usually at the top after headers)
+
+      **What you'll see in the stream:**
+      ```
+      POST /api/login HTTP/1.1
+      Host: medical.medicare.local
+      Content-Type: application/x-www-form-urlencoded
+      Content-Length: XX
+
+      username=admin&password=OCR{...}
+
+      HTTP/1.1 200 OK
+      ...
+      ```
+
+      **The flag:** `OCR{...}`
+
+      **Evidence for the incident report:**
+      - **Vulnerability**: Cleartext HTTP authentication
+      - **Protocol**: HTTP (port 80), no encryption
+      - **Credentials exposed**: Username and password in plaintext
+      - **Risk**: Anyone on network can capture credentials
+      - **Compliance**: HIPAA violation (PHI system requires encryption)
+      - **Remediation**: Migrate to HTTPS immediately, rotate all passwords
+
+      **Key lesson:**
+      HTTP transmits everything in cleartext. For authentication, sensitive data,
+      or any system handling PHI/PII, HTTPS is mandatory - not optional.
+
+      This is why modern browsers show "Not Secure" warnings for HTTP sites,
+      and why Let's Encrypt provides free TLS certificates. There's no excuse
+      for unencrypted authentication in 2024.
+    unlock_after_minutes: 20
+workbook: "wiki/range/netfor/CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/"
+
+test:
+  steps:
+    - name: "HTTP server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.target}/"
+      expect: "200"
+    - name: "PCAP file accessible"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.target}/capture.pcap"
+      expect: "200"
+    - name: "Flag found in PCAP file"
+      command: "curl -s http://{target.target}/capture.pcap | strings | grep -o 'OCR{[^}]*}' | head -1"
+      expect: "OCR{http_cr3d3nt14ls}"

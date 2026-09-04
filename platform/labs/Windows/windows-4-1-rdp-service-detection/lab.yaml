@@ -1,0 +1,299 @@
+name: RDP Service Detection
+description: Your FinanceCorp assessment has revealed RDP services. The client is concerned about remote access security. Test RDP authentication and identify vulnerabilities.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - identify rdp service on target
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your penetration test for FinanceCorp has identified Remote Desktop Protocol (RDP) 
+  services running on their Windows infrastructure. James Mitchell is particularly 
+  concerned about RDP security, as remote access services are common attack vectors 
+  and can provide direct system access if compromised.
+  
+  RDP allows remote access to Windows systems, making it a high-value target for 
+  attackers. FinanceCorp wants to understand if their RDP services are properly 
+  secured and whether unauthorized access is possible.
+  
+  Your objective: Identify and assess FinanceCorp's RDP services. Begin by detecting 
+  RDP on the network and gathering initial information about the service 
+  configuration and version.
+
+flag: "OCR{rdp_d3t3ct}"
+
+hints:
+  - text: |
+      ## What is RDP Service Detection?
+
+      **Remote Desktop Protocol (RDP)** is a proprietary protocol developed by Microsoft
+      that provides a graphical interface for connecting to another computer over a network.
+      RDP typically runs on **TCP port 3389** and is one of the most commonly targeted
+      services in penetration testing.
+
+      ### Why RDP Detection Matters
+
+      RDP is a **high-value target** for attackers because:
+      - It provides **direct graphical access** to a system if credentials are compromised
+      - It is frequently exposed on both internal networks and the internet
+      - Misconfigured RDP services can be vulnerable to brute force, man-in-the-middle,
+        and protocol-level attacks (e.g., BlueKeep - CVE-2019-0708)
+      - Many organizations leave RDP enabled with weak or default credentials
+
+      ### Detection as the First Step
+
+      Before you can exploit or assess an RDP service, you must first **detect** that it
+      exists. Service detection involves scanning the target to identify open ports and
+      the services running on them. For RDP, this means confirming that port 3389 is open
+      and that an RDP-compatible service is listening.
+
+      In this lab, your goal is to detect the RDP service running on the FinanceCorp
+      target system and identify basic information about it.
+    unlock_after_minutes: 0
+
+  - text: |
+      ## Tool Introduction: Nmap for Service Detection
+
+      **Nmap** (Network Mapper) is the go-to tool for network discovery and service
+      detection. It can identify open ports, running services, and even specific software
+      versions.
+
+      ### Installation
+
+      Nmap is pre-installed on most penetration testing distributions. If you need to
+      install it:
+
+      ```bash
+      sudo apt update && sudo apt install nmap -y
+      ```
+
+      ### Basic Syntax
+
+      ```bash
+      nmap [scan_type] [options] <target>
+      ```
+
+      ### Key Flags for Service Detection
+
+      | Flag  | Purpose                                      |
+      |-------|----------------------------------------------|
+      | `-p`  | Specify port(s) to scan (e.g., `-p 3389`)    |
+      | `-sV` | Probe open ports to determine service/version |
+      | `-sC` | Run default NSE (Nmap Scripting Engine) scripts|
+      | `-Pn` | Skip host discovery, treat host as online     |
+      | `-sT` | TCP connect scan (full handshake)             |
+      | `-sS` | SYN scan (half-open, stealthier)              |
+
+      For RDP detection, the most important flags are `-p 3389` to target the RDP port
+      and `-sV` to identify the service version.
+    unlock_after_minutes: 5
+
+  - text: |
+      ## RDP Service Detection in Practice
+
+      When you scan port 3389 with version detection, nmap performs a **TCP handshake**
+      with the port and then sends protocol-specific probes to identify what software
+      is running.
+
+      ### What to Expect on RDP Services
+
+      RDP services can appear in nmap results in several ways:
+
+      - **Microsoft Terminal Services** - Native Windows RDP implementation
+      - **xrdp** - Open-source RDP server commonly found on Linux systems
+      - **ms-wbt-server** - Microsoft Windows-based Terminal Server
+
+      ### Common nmap Output for RDP
+
+      ```
+      PORT     STATE SERVICE        VERSION
+      3389/tcp open  ms-wbt-server  xrdp
+      ```
+
+      ### Additional Information from Service Detection
+
+      Version detection (`-sV`) can reveal:
+      - The **specific RDP implementation** (Microsoft vs xrdp vs FreeRDP)
+      - The **protocol version** supported
+      - The **operating system** hints (Windows vs Linux)
+      - Whether **Network Level Authentication (NLA)** is required
+
+      In this lab, the target is running **xrdp**, an open-source RDP server. This is
+      significant because xrdp has different security characteristics compared to
+      Microsoft's native RDP implementation.
+
+      ### Port States
+
+      Nmap reports ports in several states:
+      - **open** - The port is accepting connections
+      - **closed** - The port is accessible but no service is listening
+      - **filtered** - A firewall is blocking access to the port
+    unlock_after_minutes: 10
+
+  - text: |
+      ## Step-by-Step Workflow for This Lab
+
+      Follow these steps to detect the RDP service on the FinanceCorp target:
+
+      ### Step 1: Verify Connectivity
+
+      Before scanning, confirm you can reach the target:
+
+      ```bash
+      ping -c 3 <target>
+      ```
+
+      If ping is blocked, that is okay - nmap can still scan the target using the
+      `-Pn` flag to skip host discovery.
+
+      ### Step 2: Quick Port Check
+
+      Run a fast scan to check if port 3389 is open:
+
+      ```bash
+      nmap -p 3389 <target>
+      ```
+
+      This tells you whether the port is open, closed, or filtered.
+
+      ### Step 3: Service Version Detection
+
+      Once you confirm the port is open, run a version detection scan:
+
+      ```bash
+      nmap -p 3389 -sV <target>
+      ```
+
+      This will identify the specific service and version running on port 3389.
+
+      ### Step 4: Analyze the Results
+
+      Look at the nmap output for:
+      - The **STATE** column (should show "open")
+      - The **SERVICE** column (should show "ms-wbt-server" or similar)
+      - The **VERSION** column (will show the RDP implementation)
+
+      ### Step 5: Retrieve the Flag
+
+      Once you have successfully detected the RDP service, the flag will be accessible.
+      You may need to connect to the service to retrieve it. Check if credentials were
+      provided in the lab description.
+    unlock_after_minutes: 15
+
+  - text: |
+      ## Exact Commands to Run
+
+      Run the following nmap command to detect the RDP service:
+
+      ```bash
+      nmap -sV -sC -p 3389 -Pn <target>
+      ```
+
+      This command:
+      - `-sV` : Detects service version on the open port
+      - `-sC` : Runs default nmap scripts for additional information
+      - `-p 3389` : Targets only the RDP port
+      - `-Pn` : Skips ping check (useful if ICMP is blocked)
+
+      ### After Detection: Retrieving the Flag
+
+      The flag is stored on the target system. Once you have confirmed RDP is running,
+      you can connect using the provided credentials with an RDP client:
+
+      ```bash
+      sudo apt install freerdp2-x11 -y
+      xfreerdp /v:<target> /u:rdpuser /p:password123 /cert:ignore
+      ```
+
+      Once connected, read the flag file:
+
+      ```bash
+      cat /home/rdpuser/flag.txt
+      ```
+
+      Note: This target does not have a desktop environment, so the xfreerdp
+      connection may drop. As an alternative, if nmap scripts reveal enough
+      information, you may be able to retrieve the flag through other means.
+      Try connecting via any available service that the scan reveals.
+    unlock_after_minutes: 20
+
+  - text: |
+      ## Complete Solution Walkthrough
+
+      ### 1. Run the Service Detection Scan
+
+      ```bash
+      nmap -sV -sC -p 3389 -Pn <target>
+      ```
+
+      ### 2. Expected Output
+
+      You should see output similar to:
+
+      ```
+      Starting Nmap 7.94 ( https://nmap.org )
+      Nmap scan report for <target>
+      Host is up (0.001s latency).
+
+      PORT     STATE SERVICE        VERSION
+      3389/tcp open  ms-wbt-server  xrdp
+      |_ssl-date: ...
+      | rdp-ntlm-info:
+      |   Target_Name: ...
+      |   Product_Version: ...
+      |_  System_Time: ...
+      | ssl-cert:
+      |   Subject: commonName=...
+      ```
+
+      This confirms:
+      - Port 3389 is **open**
+      - The service is identified as **ms-wbt-server**
+      - The implementation is **xrdp**
+
+      ### 3. Connect and Retrieve the Flag
+
+      Install the FreeRDP client and connect:
+
+      ```bash
+      sudo apt install freerdp2-x11 -y
+      xfreerdp /v:<target> /u:rdpuser /p:password123 /cert:ignore +clipboard
+      ```
+
+      If the graphical connection fails (no desktop environment), try reading the
+      flag directly through an SSH-like session or alternative method available
+      on the target.
+
+      Once connected or through alternative access, read the flag:
+
+      ```bash
+      cat /home/rdpuser/flag.txt
+      ```
+
+      The flag will be in the format `OCR{...}`. Submit this flag to complete
+      the lab.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "rdpuser"
+    password: "password123"
+    role: "rdp-user"
+    description: "RDP user credentials"
+
+workbook: "wiki/range/winpt/CH04_RDP_Exploitation/01_RDP_Service_Detection/"
+
+test:
+  steps:
+    - name: "Verify RDP port 3389 is open"
+      command: "nmap -Pn -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "open"
+
+    - name: "Detect RDP service on port 3389"
+      command: "nmap -Pn -sV -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "ms-wbt-server"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p 'password123' ssh -o StrictHostKeyChecking=no rdpuser@{target.target} cat /home/rdpuser/flag.txt"
+      expect: "OCR{"

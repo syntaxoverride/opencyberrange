@@ -1,0 +1,1208 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 8.2: Cross-Service Credential Reuse - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-82-cross-service-credential-reuse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 8.2: Cross-Service Credential Reuse
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-cross-service-credential-reuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Cross-Service Credential Reuse
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-crackmapexec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: CrackMapExec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-scan-ports-22-445-and-3389" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Scan Ports 22, 445, and 3389
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verify-credentials-on-smb-with-crackmapexec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Verify Credentials on SMB with CrackMapExec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-credentials-on-rdp-with-crackmapexec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Verify Credentials on RDP with CrackMapExec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-enumerate-smb-shares" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Enumerate SMB Shares
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-connect-via-ssh-to-retrieve-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Connect via SSH to Retrieve the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-find-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Find and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-82-cross-service-credential-reuse">Exercise 8.2: Cross-Service Credential Reuse</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Cross-service credential reuse testing requires access to multiple protocols on the same target. Before starting, confirm that your Kali Linux virtual machine (VM) is connected to the OpenCyberRange network through the WireGuard VPN tunnel. Verify connectivity by pinging the target IP address shown on the lab dashboard.</p>
+<p>Ensure the following tools are installed on your Kali VM:</p>
+<ul>
+<li><code>nmap</code> for port scanning and service detection</li>
+<li><code>crackmapexec</code> for multi-protocol credential validation</li>
+<li><code>smbclient</code> for Server Message Block (SMB) share enumeration</li>
+<li><code>xfreerdp</code> for Remote Desktop Protocol (RDP) connections</li>
+<li><code>sshpass</code> and <code>ssh</code> for automated Secure Shell (SSH) login</li>
+</ul>
+<h2 id="scenario">Scenario</h2>
+<p>You are continuing the FinanceCorp penetration test from Exercise 8.1. James Mitchell wants to know whether the SMB credentials discovered earlier; <code>admin:password123</code>: grant access to other services on the same host. The target server runs three services: SMB on port 445, RDP on port 3389, and SSH on port 22. If the same credentials work across multiple services, the organization faces a significantly higher risk of lateral movement.</p>
+<p>Your task is to verify the credentials against each service, document which services accept them, and retrieve a flag stored on the target filesystem.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>Each objective addresses a stage in the cross-service credential reuse assessment.</p>
+<ol>
+<li>Scan the target to confirm SMB, RDP, and SSH are running</li>
+<li>Test the credentials against SMB using CrackMapExec (CME)</li>
+<li>Test the credentials against RDP using CME</li>
+<li>Enumerate SMB shares to confirm file-level access</li>
+<li>Connect via SSH and retrieve the flag from <code>/home/admin/flag.txt</code></li>
+<li>Document all services where the credentials are valid</li>
+</ol>
+<hr />
+<h2 id="background-cross-service-credential-reuse">Background: Cross-Service Credential Reuse</h2>
+<p>Cross-service credential reuse occurs when the same username and password combination grants access to more than one service or protocol on a target. Users and administrators often reuse passwords across systems for convenience, creating a chain of access that attackers exploit during lateral movement.</p>
+<p>Lateral movement is the process of expanding access within a network after an initial foothold. When a single credential pair unlocks SMB, RDP, and SSH on the same host, an attacker can choose the most advantageous protocol for their objective; file exfiltration through SMB, interactive desktop access through RDP, or command-line control through SSH.</p>
+<pre class="mermaid"><code>flowchart TD
+    A["Discovered&lt;br/&gt;Credentials"] --&gt; B["Test SMB&lt;br/&gt;Port 445"]
+    A --&gt; C["Test RDP&lt;br/&gt;Port 3389"]
+    A --&gt; D["Test SSH&lt;br/&gt;Port 22"]
+    B --&gt; E["Access&lt;br/&gt;File Shares"]
+    C --&gt; F["Remote&lt;br/&gt;Desktop"]
+    D --&gt; G["Command-Line&lt;br/&gt;Access"]
+    E --&gt; H["Lateral&lt;br/&gt;Movement"]
+    F --&gt; H
+    G --&gt; H
+
+    style A fill:#4a90d9,stroke:#333,color:#fff
+    style B fill:#6aaa64,stroke:#333,color:#fff
+    style C fill:#6aaa64,stroke:#333,color:#fff
+    style D fill:#6aaa64,stroke:#333,color:#fff
+    style E fill:#e8a735,stroke:#333,color:#fff
+    style F fill:#e8a735,stroke:#333,color:#fff
+    style G fill:#e8a735,stroke:#333,color:#fff
+    style H fill:#d9534f,stroke:#333,color:#fff</code></pre>
+<p>Organizations mitigate credential reuse through unique passwords per service, centralized identity management, and multi-factor authentication (MFA). Penetration testers document every service where reused credentials succeed to demonstrate the scope of the exposure.</p>
+<h2 id="tool-primer-crackmapexec">Tool Primer: CrackMapExec</h2>
+<p>CrackMapExec (CME) is a post-exploitation tool designed for rapid credential validation across multiple protocols. Rather than testing each service manually with protocol-specific tools, CME provides a unified interface for SMB, RDP, SSH, WinRM, and other services.</p>
+<p>The following table describes the core CME operations used in this exercise.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Test SMB credentials</td>
+<td><code>crackmapexec smb &lt;target_ip&gt; -u admin -p password123</code></td>
+<td>Authenticate against SMB</td>
+</tr>
+<tr>
+<td>Test RDP credentials</td>
+<td><code>crackmapexec rdp &lt;target_ip&gt; -u admin -p password123</code></td>
+<td>Authenticate against RDP</td>
+</tr>
+<tr>
+<td>Test SSH credentials</td>
+<td><code>crackmapexec ssh &lt;target_ip&gt; -u admin -p password123</code></td>
+<td>Authenticate against SSH</td>
+</tr>
+</tbody>
+</table>
+<p>CME output uses color-coded indicators to report results. A green <code>[+]</code> marker indicates successful authentication. A red <code>[-]</code> marker indicates failed authentication. Some protocols display additional context; for example, SMB results may include <code>(Pwn3d!)</code> when the account has administrative privileges on the target.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>SMB   &lt;target_ip&gt;  445  TARGET  [+]  admin:password123 (Pwn3d!)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>RDP   &lt;target_ip&gt;  3389 TARGET  [+]  admin:password123
+</code></pre></div>
+<p>The unified syntax makes CME efficient for testing one credential pair against many services or many credential pairs against one service. Penetration testers use CME to quickly map out which accounts have access to which services across an entire network segment.</p>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the OpenCyberRange dashboard and start Exercise 8.2 from the Credential Reuse track. Wait for the environment to report a ready status and note the target IP address. All commands in the walkthrough use this target IP.</p>
+<div class="admonition kali">
+<p class="admonition-title">Confirm connectivity to the target</p>
+<p>Send a ping to the target IP shown on the lab dashboard to verify the VPN path is up.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ping<span class="w"> </span>-c<span class="w"> </span><span class="m">3</span><span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+</div>
+<h3 id="step-2-scan-ports-22-445-and-3389">Step 2: Scan Ports 22, 445, and 3389</h3>
+<div class="admonition kali">
+<p class="admonition-title">Scan ports 22, 445, and 3389</p>
+<p>Run an Nmap service version scan against the three target ports to confirm which services are running.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nmap<span class="w"> </span>-sV<span class="w"> </span>-p<span class="w"> </span><span class="m">22</span>,445,3389<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>The output should show all three ports as open. Note the service banners for SSH, SMB, and RDP; each banner provides version information that may be relevant for vulnerability research. Confirm that all three services are reachable before proceeding to credential testing.</p>
+</div>
+<h3 id="step-3-verify-credentials-on-smb-with-crackmapexec">Step 3: Verify Credentials on SMB with CrackMapExec</h3>
+<div class="admonition kali">
+<p class="admonition-title">Verify credentials on SMB with CrackMapExec</p>
+<p>Test the credentials <code>admin:password123</code> against the SMB service using CME.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>crackmapexec<span class="w"> </span>smb<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>admin<span class="w"> </span>-p<span class="w"> </span>password123
+</code></pre></div>
+<p>Look for the <code>[+]</code> indicator in the output. A successful result confirms that the credentials are valid for SMB authentication. Note whether the output includes <code>(Pwn3d!)</code>, which indicates administrative-level access on the target.</p>
+</div>
+<h3 id="step-4-verify-credentials-on-rdp-with-crackmapexec">Step 4: Verify Credentials on RDP with CrackMapExec</h3>
+<div class="admonition kali">
+<p class="admonition-title">Verify credentials on RDP with CrackMapExec</p>
+<p>Test the same credentials against the RDP service.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>crackmapexec<span class="w"> </span>rdp<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>admin<span class="w"> </span>-p<span class="w"> </span>password123
+</code></pre></div>
+<p>A <code>[+]</code> result confirms that the RDP service also accepts the same credential pair. Credential reuse across SMB and RDP means an attacker could access both file shares and a full graphical desktop session on the target.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Launch an interactive RDP session</p>
+<p>You can optionally verify the RDP connection by launching an interactive session with <code>xfreerdp</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>xfreerdp<span class="w"> </span>/v:&lt;target_ip&gt;<span class="w"> </span>/u:admin<span class="w"> </span>/p:password123<span class="w"> </span>/cert:ignore
+</code></pre></div>
+<p>Close the RDP session after confirming access; the flag is retrieved through SSH in a later step.</p>
+</div>
+<h3 id="step-5-enumerate-smb-shares">Step 5: Enumerate SMB Shares</h3>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate SMB shares</p>
+<p>Use <code>smbclient</code> to list the available shares and confirm that the credentials provide file-level access.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>//&lt;target_ip&gt;<span class="w"> </span>-U<span class="w"> </span>admin%password123
+</code></pre></div>
+<p>Review the share listing for any non-default shares. Connect to each share and examine the contents as you did in Exercise 8.1. The SMB enumeration confirms that the credential reuse extends to file share access.</p>
+</div>
+<h3 id="step-6-connect-via-ssh-to-retrieve-the-flag">Step 6: Connect via SSH to Retrieve the Flag</h3>
+<div class="admonition kali">
+<p class="admonition-title">Connect via SSH to retrieve the flag</p>
+<p>Use <code>sshpass</code> to authenticate to the SSH service and read the flag file located at <code>/home/admin/flag.txt</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sshpass<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;password123&#39;</span><span class="w"> </span>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>admin@&lt;target_ip&gt;<span class="w"> </span><span class="s1">&#39;cat /home/admin/flag.txt&#39;</span>
+</code></pre></div>
+<p>The command authenticates as <code>admin</code>, reads the flag file, and prints the <code>OCR{...}</code> flag value to your terminal. Copy the flag exactly as displayed. The <code>-o StrictHostKeyChecking=no</code> flag bypasses the host key verification prompt for lab environments; do not use that option in production assessments.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<p>Document all credential testing results and the services that accepted the credentials.</p>
+<blockquote>
+<p><strong>My Nmap output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>(paste your nmap output here)
+</code></pre></div>
+<p><strong>Open ports I found:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>CrackMapExec results:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Port</th>
+<th>Result</th>
+<th>Indicator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SMB</td>
+<td>445</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>RDP</td>
+<td>3389</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag value:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>(paste the flag here)
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-7-interpret-the-results">Step 7: Interpret the Results</h3>
+<p>The credential pair <code>admin:password123</code> granted access to three separate services on the same host: SMB, RDP, and SSH. Each service provides a different type of access; file shares, graphical desktop, and command-line shell; and each represents a distinct attack path an adversary could exploit.</p>
+<p>Cross-service credential reuse amplifies the impact of a single compromised credential. An attacker who discovers one valid login can pivot across protocols, choosing the most effective channel for data exfiltration, persistence, or privilege escalation. The finding demonstrates that FinanceCorp lacks per-service credential segmentation and that password reuse is a systemic issue.</p>
+<h3 id="step-8-find-and-submit-the-flag">Step 8: Find and Submit the Flag</h3>
+<p>Return to the OpenCyberRange dashboard and paste the <code>OCR{...}</code> flag into the submission field for Exercise 8.2. Successful validation confirms that you authenticated via SSH and retrieved the flag from the target filesystem.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Work through each question to deepen your understanding of cross-service credential reuse.</p>
+<p><strong>1. Why is cross-service credential reuse more dangerous than single-service credential exposure?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A single compromised service limits the attacker to one type of access. Cross-service reuse multiplies the attack surface; the same credentials unlock file shares, remote desktops, and command-line shells. An attacker can choose the protocol best suited to their objective, and defenders must revoke access across every affected service simultaneously to contain the breach.</p>
+</details>
+<p><strong>2. What advantages does CrackMapExec offer over testing each service manually?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>CME provides a unified command-line interface for testing credentials against multiple protocols without switching between protocol-specific tools. A penetration tester can validate one credential pair across SMB, RDP, SSH, and other services using consistent syntax. CME also supports batch testing with username and password lists, making it efficient for large-scale credential audits across entire network ranges.</p>
+</details>
+<p><strong>3. What remediation steps would you recommend to FinanceCorp?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The primary recommendation is to enforce unique passwords for each service and user account. FinanceCorp should deploy a centralized identity provider with MFA to prevent password reuse from granting cross-service access. Service accounts should follow the principle of least privilege, with each account scoped to the minimum services required. Regular credential audits and password rotation policies reduce the window of exposure when a credential is compromised.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<p>Reusing the same credentials across multiple services creates a lateral movement path that attackers exploit to expand their access. A single compromised password that works on SMB, RDP, and SSH gives an attacker three distinct channels to interact with the target system.</p>
+<p>CrackMapExec streamlines credential validation by providing a single tool for testing multiple protocols. The <code>[+]</code> and <code>[-]</code> output indicators give immediate feedback on which services accept the tested credentials, replacing the need to connect manually with protocol-specific clients.</p>
+<p>Effective remediation requires both technical controls and organizational policy. Unique per-service credentials, centralized identity management, MFA, and regular password audits all reduce the risk of cross-service credential reuse.</p>
+<p>Exercise 8.3 extends credential reuse testing to multiple hosts, exploring how compromised credentials can enable movement across an entire network segment.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

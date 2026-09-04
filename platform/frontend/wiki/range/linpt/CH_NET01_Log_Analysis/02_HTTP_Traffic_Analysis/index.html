@@ -1,0 +1,1419 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.2: HTTP Traffic Analysis - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-12-http-traffic-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.2: HTTP Traffic Analysis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-http-vs-https" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: HTTP vs HTTPS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: tshark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-download-the-packet-capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Download the Packet Capture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-get-a-protocol-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Get a Protocol Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-filter-for-http-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Filter for HTTP Traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-find-post-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Find POST Requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-extract-the-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Extract the Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-follow-the-tcp-stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Follow the TCP Stream
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-12-http-traffic-analysis">Exercise 1.2: HTTP Traffic Analysis</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>In Exercise 1.1 you analyzed plain-text firewall logs using grep, awk, and the Unix counting pipeline. this exercise shifts to a different evidence format: a packet capture (PCAP) file. Instead of reading human-readable log lines, you work with recorded network traffic and use tshark to decode it.</p>
+<p>tshark is the command-line version of Wireshark. Confirm it is installed before continuing.</p>
+<div class="admonition kali">
+<p class="admonition-title">Confirm tshark is installed</p>
+<p>Run the version check from your analyst Kali workstation to confirm the tool is present before downloading the capture.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tshark<span class="w"> </span>--version
+</code></pre></div>
+<p>If the command returns version information, you are ready to proceed. If it is not found, install the <code>tshark</code> package through your distribution's package manager before starting the lab.</p>
+</div>
+<h2 id="scenario">Scenario</h2>
+<p>MediCare Regional Hospital's network monitoring system has flagged cleartext HTTP traffic on a segment that should be using HTTPS exclusively. The alert points to a medical records portal that appears to be transmitting login credentials without encryption. A packet capture of the suspicious session has been saved for analysis.</p>
+<p>As the investigating analyst, you need to download the capture, identify the unencrypted traffic, extract whatever credentials were exposed, and determine the scope of the risk.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Download the packet capture file from the target machine.</li>
+<li>Use tshark to identify HTTP traffic within the capture.</li>
+<li>Locate login credentials transmitted in cleartext.</li>
+<li>Understand why HTTP is dangerous for authentication.</li>
+<li>Find and submit the flag.</li>
+</ul>
+<h2 id="background-http-vs-https">Background: HTTP vs HTTPS</h2>
+<p>HTTP transmits every byte of data in cleartext. When a user submits a login form over HTTP, their username and password travel across the network as readable text. Anyone in a position to capture that traffic; an attacker on the same WiFi network, a compromised router, or a physical network tap; can read the credentials directly.</p>
+<p>HTTPS wraps HTTP inside a TLS encryption layer. Even if an attacker captures HTTPS traffic, the payload is encrypted and unreadable without the server's private key. The TLS handshake is visible, but the actual content (login forms, medical records, session tokens) is protected.</p>
+<p>In healthcare environments, this distinction carries regulatory weight. HIPAA requires encryption for protected health information (PHI) in transit. A medical records portal running over HTTP is not only a security vulnerability; it is a compliance violation. The capture you are about to analyze demonstrates exactly what an attacker sees when encryption is absent.</p>
+<h2 id="tool-primer-tshark">Tool Primer: tshark</h2>
+<p>Exercise 1.2 is your first exercise using tshark, so take a moment to understand the tool before you begin the walkthrough. tshark is the command-line interface to the Wireshark packet analysis engine. It reads the same PCAP files and supports the same display filter syntax as the Wireshark GUI, but it runs entirely in the terminal.</p>
+<p><strong>Reading a capture file.</strong> The <code>-r</code> flag specifies the input file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap
+</code></pre></div>
+<p><strong>Applying a display filter.</strong> The <code>-Y</code> flag filters packets using Wireshark display filter syntax.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http&quot;</span>
+</code></pre></div>
+<p><strong>Extracting specific fields.</strong> The <code>-T fields</code> option switches to field extraction mode, and each <code>-e</code> flag names a field to output. Fields use dot notation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>http.request.method<span class="w"> </span>-e<span class="w"> </span>http.request.uri
+</code></pre></div>
+<p><strong>Verbose packet decode.</strong> The <code>-V</code> flag prints every protocol layer of each matching packet.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http&quot;</span><span class="w"> </span>-V
+</code></pre></div>
+<p><strong>Protocol hierarchy statistics.</strong> The <code>-q -z io,phs</code> combination shows a breakdown of all protocols present in the capture without printing individual packets.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+<p><strong>Following a TCP stream.</strong> The <code>-q -z follow,tcp,ascii,&lt;stream&gt;</code> option reconstructs a full TCP conversation in readable form. The stream number identifies which conversation to follow.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>follow,tcp,ascii,0
+</code></pre></div>
+<p><strong>Common display filter fields used in this exercise:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Filter</th>
+<th>Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>http</code></td>
+<td>All HTTP traffic</td>
+</tr>
+<tr>
+<td><code>http.request.method == "POST"</code></td>
+<td>HTTP POST requests only</td>
+</tr>
+<tr>
+<td><code>http.file_data</code></td>
+<td>HTTP message body content</td>
+</tr>
+<tr>
+<td><code>tcp.stream</code></td>
+<td>TCP stream index number</td>
+</tr>
+<tr>
+<td><code>tls</code></td>
+<td>All TLS/HTTPS traffic</td>
+</tr>
+<tr>
+<td><code>frame contains "password"</code></td>
+<td>Any packet containing the string "password"</td>
+</tr>
+</tbody>
+</table>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>In the Open Cyber Range interface, navigate to <strong>Network -&gt; Level 1 -&gt; HTTP Traffic Analysis</strong> and start the lab. Wait until the status indicator shows <strong>Running</strong>, then note the target IP displayed on the lab page. You will substitute this value wherever you see <code>&lt;target_ip&gt;</code> in the commands below.</p>
+<h3 id="step-2-download-the-packet-capture">Step 2: Download the Packet Capture</h3>
+<div class="admonition kali">
+<p class="admonition-title">Download the packet capture from the target</p>
+<p>Pull the PCAP file from the target machine to your local working directory. The <code>curl</code> download runs from your Kali workstation so you can analyze the capture offline.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>http://&lt;target_ip&gt;/capture.pcap<span class="w"> </span>-o<span class="w"> </span>capture.pcap
+</code></pre></div>
+<p>You should see a progress bar followed by a confirmation that the file has been saved. If the download fails, verify your VPN connection and confirm the target IP is correct.</p>
+</div>
+<h3 id="step-3-get-a-protocol-overview">Step 3: Get a Protocol Overview</h3>
+<div class="admonition kali">
+<p class="admonition-title">Print the protocol hierarchy</p>
+<p>Before diving into specific packets, get a high-level view of what protocols are present in the capture.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+<p>The <code>-z io,phs</code> option prints a protocol hierarchy showing the percentage and byte count for each protocol layer. Look for both HTTP and TLS entries in the output. The presence of both confirms that the capture contains a mix of encrypted and unencrypted web traffic.</p>
+</div>
+<h3 id="step-4-filter-for-http-traffic">Step 4: Filter for HTTP Traffic</h3>
+<div class="admonition kali">
+<p class="admonition-title">Filter the capture for HTTP packets</p>
+<p>Narrow the view to HTTP packets only.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http&quot;</span>
+</code></pre></div>
+<p>The output shows each HTTP packet with its timestamp, source and destination addresses, and a summary of the HTTP layer. You should see GET and POST requests along with their corresponding responses. Note the destination host; this is the medical records portal.</p>
+</div>
+<h3 id="step-5-find-post-requests">Step 5: Find POST Requests</h3>
+<div class="admonition kali">
+<p class="admonition-title">Filter for HTTP POST requests</p>
+<p>Login forms typically submit credentials via HTTP POST. Filter for POST requests specifically.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;http.request.method == &quot;POST&quot;&#39;</span>
+</code></pre></div>
+<p>The output should show one or more POST requests. These are the packets most likely to contain credentials, because POST is the standard method for form submissions.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<p>From the output of Steps 3 through 5, record the following:</p>
+<ul>
+<li>Protocols present in the capture: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Number of HTTP packets: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Number of POST requests: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Destination host for POST requests: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-6-extract-the-credentials">Step 6: Extract the Credentials</h3>
+<div class="admonition kali">
+<p class="admonition-title">Extract POST request fields</p>
+<p>Now extract the fields that reveal what was submitted. Use the <code>-T fields</code> option with multiple <code>-e</code> flags to pull out the request method, URI, host, content type, and body data.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;http.request.method == &quot;POST&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>http.request.method<span class="w"> </span>-e<span class="w"> </span>http.request.uri<span class="w"> </span>-e<span class="w"> </span>http.host<span class="w"> </span>-e<span class="w"> </span>http.content_type<span class="w"> </span>-e<span class="w"> </span>http.file_data
+</code></pre></div>
+<p>The output displays the extracted fields in tab-separated columns. In the <code>http.file_data</code> field, you should see the form data submitted by the user, including a username and password in cleartext.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Verbose decode of the POST packet</p>
+<p>If you want to see the full packet decode for additional context, use verbose mode.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;http.request.method == &quot;POST&quot;&#39;</span><span class="w"> </span>-V
+</code></pre></div>
+<p>The <code>-V</code> verbose mode prints every protocol layer of the POST packet, from Ethernet through HTTP. Scroll through the output to find the HTTP form data section containing the submitted credentials.</p>
+</div>
+<h3 id="step-7-follow-the-tcp-stream">Step 7: Follow the TCP Stream</h3>
+<p>To see the complete HTTP conversation; the request and the server's response together; follow the TCP stream that contains the POST request.</p>
+<div class="admonition kali">
+<p class="admonition-title">Find the TCP stream number</p>
+<p>First, find the stream number for the POST request.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;http.request.method == &quot;POST&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>tcp.stream
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Reconstruct the full TCP conversation</p>
+<p>Then use that stream number (for example, <code>0</code>) to follow the full conversation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>follow,tcp,ascii,0
+</code></pre></div>
+<p>The <code>follow,tcp,ascii</code> option reconstructs the entire TCP session in ASCII. You see the client's HTTP request (including headers and the POST body) followed by the server's HTTP response. The credentials are clearly visible in the request body:</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>username=dr.johnson&amp;password=OCR{&lt;flag_here&gt;}
+</code></pre></div>
+<p>The flag is in <code>OCR{&lt;flag_here&gt;}</code> format.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Username found in the POST data: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Password found in the POST data: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Flag: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>What URI was the POST submitted to: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Was the server's response visible in the TCP stream: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Work through these questions to deepen your understanding of the techniques used in this exercise.</p>
+<p><strong>1. The capture also contains TLS traffic. What happens when you try to read that traffic with tshark?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>TLS traffic appears as encrypted application data. You can see the TLS handshake messages (Client Hello, Server Hello, Certificate) but the actual content is unreadable. Running <code>tshark -r capture.pcap -Y "tls"</code> shows the encrypted records without any way to extract usernames, passwords, or page content. Encryption is exactly the protection that HTTP lacks.</p>
+</details>
+<p><strong>2. A hospital administrator argues that the portal is on an "internal network" so HTTP is safe. Why is this wrong?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Internal networks are not immune to eavesdropping. Insider threats, compromised workstations, and lateral movement by attackers all happen inside the network perimeter. An attacker who gains access to any device on the same network segment can capture traffic with tools like tcpdump or Wireshark. HIPAA requires encryption for protected health information regardless of whether the network is internal or external. The argument that "internal means safe" is a misconception that has contributed to many real-world breaches.</p>
+</details>
+<p><strong>3. What tshark display filter would you use to find all packets containing the word "password"?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p><code>tshark -r capture.pcap -Y 'frame contains "password"'</code>: the <code>frame contains</code> filter searches the raw bytes of every packet for the specified string. The filter works across all protocol layers, catching passwords in HTTP form data, URL parameters, or any other part of the packet payload.</p>
+</details>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>HTTP transmits everything in cleartext; credentials, session tokens, and data are all visible to anyone capturing traffic on the network path.</li>
+<li>tshark uses the same display filter syntax as Wireshark, making skills transferable between the command line and the GUI.</li>
+<li>The <code>-T fields -e</code> option extracts specific protocol fields for clean, scriptable output.</li>
+<li>Following a TCP stream with <code>-q -z follow,tcp,ascii,&lt;stream&gt;</code> shows the complete client-server conversation in readable form.</li>
+<li>HTTPS/TLS makes captured traffic unreadable, which is why encryption is mandatory for any system handling authentication or sensitive data.</li>
+<li>In regulated environments like healthcare, transmitting credentials over HTTP is both a security vulnerability and a compliance violation.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1855 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Challenge 14B: Brute Force Detection and Response - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#challenge-14b-brute-force-detection-and-response" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Challenge 14B: Brute Force Detection and Response
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-brute-force-and-credential-stuffing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Brute Force and Credential Stuffing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-suricata-rule-options-for-post-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Suricata Rule Options for POST Traffic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer: Suricata Rule Options for POST Traffic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#matching-http-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matching HTTP methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matching-post-bodies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matching POST bodies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow direction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-rule-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full rule shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parsing-evejson-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parsing eve.json alerts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ssh-to-the-ids-sensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SSH to the IDS Sensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-confirm-suricata-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Confirm Suricata Is Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-observe-live-brute-force-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Observe Live Brute-Force Traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-write-two-suricata-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Write Two Suricata Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-reload-suricata-without-restarting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Reload Suricata Without Restarting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 6: Reload Suricata Without Restarting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#confirm-the-reload-actually-loaded-your-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirm the reload actually loaded your rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-verify-alerts-are-firing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Verify Alerts Are Firing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-extract-token-1-from-the-campaign-marker-alert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Extract Token 1 from the Campaign Marker Alert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-extract-token-2-from-the-brute-force-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Extract Token 2 from the Brute-Force Alerts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-correlate-with-the-web-portal-nginx-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Correlate with the Web Portal nginx Log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-12-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 12: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="challenge-14b-brute-force-detection-and-response">Challenge 14B: Brute Force Detection and Response</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Challenge 14 taught you how to write Suricata rules against two classic web attacks (SQL injection and command injection) where each attack fires on a single packet. Challenge 14B widens the lens to a credential-stuffing campaign: the same attacker, sending hundreds of login attempts in a row, mostly failures with one success buried in the flood. Your detection task is to catch the bulk pattern, catch the successful one, and extract the IOCs (Indicators of Compromise) the attacker tool left behind.</p>
+<p>Your VPN must be connected and your terminal ready. You should be comfortable with SSH, basic Linux navigation, and the Suricata rule-writing workflow from Challenge 14. If you have not completed Challenge 14 yet, do that first; the syntax background is assumed here.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Aegis Security Corp, a managed security services provider headquartered in Denver, Colorado, has observed a sustained brute-force attack against their client-facing authentication portal. The Security Operations Center detected a high volume of HTTP POST requests to the login endpoint originating from a single source, with hundreds of different username and password combinations attempted over a short period. Worse, their access logs show one entry where the POST got a <code>200 OK</code> back; the attacker appears to have guessed a valid credential.</p>
+<p>You are an analyst on the incident response team. Your team lead, Sarah Nguyen (Principal Threat Analyst), sent you this message:</p>
+<blockquote>
+<p>"We have an active credential stuffing campaign hitting our auth gateway. The IDS sensor is deployed inline but has no custom rules, so it's not catching anything. I need you to write Suricata detection rules for the brute-force POST traffic, find the campaign identifier the attacker is using (they embed tracking tags in their payloads), and check the web portal logs. I suspect the same actor is hitting that too with a custom tool. Pull every IOC you can find. Brief me by end of shift."</p>
+</blockquote>
+<p>Your toolkit includes SSH access to the Aegis IDS sensor (Suricata and tcpdump) and the corporate web portal (nginx). The brute-force attack is ongoing; new login attempts arrive every few seconds.</p>
+<p><strong>Credentials</strong></p>
+<ul>
+<li>IDS Sensor SSH: <code>analyst</code> / <code>A3g1s_S0C_2024#</code></li>
+<li>Web Portal SSH: <code>webadmin</code> / <code>A3g1s_Adm1n#</code></li>
+</ul>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Credential stuffing is the single most common attack against public-facing auth endpoints today, and the attacker's economics are in their favor: password reuse means a list of millions of stolen credentials from one breach yields thousands of valid logins somewhere else. Detecting the volume signature early is what separates a contained incident from a breach disclosure call to Aegis's entire client base.</p>
+<ul>
+<li>Aegis's clients include financial and healthcare firms. Every valid credential the attacker finds risks a downstream incident at a customer, escalating contractually to breach notification under SLAs and regulatory scope (GLBA, HIPAA).</li>
+<li>Sarah has to brief the CEO in the morning on whether the SOC caught the attack or whether customers saw it first. Rule evidence with timestamps is the artifact she needs; a vague "we saw something" is not enough.</li>
+<li>The rate limiting on the auth gateway is an application-layer control; the IDS is your layer-7 visibility for traffic that never reaches the application. Without the rule, the attacker can iterate for hours before anyone notices.</li>
+<li>Campaign identifiers embedded by the attacker tool are forensic gold: they let the SOC pivot across time to find every prior attempt from the same campaign, and they support threat-intel sharing with peer SOCs.</li>
+</ul>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>The following list outlines what you need to accomplish in the lab environment. Each objective maps to one or more walkthrough steps below.</p>
+<ul>
+<li>Observe live brute-force POST traffic on the IDS sensor with packet capture</li>
+<li>Identify the repeated-login pattern and the single successful-login marker</li>
+<li>Write two Suricata rules: one for any brute-force POST, one for the campaign marker</li>
+<li>Reload Suricata and verify the rules loaded</li>
+<li>Extract the campaign and exfil tokens from the alert payloads</li>
+<li>Investigate the patient portal nginx log for the attacker's tool fingerprint</li>
+<li>Assemble the flag parts and submit the completed flag</li>
+</ul>
+<hr />
+<h2 id="background-brute-force-and-credential-stuffing">Background: Brute Force and Credential Stuffing</h2>
+<p>A <strong>brute-force login attack</strong> tries many username and password combinations against an authentication endpoint until one succeeds. A <strong>credential-stuffing</strong> attack is a narrower form: instead of guessing passwords, the attacker reuses known-valid <code>(username, password)</code> pairs stolen from other breaches, relying on password reuse across sites. The network signature is similar; the defender's detection task is the same.</p>
+<p>Three properties of brute-force traffic make it detectable even when each individual request looks valid:</p>
+<ol>
+<li><strong>Volume</strong>: hundreds of POST requests to the same endpoint in a short window</li>
+<li><strong>Shape</strong>: each request carries a <code>password</code> (or similar) field in the body</li>
+<li><strong>Repetition</strong>: the attacker's tool uses the same User-Agent, the same Content-Type, and often the same request structure across every attempt</li>
+</ol>
+<p>Detection can hit any of these properties. A threshold rule counts requests per source; a content rule matches the shape of the POST; a User-Agent rule flags the attacker's tool directly. For Challenge 14B you will write two content rules that fire on every POST body carrying a <code>password</code> field, and a tighter one that fires on the one POST body carrying a specific campaign tracking tag the attacker embedded.</p>
+<p>The following diagram illustrates the traffic flow:</p>
+<pre class="mermaid"><code>graph LR
+    A["Attacker tool&lt;br/&gt;(AegisCracker)"] --&gt;|"POST /login&lt;br/&gt;username+password&lt;br/&gt;exfil=TOKEN"| B["Aegis IDS sensor&lt;br/&gt;(Suricata + nginx honeypot)"]
+    A --&gt;|"GET /admin, /api&lt;br/&gt;recon probes&lt;br/&gt;User-Agent: AegisCracker/TOKEN"| C["Aegis Web Portal&lt;br/&gt;(nginx access log)"]
+    B --&gt;|"alert records"| D["/var/log/suricata/eve.json"]
+    C --&gt;|"request records"| E["/var/log/nginx/access.log"]
+
+    style A fill:#d9534f,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style D fill:#0a6e8a,color:#fff
+    style E fill:#0a6e8a,color:#fff</code></pre>
+<ul>
+<li><strong>Attacker tool</strong> sends POSTs to the IDS sensor and reconnaissance GETs to the portal</li>
+<li><strong>IDS sensor</strong> runs Suricata; your rules turn raw traffic into alert records</li>
+<li><strong>Web portal</strong> logs each request to nginx access.log; the attacker's User-Agent is the fingerprint to extract</li>
+</ul>
+<h2 id="tool-primer-suricata-rule-options-for-post-traffic">Tool Primer: Suricata Rule Options for POST Traffic</h2>
+<p>Suricata's rule syntax was covered in Challenge 14; this primer extends it to the POST-specific options you need for brute-force detection.</p>
+<h3 id="matching-http-methods">Matching HTTP methods</h3>
+<p>The <code>content:"POST"; http_method;</code> pair tells Suricata to match the literal string <code>POST</code> against the parsed HTTP method field, not against the raw packet bytes. Using the parsed field avoids a false positive on any random request whose body happens to contain the characters <code>POST</code> (for example a POST request describing a blog post).</p>
+<h3 id="matching-post-bodies">Matching POST bodies</h3>
+<p>The <code>http_client_body</code> modifier, applied to a <code>content:</code> keyword, tells Suricata to match only inside the client-sent request body. For a login POST the body looks like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>username=alice&amp;password=Winter2024&amp;campaign=brut3&amp;exfil=d3t3ct
+</code></pre></div>
+<p>A rule with <code>content:"password"; http_client_body;</code> fires when the word <code>password</code> appears in that body. It does <em>not</em> fire when <code>password</code> appears in a response body from the server, or in an HTTP header, or in the URL.</p>
+<h3 id="flow-direction">Flow direction</h3>
+<p>The <code>flow:to_server,established;</code> keyword pair restricts matching to packets traveling from the client toward the server on an already-established TCP connection. For brute-force detection you never want to match server-to-client traffic (responses), so always include the flow keyword on POST-inspection rules. It also cuts processing cost by skipping packets that cannot be attacks.</p>
+<h3 id="the-full-rule-shape">The full rule shape</h3>
+<p>Putting the pieces together:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>alert http any any -&gt; any any (
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    msg:&quot;Brute Force Login Attempt&quot;;
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    flow:to_server,established;
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    content:&quot;POST&quot;; http_method;
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    content:&quot;password&quot;; http_client_body;
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    sid:1000001; rev:1;
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>)
+</code></pre></div>
+<p>In plain English: alert on HTTP traffic in either direction (address-wise), arriving on an established connection in the client-to-server direction, where the method is POST and the word <code>password</code> appears in the client body. That one rule catches every brute-force attempt even when the username and password values themselves are unique.</p>
+<h3 id="parsing-evejson-alerts">Parsing eve.json alerts</h3>
+<p>When the rules above match, Suricata writes an alert record to <code>/var/log/suricata/eve.json</code>. The <code>payload_printable</code> field holds the raw request body (the place where the campaign and exfil tokens live). The <code>jq</code> filter pattern you need is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | select(.alert.signature_id == 1000001) | .payload_printable&#39;</span><span class="w"> </span>/var/log/suricata/eve.json
+</code></pre></div>
+<p>Use <code>head -1</code> to stop after the first match once you have confirmed the extraction works.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>The lab provisions three containers: the attacker, the Aegis IDS sensor, and the web portal. All three must be running before the walkthrough makes sense.</p>
+<ul>
+<li>Open the <strong>Network Security</strong> course view and find <strong>Aegis Security Corp: Brute Force Detection</strong></li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Open the <strong>Exercise Network</strong> panel and read the three IP addresses. The panel shows per-node IPs; record them in the table below</li>
+</ul>
+<p>Record the IPs and note which tool or credential you will use against each one. All three nodes sit on the same <code>/24</code> subnet; only the last octet changes between roles:</p>
+<table>
+<thead>
+<tr>
+<th>Role (Exercise Network label)</th>
+<th style="text-align: right;">Last octet</th>
+<th>Port you will use</th>
+<th>What you do here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Web Portal</strong></td>
+<td style="text-align: right;"><code>.19</code></td>
+<td>TCP 22 (SSH)</td>
+<td>SSH as <code>webadmin</code> to read the nginx access log for the attacker User-Agent</td>
+</tr>
+<tr>
+<td><strong>Unknown Attacker</strong></td>
+<td style="text-align: right;"><code>.35</code></td>
+<td>n/a</td>
+<td>Source of the brute-force POST traffic; you do not log in here</td>
+</tr>
+<tr>
+<td><strong>IDS Sensor</strong></td>
+<td style="text-align: right;"><code>.44</code></td>
+<td>TCP 22 (SSH)</td>
+<td>SSH as <code>analyst</code> to run <code>tcpdump</code>, write Suricata rules, reload the engine, parse eve.json</td>
+</tr>
+</tbody>
+</table>
+<p>Attack traffic begins flowing automatically within about twenty seconds of launch. The attacker sends a POST to the sensor's login endpoint roughly every three seconds.</p>
+<h3 id="step-2-ssh-to-the-ids-sensor">Step 2: SSH to the IDS Sensor</h3>
+<p>All of the detection work runs on the sensor.</p>
+<div class="admonition kali">
+<p class="admonition-title">SSH to the IDS sensor</p>
+<p>Open a terminal on your Kali and connect with the analyst credentials.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ssh<span class="w"> </span>analyst@&lt;ids_sensor_ip&gt;
+</code></pre></div>
+<p>When prompted for the password, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>A3g1s_S0C_2024#
+</code></pre></div>
+<p>Confirm the shell prompt and the hostname; you should be on the Aegis sensor.</p>
+</div>
+<h3 id="step-3-confirm-suricata-is-running">Step 3: Confirm Suricata Is Running</h3>
+<p>Writing rules against a dead engine wastes your shift.</p>
+<div class="admonition target">
+<p class="admonition-title">Confirm Suricata is running</p>
+<p>Check that Suricata is running on the sensor before touching the rules file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pidof<span class="w"> </span>suricata
+</code></pre></div>
+<p>A numeric process ID in the output means the engine is up. An empty response means Suricata is not running; re-check that the lab finished launching.</p>
+</div>
+<p>Note that <code>pgrep -x suricata</code> does not reliably detect Suricata in daemon mode; the main thread renames itself to <code>Suricata-Main</code>, so the exact-match flag misses it. Use <code>pidof suricata</code> or <code>pgrep -f suricata</code>.</p>
+<h3 id="step-4-observe-live-brute-force-traffic">Step 4: Observe Live Brute-Force Traffic</h3>
+<p>Before writing rules, you need to see what the attacker is sending.</p>
+<div class="admonition target">
+<p class="admonition-title">Capture live brute-force traffic with tcpdump</p>
+<p>Run <code>tcpdump</code> on port 80 on the sensor and filter for <code>POST</code> to focus on the login requests.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>eth0<span class="w"> </span>-A<span class="w"> </span>port<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s2">&quot;POST /login&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-40
+</code></pre></div>
+<p>Let the capture run for fifteen to twenty seconds, then stop it with <code>Ctrl+C</code>. Look for three details in the output:</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What to look for</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Request method and URL</td>
+<td><code>POST /login HTTP/1.1</code></td>
+<td>Confirms the brute-force target</td>
+</tr>
+<tr>
+<td>Request body</td>
+<td><code>username=&lt;varied&gt;&amp;password=&lt;varied&gt;&amp;exfil=d3t3ct</code></td>
+<td>The <code>exfil=</code> parameter is the same on every attempt; that is a content signature</td>
+</tr>
+<tr>
+<td>Successful request body</td>
+<td><code>username=&lt;valid&gt;&amp;password=&lt;valid&gt;&amp;campaign=brut3</code></td>
+<td>The <code>campaign=brut3</code> parameter only appears on the successful login; that is a second content signature worth catching separately</td>
+</tr>
+</tbody>
+</table>
+<p>Two patterns jump out: every brute-force POST body contains the literal word <code>password</code>, and one specific POST body contains <code>campaign=brut3</code>. Each becomes its own Suricata rule.</p>
+<h3 id="step-5-write-two-suricata-rules">Step 5: Write Two Suricata Rules</h3>
+<p>Custom signatures live in <code>/etc/suricata/rules/local.rules</code> on the sensor. The image is a stripped-down Ubuntu build with no interactive editor installed (production IDS appliances are minimal for the same reason), so write the file with a heredoc through <code>sudo tee</code>. The single-quoted <code>'EOF'</code> marker tells bash to pass every character through verbatim, which preserves the double quotes inside the rule bodies.</p>
+<p><strong>Rule 1: Brute-force POST detection.</strong> The rule fires on every POST carrying a <code>password</code> field, which covers the entire flood. The <code>flow:to_server,established;</code> limit keeps the rule from inspecting server responses.</p>
+<div class="admonition target">
+<p class="admonition-title">Write the brute-force detection rule</p>
+<p>Write the first rule on the sensor, overwriting any existing contents of the file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/suricata/rules/local.rules<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="w"> </span><span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="s">alert http any any -&gt; any any (msg:&quot;Brute Force Login Attempt&quot;; flow:to_server,established; content:&quot;POST&quot;; http_method; content:&quot;password&quot;; http_client_body; sid:1000001; rev:1;)</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="s">EOF</span>
+</code></pre></div>
+<p>The redirect to <code>/dev/null</code> discards the echoed rule text so the terminal stays clean.</p>
+</div>
+<p><strong>Rule 2: Campaign marker detection.</strong> The rule fires only on the single POST that carries the attacker's tracking tag <code>campaign=brut3</code>. Pairing a high-noise rule with a narrow rule is a standard SOC pattern: the narrow rule tells you when the "interesting" event happened inside the volume pattern.</p>
+<div class="admonition target">
+<p class="admonition-title">Append the campaign marker rule</p>
+<p>Append the second rule. The <code>-a</code> flag tells <code>tee</code> to append rather than overwrite, which keeps Rule 1 in place.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/suricata/rules/local.rules<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="w"> </span><span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="s">alert http any any -&gt; any any (msg:&quot;Campaign Marker Detected&quot;; flow:to_server,established; content:&quot;POST&quot;; http_method; content:&quot;campaign=brut3&quot;; http_client_body; sid:1000002; rev:1;)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="s">EOF</span>
+</code></pre></div>
+<p>The narrow rule fires only on the single POST carrying the attacker's tracking tag.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Confirm both rules landed in the file</p>
+<p>Confirm both rules landed in the file before reloading; a missing newline or stray quote at this stage is the most common reason the reload in Step 6 reports zero loaded rules.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>cat<span class="w"> </span>/etc/suricata/rules/local.rules
+</code></pre></div>
+<p>Expected output: two <code>alert http any any</code> lines, one ending in <code>sid:1000001; rev:1;)</code> and the other in <code>sid:1000002; rev:1;)</code>.</p>
+</div>
+<h3 id="step-6-reload-suricata-without-restarting">Step 6: Reload Suricata Without Restarting</h3>
+<p>Suricata does not watch the rules file for changes.</p>
+<div class="admonition target">
+<p class="admonition-title">Reload Suricata with the USR2 signal</p>
+<p>Send Suricata the <code>USR2</code> signal to re-read every configured rule file without dropping monitored traffic.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>sudo<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-USR2<span class="w"> </span><span class="k">$(</span>pidof<span class="w"> </span>suricata<span class="k">)</span>
+</code></pre></div>
+<p>No output from the command means the signal was delivered. Suricata takes a few seconds to parse the new rules. If you instead see the <code>kill</code> usage help print, the <code>$(...)</code> expansion returned nothing; re-check Step 3.</p>
+</div>
+<h4 id="confirm-the-reload-actually-loaded-your-rules">Confirm the reload actually loaded your rules</h4>
+<p>The most common failure in this exercise is that the USR2 was delivered but Suricata ended up with zero rules loaded (bad path, bad syntax, stale process). A silent reload looks identical to a bad reload, so always verify.</p>
+<div class="admonition target">
+<p class="admonition-title">Verify the ruleset loaded</p>
+<p>Query Suricata's command socket for ruleset statistics to confirm both rules are active.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>sudo<span class="w"> </span>suricatasc<span class="w"> </span>-c<span class="w"> </span>ruleset-stats<span class="w"> </span>/var/run/suricata/suricata-command.socket
+</code></pre></div>
+<p>Read <code>rules_loaded</code> and <code>rules_failed</code> from the JSON; you want <code>rules_loaded</code> to be <code>2</code> and <code>rules_failed</code> to be <code>0</code>.</p>
+</div>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>{&quot;message&quot;: [{&quot;id&quot;: 0, &quot;rules_loaded&quot;: 2, &quot;rules_failed&quot;: 0}], &quot;return&quot;: &quot;OK&quot;}
+</code></pre></div>
+<p>Interpret the result:</p>
+<table>
+<thead>
+<tr>
+<th><code>rules_loaded</code></th>
+<th><code>rules_failed</code></th>
+<th>Meaning</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>2</code></td>
+<td><code>0</code></td>
+<td>Both rules active</td>
+<td>Move on to Step 7</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td><code>0</code></td>
+<td>Rules file empty, unreadable, or reload never reached Suricata</td>
+<td>Re-check Step 5, re-run the USR2</td>
+</tr>
+<tr>
+<td><code>1</code> with <code>rules_failed &gt; 0</code></td>
+<td>nonzero</td>
+<td>One rule has a syntax error and was skipped</td>
+<td>Tail <code>/var/log/suricata/suricata.log</code> for an <code>Error parsing signature</code> line, fix the broken rule, re-run the USR2</td>
+</tr>
+</tbody>
+</table>
+<p>Do not move on to Step 7 until <code>rules_loaded</code> is <code>2</code>. Alerts will not fire and you will waste time looking for IOCs that do not exist yet.</p>
+<h3 id="step-7-verify-alerts-are-firing">Step 7: Verify Alerts Are Firing</h3>
+<p>With both rules loaded and the attack traffic still flowing, Suricata should begin writing alert records within fifteen to twenty seconds (one attack cycle).</p>
+<div class="admonition target">
+<p class="admonition-title">List the firing alert signatures</p>
+<p>Check the eve.json log on the sensor for the distinct alert signatures that have fired.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>jq<span class="w"> </span><span class="s1">&#39;select(.alert != null) | .alert.signature&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u
+</code></pre></div>
+<p>Expected output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>&quot;Brute Force Login Attempt&quot;
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>&quot;Campaign Marker Detected&quot;
+</code></pre></div>
+<p>If only one signature shows, one of your rules is not matching. Re-open <code>local.rules</code> and double-check syntax, then re-run Step 6. If both signatures show, you have working detection and can move on to IOC extraction.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Count alerts per signature</p>
+<p>To get a feel for the rate, count how many alerts have fired so far per signature.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | .alert.signature&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c
+</code></pre></div>
+<p>In a typical five-minute window you will see dozens of Brute Force alerts (one per attack cycle) and a much smaller count of Campaign Marker alerts (one per full attack loop).</p>
+</div>
+<h3 id="step-8-extract-token-1-from-the-campaign-marker-alert">Step 8: Extract Token 1 from the Campaign Marker Alert</h3>
+<p>The <code>campaign=brut3</code> parameter is the attacker's tracking tag for the successful-login POST. Suricata captured the full POST body in the alert's <code>payload_printable</code> field.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract the campaign token</p>
+<p>Pull the <code>campaign</code> value from the Campaign Marker alert with <code>jq</code> and <code>grep</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | select(.alert.signature_id == 1000002) | .payload_printable&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;campaign=\K[^&amp; \r\n]+&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>Record the value returned as flag part 1.</p>
+</div>
+<p>What the filter does, step by step:</p>
+<table>
+<thead>
+<tr>
+<th>Fragment</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>select(.alert != null)</code></td>
+<td>Keep only alert records, not HTTP metadata events</td>
+</tr>
+<tr>
+<td><code>select(.alert.signature_id == 1000002)</code></td>
+<td>Keep only Campaign Marker alerts (<code>sid</code> of Rule 2)</td>
+</tr>
+<tr>
+<td><code>.payload_printable</code></td>
+<td>Emit the raw POST body as a string</td>
+</tr>
+<tr>
+<td><code>grep -oP 'campaign=\K[^&amp; \r\n]+'</code></td>
+<td>Match <code>campaign=...</code> and emit only the value</td>
+</tr>
+<tr>
+<td><code>head -1</code></td>
+<td>Stop after the first match</td>
+</tr>
+</tbody>
+</table>
+<p>Record the value returned as <strong>flag part 1</strong>.</p>
+<h3 id="step-9-extract-token-2-from-the-brute-force-alerts">Step 9: Extract Token 2 from the Brute-Force Alerts</h3>
+<p>The <code>exfil=d3t3ct</code> parameter rides on every failed-login POST body. It is the attacker's outbound-data tag: every credential the tool tests gets shipped back with this label.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract the exfil token</p>
+<p>Pull the <code>exfil</code> value from a Brute Force alert the same way you pulled the campaign token.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | select(.alert.signature_id == 1000001) | .payload_printable&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;exfil=\K[^&amp; \r\n]+&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>The only difference from Step 8 is the <code>signature_id</code> filter (1000001 is your Brute Force rule) and the parameter name (<code>exfil</code> instead of <code>campaign</code>). Record the value returned as flag part 2.</p>
+</div>
+<p>Record the value returned as <strong>flag part 2</strong>.</p>
+<h3 id="step-10-correlate-with-the-web-portal-nginx-log">Step 10: Correlate with the Web Portal nginx Log</h3>
+<p>Sarah mentioned the attacker probably hit the portal too. SSH to the web portal with the portaladmin credentials and grep the nginx access log for the attacker's tool fingerprint.</p>
+<div class="admonition kali">
+<p class="admonition-title">SSH to the web portal</p>
+<p>Open a second terminal (or exit the sensor session) and connect to the portal with the webadmin credentials.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>ssh<span class="w"> </span>webadmin@&lt;web_portal_ip&gt;
+</code></pre></div>
+<p>When prompted, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>A3g1s_Adm1n#
+</code></pre></div>
+<p>A successful login places you on the portal host where the nginx access log lives.</p>
+</div>
+<p>The attacker's custom tool identifies itself with a distinctive User-Agent beginning with <code>AegisCracker/</code>. Normal browsers use <code>Mozilla/5.0 ...</code>; this attacker uses a tool-build string that stands out immediately.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract the User-Agent token from nginx logs</p>
+<p>Grep the nginx access log on the portal for the attacker's tool fingerprint.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;AegisCracker/\K[^ &quot;]+&#39;</span><span class="w"> </span>/var/log/nginx/access.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>The value after the slash is flag part 3.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Document each piece of evidence you collected during detection.</p>
+<p><strong>Observed attack patterns:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Where you saw it</th>
+<th>Why it is distinctive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Suricata rules you wrote:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>(paste your two rules from local.rules here)
+</code></pre></div>
+<p><strong>Ruleset-stats output after reload:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>(paste the one-line JSON from Step 6&#39;s verification here)
+</code></pre></div>
+<p><strong>Extracted tokens:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Source</th>
+<th>sid (or source file)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 (campaign)</td>
+<td></td>
+<td>Suricata <code>payload_printable</code></td>
+<td>1000002</td>
+</tr>
+<tr>
+<td>2 (exfil)</td>
+<td></td>
+<td>Suricata <code>payload_printable</code></td>
+<td>1000001</td>
+</tr>
+<tr>
+<td>3 (User-Agent)</td>
+<td></td>
+<td>nginx access.log</td>
+<td><code>/var/log/nginx/access.log</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Assembled flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>OCR{___________}
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-11-interpret-the-results">Step 11: Interpret the Results</h3>
+<p>Review the three IOCs and what they say about the attacker's operation.</p>
+<p>The <strong>campaign marker</strong> <code>campaign=brut3</code> rode on the single successful-login POST. Attackers use campaign markers to link a successful hit back to the specific wordlist, target list, or customer job that produced it. In a credential-stuffing-as-a-service operation the marker tells the operator which customer to bill; in an independent attack the marker tells the attacker which campaign's tooling was most efficient. For you, the marker is a pivot point: every prior alert carrying <code>campaign=brut3</code> is part of the same operation.</p>
+<p>The <strong>exfil tag</strong> <code>exfil=d3t3ct</code> appeared on every failed-login POST. The tag labels the outbound-data channel; the attacker ships every tested credential back to themselves under this label, regardless of whether the login succeeded. The tag is therefore a volume indicator: a spike of traffic carrying <code>exfil=d3t3ct</code> is a spike of this attacker's activity, and it decouples "attacker tool" from "attacker identity" (the same tool can run several concurrent <code>exfil</code> channels).</p>
+<p>The <strong>AegisCracker User-Agent</strong> on the portal ties the recon probing to the same adversary (or the same tool) that ran the brute-force against the sensor. Custom User-Agent strings are lazy OpSec but strong IOCs: they link attack streams across hosts, support WAF blocking, and travel with the tool even when the source IP rotates.</p>
+<p>Assemble the three values with underscores between them: <code>OCR{________}</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Use the tokens in the order you discovered them:</p>
+<p><code>OCR{&lt;campaigntoken&gt;_&lt;exfiltoken&gt;_&lt;useragenttoken&gt;}</code></p>
+<p>Where <code>campaigntoken</code> is from the Campaign Marker alert payload, <code>exfiltoken</code> is from the Brute Force alert payload, and <code>useragenttoken</code> is from the nginx access log User-Agent string.</p>
+</div>
+<h3 id="step-12-submit-the-flag">Step 12: Submit the Flag</h3>
+<p>Return to the Network Security course view, open the Aegis Security Corp lab, and paste the assembled flag in <code>OCR{...}</code> format into the <strong>Submit Flag</strong> field. The platform confirms or rejects the submission. If it rejects, double-check each extracted value and confirm the <code>_</code> characters appear between parts in the right order.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>The questions below ask you to generalize beyond the mechanics of the exercise. Consider each one before reading the answer.</p>
+<p><strong>1. Your brute-force rule fires on every POST that contains the word <code>password</code>. In a real production auth gateway, why would a rule written that loosely generate too much noise, and what would you add to tighten it?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Every legitimate login request also contains the word <code>password</code> in the POST body, so in production the rule would fire on real users as well as attackers. Real credential-stuffing detection rules add one or more of the following constraints to tighten the match: (a) a <code>threshold</code> keyword that only fires after N matches from the same <code>src_ip</code> within a time window (for example, <code>threshold: type threshold, track by_src, count 20, seconds 60</code>); (b) a <code>dsize</code> constraint on request size; (c) a content filter on the specific <code>User-Agent</code> string of the attacker tool; (d) an anomaly detector that compares request rate per source against a baseline. For lab work the loose rule is pedagogically useful because it reliably fires every three seconds and lets you focus on the extraction workflow, but it would be unshippable to a live SOC.</p>
+</details>
+<p><strong>2. The attacker embedded <code>campaign=brut3</code> and <code>exfil=d3t3ct</code> in the POST body, both in cleartext. Why would a real attacker leave identifiers like that inline, and what risk does it create for them?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Attackers embed campaign and exfil tags for the same reasons any software operator adds tracking identifiers: they need to reconcile billing in credential-stuffing-as-a-service, A/B-test different wordlists or targets against each other, or correlate successful hits back to specific jobs. The OpSec risk is that any defender who captures the traffic can use those tags to cluster otherwise-unrelated attack streams, build a timeline of the same operator's activity, pivot across victims, and supply a high-quality IOC to threat-intel sharing groups. A sophisticated attacker would encode or encrypt the tags, rotate them between campaigns, or embed them in a header the IDS is less likely to log. Seeing them inline in cleartext is either a sign of a lower-skill operator or a sign that the tooling is mature enough that the operator accepts the exposure as the cost of easier internal reconciliation.</p>
+</details>
+<p><strong>3. The campaign-marker rule (sid 1000002) is a subset of the brute-force rule (sid 1000001); every packet that matches the campaign rule also matches the brute-force rule. Why write both instead of just the tighter one, and how does a SOC analyst benefit from the pair?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The two rules serve different operational purposes. The wide rule (sid 1000001) measures the volume and shape of the attack: how long the flood lasted, how many attempts per minute, which source IPs participated, when it started and stopped. The narrow rule (sid 1000002) measures the outcome: the single moment the attacker found a valid credential, including the exact payload that succeeded. Writing only the tighter rule means the SOC misses the flood entirely and sees only the success; writing only the wider rule means the SOC buries the success in the noise of the flood. Paired, the two rules let an analyst answer two distinct questions in one query: "how big is the attack" and "did the attacker win". In real deployments this layering is standard: one rule per pattern of interest, regardless of whether one is a subset of another.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Flow and body modifiers</strong> together turn a generic <code>content:</code> match into a tight HTTP rule that only fires on client-to-server POST bodies. Always include <code>flow:to_server,established;</code> on POST-inspection rules to cut noise and processing cost.</li>
+<li><strong>Pair a wide rule with a narrow rule</strong> when you care about both the shape of an attack and a specific outcome inside it. The wide rule measures volume; the narrow rule measures success. A SOC that runs only one of the pair has half the picture.</li>
+<li><strong>Always verify the rule reload</strong> with <code>suricatasc -c ruleset-stats ...</code>. A silent failed reload looks identical to a successful reload in the terminal, and debugging "why am I not seeing alerts" wastes far more time than the verification takes.</li>
+<li><strong>Payload tokens in cleartext are IOC gold.</strong> Campaign tags, exfil tags, and custom User-Agent strings travel with the attacker tool across targets and over time. Extracting them from a single alert lets the SOC pivot across the rest of the attack surface.</li>
+<li><strong>Cross-source correlation is more defensible than single-source evidence.</strong> IDS payloads plus nginx logs together tell Sarah a story she can brief to the CEO; either alone is a fragment. Week 15 builds on detection and correlation in the capstone CTF.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,121 @@
+name: "Avalon Biotech - Suspicious Traffic Analysis"
+description: "Avalon Biotech suspects an insider is exfiltrating sensitive data. Analyze a packet capture from their network to identify the attack vectors, extract credentials, and trace the data exfiltration chain."
+
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 60
+randomize_ip_offsets: true
+visibility: course
+week: 13
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/13_Packet_Capture_Analysis/"
+flag: "OCR{p4ck3t_4n4lyz3_3xf1l}"
+
+objectives:
+  - Analyze a network packet capture using command-line tools (tcpdump, tshark)
+  - Identify suspicious HTTP traffic and extract leaked credentials from POST requests
+  - Reconstruct FTP sessions to discover data exfiltration activity
+  - Detect DNS-based data exfiltration techniques
+  - Capture the flag
+
+scenario: |
+  Avalon Biotech, a pharmaceutical research company in San Diego, California, has
+  flagged suspicious network activity on their internal network. Their SIEM
+  triggered alerts for unusual outbound connections from a workstation in the R&D
+  department (10.20.1.105) to multiple external IP addresses over the past 48 hours.
+
+  The incident response team captured a 5-minute segment of the workstation's
+  network traffic before the employee (Mark Sullivan, Research Associate) was
+  informed. The capture has been placed on an analysis workstation for your review.
+
+  Dr. Priya Sharma (CISO) needs your analysis ASAP: "We need to know exactly what
+  happened. What data was accessed? What credentials were used? How was the data
+  moved out? If Mark is exfiltrating our proprietary drug trial data, we need
+  evidence for legal. Pull everything you can from that capture."
+
+  The evidence capture is at /home/analyst/evidence/capture.pcap. Three indicators
+  of compromise have been flagged by automated tools - extract each IOC marker to
+  complete the analysis.
+
+  **Credentials**
+
+  - Analysis Workstation SSH: `analyst` / `Av4l0n_S0C#`
+
+credentials:
+  - username: "analyst"
+    password: "Av4l0n_S0C#"
+    role: "analyst"
+    description: "Analysis workstation SSH access"
+
+hints:
+  - text: |
+      Start by getting an overview of the capture. How many packets are there?
+      What protocols are used? Who is the workstation (10.20.1.105) talking to?
+      Try: tcpdump -r capture.pcap -n | head -50
+      Or: tshark -r capture.pcap -q -z conv,ip
+    unlock_after_minutes: 10
+  - text: |
+      There are three types of suspicious outbound traffic from 10.20.1.105:
+      1. HTTP POST to an external IP (198.51.100.47) - look at the POST body
+      2. FTP session to another external IP (203.0.113.22) - check the PASS command
+      3. DNS TXT queries to a suspicious domain - the subdomain is the IOC
+      Filter by protocol: tshark -r capture.pcap -Y "http" or "ftp" or "dns.qry.type==16"
+    unlock_after_minutes: 20
+  - text: |
+      Extract the three IOC markers:
+      1. HTTP POST body contains token=p4ck3t:
+         tshark -r capture.pcap -Y "http.request.method==POST" -T fields -e http.file_data
+         Or: tcpdump -r capture.pcap -A port 80 | grep token=
+      2. FTP PASS command contains the second marker:
+         tshark -r capture.pcap -Y "ftp.request.command==PASS" -T fields -e ftp.request.arg
+         Or: tcpdump -r capture.pcap -A port 21 | grep PASS
+      3. DNS TXT query subdomain is the third marker:
+         tshark -r capture.pcap -Y "dns.qry.type==16" -T fields -e dns.qry.name
+         Look for the query prefixed with "token_" in evil-c2.net. The value after "token_" is the IOC.
+    unlock_after_minutes: 30
+
+topology:
+  nodes:
+    - id: "analyst"
+      label: "Analysis Workstation"
+      type: "server"
+      ip_offset: "26"
+      ports: [22]
+      services: ["OpenSSH", "tshark", "tcpdump"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "analyst"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH to analysis workstation"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'echo connected' 2>/dev/null"
+      expect: "connected"
+      timeout: 15
+
+    - name: "Verify PCAP file exists"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'test -f /home/analyst/evidence/capture.pcap && echo pcap_found' 2>/dev/null"
+      expect: "pcap_found"
+      timeout: 15
+
+    - name: "Extract IOC 1 from HTTP POST body"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'tcpdump -r /home/analyst/evidence/capture.pcap -A 2>/dev/null | grep -o \"token=[a-z0-9_]*\" | sed \"s/^token=//\" | head -1' 2>/dev/null"
+      expect: "p4ck3t"
+      timeout: 20
+
+    - name: "Extract IOC 2 from FTP PASS command"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'tcpdump -r /home/analyst/evidence/capture.pcap -A 2>/dev/null | grep -o \"PASS [a-z0-9_]*\" | sed \"s/^PASS //\" | head -1' 2>/dev/null"
+      expect: "4n4lyz3"
+      timeout: 20
+
+    - name: "Extract IOC 3 from DNS exfiltration query"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'tcpdump -r /home/analyst/evidence/capture.pcap -n port 53 2>/dev/null | grep -o \"token_[a-z0-9]*\\.data\\.evil-c2\\.net\" | head -1 | sed \"s/token_//;s/\\..*//\"' 2>/dev/null"
+      expect: "3xf1l"
+      timeout: 20
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{p4ck3t_4n4lyz3_3xf1l}'"
+      expect: "OCR{p4ck3t_4n4lyz3_3xf1l}"

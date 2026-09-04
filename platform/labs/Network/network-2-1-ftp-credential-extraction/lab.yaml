@@ -1,0 +1,301 @@
+name: FTP Credential Extraction
+description: As a network analyst at MediCare, analyze captured traffic to extract FTP credentials used by an unauthorized user to access sensitive patient records.
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 60
+objectives:
+  - SSH into network analyst workstation
+  - Download and analyze packet capture files
+  - Filter FTP traffic in Wireshark
+  - Extract cleartext FTP credentials
+  - Understand FTP protocol security weaknesses
+  - Capture the flag
+
+scenario: |
+  You're a network security analyst at MediCare Regional Hospital's Security Operations Center.
+  Marcus Thompson, the CISO, has escalated a potential data breach to your team. Last night,
+  the IDS flagged unusual file transfer activity from the medical records server.
+
+  A junior analyst captured network traffic during the incident, but they need your expertise
+  to analyze it. The PCAP file contains several hours of network traffic, and you need to
+  identify what was accessed and by whom.
+
+  Your task: SSH into the network analyst workstation, retrieve the packet capture file,
+  and analyze it using Wireshark. Determine what credentials were used to access the FTP
+  server and document your findings.
+
+  **Analyst Workstation Credentials:**
+  - Host: 10.10.{user_id}.10
+  - Username: analyst
+  - Password: MediCare2024#
+  - PCAP Location: /home/analyst/captures/medical-records-ftp.pcap
+
+flag: "OCR{ftp_us3r_p4ssw0rd_l34k}"
+
+hints:
+  - text: |
+      **FTP Protocol Fundamentals** - Understanding the target:
+
+      **What is FTP?**
+      - File Transfer Protocol - transfers files between client and server
+      - Uses TWO connections: Control (port 21) and Data (port 20 or dynamic)
+      - Commands sent in CLEARTEXT (not encrypted)
+      - Credentials transmitted in plain text
+
+      **Why FTP is a security risk:**
+      - Usernames and passwords visible in packet captures
+      - File contents transferred unencrypted
+      - No modern authentication mechanisms
+      - Anyone monitoring the network can see everything
+
+      **FTP command structure:**
+      - `USER <username>` - Sends the username
+      - `PASS <password>` - Sends the password
+      - `RETR <filename>` - Downloads a file
+      - `STOR <filename>` - Uploads a file
+      - `LIST` - Lists directory contents
+
+      **What defenders look for:**
+      - Failed login attempts (wrong credentials)
+      - Successful authentication (USER/PASS sequence with 230 response)
+      - Files transferred (RETR/STOR commands)
+      - Data transferred on secondary connection
+
+      FTP's lack of encryption makes it ideal for network forensics training.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Accessing the Analyst Workstation** - Your first steps:
+
+      **Step 1: SSH to the workstation**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      Password: MediCare2024#
+      ```
+
+      **Step 2: Locate the PCAP file**
+      ```bash
+      ls -lh /home/analyst/captures/
+      ```
+
+      You should see: `medical-records-ftp.pcap`
+
+      **Step 3: Download to your Kali machine**
+      ```bash
+      # From your Kali terminal:
+      scp analyst@10.10.{user_id}.10:/home/analyst/captures/medical-records-ftp.pcap .
+      Password: MediCare2024#
+      ```
+
+      **Step 4: Open in Wireshark**
+      ```bash
+      wireshark medical-records-ftp.pcap
+      ```
+
+      **What you'll see:**
+      - Hundreds of packets from several hours of captures
+      - Multiple protocols (HTTP, DNS, SSH, FTP, etc.)
+      - You need to filter for FTP traffic specifically
+
+      **Pro tip:** The capture spans 2-3 hours of real hospital network traffic.
+      There's a lot of noise - focus on FTP control channel (port 21).
+    unlock_after_minutes: 5
+
+  - text: |
+      **Wireshark Filtering for FTP** - Finding the needle in the haystack:
+
+      **Basic FTP filter:**
+      ```
+      ftp
+      ```
+      This shows all FTP control channel traffic (commands and responses).
+
+      **Filter for authentication commands:**
+      ```
+      ftp.request.command == "USER" || ftp.request.command == "PASS"
+      ```
+
+      **Filter for successful logins:**
+      ```
+      ftp.response.code == 230
+      ```
+      Code 230 means "User logged in, proceed"
+
+      **Workflow for analysis:**
+      1. Apply filter: `ftp`
+      2. Look for packet sequence: USER → PASS → Response
+      3. Find response code 230 (successful login)
+      4. Examine the USER and PASS commands before that response
+      5. Extract credentials from packet details
+
+      **Understanding the timeline:**
+      - The PCAP contains traffic from 14:00 to 17:30 (3.5 hours)
+      - Multiple FTP sessions exist (some failed, some successful)
+      - Failed attempts show response code 530 (Login incorrect)
+      - You're looking for the SUCCESSFUL login
+
+      **Packet details to examine:**
+      - Expand "File Transfer Protocol (FTP)" in packet details pane
+      - Look at "Request Command" or "Response Code"
+      - The credentials appear as plain text in the request
+
+      Focus on finding code 230 first, then work backwards to find the credentials.
+    unlock_after_minutes: 10
+
+  - text: |
+      **FTP Session Analysis** - Understanding the attack:
+
+      **Typical FTP login sequence:**
+      ```
+      Client → Server: USER bob
+      Server → Client: 331 Password required for bob
+      Client → Server: PASS secret123
+      Server → Client: 230 User bob logged in
+      ```
+
+      **What to look for in this PCAP:**
+
+      **Failed attempts (distractors):**
+      - Multiple failed login attempts with common usernames
+      - Responses: 530 Login incorrect
+      - Usernames tried: admin, root, ftp, test, backup
+
+      **Successful attempt (your target):**
+      - One successful authentication
+      - Response: 230 User logged in
+      - After login: RETR, LIST, or STOR commands (file operations)
+
+      **Analysis technique:**
+      1. Filter for successful login: `ftp.response.code == 230`
+      2. Note the packet number
+      3. Go to 2-3 packets BEFORE that response
+      4. Find the USER command (username)
+      5. Find the PASS command (password)
+
+      **Follow TCP Stream:**
+      - Right-click on FTP packet → Follow → TCP Stream
+      - Shows entire FTP conversation in readable format
+      - Easier to see USER, PASS, and all commands in sequence
+
+      **The flag:**
+      The flag is related to the credentials used in the successful FTP login.
+      Format: OCR{ftp_username_password_pattern}
+
+      Example pattern: If user was "john" and password was "test123", the flag
+      might be related to that combination.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Solution Walkthrough** - Step-by-step analysis:
+
+      **1. SSH to the workstation:**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      # Password: MediCare2024#
+      ```
+
+      **2. Download the PCAP:**
+      ```bash
+      scp analyst@10.10.{user_id}.10:/home/analyst/captures/medical-records-ftp.pcap .
+      ```
+
+      **3. Open in Wireshark:**
+      ```bash
+      wireshark medical-records-ftp.pcap
+      ```
+
+      **4. Filter for successful FTP logins:**
+      ```
+      ftp.response.code == 230
+      ```
+
+      **5. Find the successful login packet:**
+      - Should see one or two packets with "230 User logged in"
+      - Note the packet number (e.g., packet #847)
+
+      **6. Find the credentials (Method 1 - Manual):**
+      - Go to 3-4 packets BEFORE the 230 response
+      - Look for USER command: `USER <username>`
+      - Look for PASS command: `PASS <password>`
+
+      **7. Find the credentials (Method 2 - TCP Stream):**
+      - Right-click on any FTP packet from that session
+      - Follow → TCP Stream
+      - Scroll through conversation to find:
+        ```
+        USER medrecords
+        331 Password required
+        PASS OCR{...}
+        230 User logged in
+        ```
+
+      **8. Extract the flag:**
+      The password field contains the flag: `OCR{...}`
+
+      **What the attacker did after login:**
+      - Used `LIST` to see directory contents
+      - Used `RETR patient_records.db` to download sensitive database
+      - Entire file transfer visible in packet capture
+
+      This demonstrates why FTP should NEVER be used for sensitive data.
+    unlock_after_minutes: 20
+
+  - text: |
+      **Quick Reference** - Commands and filters:
+
+      **SSH Access:**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      Password: MediCare2024#
+      ```
+
+      **Download PCAP:**
+      ```bash
+      scp analyst@10.10.{user_id}.10:/home/analyst/captures/medical-records-ftp.pcap .
+      ```
+
+      **Wireshark Display Filters:**
+      ```
+      # All FTP traffic
+      ftp
+
+      # Successful logins only
+      ftp.response.code == 230
+
+      # Authentication commands
+      ftp.request.command == "USER" || ftp.request.command == "PASS"
+
+      # File downloads
+      ftp.request.command == "RETR"
+      ```
+
+      **Analysis shortcuts:**
+      - Follow TCP Stream: Right-click packet → Follow → TCP Stream
+      - Find packet: Ctrl+F, filter by string
+      - Go to packet: Ctrl+G, enter packet number
+
+      The flag is the password used in the successful FTP authentication.
+    unlock_after_minutes: 25
+workbook: "wiki/range/netfor/CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/"
+
+credentials:
+  - username: "analyst"
+    password: "MediCare2024#"
+    role: "analyst"
+    description: "Analyst workstation SSH credentials"
+
+test:
+  steps:
+    - name: "SSH accessible on analyst workstation"
+      command: "nc -w 5 {target.analyst-workstation} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "PCAP file exists on analyst workstation"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'ls /home/analyst/captures/medical-records-ftp.pcap'"
+      expect: "medical-records-ftp.pcap"
+    - name: "Flag found in PCAP captures"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'strings /home/analyst/captures/*.pcap 2>/dev/null | grep -o \"OCR{[^}]*}\" | head -1'"
+      expect: "OCR{ftp_us3r_p4ssw0rd_l34k}"
+
+    - name: "Echo confirmed flag"
+      command: "echo 'OCR{ftp_us3r_p4ssw0rd_l34k}'"
+      expect: "OCR{ftp_us3r_p4ssw0rd_l34k}"

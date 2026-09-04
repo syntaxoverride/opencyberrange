@@ -1,0 +1,1235 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise WS-1.4: SMB Domain Identification - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-ws-14-smb-domain-identification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise WS-1.4: SMB Domain Identification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-smb-and-null-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SMB and Null Sessions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-smbclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: smbclient
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-list-available-shares" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: List Available Shares
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-note-the-domain-and-server-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Note the Domain and Server Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-access-the-public-share" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Access the Public Share
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-retrieve-the-flag-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Retrieve the Flag File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-find-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Find and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-ws-14-smb-domain-identification">Exercise WS-1.4: SMB Domain Identification</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercises WS-1.1 through WS-1.3 focused on DNS-based reconnaissance. Exercise WS-1.4 shifts to a different protocol; SMB (Server Message Block) on port 445; which your port scan in Exercise WS-1.1 confirmed is open on <code>dc01</code>. SMB can reveal domain information and file shares without requiring credentials.</p>
+<p><strong>Prerequisites:</strong></p>
+<ul>
+<li>Exercises WS-1.1 through WS-1.3 completed (you have a network map and know dc01's services)</li>
+<li>Active VPN connection to the Open Cyber Range</li>
+<li>The <code>smbclient</code> command available on your Kali Linux attack box</li>
+</ul>
+<h2 id="scenario">Scenario</h2>
+<p>Your port scan in Exercise WS-1.1 revealed that SMB (port 445) is open on <code>dc01</code>. SMB is the protocol Windows uses for file sharing, printer sharing, and inter-process communication. When queried without credentials (a "null session"), SMB can still reveal the domain name, the computer name, and sometimes a list of available file shares. Your task is to extract as much information as possible from the SMB service using anonymous access.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ol>
+<li>Use SMB to identify the domain name and the DC hostname</li>
+<li>List all SMB shares available on <code>dc01</code></li>
+<li>Access the Public share anonymously and examine its contents</li>
+<li>Retrieve the flag from a file on the Public share</li>
+</ol>
+<hr />
+<h2 id="background-smb-and-null-sessions">Background: SMB and Null Sessions</h2>
+<p>SMB is a network file-sharing protocol that runs on port 445 in modern Windows environments. Beyond file sharing, SMB is also the transport for named pipes used in Remote Procedure Calls (RPC), Windows Management Instrumentation (WMI), and other administrative interfaces. On a Domain Controller, SMB hosts the SYSVOL and NETLOGON shares that distribute Group Policy Objects (GPOs) and logon scripts to domain-joined machines.</p>
+<p>A null session occurs when a client connects to SMB without providing a username or password. Older versions of Windows allowed extensive enumeration through null sessions; listing users, groups, shares, and policies. Modern Windows Server versions (2016 and later) restrict null session access significantly, but share listing and access to explicitly shared folders may still be permitted depending on the server's configuration.</p>
+<p>Even when null sessions are restricted, the SMB protocol's negotiation phase reveals the server's NetBIOS name (computer name) and domain name in cleartext. These values are part of the protocol handshake and cannot be hidden without disabling SMB entirely.</p>
+<pre class="mermaid"><code>flowchart TB
+    CLIENT["Attacker&lt;br/&gt;smbclient"]:::red
+    SMB["SMB Service&lt;br/&gt;Port 445"]:::blue
+    INFO["Protocol Info&lt;br/&gt;Domain + Hostname"]:::amber
+    SHARES["Share List&lt;br/&gt;SYSVOL, NETLOGON,&lt;br/&gt;Public, etc."]:::green
+    FILES["File Access&lt;br/&gt;flag.txt"]:::green
+
+    CLIENT --&gt;|"Null Session"| SMB
+    SMB --&gt; INFO
+    SMB --&gt; SHARES
+    SHARES --&gt; FILES
+
+    classDef red fill:#d9534f,stroke:#b9342f,color:#fff
+    classDef blue fill:#4a90d9,stroke:#2a6ab9,color:#fff
+    classDef amber fill:#e8a735,stroke:#c88715,color:#fff
+    classDef green fill:#6aaa64,stroke:#4a8a44,color:#fff</code></pre>
+<h2 id="tool-primer-smbclient">Tool Primer: smbclient</h2>
+<p>The <code>smbclient</code> tool is part of the Samba suite and provides an FTP-like interface for interacting with SMB shares. The tool supports listing shares, connecting to shares, browsing directories, and downloading files.</p>
+<p><strong>Listing shares on a server (null session):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>smbclient -L &lt;target&gt; -N
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-L</code></td>
+<td>List available shares on the target</td>
+</tr>
+<tr>
+<td><code>-N</code></td>
+<td>Use a null session (no username or password)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Connecting to a specific share:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>smbclient //&lt;target&gt;/&lt;share&gt; -N
+</code></pre></div>
+<p>Once connected, you have an interactive prompt similar to FTP. Common commands include:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ls</code></td>
+<td>List files and directories in the current location</td>
+</tr>
+<tr>
+<td><code>cd &lt;dir&gt;</code></td>
+<td>Change to a different directory</td>
+</tr>
+<tr>
+<td><code>get &lt;file&gt;</code></td>
+<td>Download a file to your local machine</td>
+</tr>
+<tr>
+<td><code>get &lt;file&gt; -</code></td>
+<td>Download a file and print its contents to the terminal</td>
+</tr>
+<tr>
+<td><code>exit</code></td>
+<td>Disconnect from the share</td>
+</tr>
+</tbody>
+</table>
+<p>You can also pass commands directly on the command line using the <code>-c</code> flag, which avoids entering the interactive prompt:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>smbclient //&lt;target&gt;/&lt;share&gt; -N -c &#39;ls&#39;
+</code></pre></div>
+<p>The <code>-c</code> flag is useful for scripting and for performing quick lookups without entering the interactive session.</p>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-list-available-shares">Step 1: List Available Shares</h3>
+<div class="admonition kali">
+<p class="admonition-title">List SMB shares with a null session</p>
+<p>Run the following command to list all SMB shares on <code>dc01</code> using a null session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>dc01<span class="w"> </span>-N
+</code></pre></div>
+<p>The output contains two sections of information. The first section (the header) shows the protocol negotiation results, including the server's name and domain. The second section lists the available shares with their type (Disk, IPC, or Printer) and an optional comment.</p>
+<p>Review the share list carefully. You should see standard DC shares like SYSVOL and NETLOGON, along with any custom shares the administrator has created. Look for a share named <code>Public</code>: shares with generic names like "Public" or "Shared" are often configured to allow anonymous access.</p>
+</div>
+<p>A typical share listing looks similar to the following:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>    Sharename       Type      Comment
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    ---------       ----      -------
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    NETLOGON        Disk      Logon server share
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    SYSVOL          Disk      Logon server share
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    ...
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>(additional shares may be listed; check your own output)
+</code></pre></div>
+<h3 id="step-2-note-the-domain-and-server-information">Step 2: Note the Domain and Server Information</h3>
+<p>Examine the output header from the <code>smbclient -L</code> command. The SMB negotiation phase reveals the following information:</p>
+<ul>
+<li><strong>Server name</strong>: The NetBIOS name of the host (e.g., <code>DC01</code>)</li>
+<li><strong>Domain name</strong>: The NetBIOS domain name (e.g., <code>CORP</code>)</li>
+</ul>
+<p>These values appear in the protocol negotiation output even when the null session cannot enumerate additional information. Record both values; the domain name confirms the AD domain you identified through DNS in earlier labs.</p>
+<h3 id="step-3-access-the-public-share">Step 3: Access the Public Share</h3>
+<div class="admonition kali">
+<p class="admonition-title">Access the Public share and list its contents</p>
+<p>Connect to the Public share using a null session and list its contents.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>smbclient<span class="w"> </span>//dc01/Public<span class="w"> </span>-N<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;ls&#39;</span>
+</code></pre></div>
+<p>The <code>ls</code> output shows files and directories on the share, along with their size and modification date. Look for any files that might contain useful information; text files, configuration files, scripts, or documents.</p>
+<p>Examine the files listed on the share for anything that might contain the flag.</p>
+</div>
+<h3 id="step-4-retrieve-the-flag-file">Step 4: Retrieve the Flag File</h3>
+<div class="admonition kali">
+<p class="admonition-title">Retrieve the flag file to the terminal</p>
+<p>Download the contents of <code>flag.txt</code> directly to your terminal.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>smbclient<span class="w"> </span>//dc01/Public<span class="w"> </span>-N<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;get flag.txt -&#39;</span>
+</code></pre></div>
+<p>The <code>get flag.txt -</code> command downloads the file and prints its contents to standard output (the terminal) instead of saving the file to disk. The output contains the flag for this exercise.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Save the flag file to disk instead</p>
+<p>If you prefer to save the file locally instead, you can omit the trailing dash:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>smbclient<span class="w"> </span>//dc01/Public<span class="w"> </span>-N<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;get flag.txt&#39;</span>
+</code></pre></div>
+<p>The file will be saved to your current working directory.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<p>Document the SMB enumeration results below.</p>
+<blockquote>
+<p><strong>Server Name (NetBIOS):</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>Domain Name (NetBIOS):</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>SMB Shares Discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Share Name</th>
+<th>Type</th>
+<th>Comment</th>
+<th>Anonymous Access?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Files Found on Public Share:</strong></p>
+<table>
+<thead>
+<tr>
+<th>File Name</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag Value (from flag.txt):</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+</blockquote>
+<hr />
+<h3 id="step-5-interpret-the-results">Step 5: Interpret the Results</h3>
+<p>Review your SMB findings and consider the following:</p>
+<ul>
+<li>The domain name obtained via SMB should match what you found through DNS in Exercises WS-1.1 and WS-1.2. Cross-referencing information from multiple protocols increases your confidence in the findings.</li>
+<li>The SYSVOL and NETLOGON shares are standard on every Domain Controller. Authenticated users can access SYSVOL to read Group Policy settings, which can contain credentials, scripts, and configuration details. Anonymous access to SYSVOL is blocked by default, but the share's presence confirms the DC role.</li>
+<li>A Public share with anonymous access is a misconfiguration. Any files placed on an anonymously accessible share are available to every user on the network, including attackers with no credentials.</li>
+</ul>
+<h3 id="step-6-find-and-submit-the-flag">Step 6: Find and Submit the Flag</h3>
+<p>The flag for this exercise was in <code>flag.txt</code> on the Public share. Enter the flag value in <code>OCR{...}</code> format on the submission page.</p>
+<p>The flag follows the standard <code>OCR{...}</code> format. Submit it on the platform to complete the exercise.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. What is a null session, and why is anonymous SMB access a security concern?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A null session is an SMB connection established without providing a username or password. Anonymous SMB access is a security concern because the attacker can enumerate share names, access files on poorly configured shares, and extract the domain name and server name from the protocol negotiation. On older Windows versions, null sessions could also enumerate user accounts and group memberships. Even on modern systems, any data exposed through null sessions is available to unauthenticated attackers.</p>
+</details>
+<p><strong>2. Why do the SYSVOL and NETLOGON shares exist on a Domain Controller, and what risks do they present?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>SYSVOL stores Group Policy Objects (GPOs), logon scripts, and other domain configuration data that must be accessible to all authenticated domain members. NETLOGON hosts scripts that run during user logon. These shares present a risk because GPOs in SYSVOL can contain embedded credentials (such as passwords set through Group Policy Preferences, a well-known misconfiguration), and logon scripts may reference internal server paths, database connection strings, or service account names. Authenticated attackers routinely search SYSVOL for credential artifacts.</p>
+</details>
+<p><strong>3. How does the information gained from SMB complement the DNS reconnaissance performed in Exercises WS-1.1 through WS-1.3?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>DNS reveals hostnames, IP addresses, and service locations. SMB adds the NetBIOS domain name, the server's NetBIOS hostname, the list of shared folders, and access to any files on anonymously accessible shares. Together, the two protocols provide a complete view: DNS maps the network infrastructure, while SMB reveals the server's identity within the Windows domain and any data exposed through file shares.</p>
+</details>
+<p><strong>4. An attacker finds the ADMIN$ and C$ shares listed but cannot connect to them with a null session. Why do those shares still appear in the listing?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>ADMIN$ and C$ are default administrative shares that Windows creates automatically. The server includes them in the share listing because the listing operation and the access control check are separate actions. The server lists all shares that exist, but enforces access permissions when a client attempts to connect. Administrative shares require local administrator credentials, so null session connections are denied at the access control stage.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>SMB protocol negotiation</strong> reveals the server's NetBIOS hostname and domain name automatically, even when null session enumeration is restricted.</li>
+<li><strong>Null sessions</strong> (<code>smbclient -N</code>) allow share listing and, when misconfigured, file access without any credentials.</li>
+<li><strong>SYSVOL and NETLOGON</strong> are standard DC shares that hold Group Policy and logon script data; high-value targets for authenticated attackers.</li>
+<li><strong>Anonymously accessible shares</strong> are a misconfiguration. Any data on these shares should be considered public to all network users.</li>
+<li>The <strong><code>smbclient -c</code></strong> flag allows you to run commands without entering an interactive session, which is useful for quick lookups and scripting.</li>
+<li>You have now confirmed the DC through port scanning (Exercise WS-1.1), mapped DNS forward and reverse records (Exercises WS-1.2 and WS-1.3), and extracted domain information via SMB (Exercise WS-1.4). <strong>Exercise WS-1.5</strong> will query the final unauthenticated protocol: LDAP on port 389.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

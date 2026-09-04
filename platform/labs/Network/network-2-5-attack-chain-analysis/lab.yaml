@@ -1,0 +1,249 @@
+name: "Multi-Stage Attack Chain Analysis"
+description: |
+  Analyze a complete cyber attack showing initial access, lateral movement, and data exfiltration.
+  Learn to identify attack stages, extract indicators of compromise, and reconstruct attack timelines.
+
+scenario: |
+  Marcus Thompson, MediCare Health Systems' Security Analyst, has been called in to
+  investigate a major security incident. The Security Operations Center detected
+  suspicious outbound traffic from the patient records department late Friday evening.
+
+  Initial triage revealed that multiple systems in the patient records network were
+  compromised, and there are strong indicators that sensitive patient data may have
+  been exfiltrated. The Chief Information Security Officer has activated the incident
+  response team and needs a complete analysis of the attack.
+
+  Marcus has captured network traffic from the affected subnet covering a 5-hour
+  window that includes the entire attack. Your task is to analyze this traffic and
+  reconstruct the complete attack chain from initial compromise through data
+  exfiltration.
+
+  You need to:
+  - Identify all stages of the attack (initial access, C2, lateral movement, exfiltration)
+  - Create a detailed timeline of attack activities
+  - Extract all indicators of compromise (IPs, domains, file hashes, etc.)
+  - Map the attack to the MITRE ATT&CK framework
+  - Document evidence for the incident response team
+
+  This is a sophisticated targeted attack on a healthcare organization. The attackers
+  knew exactly what they were after - patient records are valuable on the dark web.
+  MediCare needs your expertise to understand what happened and prevent future attacks.
+
+  **Credentials**
+
+  - Analyst Workstation SSH: `analyst` / `MediCare2024#`
+
+flag: "OCR{full_4tt4ck_ch41n_m4pp3d}"
+
+hints:
+  - unlock_after_minutes: 0
+    text: |
+      Understanding Attack Chains:
+      Modern cyber attacks follow predictable patterns called "kill chains." The most common
+      framework is the Cyber Kill Chain with these stages:
+
+      1. Reconnaissance: Gathering information about the target
+      2. Weaponization: Creating malicious payload
+      3. Delivery: Sending payload to victim (phishing, drive-by download, etc.)
+      4. Exploitation: Payload executes and exploits vulnerability
+      5. Installation: Malware installs on system
+      6. Command & Control (C2): Malware connects back to attacker
+      7. Actions on Objectives: Lateral movement, data theft, destruction
+
+      In this PCAP, you won't see reconnaissance or weaponization, but you will see
+      the delivery through exfiltration stages. Start by opening the PCAP in Wireshark
+      and looking at the Protocol Hierarchy (Statistics > Protocol Hierarchy) to see
+      what protocols are present. This gives you a high-level view of the traffic types.
+
+  - unlock_after_minutes: 5
+    text: |
+      Finding Initial Access:
+      The initial compromise usually involves downloading a malicious file. Look for:
+      - HTTP downloads of executables (.exe, .dll, .bat, .ps1, .zip)
+      - Downloads from suspicious domains (not well-known CDNs)
+      - File downloads with unusual names or from unusual paths
+
+      In Wireshark, use these filters:
+      - http.request.method == "GET" - Shows all HTTP downloads
+      - http.request.uri contains ".exe" - Look for executable downloads
+      - Export HTTP objects: File > Export Objects > HTTP
+
+      The initial access should be early in the timeline. Once you find the suspicious
+      download, note:
+      - Source IP (infected workstation)
+      - Destination IP/domain (attacker infrastructure)
+      - Filename being downloaded
+      - Timestamp (this is T+0 for your timeline)
+
+  - unlock_after_minutes: 10
+    text: |
+      Detecting Command & Control (C2) Traffic:
+      After infection, malware establishes C2 communication with the attacker's server.
+      Look for these patterns:
+
+      - Regular beaconing: Connections at consistent intervals (every 5 min, 10 min, etc.)
+      - HTTPS to unusual domains (not Google, Microsoft, etc.)
+      - Same destination IP contacted repeatedly
+      - Short connections with small data transfers
+
+      Wireshark filters:
+      - tls.handshake.type == 1 - Shows TLS/HTTPS connections
+      - Statistics > Conversations > IPv4 - Sort by packets to find repeated connections
+      - Statistics > Endpoints > IPv4 - Look for IPs with many connections
+
+      The C2 domain/IP will be the same as or related to the initial download domain.
+      C2 traffic typically starts 10-30 minutes after initial infection as the malware
+      establishes persistence and begins checking in.
+
+  - unlock_after_minutes: 15
+    text: |
+      Tracking Lateral Movement:
+      Once attackers have initial access, they move laterally to find valuable data.
+      In Windows networks, this typically uses:
+
+      - SMB (port 445): File sharing and remote access
+      - RDP (port 3389): Remote desktop connections
+      - Windows Admin Shares: \\server\C$ or \\server\ADMIN$
+
+      Look for:
+      - SMB traffic between internal hosts (not just to domain controllers)
+      - Multiple failed SMB authentications followed by success (credential stuffing)
+      - SMB connections to administrative shares
+      - RDP connections from workstation to workstation (unusual)
+
+      Wireshark filters:
+      - smb2 or smb - Shows SMB traffic
+      - rdp or tcp.port == 3389 - Shows RDP traffic
+      - smb2.cmd == 1 - SMB session setup (authentication)
+
+      In a healthcare network, workstations don't normally access each other via SMB.
+      Look for the infected workstation connecting to file servers or other workstations.
+
+  - unlock_after_minutes: 20
+    text: |
+      Identifying Data Exfiltration:
+      The final stage is stealing the data. Common exfiltration methods:
+
+      - HTTPS uploads to cloud storage (large POST requests)
+      - FTP uploads to external servers
+      - DNS tunneling (covered in previous labs)
+      - Email attachments
+
+      Indicators of exfiltration:
+      - Large uploads from internal to external IPs
+      - Connections to file sharing sites or suspicious domains
+      - Multiple files transferred in sequence
+      - Traffic late at night or outside business hours
+
+      Wireshark filters:
+      - http.request.method == "POST" - HTTP uploads
+      - ftp-data - FTP file transfers
+      - tls and ip.dst_host != 10.0.0.0/8 - HTTPS to external IPs
+      - Statistics > HTTP > Requests - Look for POST requests
+
+      Exfiltration happens last, usually 2-4 hours after initial compromise.
+      The attackers need time to find the data, compress it, and prepare for upload.
+      Look for the largest data transfers to external IPs.
+
+  - unlock_after_minutes: 25
+    text: |
+      Complete Solution - Attack Timeline:
+
+      SSH into the lab: ssh analyst@<target_ip>
+      Open PCAP: wireshark /home/analyst/captures/full-attack.pcap &
+
+      STAGE 1 - INITIAL ACCESS (T+30 minutes):
+      - Filter: http.request.method == "GET" and http.request.uri contains "update"
+      - Workstation 10.0.10.25 downloads "system-update.exe" from malicious-cdn.tk
+      - File: GET /downloads/system-update.exe
+      - Time: ~30 minutes into capture
+
+      STAGE 2 - C2 COMMUNICATION (T+45 minutes):
+      - Filter: tls.handshake.extensions_server_name contains "c2-server.tk"
+      - HTTPS beaconing to c2-server.tk (185.220.101.88) every 5 minutes
+      - Small encrypted data transfers, consistent interval
+
+      STAGE 3 - CREDENTIAL HARVESTING (T+90 minutes):
+      - Filter: smb2.cmd == 1 and smb2.session_id
+      - Multiple failed SMB login attempts from 10.0.10.25
+      - Finally successful authentication with compromised admin credentials
+
+      STAGE 4 - LATERAL MOVEMENT (T+120 minutes):
+      - Filter: smb2 and ip.src == 10.0.10.25 and ip.dst == 10.0.10.50
+      - SMB connections to file server 10.0.10.50
+      - Access to \\FILESERVER\PatientRecords$ share
+
+      STAGE 5 - DATA EXFILTRATION (T+180 minutes):
+      - Filter: ftp-data or (http.request.method == "POST" and http.user_agent contains "OCR")
+      - Large FTP upload to 198.51.100.42
+      - OR HTTPS POST with User-Agent containing flag
+      - File: patient-records-backup.zip (15MB)
+      - Flag embedded in exfiltration metadata: OCR{...}
+
+      Extract flag:
+      tshark -r /home/analyst/captures/full-attack.pcap -Y "http.user_agent contains OCR" \
+        -T fields -e http.user_agent
+
+      OR look at FTP commands for flag in filename or metadata.
+
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 90
+
+connection:
+  type: ssh
+  credentials:
+    username: analyst
+    password: "MediCare2024#"
+  port: 22
+
+files:
+  - path: /home/analyst/captures/full-attack.pcap
+    description: 5-hour network capture showing complete multi-stage attack
+
+learning_objectives:
+  - Understand the cyber attack kill chain and how attacks progress through stages
+  - Identify initial access vectors in network traffic
+  - Detect command and control (C2) communication patterns
+  - Track lateral movement between systems using SMB and RDP
+  - Recognize data exfiltration indicators in network traffic
+  - Extract indicators of compromise (IOCs) for threat intelligence
+  - Map attacks to the MITRE ATT&CK framework
+  - Create comprehensive attack timelines for incident response
+
+tags:
+  - attack-chain
+  - kill-chain
+  - apt
+  - lateral-movement
+  - data-exfiltration
+  - command-and-control
+  - incident-response
+  - threat-hunting
+  - wireshark
+  - tshark
+  - ioc-extraction
+  - mitre-attack
+workbook: "wiki/range/netfor/CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/"
+
+credentials:
+  - username: "analyst"
+    password: "MediCare2024#"
+    role: "analyst"
+    description: "Analyst workstation SSH credentials"
+
+test:
+  steps:
+    - name: "SSH accessible on analyst workstation"
+      command: "nc -w 5 {target.network-2-5} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "PCAP file exists on analyst workstation"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.network-2-5} 'ls /home/analyst/captures/full-attack.pcap'"
+      expect: "full-attack.pcap"
+    - name: "Flag found in PCAP captures"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.network-2-5} 'strings /home/analyst/captures/*.pcap 2>/dev/null | grep -o \"OCR{[^}]*}\" | head -1'"
+      expect: "OCR{full_4tt4ck_ch41n_m4pp3d}"
+
+    - name: "Echo confirmed flag"
+      command: "echo 'OCR{full_4tt4ck_ch41n_m4pp3d}'"
+      expect: "OCR{full_4tt4ck_ch41n_m4pp3d}"

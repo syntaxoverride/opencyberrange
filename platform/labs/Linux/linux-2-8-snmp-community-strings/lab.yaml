@@ -1,0 +1,96 @@
+name: "Greystone Manufacturing - SNMP Community Strings"
+description: "An industrial control system gateway at Greystone Manufacturing exposes SNMP with weak community strings. Enumerate system information and discover sensitive data through SNMP walks."
+
+difficulty: beginner
+category: enumeration
+duration_minutes: 35
+randomize_ip_offsets: true
+visibility: course
+week: 3
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/03_SNMP_Community_Strings/"
+flag: "OCR{snmp_w4lk_c0mmun1ty}"
+
+objectives:
+  - Discover SNMP services using UDP port scanning
+  - Enumerate system information using standard SNMP community strings
+  - Perform comprehensive SNMP walks to extract detailed system data
+  - Identify sensitive information exposed through SNMP MIB trees
+  - Capture the flag
+
+scenario: |
+  Greystone Manufacturing operates a production facility in Pittsburgh,
+  Pennsylvania. Their operational technology (OT) team recently deployed a
+  network monitoring gateway to track equipment status across the factory
+  floor. The gateway runs SNMP for network management.
+
+  Your security assessment covers the gateway's SNMP exposure. Karl Weber
+  (OT Security Lead) is skeptical: "SNMP is just for monitoring, there's
+  nothing sensitive there. We use the standard community string - it's an
+  internal network anyway."
+
+  Prove him wrong. The SNMP service may expose more than he thinks. Three
+  assessment tokens have been embedded in the SNMP MIB data. Extract them
+  using SNMP enumeration tools.
+
+credentials: []
+
+hints:
+  - text: |
+      SNMP runs on UDP port 161. Standard nmap TCP scans won't find it.
+      Use a UDP scan: nmap -sU -p 161 <target_ip>
+      Then try: snmpwalk -v2c -c public <target_ip>
+    unlock_after_minutes: 8
+  - text: |
+      The "public" community string gives access to standard system info.
+      Do a full walk and examine the output carefully. Look at sysDescr,
+      sysContact, and sysLocation - the tokens are embedded in these fields.
+    unlock_after_minutes: 16
+  - text: |
+      Run: snmpwalk -v2c -c public <target_ip> system
+      Token 1 is in sysDescr (1.3.6.1.2.1.1.1.0)
+      Token 2 is in sysLocation (1.3.6.1.2.1.1.6.0)
+      Token 3 is in sysContact (1.3.6.1.2.1.1.4.0)
+      Extract the token values after "Token:" in each field.
+    unlock_after_minutes: 22
+
+topology:
+  nodes:
+    - id: "target"
+      label: "ICS Gateway"
+      type: "server"
+      ip_offset: "28"
+      ports: ["161/udp"]
+      services: ["SNMPv2c"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SNMP:161/UDP"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SNMP port 161 is accessible"
+      command: "snmpwalk -v2c -c public -t 5 {target.target} 1.3.6.1.2.1.1.1.0 2>/dev/null | head -1"
+      expect: "Greystone"
+      timeout: 15
+
+    - name: "Extract token 1 from sysDescr"
+      command: "snmpwalk -v2c -c public -t 5 {target.target} 1.3.6.1.2.1.1.1.0 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "snmp"
+      timeout: 15
+
+    - name: "Extract token 2 from sysLocation"
+      command: "snmpwalk -v2c -c public -t 5 {target.target} 1.3.6.1.2.1.1.6.0 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "w4lk"
+      timeout: 15
+
+    - name: "Extract token 3 from sysContact"
+      command: "snmpwalk -v2c -c public -t 5 {target.target} 1.3.6.1.2.1.1.4.0 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "c0mmun1ty"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{snmp_w4lk_c0mmun1ty}'"
+      expect: "OCR{snmp_w4lk_c0mmun1ty}"

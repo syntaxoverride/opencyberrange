@@ -1,0 +1,370 @@
+name: Windows Network Assessment
+description: Final phase of your FinanceCorp assessment. Combine all techniques learned to perform a comprehensive penetration test, demonstrating the full attack chain from initial access to data exfiltration.
+difficulty: intermediate
+category: assessment
+duration_minutes: 120
+objectives:
+  - complete enumeration of windows network
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  You're entering the final phase of your penetration test for FinanceCorp. James 
+  Mitchell has requested a comprehensive network assessment that combines all the 
+  techniques you've learned throughout the engagement.
+  
+  This comprehensive assessment will demonstrate your ability to systematically assess 
+  a Windows network environment, from initial reconnaissance through service 
+  enumeration to credential discovery. FinanceCorp needs this complete picture to 
+  understand their overall security posture.
+  
+  Your objective: Perform a complete enumeration of FinanceCorp's Windows network. 
+  Combine all reconnaissance and enumeration techniques to create a comprehensive 
+  network assessment report.
+
+flag: "OCR{n3tw0rk_3num}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Windows Network Assessment
+
+      A **network assessment** is a systematic evaluation of a network's
+      security posture. It combines multiple techniques in a structured
+      methodology to discover, enumerate, and evaluate services.
+
+      ### The Assessment Methodology
+
+      A professional network assessment follows these phases:
+
+      ```
+      Phase 1: Reconnaissance    --> Discover hosts and services
+      Phase 2: Enumeration       --> Gather detailed service information
+      Phase 3: Vulnerability ID  --> Identify weaknesses and misconfigurations
+      Phase 4: Exploitation      --> Demonstrate impact of vulnerabilities
+      Phase 5: Documentation     --> Report findings
+      ```
+
+      ### Services in This Lab
+
+      | Service | Port | Notes |
+      |---------|------|-------|
+      | SMB | 445 | File sharing with **guest access** enabled |
+      | RDP | 3389 | Remote Desktop |
+
+      ### Guest Access - Key Concept
+
+      This lab features **guest access** on SMB. This means:
+      - No credentials are needed to list and access certain shares
+      - A share named "public" allows anonymous/guest connections
+      - This is a significant misconfiguration in real environments
+
+      ### Your Goal
+
+      Perform a complete network assessment:
+      1. Discover running services via port scanning
+      2. Enumerate SMB shares and identify guest-accessible ones
+      3. Access the public share without credentials
+      4. Retrieve the flag from the publicly accessible share
+
+      The key insight: you do NOT need credentials for this lab.
+      Guest/anonymous access is the vulnerability.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools for Network Assessment
+
+      ### Reconnaissance Tools
+
+      **nmap - Network Scanning:**
+      ```bash
+      # Basic service version scan
+      nmap -sV -p 445,3389 <target>
+
+      # Comprehensive scan with scripts
+      nmap -sV -sC -p 445,3389 <target>
+
+      # OS detection
+      nmap -sV -O -p 445,3389 <target>
+      ```
+
+      The `-sC` flag runs default NSE scripts, which can reveal
+      additional information about services.
+
+      ### SMB Enumeration Tools
+
+      **smbclient - Anonymous/Guest Access:**
+      ```bash
+      # List shares without credentials (null session)
+      smbclient -L //<target> -N
+
+      # List shares as guest
+      smbclient -L //<target> -U guest -N
+
+      # Connect to a share without credentials
+      smbclient //<target>/<share> -N
+      ```
+
+      Key flags for anonymous access:
+      | Flag | Purpose |
+      |------|---------|
+      | `-N` | No password (suppress prompt) |
+      | `-U guest` | Connect as guest user |
+      | `-U ""` | Connect with empty username |
+
+      **enum4linux - Comprehensive Enumeration:**
+      ```bash
+      sudo apt install enum4linux
+      enum4linux -a <target>
+      ```
+
+      **smbmap - Share Permission Mapping:**
+      ```bash
+      sudo apt install smbmap
+
+      # Anonymous access check
+      smbmap -H <target>
+      smbmap -H <target> -u guest -p ""
+      ```
+
+      **crackmapexec - Quick Assessment:**
+      ```bash
+      # Check for null session / guest access
+      crackmapexec smb <target> -u "" -p ""
+      crackmapexec smb <target> -u guest -p ""
+      ```
+
+      ### Key Insight
+
+      For this lab, focus on **anonymous/guest** access methods.
+      The `-N` flag with smbclient is your primary tool.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Network Assessment Examples
+
+      ### Step 1: Service Discovery
+      ```bash
+      nmap -sV -sC -p 445,3389 <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE       VERSION
+      445/tcp  open  netbios-ssn   Samba smbd 4.x
+      3389/tcp open  ms-wbt-server xrdp
+
+      Host script results:
+      | smb2-security-mode:
+      |   Message signing enabled but not required
+      ```
+
+      The NSE scripts may reveal SMB security configuration details.
+
+      ### Step 2: Anonymous Share Enumeration
+      ```bash
+      # Try null session share listing
+      smbclient -L //<target> -N
+      ```
+
+      Expected output:
+      ```
+      Sharename       Type      Comment
+      ---------       ----      -------
+      public          Disk      Public share
+      IPC$            IPC       IPC Service
+      ```
+
+      The `public` share is visible without credentials.
+
+      ### Step 3: Check Share Permissions
+      ```bash
+      smbmap -H <target> -u guest -p ""
+      ```
+
+      Expected output:
+      ```
+      [+] Guest session      IP: <target>:445   Name: <target>
+      Disk        Permissions     Comment
+      ----        -----------     -------
+      public      READ ONLY       Public share
+      IPC$        NO ACCESS       IPC Service
+      ```
+
+      ### Step 4: Retrieve the Flag via HTTP
+
+      The target also runs an HTTP service. Use curl to retrieve the flag:
+      ```bash
+      curl http://<target>/flag.txt
+      ```
+
+      ### Key Insight
+
+      Guest access on SMB is a significant misconfiguration, and the
+      HTTP service exposes sensitive files without authentication.
+      Always check all services for unauthenticated access.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Network Assessment Workflow
+
+      ### Phase 1: Reconnaissance
+      ```bash
+      # Full port scan with service detection
+      nmap -sV -sC -p 445,3389 <target>
+      ```
+
+      Document:
+      - Open ports and services
+      - Service versions
+      - Any information from NSE scripts
+
+      ### Phase 2: SMB Enumeration
+      ```bash
+      # Null session share listing
+      smbclient -L //<target> -N
+
+      # Alternative: guest listing
+      smbclient -L //<target> -U guest -N
+
+      # Check share permissions
+      smbmap -H <target>
+      smbmap -H <target> -u guest -p ""
+
+      # Comprehensive enumeration
+      enum4linux -a <target>
+      ```
+
+      Document:
+      - Available shares and their permissions
+      - Whether guest/anonymous access is enabled
+      - User accounts discovered (if any)
+
+      ### Phase 3: Vulnerability Identification
+
+      The key vulnerability here is **guest access on SMB shares**.
+      This allows unauthenticated users to read files from the `public` share.
+
+      ### Phase 4: Exploitation - Flag Retrieval via HTTP
+
+      The target runs an HTTP service that exposes the flag:
+      ```bash
+      # Retrieve the flag directly via HTTP
+      curl http://<target>/flag.txt
+      ```
+
+      ### Phase 5: RDP Assessment (Optional)
+      ```bash
+      # Check if RDP allows connections without credentials
+      crackmapexec rdp <target> -u "" -p ""
+      crackmapexec rdp <target> -u guest -p ""
+      ```
+
+      RDP typically requires valid credentials, unlike the misconfigured
+      SMB share.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Scan the Target
+      ```bash
+      nmap -sV -sC -p 445,3389 <target>
+      ```
+
+      ### 2. List SMB Shares (No Credentials Needed)
+      ```bash
+      smbclient -L //<target> -N
+      ```
+
+      You should see a share named `public`.
+
+      ### 3. Retrieve the Flag via HTTP
+      ```bash
+      curl http://<target>/flag.txt
+      ```
+
+      ### Alternative: One-Liner with wget
+      ```bash
+      wget -qO- http://<target>/flag.txt
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Command Sequence
+
+      ```bash
+      # Step 1: Service discovery
+      nmap -sV -sC -p 445,3389 <target>
+      # Output:
+      #   445/tcp  open  netbios-ssn   Samba smbd 4.x
+      #   3389/tcp open  ms-wbt-server xrdp
+
+      # Step 2: List shares with anonymous access
+      smbclient -L //<target> -N
+      # Output:
+      #   Sharename       Type      Comment
+      #   ---------       ----      -------
+      #   public          Disk      Public share
+      #   IPC$            IPC       IPC Service
+
+      # Step 3: Check share permissions
+      smbmap -H <target> -u guest -p ""
+      # Output:
+      #   public      READ ONLY
+      #   IPC$        NO ACCESS
+
+      # Step 4: Retrieve the flag via HTTP
+      curl http://<target>/flag.txt
+      # Output: OCR{...}
+      ```
+
+      ### Assessment Summary
+
+      | Phase | Finding | Severity |
+      |-------|---------|----------|
+      | Recon | SMB (445) and RDP (3389) running | Info |
+      | Enum | Guest access enabled on SMB | High |
+      | Enum | "public" share readable by anyone | Critical |
+      | Exploit | Flag file accessible without auth | Critical |
+
+      ### Key Takeaways
+
+      - **No credentials were needed** for this lab - guest access was the
+        vulnerability
+      - The `-N` flag in smbclient suppresses the password prompt and
+        connects without authentication
+      - Guest-accessible SMB shares are a **critical misconfiguration**
+        in enterprise environments
+      - In a real assessment, you would document this as a finding:
+        "SMB share 'public' allows unauthenticated read access, exposing
+        sensitive files to any network user"
+      - Network assessments follow a structured methodology: recon,
+        enumeration, vulnerability identification, exploitation
+      - Always check for anonymous/guest access before attempting
+        credential attacks - the easiest path is often the right one
+      - Submit the flag value in the format `OCR{...}`
+
+workbook: "wiki/range/winpt/CH09_Assessment/01_Windows_Network_Assessment/"
+
+test:
+  steps:
+    - name: "Verify SMB and RDP services are running"
+      command: "nmap -sV -p 445,3389 {target.target}"
+      expect: "445/tcp"
+
+    - name: "Verify HTTP service is accessible"
+      command: "curl -s http://{target.target}/"
+      expect: "flag"
+
+    - name: "Retrieve flag via HTTP"
+      command: "curl -s http://{target.target}/flag.txt"
+      expect: "OCR{n3tw0rk_3num}"

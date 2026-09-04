@@ -1,0 +1,1778 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 14.3: SOC Triage with EveBox - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-143-soc-triage-with-evebox" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 14.3: SOC Triage with EveBox
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-alert-triage-in-a-siem-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Alert Triage in a SIEM Console
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-evebox" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: EveBox
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ssh-to-the-aurora-ids-sensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SSH to the Aurora IDS Sensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-confirm-suricata-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Confirm Suricata Is Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-watch-live-attack-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Watch Live Attack Traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-write-suricata-rules-for-the-two-attack-vectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Write Suricata Rules for the Two Attack Vectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-reload-suricata-without-restarting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Reload Suricata Without Restarting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 6: Reload Suricata Without Restarting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#confirm-the-reload-actually-loaded-your-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirm the reload actually loaded your rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-open-the-evebox-console-in-your-browser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Open the EveBox Console in Your Browser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-read-the-flag-from-the-alert-user-agent-fast-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Read the Flag from the Alert User-Agent (Fast Path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8b-extract-the-campaign-tag-from-the-url-forensic-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8B: Extract the Campaign Tag from the URL (Forensic Path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-extract-the-cmdi-exfil-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Extract the CMDi Exfil Tag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-correlate-with-the-patient-portal-nginx-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Correlate with the Patient Portal nginx Log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-12-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 12: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-143-soc-triage-with-evebox">Exercise 14.3: SOC Triage with EveBox</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Earlier Week 14 exercises had you write Suricata rules and read alerts straight from <code>eve.json</code> at the terminal. Exercise 14.3 adds the missing layer a working SOC relies on: live alert triage in a browser-based console. You will still write Suricata rules, but instead of grepping JSON, you will work the alerts the way a Tier 1 analyst does on shift, from a SIEM dashboard that shows new events as they arrive.</p>
+<p>Your VPN must be connected and both your terminal and web browser open. You should be comfortable with SSH login, basic Linux navigation, and the HTTP request structure from earlier exercises.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Aurora Medical Group, a regional healthcare network headquartered in Portland, Oregon, runs a public-facing patient portal in its DMZ (Demilitarized Zone). Overnight, the SOC (Security Operations Center) pulse board lit up with anomalous HTTP traffic targeting the corporate subnet. The traffic looks like active scanning and exploitation, not background noise.</p>
+<p>You are the Tier 1 SOC analyst on the night shift. The CISO (Chief Information Security Officer), Dr. Priya Sharma, messages you on the ops bridge before logging off:</p>
+<blockquote>
+<p>"The Suricata sensor is running but it has no custom rules loaded. Spin up detection for what you're seeing, then use the EveBox console to triage the alerts; I don't want you grepping eve.json at 3am. Pull every IOC you can out of the payloads. The HIPAA notification clock starts the moment we confirm PHI exposure, so we need clean evidence, not guesses."</p>
+</blockquote>
+<p>Your toolkit includes SSH access to the Aurora IDS sensor (Suricata and tcpdump), SSH access to the patient portal web host, and an EveBox web console that live-tails the sensor's eve.json file. Attack traffic is ongoing; new requests arrive every few seconds.</p>
+<p><strong>Credentials:</strong></p>
+<ul>
+<li>IDS Sensor SSH: <code>tier1</code> / <code>Aur0r4_S0C#</code></li>
+<li>Patient Portal SSH: <code>portaladmin</code> / <code>P4t13nt_P0rt4l#</code></li>
+<li>EveBox Web Console: <code>http://&lt;evebox_ip&gt;:5636</code> (no login required in lab mode)</li>
+</ul>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Aurora's overnight shift gets paged by hundreds of low-severity alerts every week. The difference between a Tier 1 analyst who spots a real intrusion and one who misses it is often not the detection rule; it is the time the analyst spends in a triage tool. A SOC running without a console means every investigation begins with <code>jq</code> and <code>grep</code>, which is fine for a researcher but does not scale during a live incident with a breach disclosure deadline.</p>
+<ul>
+<li>HIPAA (Health Insurance Portability and Accountability Act) requires patient notification within 60 days, and the clock starts at discovery. Audit-ready evidence tied to a triage timeline beats a scratchpad of copy-pasted terminal output.</li>
+<li>The CISO presents a post-incident report to the hospital board. Screenshots from a SIEM console carry more weight than terminal scrollback.</li>
+<li>Cyber insurance carriers often require SIEM dashboards as a coverage precondition. A claim filed without SIEM-sourced evidence may be denied or reduced.</li>
+<li>The next shift inherits whatever you leave behind. Alerts marked "reviewed" in a shared console carry forward; a terminal session does not.</li>
+</ul>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Observe live attack traffic on the Aurora IDS sensor using packet capture</li>
+<li>Write Suricata rules that detect SQL injection and command injection</li>
+<li>Triage the resulting alerts in the EveBox web console</li>
+<li>Extract IOCs (indicators of compromise) from the alert drill-down view</li>
+<li>Investigate the patient portal nginx access log for attacker tooling fingerprints</li>
+<li>Assemble the flag parts and submit the completed flag</li>
+</ul>
+<hr />
+<h2 id="background-alert-triage-in-a-siem-console">Background: Alert Triage in a SIEM Console</h2>
+<p>A SIEM (Security Information and Event Management) console sits on top of raw detection output and organizes events for a human analyst. Suricata produces the raw alerts; a tool like EveBox reads that stream and presents each alert as a clickable row with filters, drill-down panels, and archive state. Analysts call this workflow "triage": sorting a queue of alerts by priority, investigating the ones that matter, and marking the rest as handled.</p>
+<p>A common industry pattern pairs Suricata (detection) with a dashboard (triage) and a longer-term store (search and analytics). Wazuh, SELKS, and the Elastic stack all fill the same slot as EveBox; they differ in weight, storage backend, and feature depth, not in concept. What matters for your shift is that the dashboard shows new alerts as they arrive, exposes the captured payload for each alert, and lets you export evidence without hand-rolling shell pipelines.</p>
+<p>The following diagram illustrates the data flow on the Aurora sensor:</p>
+<pre class="mermaid"><code>graph LR
+    A["Network Traffic&lt;br/&gt;(attacker HTTP)"] --&gt; B["Suricata&lt;br/&gt;IDS Engine"]
+    B --&gt; C{"Rule&lt;br/&gt;Match?"}
+    C --&gt;|"Yes"| D["Alert appended&lt;br/&gt;to eve.json"]
+    C --&gt;|"No"| E["Packet passes&lt;br/&gt;unlogged"]
+    D --&gt; F["EveBox tails&lt;br/&gt;eve.json"]
+    F --&gt; G["Analyst opens&lt;br/&gt;console in browser"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#e8a735,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#888,color:#fff
+    style F fill:#0a6e8a,color:#fff
+    style G fill:#0f8a7f,color:#fff</code></pre>
+<ul>
+<li><strong>Network traffic</strong> arrives at the sensor's network interface</li>
+<li><strong>Suricata</strong> inspects each packet against its loaded rules</li>
+<li><strong>Rule match</strong>: an alert record is appended to <code>/var/log/suricata/eve.json</code></li>
+<li><strong>EveBox</strong> tails the file as new records land and writes them into its own SQLite store</li>
+<li><strong>Analyst</strong> opens the web console and works the queue</li>
+</ul>
+<p>For Aurora's sensor the eve.json file lives on a shared Docker volume that both the Suricata container and the EveBox container can see, so an alert written by Suricata shows up in the console within a second or two.</p>
+<h2 id="tool-primer-evebox">Tool Primer: EveBox</h2>
+<p>EveBox is an open-source web front end for Suricata alerts. The lab runs it with an embedded SQLite store, no-auth lab mode, and plain HTTP on port 5636.</p>
+<p>Key views you will use tonight:</p>
+<table>
+<thead>
+<tr>
+<th>View</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Inbox</strong></td>
+<td>Queue of unhandled alerts, newest first</td>
+</tr>
+<tr>
+<td><strong>Alert detail</strong></td>
+<td>Full JSON record for the selected alert, including URL, payload, source IP</td>
+</tr>
+<tr>
+<td><strong>Events</strong></td>
+<td>All eve.json events (flows, HTTP metadata, DNS), not only alerts</td>
+</tr>
+<tr>
+<td><strong>Archived</strong></td>
+<td>Alerts you have marked as triaged</td>
+</tr>
+</tbody>
+</table>
+<p>Keyboard shortcuts worth remembering:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j</code> / <code>k</code></td>
+<td>Next / previous alert in the list</td>
+</tr>
+<tr>
+<td><code>o</code></td>
+<td>Open selected alert</td>
+</tr>
+<tr>
+<td><code>F</code></td>
+<td>Toggle filter bar</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Full shortcut reference</td>
+</tr>
+</tbody>
+</table>
+<p>EveBox groups duplicate alerts in the Inbox by default: when the same rule fires ten times in a row for the same source and destination, you see one row with a count, not ten rows. The grouping is deliberate; you triage the group, not each packet. Use the Events view if you need to see every individual record.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>The lab provisions four containers: the attacker, the Aurora IDS sensor, the patient portal, and the EveBox console. All four must be running before you begin triage work.</p>
+<ul>
+<li>Open the <strong>Network Security</strong> course view and find <strong>Aurora Medical Group: SOC Triage with EveBox</strong></li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Open the <strong>Exercise Network</strong> panel. It lists four IPs, each tied to a role you will use in this walkthrough</li>
+</ul>
+<p>Record the IPs from the panel and note which tool or credential you will use against each one. Every node in this lab sits on the same <code>/24</code> subnet; only the last octet (the IP offset) changes between roles. Keep this table open in a second tab while you work:</p>
+<table>
+<thead>
+<tr>
+<th>Role (Exercise Network label)</th>
+<th style="text-align: right;">Last octet</th>
+<th>Port you will use</th>
+<th>What you do here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Patient Portal</strong></td>
+<td style="text-align: right;"><code>.17</code></td>
+<td>TCP 22 (SSH)</td>
+<td>SSH as <code>portaladmin</code> to read the nginx access log for the attacker User-Agent</td>
+</tr>
+<tr>
+<td><strong>Unknown Attacker</strong></td>
+<td style="text-align: right;"><code>.31</code></td>
+<td>n/a</td>
+<td>Source of the automated attack traffic; you do not log in here</td>
+</tr>
+<tr>
+<td><strong>Aurora IDS Sensor</strong></td>
+<td style="text-align: right;"><code>.47</code></td>
+<td>TCP 22 (SSH)</td>
+<td>SSH as <code>tier1</code> to run <code>tcpdump</code>, write Suricata rules, reload the engine</td>
+</tr>
+<tr>
+<td><strong>EveBox SOC Console</strong></td>
+<td style="text-align: right;"><code>.53</code></td>
+<td>TCP 5636 (HTTP)</td>
+<td>Open in a browser, no login, to triage alerts and pull IOCs from payloads</td>
+</tr>
+</tbody>
+</table>
+<p>Attack traffic begins flowing automatically within about twenty seconds of launch. Your sensor starts receiving malicious HTTP requests immediately after that.</p>
+<div class="admonition info">
+<p class="admonition-title">Where to find each IP</p>
+<p>The four IPs are all shown in the Exercise Network panel on the lab page, one row per node. The IDS sensor and patient portal are the SSH targets; EveBox is the one you open in the browser. If you spawn the lab more than once, the IPs change between runs, so read them from the panel each session rather than saving them from a previous attempt.</p>
+</div>
+<h3 id="step-2-ssh-to-the-aurora-ids-sensor">Step 2: SSH to the Aurora IDS Sensor</h3>
+<div class="admonition kali">
+<p class="admonition-title">SSH to the Aurora IDS sensor</p>
+<p>Most of the detection work runs on the sensor. Open a terminal on your Kali and connect with the Tier 1 analyst credentials from the scenario block. Replace <code>&lt;ids_sensor_ip&gt;</code> with the sensor IP from the Exercise Network panel.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ssh<span class="w"> </span>tier1@&lt;ids_sensor_ip&gt;
+</code></pre></div>
+<p>When prompted for the password, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Aur0r4_S0C#
+</code></pre></div>
+<p>The hostname in your shell prompt should read <code>aurora-sensor</code>. That confirms you landed on the right host.</p>
+</div>
+<h3 id="step-3-confirm-suricata-is-running">Step 3: Confirm Suricata Is Running</h3>
+<div class="admonition target">
+<p class="admonition-title">Confirm Suricata is running on the sensor</p>
+<p>Writing rules against a dead engine wastes your shift. Check the Suricata process before touching the rules file. Run this in the sensor SSH session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pidof<span class="w"> </span>suricata
+</code></pre></div>
+<p>A numeric process ID in the output means the engine is up. An empty response means Suricata is not running; re-check that the lab finished launching.</p>
+<p>Note that <code>pgrep -x suricata</code> does not reliably detect Suricata in daemon mode. The main thread renames itself to <code>Suricata-Main</code>, so the exact-match flag misses it. Use <code>pidof suricata</code> or <code>pgrep -f suricata</code> instead.</p>
+</div>
+<h3 id="step-4-watch-live-attack-traffic">Step 4: Watch Live Attack Traffic</h3>
+<div class="admonition target">
+<p class="admonition-title">Capture live attack traffic with tcpdump</p>
+<p>Before writing rules, you need to see what the attacker is sending. Raw capture on port 80 reveals the two distinct HTTP payloads you will translate into signatures.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>eth0<span class="w"> </span>-A<span class="w"> </span>port<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-80
+</code></pre></div>
+<p>Let the capture run for ten to fifteen seconds, then stop it with <code>Ctrl+C</code>. Two patterns should stand out in the output.</p>
+<p><strong>Pattern 1: SQL injection in GET requests.</strong> A URL query string containing <code>UNION SELECT</code> is not normal user input. The attacker is trying to append a malicious <code>SELECT</code> clause to a legitimate search query. A typical URI looks like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>GET /search?q=1&#39;+UNION+SELECT+username,password+FROM+credentials--&amp;campaign=TOKEN
+</code></pre></div>
+<p><strong>Pattern 2: Command injection in POST bodies.</strong> A form body containing shell syntax such as <code>;cat /etc/shadow</code> is not valid form input. The attacker is trying to break out of the server-side handler and read system files. A typical POST body looks like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>host=10.200.0.1;cat /etc/shadow&amp;exfil=TOKEN
+</code></pre></div>
+<p>Note both patterns carefully. Each one becomes a Suricata rule.</p>
+</div>
+<h3 id="step-5-write-suricata-rules-for-the-two-attack-vectors">Step 5: Write Suricata Rules for the Two Attack Vectors</h3>
+<div class="admonition target">
+<p class="admonition-title">Open the local rules file on the sensor</p>
+<p>Custom signatures live in <code>/etc/suricata/rules/local.rules</code> on the sensor. Open the file in <code>nano</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>nano<span class="w"> </span>/etc/suricata/rules/local.rules
+</code></pre></div>
+<p>The editor opens an empty or near-empty file ready for your two signatures.</p>
+</div>
+<p>Add the two rules below, one per line.</p>
+<p><strong>Rule 1: SQL injection detection.</strong> The <code>content:"UNION SELECT"</code> check is scoped to the HTTP URI, so response bodies and log viewers that happen to contain those words do not fire the rule. The <code>classtype:web-application-attack</code> keyword tags the alert with a category that Suricata's classification file maps to severity 1 (high). Without a classtype the alert lands with an empty category and severity 3, and the EveBox Alerts view hides or buries it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>alert http any any -&gt; any any (msg:&quot;SQLi Attack Detected&quot;; content:&quot;UNION SELECT&quot;; nocase; http_uri; classtype:web-application-attack; sid:1000001; rev:1;)
+</code></pre></div>
+<p><strong>Rule 2: Command injection detection.</strong> The <code>http_client_body</code> modifier limits the match to the request body the client sent, so response bodies from any file server do not create false positives. The same <code>classtype</code> is used so both rules share a category in the console.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>alert http any any -&gt; any any (msg:&quot;Command Injection Detected&quot;; content:&quot;cat /etc&quot;; nocase; http_client_body; classtype:web-application-attack; sid:1000002; rev:1;)
+</code></pre></div>
+<p>Save and exit nano with <code>Ctrl+O</code>, <code>Enter</code>, then <code>Ctrl+X</code>.</p>
+<div class="admonition info">
+<p class="admonition-title">Why classtype matters for triage</p>
+<p>A Suricata alert written without <code>classtype</code> fires correctly and shows up under the <strong>Events</strong> view in EveBox, because every alert is also an event. It does <em>not</em> reliably appear under <strong>Alerts</strong> or the <strong>Inbox</strong>, because those views filter and group by category and severity. Classification mappings live in <code>/etc/suricata/classification.config</code>; run <code>grep web-application /etc/suricata/classification.config</code> on the sensor to see which severity each category maps to.</p>
+</div>
+<h3 id="step-6-reload-suricata-without-restarting">Step 6: Reload Suricata Without Restarting</h3>
+<div class="admonition target">
+<p class="admonition-title">Reload Suricata rules with a USR2 signal</p>
+<p>Suricata does not watch the rules file for changes. Send the <code>USR2</code> signal to the running engine and it re-reads every configured rule file without dropping monitored traffic.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>sudo<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-USR2<span class="w"> </span><span class="k">$(</span>pidof<span class="w"> </span>suricata<span class="k">)</span>
+</code></pre></div>
+<p>No output from the command means the signal was delivered. Suricata takes a few seconds to parse the new rules. If instead you see the <code>kill</code> usage help print, that means the <code>$(...)</code> expansion returned nothing; re-check Step 3.</p>
+</div>
+<h4 id="confirm-the-reload-actually-loaded-your-rules">Confirm the reload actually loaded your rules</h4>
+<p>The most common failure in this exercise is that the USR2 was delivered but Suricata ended up with zero rules loaded (bad path, bad syntax, wrong file, stale process). A silent reload looks identical to a bad reload, so always verify.</p>
+<div class="admonition target">
+<p class="admonition-title">Query the Suricata command socket for loaded rule count</p>
+<p>Run a one-line query against Suricata's command socket to see how many rules are active right now.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>sudo<span class="w"> </span>suricatasc<span class="w"> </span>-c<span class="w"> </span>ruleset-stats<span class="w"> </span>/var/run/suricata/suricata-command.socket
+</code></pre></div>
+<p>Expected output (formatted for clarity):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>{&quot;message&quot;: [{&quot;id&quot;: 0, &quot;rules_loaded&quot;: 2, &quot;rules_failed&quot;: 0}], &quot;return&quot;: &quot;OK&quot;}
+</code></pre></div>
+</div>
+<p>Interpret the result:</p>
+<table>
+<thead>
+<tr>
+<th><code>rules_loaded</code></th>
+<th><code>rules_failed</code></th>
+<th>Meaning</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>2</code></td>
+<td><code>0</code></td>
+<td>Both of your rules are active</td>
+<td>Move on to Step 7</td>
+</tr>
+<tr>
+<td><code>0</code></td>
+<td><code>0</code></td>
+<td>Rules file is empty, unreadable, or the reload never reached Suricata</td>
+<td>Re-check Step 5 (right path, right content), then re-run the USR2</td>
+</tr>
+<tr>
+<td><code>1</code> or less with <code>rules_failed &gt; 0</code></td>
+<td>nonzero</td>
+<td>One or more rules have a syntax error and were skipped</td>
+<td>Tail <code>/var/log/suricata/suricata.log</code> for an <code>Error parsing signature</code> line, fix the broken rule, then re-run the USR2</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition target">
+<p class="admonition-title">Confirm the reload in the Suricata log</p>
+<p>You can also confirm the reload in the Suricata log directly.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>sudo<span class="w"> </span>tail<span class="w"> </span>-5<span class="w"> </span>/var/log/suricata/suricata.log
+</code></pre></div>
+<p>Look for a line reading <code>rule reload complete</code>, preceded by a line like <code>2 signatures processed</code>. If the most recent <code>signatures processed</code> line says <code>0</code>, your edits never reached the engine even though the signal was delivered (usually a file-path or permission problem).</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">If this step shows 0 rules loaded, stop here</p>
+<p>Alerts will not fire, EveBox will stay empty under <strong>Alerts</strong> and <strong>Escalated</strong>, and you will waste time looking for IOCs that do not exist yet. The <strong>Events</strong> view in EveBox will still show HTTP traffic from the attacker (because Suricata logs every HTTP transaction regardless of rules), which is a common source of confusion. Confirm <code>rules_loaded: 2</code> before moving on.</p>
+</div>
+<p>For the rest of the walkthrough, keep this SSH session open. You may need to come back to the sensor to run follow-up commands.</p>
+<h3 id="step-7-open-the-evebox-console-in-your-browser">Step 7: Open the EveBox Console in Your Browser</h3>
+<p>Now the console does the work. Open a new browser tab and navigate to the EveBox URL, substituting the IP from the Exercise Network panel:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>http://&lt;evebox_ip&gt;:5636
+</code></pre></div>
+<p>The lab runs EveBox in no-auth mode, so the Inbox view loads directly. Wait ten to twenty seconds after the reload, then refresh the Inbox. Two alert rows should appear:</p>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th style="text-align: right;">Expected count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SQLi Attack Detected</td>
+<td style="text-align: right;">one per attack cycle (about one every eight seconds)</td>
+</tr>
+<tr>
+<td>Command Injection Detected</td>
+<td style="text-align: right;">one per attack cycle</td>
+</tr>
+</tbody>
+</table>
+<p>If the Inbox is empty, wait for the next attack cycle and refresh. If it is still empty after thirty seconds, revisit Step 5; a mistyped rule does not fire.</p>
+<figure>
+<p><img alt="EveBox Inbox showing a populated queue of grouped Suricata alerts" src="../img/cw-34-inbox.png" width="820" />
+  </p>
+<figcaption>The EveBox Inbox live-tailing the Aurora sensor. Each row is a grouped alert with a count, source and destination, and signature. Baseline scanner and probe alerts fill the queue alongside the two attack-vector rules you wrote in Step 5.</figcaption>
+</figure>
+<h3 id="step-8-read-the-flag-from-the-alert-user-agent-fast-path">Step 8: Read the Flag from the Alert User-Agent (Fast Path)</h3>
+<p>Click the <strong>SQLi Attack Detected</strong> row in the Inbox. EveBox opens the alert detail panel on the right. Scroll to the <code>http</code> section and find the <code>http_user_agent</code> field.</p>
+<figure>
+<p><img alt="EveBox alert detail panel for a triage alert, showing timestamp, source and destination, GeoIP, and the parsed HTTP fields" src="../img/cw-34-alert.png" width="820" />
+  </p>
+<figcaption>The alert drill-down anatomy, shown here for a baseline Path Traversal alert so the flag stays hidden. The right pane parses every field: timestamp, source and destination, GeoIP origin, and the full `http` section where the User-Agent and URL IOCs live.</figcaption>
+</figure>
+<p>The User-Agent has this shape (read the real flag value from the live alert, it is not printed here):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>AuroraBleed/OCR{...} (Windows NT 10.0; Win64; x64)
+</code></pre></div>
+<p>The attacker's custom tool brands every outbound request with a session identifier that happens to embed the full correlation flag in <code>OCR{...}</code> format. That is an OpSec failure on the attacker's part and a gift to the triage analyst on yours: one field, one read, whole flag.</p>
+<p>Record the <code>OCR{...}</code> value as your answer to Step 12. You can also verify the same User-Agent appears on the <strong>Command Injection Detected</strong> alert, which confirms both attacks came from the same tool.</p>
+<div class="admonition tip">
+<p class="admonition-title">Why the User-Agent is worth checking first</p>
+<p>Attacker tooling often tags its own traffic with internal build identifiers, campaign IDs, or trace tokens. Unlike the URL and POST body (which carry the attacker's payload), the User-Agent is metadata about the tool itself, and it is often the sloppiest part of a custom attack framework. Always read the User-Agent before you pull the rest of the payload apart.</p>
+</div>
+<h3 id="step-8b-extract-the-campaign-tag-from-the-url-forensic-path">Step 8B: Extract the Campaign Tag from the URL (Forensic Path)</h3>
+<p>The User-Agent read above is the fast path. The forensic path is to pull the campaign tracking tag directly out of the attacker's request URL, which is also visible in the same alert.</p>
+<p>In the same <code>http</code> section of the SQLi alert detail, find the <code>url</code> field. It will look something like (values redacted):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">&quot;http&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">&quot;hostname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;analyst&quot;</span><span class="p">,</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/search?q=1&#39;%20UNION%20SELECT%20username,password%20FROM%20credentials--&amp;campaign=REDACTED&quot;</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="p">}</span>
+</code></pre></div>
+<p>The <code>campaign=</code> parameter is a tracking tag the attacker embedded in the exploit URL. Copy the value after the equals sign and before the next <code>&amp;</code> (or the end of the URL, if <code>campaign</code> is the last parameter). Record it as flag part 1 of a three-part assembly.</p>
+<div class="admonition target">
+<p class="admonition-title">Confirm the campaign tag from the sensor terminal</p>
+<p>If you prefer to confirm the value from the terminal, return to the sensor SSH session and run this jq pipeline against the live eve.json.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert.signature_id == 1000001) | .http.url&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;campaign=\K[^&amp;]+&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>Both paths produce the same value. The EveBox view is your primary triage tool; the terminal fallback is useful when you need to batch-extract many tags at once.</p>
+</div>
+<h3 id="step-9-extract-the-cmdi-exfil-tag">Step 9: Extract the CMDi Exfil Tag</h3>
+<p>Return to the EveBox Inbox and click the <strong>Command Injection Detected</strong> row. The alert detail for a POST-body match does not populate <code>http.url</code> (because the injection lives in the body, not the URL); look for the <code>payload_printable</code> field instead. That field contains the raw request body Suricata saw on the wire.</p>
+<p>Example snippet:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">&quot;payload_printable&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;POST /api/diagnostic HTTP/1.1\r\n...host=10.200.0.1;cat /etc/shadow&amp;exfil=REDACTED...&quot;</span>
+</code></pre></div>
+<p>The <code>exfil=</code> parameter is the attacker's data exfiltration tag, the analog of the campaign tag but tied to the command injection stream. Copy the value between <code>exfil=</code> and the next <code>&amp;</code> or whitespace, and record it as flag part 2.</p>
+<div class="admonition target">
+<p class="admonition-title">Cross-check the exfil tag from the sensor terminal</p>
+<p>Run the terminal equivalent against eve.json if you want to cross-check the value EveBox showed.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert.signature_id == 1000002) | .payload_printable&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;exfil=\K[^&amp; \r\n]+&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>The single value printed is flag part 2, matching what you read in the EveBox CMDi alert.</p>
+</div>
+<h3 id="step-10-correlate-with-the-patient-portal-nginx-log">Step 10: Correlate with the Patient Portal nginx Log</h3>
+<div class="admonition kali">
+<p class="admonition-title">SSH to the patient portal</p>
+<p>The CISO mentioned the attacker may have hit the portal too. Open a second terminal and SSH to the patient portal with the portaladmin credentials. Replace <code>&lt;patient_portal_ip&gt;</code> with the portal IP from the Exercise Network panel.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ssh<span class="w"> </span>portaladmin@&lt;patient_portal_ip&gt;
+</code></pre></div>
+<p>When prompted, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>P4t13nt_P0rt4l#
+</code></pre></div>
+<p>A shell prompt on the portal host confirms you are in.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Extract the attacker User-Agent from the nginx log</p>
+<p>The attacker's automated tool identifies itself with a distinctive User-Agent string. Normal browsers use <code>Mozilla/5.0 ...</code>; this attacker uses a custom value beginning with <code>AuroraBleed/</code>. Extract it with <code>grep</code> on the portal host.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;AuroraBleed/\K[^ &quot;]+&#39;</span><span class="w"> </span>/var/log/nginx/access.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>The value after the slash is flag part 3.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Document each piece of evidence you collected during triage.</p>
+<p><strong>SQLi campaign tag (from Step 8):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>(paste your campaign value here)
+</code></pre></div>
+<p><strong>CMDi exfil tag (from Step 9):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>(paste your exfil value here)
+</code></pre></div>
+<p><strong>Attacker User-Agent value (from Step 10):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>(paste your AuroraBleed value here)
+</code></pre></div>
+<p><strong>Assembled flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>OCR{___________}
+</code></pre></div>
+<p><strong>Suricata rules you wrote:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>(paste your two rules from local.rules here)
+</code></pre></div>
+<p><strong>EveBox alert detail (screenshot or copied JSON):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>(paste one sample alert JSON record or attach a screenshot)
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-11-interpret-the-results">Step 11: Interpret the Results</h3>
+<p>Review the three IOCs and what they tell you about the attacker.</p>
+<p>The <strong>campaign tag</strong> in the SQLi URL labels which exploitation campaign generated the data. Attackers tag payloads so they can correlate stolen data back to specific targets or timeframes. Finding the tag means the attack is organized, not opportunistic.</p>
+<p>The <strong>exfil tag</strong> in the CMDi body is the analogous label for the data-exfiltration channel. The presence of both tags together suggests parallel operations run by the same adversary, each labeled for internal tracking.</p>
+<p>The <strong>AuroraBleed User-Agent</strong> appears on traffic to both the sensor and the patient portal, just with different suffixes: the sensor attacks carry <code>AuroraBleed/OCR{...}</code> (session-branded, full flag), the portal probes carry <code>AuroraBleed/pr0</code> (shortened build tag). Both confirm the same tool fingerprint. Custom tool identifiers link attack streams across hosts even when source IP addresses rotate.</p>
+<p>Assemble the three values with underscores between them: <code>OCR{________}</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Use the tokens in the order you discovered them:</p>
+<p><code>OCR{&lt;sqli_token&gt;_&lt;cmdi_token&gt;_&lt;ua_token&gt;}</code></p>
+<p>Where <code>&lt;sqli_token&gt;</code> is from the EveBox SQLi alert URL, <code>&lt;cmdi_token&gt;</code> is from the EveBox CMDi alert payload, and <code>&lt;ua_token&gt;</code> is from the patient portal nginx access log.</p>
+</div>
+<h3 id="step-12-submit-the-flag">Step 12: Submit the Flag</h3>
+<p>Return to the Network Security course view, open the Aurora lab, and paste the assembled flag in <code>OCR{...}</code> format into the <strong>Submit Flag</strong> field. The platform confirms or rejects the submission. If the submission is rejected, double-check each extracted value and ensure the parts are joined with underscores in the correct order.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The EveBox Inbox groups repeated alerts from the same attack cycle into a single row with a count. Why do SIEM consoles group alerts by default, and when would that grouping hide something important?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Grouping prevents the Inbox from drowning in repeats when a noisy scanner hits the sensor; a fifty-packet flood becomes one row with a count of fifty, and the analyst still sees it once. The hidden risk is that two similar but distinct attacks can collapse into the same group if the dedup key is too coarse. An analyst who only opens the first event in a group can miss a later event with a different payload, a different source IP, or a different User-Agent. Good triage practice: open the group, scan the range of source IPs and payload values, and only archive after confirming the range is consistent with a single campaign.</p>
+</details>
+<p><strong>2. For the SQLi alert the tracking tag was in <code>http.url</code>, but for the CMDi alert it was in <code>payload_printable</code> instead. Why does EveBox populate different fields for the two cases?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Suricata parses HTTP protocol fields for GET requests and exposes them as structured values, so the URL is a first-class field and the query string is available directly as <code>http.url</code>. POST bodies are opaque to the HTTP parser without deep inspection, so the command injection rule reads from the raw client body. Suricata still logs the bytes that triggered the match under <code>payload_printable</code>, which is where the analyst has to look for the injected parameters. The practical takeaway: structured fields are faster to triage, but the raw payload is always the ground truth and sometimes the only place the IOC lives.</p>
+</details>
+<p><strong>3. The same detection could be done entirely from the terminal with <code>jq</code> and <code>grep</code>, with no EveBox at all. What does a SIEM console give a working SOC that a terminal pipeline does not?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A console gives the team a shared, auditable workspace. Every analyst sees the same queue, alerts carry state (new, reviewed, archived), and evidence can be exported with timestamps and source attribution. A terminal pipeline is per-analyst and per-session; when the shift changes, the next person has to rebuild the view. A console also lets an on-call responder open an alert from a phone or an out-of-band workstation without shell access to the sensor. The rules and logs are the source of truth in either case, but the console is what makes the SOC a team instead of a collection of individuals.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Suricata writes the alerts; a SIEM console makes them triageable.</strong> A SOC with detection rules but no console is still blind in the practical sense, because no analyst can work a raw JSON stream at the pace of a live incident.</li>
+<li><strong>Shared-volume log delivery</strong> is the simplest way to pair a sensor with a console. Heavier SIEMs replace the volume with a message queue or an indexer, but the data model is the same: Suricata produces eve.json, the console consumes it.</li>
+<li><strong>Alert detail drives IOC extraction.</strong> Knowing which field carries the payload (<code>http.url</code> for GET, <code>payload_printable</code> for POST) is the difference between a ten-second extraction and a ten-minute grep session.</li>
+<li><strong>Fingerprints survive rotation.</strong> Attacker IPs change; User-Agent strings, internal tracking tags, and tool version identifiers survive longer and often link attack streams across hosts.</li>
+<li><strong>A console is team infrastructure.</strong> Alerts in a shared queue hand off across shifts; terminal sessions do not. Week 15 ties IDS work into the capstone CTF, where you will combine detection, enumeration, and exploitation across a multi-host environment.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

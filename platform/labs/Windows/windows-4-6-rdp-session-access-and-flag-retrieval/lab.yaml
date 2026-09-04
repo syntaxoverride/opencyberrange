@@ -1,0 +1,345 @@
+name: RDP Session Access and Flag Retrieval
+description: Complete your FinanceCorp RDP assessment by successfully accessing a remote session and demonstrating the security impact.
+difficulty: beginner
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - connect via rdp and find flag
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  You're completing the RDP assessment phase of your FinanceCorp penetration test. 
+  James Mitchell has requested a demonstration of successful RDP access to understand 
+  the full security impact of RDP vulnerabilities.
+  
+  Successful RDP access provides direct system access, which is one of the most 
+  significant security risks. FinanceCorp needs to see concrete evidence of how 
+  RDP misconfigurations or weak credentials could lead to unauthorized system access.
+  
+  Your objective: Successfully connect to FinanceCorp's systems via RDP using 
+  discovered credentials. Access the remote session and demonstrate the security 
+  impact by retrieving sensitive information or system access.
+
+flag: "OCR{rdp_s3ss10n_4cc3ss}"
+
+hints:
+  - text: |
+      ## What is RDP Session Access?
+
+      **RDP Session Access** refers to establishing a full interactive remote desktop
+      session on a target system. This is the culmination of the RDP attack chain -
+      after detecting the service, enumerating its version, and obtaining valid
+      credentials, the attacker connects and interacts with the system as if they
+      were physically sitting at the keyboard.
+
+      ### Why Session Access Demonstrates Critical Impact
+
+      Gaining a full RDP session is one of the highest-impact findings in a
+      penetration test because it provides:
+
+      - **Full graphical access**: The attacker has the same capabilities as a
+        legitimate user sitting at the workstation
+      - **File system access**: Browse, read, copy, and modify any files the user
+        has permissions for
+      - **Application access**: Run installed applications, open browsers with
+        saved passwords, access email clients
+      - **Lateral movement**: Use the compromised system as a pivot point to attack
+        other systems on the internal network
+      - **Data exfiltration**: Copy sensitive files, screenshots, and credentials
+        from the system
+
+      ### The Flag Retrieval Objective
+
+      In penetration testing, retrieving a specific piece of evidence (like a flag)
+      demonstrates that an attacker could access sensitive data. In this lab, the
+      flag represents confidential business data that an attacker would be able to
+      steal after gaining RDP access.
+
+      The flag is located on the **Desktop** of the user account, simulating a
+      scenario where sensitive files are stored in easily accessible locations.
+    unlock_after_minutes: 0
+
+  - text: |
+      ## Tool Introduction: xfreerdp for Session Access
+
+      **xfreerdp** is the primary tool for establishing RDP sessions from Linux.
+      For this lab, you need to establish a full graphical session and navigate
+      the remote desktop to find the flag.
+
+      ### Installation
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Connection Syntax for Full Session Access
+
+      ```bash
+      xfreerdp /v:<target> /u:<username> /p:<password> /cert:ignore [options]
+      ```
+
+      ### Recommended Options for Session Access
+
+      | Option                | Purpose                                      |
+      |-----------------------|----------------------------------------------|
+      | `/cert:ignore`        | Skip certificate validation                  |
+      | `+clipboard`          | Enable clipboard sharing (copy flag easily)  |
+      | `/size:1280x720`      | Comfortable resolution for desktop work      |
+      | `/dynamic-resolution` | Allow window resizing                        |
+      | `+home-drive`         | Share your local home directory               |
+      | `/drive:share,/tmp`   | Share a local directory with the remote system|
+      | `/sec:tls`            | Force TLS security                            |
+      | `/bpp:32`             | 32-bit color depth for better visuals         |
+
+      ### Post-Connection Navigation
+
+      Once connected to an XFCE desktop, you can:
+      - **Right-click desktop** to access the context menu
+      - **Use the taskbar/panel** to launch applications
+      - **Open File Manager** (Thunar) to browse files visually
+      - **Open Terminal Emulator** to run commands
+      - **Double-click files** on the Desktop to open them
+    unlock_after_minutes: 5
+
+  - text: |
+      ## Finding Files on a Remote Desktop
+
+      ### Desktop Files in Linux
+
+      In Linux desktop environments, files visible on the Desktop are stored in
+      the user's Desktop directory:
+
+      ```
+      /home/<username>/Desktop/
+      ```
+
+      This is different from the user's home directory (`/home/<username>/`).
+      When you see files on the graphical desktop, they correspond to files in
+      this specific directory.
+
+      ### XFCE Desktop Environment
+
+      This lab uses **XFCE**, a lightweight desktop environment. Key features:
+
+      - **Desktop icons**: Files in `~/Desktop/` appear as icons on the desktop
+      - **File Manager (Thunar)**: GUI file browser accessible from the panel
+      - **Terminal Emulator**: Command-line access from within the desktop
+      - **Application Menu**: Access via the panel or right-click on desktop
+
+      ### Methods to Find and Read the Flag
+
+      **Method 1: Visual inspection**
+      - Look at the desktop for a file named `flag.txt`
+      - Double-click to open it in a text editor
+
+      **Method 2: Terminal command**
+      - Open Terminal Emulator
+      - Run: `cat ~/Desktop/flag.txt`
+
+      **Method 3: File Manager**
+      - Open Thunar file manager
+      - Navigate to the Desktop directory
+      - Open flag.txt
+
+      ### Important Note About File Location
+
+      In this lab, the flag is specifically on the **Desktop** (`/home/admin/Desktop/flag.txt`),
+      NOT in the home directory root (`/home/admin/flag.txt`). Make sure you check
+      the Desktop directory, not just the home folder.
+    unlock_after_minutes: 10
+
+  - text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install the RDP Client
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Step 2: Verify the Target Service
+
+      Confirm RDP is running on the target:
+
+      ```bash
+      nmap -p 3389 -sV -Pn <target>
+      ```
+
+      You should see port 3389 open with xrdp.
+
+      ### Step 3: Connect via RDP
+
+      Use the provided credentials to establish a full session:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore +clipboard /size:1280x720
+      ```
+
+      ### Step 4: Interact with the Desktop
+
+      Once the XFCE desktop loads:
+
+      1. **Look at the desktop** - Check for any visible files or icons
+      2. **Look for flag.txt** - It should be visible on the desktop as an icon
+      3. If you see it, **double-click** to open it in a text editor
+
+      ### Step 5: Read the Flag via Terminal (Alternative)
+
+      If you cannot find the flag visually, open a terminal:
+
+      1. Right-click on the desktop background
+      2. Select **"Open Terminal Here"**
+      3. Run the following command:
+
+      ```bash
+      cat /home/admin/Desktop/flag.txt
+      ```
+
+      ### Step 6: Copy and Submit the Flag
+
+      If clipboard sharing is enabled (`+clipboard`):
+      - Select the flag text in the remote session
+      - Copy it (Ctrl+Shift+C in terminal, or Ctrl+C in text editor)
+      - Paste it locally to submit
+    unlock_after_minutes: 15
+
+  - text: |
+      ## Exact Commands to Run
+
+      ### Install FreeRDP
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Connect to the Target
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore +clipboard /size:1280x720
+      ```
+
+      This command:
+      - `/v:<target>` : Connects to the target on port 3389
+      - `/u:admin` : Authenticates as "admin"
+      - `/p:password123` : Uses the password "password123"
+      - `/cert:ignore` : Accepts the server certificate without validation
+      - `+clipboard` : Enables clipboard sharing for easy flag copying
+      - `/size:1280x720` : Sets a readable resolution
+
+      ### Once Connected: Find the Flag
+
+      After the XFCE desktop loads, open a terminal and run:
+
+      ```bash
+      cat /home/admin/Desktop/flag.txt
+      ```
+
+      Note the path: the flag is in **Desktop**, not the home directory root.
+
+      ### Alternative: List Desktop Files
+
+      If you are unsure of the exact filename:
+
+      ```bash
+      ls -la /home/admin/Desktop/
+      ```
+
+      This will show all files on the Desktop, including the flag file.
+
+      ### Alternative: Search for the Flag
+
+      If the flag is not where expected, search the entire system:
+
+      ```bash
+      find /home/admin -name "flag*" 2>/dev/null
+      ```
+
+      This searches for any file starting with "flag" in the admin's home
+      directory tree.
+    unlock_after_minutes: 20
+
+  - text: |
+      ## Complete Solution Walkthrough
+
+      ### 1. Install FreeRDP
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### 2. Verify the Service
+
+      ```bash
+      nmap -p 3389 -sV -Pn <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE        VERSION
+      3389/tcp open  ms-wbt-server  xrdp
+      ```
+
+      ### 3. Establish the RDP Session
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore +clipboard /size:1280x720
+      ```
+
+      Expected behavior:
+      - A new window opens
+      - You may see the xrdp login screen briefly
+      - The XFCE desktop loads with a panel at the top
+      - Desktop icons may be visible, including flag.txt
+
+      ### 4. Locate the Flag on the Desktop
+
+      **Visual method:** Look for a `flag.txt` icon on the desktop. Double-click to open.
+
+      **Terminal method:** Right-click the desktop, select "Open Terminal Here", then:
+
+      ```bash
+      cat /home/admin/Desktop/flag.txt
+      ```
+
+      Expected output:
+      ```
+      OCR{...}
+      ```
+
+      ### 5. Submit the Flag
+
+      Copy the `OCR{...}` flag and submit it through the lab platform.
+
+      ### Summary of the RDP Attack Chain
+
+      This lab completes the full RDP assessment progression:
+      1. **Detection** (Lab 4-1): Found RDP on port 3389
+      2. **Enumeration** (Lab 4-2): Identified version and encryption
+      3. **Manual Testing** (Lab 4-3): Tested known credentials
+      4. **Credential Guessing** (Lab 4-4): Discovered weak passwords
+      5. **Brute Force** (Lab 4-5): Automated credential discovery
+      6. **Session Access** (Lab 4-6): Full system compromise and data retrieval
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "rdp-user"
+    description: "RDP admin credentials"
+
+workbook: "wiki/range/winpt/CH04_RDP_Exploitation/06_RDP_Session_Access_and_Flag_Retrieval/"
+
+test:
+  steps:
+    - name: "Verify RDP port 3389 is open"
+      command: "nmap -Pn -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "open"
+
+    - name: "Detect RDP service on port 3389"
+      command: "nmap -Pn -sV -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "ms-wbt-server"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p 'password123' ssh -o StrictHostKeyChecking=no admin@{target.target} cat /home/admin/Desktop/flag.txt"
+      expect: "OCR{"

@@ -1,0 +1,167 @@
+name: "Firewall Fundamentals - Controlling Inbound Traffic"
+description: "A third-party contractor's development server is sending suspicious traffic to your internal web server. SSH into the firewall, observe live traffic, and write iptables rules to allow only legitimate HTTP/HTTPS while blocking everything else."
+
+difficulty: beginner
+category: network
+duration_minutes: 60
+visibility: course
+week: 12
+workbook: "wiki/range/netfor/CH_NETSY12_Firewalls/01_Firewall_Fundamentals/"
+
+flag: "OCR{tr4ff1c_c0ntr0ll3d}"
+
+objectives:
+  - Explain what a firewall does and why it is placed between network segments
+  - Identify the components of an iptables rule (chain, protocol, port, source, action)
+  - Observe live network traffic flowing through a firewall using a monitoring tool
+  - Write iptables FORWARD chain rules to allow specific traffic and block unwanted connections
+  - Verify firewall effectiveness by comparing traffic flow before and after rule application
+  - Capture the flag
+
+scenario: |
+  Meridian Health Partners, a healthcare consulting firm in Dallas, hired Apex
+  Digital Solutions to develop a patient intake web application. As part of the
+  contract, Apex was given a development server on Meridian's network segment so
+  their developers could test against the internal web server.
+
+  Last Friday, your SOC team flagged unusual traffic originating from Apex's
+  development server. The alerts show port scans, database connection attempts,
+  and what appears to be reverse shell callbacks. This could be a compromised
+  developer workstation, a rogue employee at Apex, or just sloppy development
+  tooling sending traffic it should not be sending.
+
+  Your supervisor, James Whitfield (Network Security Lead), has pulled you in:
+
+  "We need you on the firewall right now. Apex's dev server is sending traffic
+  we never authorized. HTTP and HTTPS to our web server is fine, that is what
+  the contract covers. Everything else needs to be shut down. I have a live
+  traffic monitor running on the firewall so you can see exactly what is hitting
+  us. Get in there, observe the traffic, and write rules to lock it down. I want
+  to see only HTTP and HTTPS getting through."
+
+  Credentials for the firewall:
+  Username: analyst
+  Password: M3r1d14n_Fw#
+
+credentials:
+  - role: "analyst"
+    username: "analyst"
+    password: "M3r1d14n_Fw#"
+    description: "SSH access to the Meridian firewall appliance"
+
+hints:
+  - text: |
+      Start by SSHing into the firewall and running the traffic monitor to see
+      what is flowing through the network right now. Look at the traffic and
+      identify which connections are legitimate and which are suspicious.
+
+      ssh analyst@<firewall_ip>
+      sudo monitor
+    unlock_after_minutes: 0
+
+  - text: |
+      The monitor shows traffic from the Apex dev server hitting multiple ports
+      on the web server. Legitimate traffic uses ports 80 (HTTP) and 443 (HTTPS).
+      Everything else (SSH on 22, MySQL on 3306, reverse shells on 4444/8080) is
+      unauthorized.
+
+      Check the current firewall rules:
+      sudo iptables -L FORWARD -n -v --line-numbers
+    unlock_after_minutes: 8
+
+  - text: |
+      An iptables rule has these components:
+      - Chain: FORWARD (traffic passing through, not to/from the firewall itself)
+      - Protocol: -p tcp (or udp, icmp)
+      - Destination port: --dport 80
+      - Action: -j ACCEPT or -j DROP
+
+      To allow HTTP traffic forwarded through the firewall:
+      sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT
+    unlock_after_minutes: 12
+
+  - text: |
+      You need rules that allow HTTP (80) and HTTPS (443) while dropping
+      everything else. Write your ACCEPT rules first, then a DROP-all rule
+      at the end:
+
+      sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT
+      sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT
+      sudo iptables -A FORWARD -j DROP
+
+      Run the monitor again to confirm suspicious traffic is now blocked.
+    unlock_after_minutes: 18
+
+  - text: |
+      After writing your rules, verify they work:
+
+      1. Run "sudo monitor" and confirm you see ALLOW for ports 80/443
+         and DROP for everything else
+      2. Check rule counters: sudo iptables -L FORWARD -n -v
+         The pkts column shows how many packets each rule has matched
+
+      When your rules are correct, run: sudo check-rules
+      This validates your firewall configuration and reveals the flag.
+    unlock_after_minutes: 22
+
+topology:
+  nodes:
+    - id: "firewall"
+      label: "Meridian Firewall"
+      type: "firewall"
+      ip_offset: "10"
+      ports: [22]
+      services: ["OpenSSH", "iptables"]
+      x: 2
+      y: 1
+    - id: "devserver"
+      label: "Apex Dev Server"
+      type: "workstation"
+      ip_offset: "23"
+      ports: [22]
+      services: ["Traffic Generator"]
+      x: 1
+      y: 2
+    - id: "webserver"
+      label: "Meridian Web Server"
+      type: "server"
+      ip_offset: "47"
+      ports: [80, 443]
+      services: ["Apache", "HTTPS"]
+      x: 3
+      y: 2
+  edges:
+    - from: "attacker"
+      to: "firewall"
+      label: "SSH:22"
+      access: "direct"
+    - from: "devserver"
+      to: "firewall"
+      label: "Mixed Traffic"
+      access: "internal"
+    - from: "firewall"
+      to: "webserver"
+      label: "Filtered Traffic"
+      access: "internal"
+
+test:
+  steps:
+    - name: "SSH to firewall"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'echo connected' 2>/dev/null"
+      expect: "connected"
+      timeout: 15
+
+    - name: "Traffic generator is sending traffic"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'sudo monitor --count 5 2>/dev/null | head -10' 2>/dev/null"
+      expect: "ALLOW"
+      timeout: 30
+
+    - name: "Web server responds on HTTP"
+      command: "curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 http://{target.webserver}/"
+      expect: "200"
+      timeout: 10
+
+    - name: "Apply correct firewall rules and validate"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'sudo iptables -F FORWARD && sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT && sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT && sudo iptables -A FORWARD -j DROP && sleep 3 && sudo check-rules' 2>/dev/null"
+      expect: "OCR{tr4ff1c_c0ntr0ll3d}"
+      timeout: 30

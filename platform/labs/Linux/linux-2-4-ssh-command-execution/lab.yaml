@@ -1,0 +1,890 @@
+name: SSH Command Execution
+description: FinanceCorp requires testing command execution capabilities. Execute specific commands after SSH authentication to gather system intelligence and discover hidden information.
+difficulty: beginner
+category: post-exploitation
+duration_minutes: 120
+objectives:
+  - Execute commands via SSH interactive session
+  - Run system enumeration commands
+  - Execute commands to reveal hidden information
+  - Understand command output analysis
+  - Capture the flag
+
+scenario: |
+  Your FinanceCorp penetration test continues with active system enumeration through
+  command execution. James Mitchell wants you to demonstrate what information can be
+  gathered through authorized command execution.
+
+  After gaining SSH access, executing specific commands reveals system intelligence:
+  - System information (kernel, OS version, architecture)
+  - Running processes and services
+  - Network configuration and connections
+  - User and group information
+  - Installed software and versions
+  - Security configurations
+  - Hidden or system-generated content
+
+  Some information is only revealed through command execution, not file reading:
+  - Process lists show running services
+  - Network statistics reveal connections
+  - System calls display real-time activity
+  - Environment variables expose configuration
+  - Command substitution reveals dynamic data
+
+  Certain commands may generate or display information that isn't stored in static
+  files. For example:
+  - `ps` shows current processes
+  - `netstat` displays active connections
+  - `env` shows environment variables
+  - `date` displays current time
+  - Custom scripts generate dynamic output
+
+  Your objective: Authenticate to FinanceCorp's SSH server and execute specific
+  commands to enumerate the system. Some commands may reveal information that isn't
+  available through simple file reading.
+
+  **Test Credentials:**
+  - Username: `sysadmin`
+  - Password: `SysAdmin2024#`
+
+flag: "OCR{cmd_3x3c}"
+
+hints:
+  - text: |
+      **Command execution** for system enumeration:
+
+      **Why command execution matters:**
+      - **Dynamic information**: Process lists, network connections change over time
+      - **System state**: Current configuration, running services
+      - **Privilege enumeration**: What can this user do?
+      - **Hidden information**: Generated content, computed values
+      - **Security assessment**: Identify weaknesses through system state
+
+      **Categories of enumeration commands:**
+
+      **1. System information:**
+      - `uname -a`: Complete system information
+      - `hostname`: System hostname
+      - `cat /etc/os-release`: OS version details
+      - `cat /proc/version`: Kernel version
+      - `lsb_release -a`: Distribution information
+      - `arch`: System architecture
+
+      **2. User and privilege information:**
+      - `whoami`: Current username
+      - `id`: User ID and groups
+      - `sudo -l`: Sudo privileges
+      - `groups`: Group memberships
+      - `cat /etc/passwd`: All system users
+      - `cat /etc/group`: All system groups
+
+      **3. Process enumeration:**
+      - `ps aux`: All running processes
+      - `ps -ef`: Alternative process listing
+      - `top`: Real-time process monitor
+      - `pstree`: Process tree
+      - `systemctl status`: Service status
+
+      **4. Network information:**
+      - `ifconfig`: Network interfaces (deprecated)
+      - `ip addr`: Network interfaces (modern)
+      - `netstat -tulpn`: Listening ports
+      - `ss -tulpn`: Socket statistics (modern)
+      - `route`: Routing table
+      - `arp -a`: ARP table
+
+      **5. File system and storage:**
+      - `df -h`: Disk space usage
+      - `mount`: Mounted file systems
+      - `lsblk`: Block devices
+      - `findmnt`: Find mounts
+
+      **6. Environment and variables:**
+      - `env`: Environment variables
+      - `printenv`: Print environment
+      - `echo $PATH`: Specific variable
+      - `set`: All shell variables
+
+      **7. Software and packages:**
+      - `dpkg -l`: Installed packages (Debian/Ubuntu)
+      - `rpm -qa`: Installed packages (RHEL/CentOS)
+      - `which <program>`: Locate program
+      - `whereis <program>`: Find program and man pages
+
+      **8. Security enumeration:**
+      - `sudo -l`: Sudo permissions
+      - `getcap -r / 2>/dev/null`: Capabilities
+      - `find / -perm -4000 2>/dev/null`: SUID binaries
+      - `cat /etc/sudoers`: Sudoers configuration (if readable)
+
+      **Commands with security implications:**
+      - `ps aux | grep root`: Root processes
+      - `netstat -tulpn | grep LISTEN`: Listening services
+      - `crontab -l`: User cron jobs
+      - `cat /etc/crontab`: System cron jobs
+      - `systemctl list-timers`: Systemd timers
+
+      **Command output analysis:**
+      - Read complete output carefully
+      - Look for unusual services or processes
+      - Note privileged processes accessible to user
+      - Identify network listeners
+      - Check for scheduled tasks
+
+      Command execution reveals dynamic system state and hidden information.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Basic Linux command execution:**
+
+      **Running commands in SSH session:**
+      ```bash
+      $ ssh user@target
+      [authentication]
+      user@server:~$ command
+      [output]
+      ```
+
+      **System information commands:**
+
+      **uname - System information:**
+      ```bash
+      $ uname -a
+      Linux fin-prod-01 5.4.0-96-generic #108-Ubuntu SMP Mon Jan 17 12:09:42 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+      ```
+      - Kernel name: Linux
+      - Hostname: fin-prod-01
+      - Kernel version: 5.4.0-96-generic
+      - Architecture: x86_64
+
+      **hostname - System name:**
+      ```bash
+      $ hostname
+      fin-prod-01
+      ```
+
+      **OS release information:**
+      ```bash
+      $ cat /etc/os-release
+      NAME="Ubuntu"
+      VERSION="20.04.3 LTS (Focal Fossa)"
+      ID=ubuntu
+      ID_LIKE=debian
+      PRETTY_NAME="Ubuntu 20.04.3 LTS"
+      ```
+
+      **Process enumeration:**
+
+      **ps aux - All processes:**
+      ```bash
+      $ ps aux
+      USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+      root         1  0.0  0.1  16988  7824 ?        Ss   Dec15   0:03 /sbin/init
+      root       834  0.0  0.2  12344  9876 ?        Ss   Dec15   0:12 /usr/sbin/sshd
+      mysql     1234  0.5  5.2 123456 54321 ?        Ssl  Dec15  12:34 /usr/sbin/mysqld
+      ```
+      - Shows all running processes
+      - User, CPU, memory, command
+      - Identifies services (sshd, mysql, apache, etc.)
+
+      **Filtering process output:**
+      ```bash
+      $ ps aux | grep mysql
+      mysql     1234  0.5  5.2 123456 54321 ?        Ssl  Dec15  12:34 /usr/sbin/mysqld
+      ```
+
+      **Network enumeration:**
+
+      **Active network connections:**
+      ```bash
+      $ netstat -tulpn
+      Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+      tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      834/sshd
+      tcp        0      0 127.0.0.1:3306          0.0.0.0:*               LISTEN      1234/mysqld
+      tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2345/apache2
+      ```
+      - Shows listening services
+      - Port numbers and programs
+      - Identifies attack surface
+
+      **IP addresses:**
+      ```bash
+      $ ip addr
+      1: lo: <LOOPBACK,UP,LOWER_UP>
+          inet 127.0.0.1/8 scope host lo
+      2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP>
+          inet 10.10.10.50/24 brd 10.10.10.255 scope global eth0
+      ```
+      - Shows IP configuration
+      - Network interfaces
+      - Subnet information
+
+      **Environment variables:**
+
+      **Display all environment variables:**
+      ```bash
+      $ env
+      HOME=/home/sysadmin
+      USER=sysadmin
+      PATH=/usr/local/bin:/usr/bin:/bin
+      SHELL=/bin/bash
+      PWD=/home/sysadmin
+      ```
+
+      **Specific variable:**
+      ```bash
+      $ echo $HOME
+      /home/sysadmin
+
+      $ echo $PATH
+      /usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+      ```
+
+      **Command chaining:**
+      ```bash
+      # Run multiple commands sequentially
+      $ uname -a; hostname; whoami
+
+      # Run if previous succeeds
+      $ cd /tmp && ls -la
+
+      # Pipe output to another command
+      $ ps aux | grep mysql
+      ```
+
+      **Redirecting output:**
+      ```bash
+      # Save output to file
+      $ ps aux > /tmp/processes.txt
+
+      # Append to file
+      $ ps aux >> /tmp/processes.txt
+
+      # Search output
+      $ ps aux | grep root
+      ```
+
+      Commands reveal dynamic system information unavailable through static file reading.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Analyzing command output for intelligence:**
+
+      **System information analysis:**
+
+      **From `uname -a`:**
+      ```bash
+      Linux fin-prod-01 5.4.0-96-generic #108-Ubuntu
+      ```
+      - Kernel: 5.4.0-96-generic
+      - Research: `searchsploit linux kernel 5.4`
+      - Potential: Local privilege escalation vulnerabilities
+
+      **From `ps aux`:**
+      ```bash
+      mysql     1234  0.5  5.2 123456 54321 ?  Ssl  /usr/sbin/mysqld
+      root      2345  0.0  0.8  23456  8765 ?  Ss   /usr/sbin/apache2
+      ```
+      - MySQL running as mysql user (normal)
+      - Apache running as root (POTENTIAL SECURITY ISSUE!)
+      - Services identified for targeted attacks
+
+      **From `netstat -tulpn`:**
+      ```bash
+      tcp  0  0  0.0.0.0:22        0.0.0.0:*  LISTEN  834/sshd
+      tcp  0  0  127.0.0.1:3306    0.0.0.0:*  LISTEN  1234/mysqld
+      tcp  0  0  0.0.0.0:80        0.0.0.0:*  LISTEN  2345/apache2
+      ```
+      - SSH on port 22 (expected)
+      - MySQL on 3306, listening on localhost only (good security)
+      - Apache on port 80 (web server)
+      - Attack surface: SSH, HTTP
+
+      **From `sudo -l`:**
+      ```bash
+      User sysadmin may run the following commands on fin-prod-01:
+          (ALL : ALL) ALL
+      ```
+      - Full sudo access!
+      - Can execute any command as root
+      - Direct privilege escalation path
+
+      **or:**
+      ```bash
+      User sysadmin may run the following commands on fin-prod-01:
+          (root) NOPASSWD: /usr/bin/vim
+      ```
+      - Can run vim as root without password
+      - Privilege escalation via vim: `:!sh`
+
+      **From environment variables:**
+      ```bash
+      $ env | grep -i pass
+      DB_PASSWORD=SecretP@ss123
+      ```
+      - Credentials in environment!
+      - Database access possible
+
+      **Custom script execution:**
+
+      Some systems have custom scripts that reveal information:
+      ```bash
+      $ ls -la /usr/local/bin/
+      -rwxr-xr-x 1 root root 1234 Jan 3 system-info
+
+      $ /usr/local/bin/system-info
+      [Custom output with system details]
+      ```
+
+      **Checking for custom commands:**
+      ```bash
+      $ ls -la /usr/local/bin/
+      $ ls -la ~/bin/
+      $ which system-check
+      $ which backup-status
+      ```
+
+      **Reading command help/usage:**
+      ```bash
+      $ /usr/local/bin/system-info --help
+      $ /usr/local/bin/system-info -h
+      $ /usr/local/bin/system-info
+      ```
+
+      **Common custom script patterns:**
+      - `system-info`, `sys-info`
+      - `backup-status`, `backup-check`
+      - `health-check`, `status`
+      - `version`, `about`
+      - Organization-specific names
+
+      **Finding executables:**
+      ```bash
+      # In PATH
+      $ which python
+      /usr/bin/python
+
+      # Everywhere
+      $ find / -name "system*" -type f -executable 2>/dev/null
+
+      # In common locations
+      $ ls -la /usr/local/bin/
+      $ ls -la /opt/
+      $ ls -la ~/bin/
+      ```
+
+      **Executing found scripts:**
+      ```bash
+      $ /usr/local/bin/system-info
+      $ /opt/custom-app/status.sh
+      $ ./script.sh
+      ```
+
+      **Environment variable enumeration:**
+      ```bash
+      # All variables
+      $ env
+
+      # Search for specific patterns
+      $ env | grep -i pass
+      $ env | grep -i key
+      $ env | grep -i secret
+      $ env | grep -i token
+
+      # Specific variables
+      $ echo $DATABASE_URL
+      $ echo $API_KEY
+      $ echo $SECRET_KEY
+      ```
+
+      Careful command output analysis reveals system configuration and security weaknesses.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Command execution workflow for enumeration:**
+
+      **Step 1: Basic system information**
+      ```bash
+      $ uname -a
+      $ hostname
+      $ cat /etc/os-release
+      ```
+
+      **Step 2: User privileges**
+      ```bash
+      $ whoami
+      $ id
+      $ groups
+      $ sudo -l
+      ```
+
+      **Step 3: Process enumeration**
+      ```bash
+      $ ps aux
+      $ ps aux | grep root
+      $ systemctl status
+      ```
+
+      **Step 4: Network configuration**
+      ```bash
+      $ ip addr
+      $ netstat -tulpn
+      $ ss -tulpn
+      ```
+
+      **Step 5: Environment variables**
+      ```bash
+      $ env
+      $ printenv
+      $ env | grep -i pass
+      $ env | grep -i key
+      ```
+
+      **Step 6: File system**
+      ```bash
+      $ df -h
+      $ mount
+      $ ls -la /
+      $ ls -la /usr/local/bin/
+      ```
+
+      **Step 7: Custom scripts or commands**
+      ```bash
+      # Check common locations
+      $ ls -la /usr/local/bin/
+      $ ls -la ~/bin/
+      $ ls -la /opt/
+
+      # Find executables
+      $ find /usr/local/bin -type f -executable 2>/dev/null
+      $ find ~ -type f -executable 2>/dev/null
+
+      # Execute found scripts
+      $ /usr/local/bin/script-name
+      $ ./script.sh
+      ```
+
+      **Step 8: Search for specific information**
+      ```bash
+      # Search for "flag" in command output
+      $ env | grep -i flag
+      $ ps aux | grep -i flag
+
+      # Search for credentials
+      $ env | grep -i pass
+      $ env | grep -i secret
+      ```
+
+      **For FinanceCorp assessment:**
+
+      **After SSH authentication:**
+      ```bash
+      $ ssh sysadmin@<target>
+      [authenticate with SysAdmin2024#]
+
+      $ whoami
+      sysadmin
+
+      $ id
+      [check groups and privileges]
+
+      $ env
+      [look for environment variables]
+
+      $ ls -la /usr/local/bin/
+      [check for custom scripts]
+
+      $ /usr/local/bin/system-check
+      [if custom script exists, execute it]
+      ```
+
+      **Important note:**
+      The flag may be revealed through:
+      - Environment variable output (`env`)
+      - Custom script execution
+      - Command-generated content
+      - Dynamic system information
+
+      Commands can reveal information not stored in static files.
+    unlock_after_minutes: 15
+
+  - text: |
+      To enumerate the FinanceCorp system via command execution:
+
+      **Step 1: Authenticate**
+      ```bash
+      ssh sysadmin@<target>
+      ```
+      - Username: `sysadmin`
+      - Password: `SysAdmin2024#`
+
+      **Step 2: Basic enumeration**
+      ```bash
+      whoami
+      id
+      hostname
+      uname -a
+      ```
+
+      **Step 3: Check environment variables**
+      ```bash
+      env
+      ```
+      - Look through all environment variables
+      - Search for sensitive information
+      - Flag may be in environment
+
+      **Step 4: Check for custom scripts**
+      ```bash
+      ls -la /usr/local/bin/
+      ls -la ~/bin/
+      ```
+
+      **Step 5: Execute any found scripts**
+      ```bash
+      /usr/local/bin/script-name
+      ```
+
+      **Step 6: Search command output**
+      ```bash
+      env | grep -i flag
+      env | grep -i ocr
+      ```
+
+      **Common commands to try:**
+      ```bash
+      # Environment variables
+      env
+      printenv
+      echo $FLAG
+
+      # Custom scripts
+      /usr/local/bin/system-check
+      /usr/local/bin/system-info
+      /usr/local/bin/status
+
+      # Process info (less likely but possible)
+      ps aux | grep flag
+      ```
+
+      **Expected locations:**
+      - Environment variable (most likely)
+      - Custom script output
+      - Generated command output
+
+      **Tips:**
+      - Read all `env` output carefully
+      - Execute any custom scripts found
+      - The flag is revealed through command execution, not file reading
+
+      The flag is accessible through command execution (environment variables or custom scripts).
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH authentication and command execution:
+
+      ```bash
+      $ ssh sysadmin@<target_ip>
+
+      sysadmin@<target_ip>'s password: [SysAdmin2024#]
+
+      Welcome to FinanceCorp System Administration Server
+      Last login: Thu Jan 3 14:52:33 2025 from 10.10.14.9
+
+      sysadmin@fin-admin-01:~$ whoami
+      sysadmin
+
+      sysadmin@fin-admin-01:~$ id
+      uid=1003(sysadmin) gid=1003(sysadmin) groups=1003(sysadmin),27(sudo),1004(administrators)
+
+      sysadmin@fin-admin-01:~$ hostname
+      fin-admin-01
+
+      sysadmin@fin-admin-01:~$ uname -a
+      Linux fin-admin-01 5.4.0-96-generic #108-Ubuntu SMP Mon Jan 17 12:09:42 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+
+      sysadmin@fin-admin-01:~$ env
+      SHELL=/bin/bash
+      SESSION_MANAGER=local/fin-admin-01:@/tmp/.ICE-unix/1234,unix/fin-admin-01:/tmp/.ICE-unix/1234
+      SSH_AUTH_SOCK=/tmp/ssh-XXXXXX/agent.1234
+      SSH_CLIENT=10.10.14.9 54321 22
+      SSH_CONNECTION=10.10.14.9 54321 <target_ip> 22
+      USER=sysadmin
+      MAIL=/var/mail/sysadmin
+      PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+      PWD=/home/sysadmin
+      LANG=en_US.UTF-8
+      HOME=/home/sysadmin
+      SHLVL=1
+      LOGNAME=sysadmin
+      SSH_TTY=/dev/pts/0
+      TERM=xterm-256color
+      _=/usr/bin/env
+      SECURITY_ASSESSMENT_FLAG=OCR{...}
+      DB_BACKUP_SERVER=10.10.10.110
+      DB_PRIMARY_HOST=10.10.10.100
+      MONITORING_ENDPOINT=https://monitor.financecorp.local
+      DEPLOYMENT_KEY=fc_deploy_abc123xyz789
+
+      sysadmin@fin-admin-01:~$ echo $SECURITY_ASSESSMENT_FLAG
+      OCR{...}
+
+      sysadmin@fin-admin-01:~$ ls -la /usr/local/bin/
+      total 32
+      drwxr-xr-x  2 root root  4096 Jan  4 08:00 .
+      drwxr-xr-x 10 root root  4096 Dec 15 08:15 ..
+      -rwxr-xr-x  1 root root  2048 Jan  3 16:30 system-check
+      -rwxr-xr-x  1 root root  1536 Jan  2 14:20 backup-status
+      -rwxr-xr-x  1 root root  3072 Jan  4 08:00 deployment-info
+
+      sysadmin@fin-admin-01:~$ /usr/local/bin/system-check
+      ================================================================================
+                        FinanceCorp System Health Check
+      ================================================================================
+
+      System: fin-admin-01
+      Status: OPERATIONAL
+      Uptime: 47 days, 14 hours, 23 minutes
+      Load Average: 0.15, 0.12, 0.08
+
+      Services Status:
+        ✓ SSH Server (sshd): Running
+        ✓ Web Server (apache2): Running
+        ✓ Database (mysql): Running on 10.10.10.100
+        ✓ Monitoring Agent: Running
+        ✓ Backup Service: Running (Last backup: 2025-01-04 02:00)
+
+      Network Status:
+        Primary Interface (eth0): <target_ip>/24
+        Gateway: 10.10.10.1
+        DNS: 10.10.10.2
+
+      Storage:
+        /dev/sda1: 45% used (234GB free)
+        /dev/sdb1: 78% used (89GB free)
+
+      Security:
+        Firewall: Active
+        SELinux: Disabled
+        Last Security Update: 2025-01-02
+
+      Notes:
+        - All systems operational
+        - Backup service running normally
+        - Security updates current
+
+      ================================================================================
+
+      sysadmin@fin-admin-01:~$ /usr/local/bin/deployment-info
+      FinanceCorp Deployment Information
+      ==================================
+      Environment: Production
+      Deployment Version: 2.1.4
+      Last Deployment: 2025-01-04 08:00:00
+      Deployed By: sysadmin
+      Deployment Status: SUCCESS
+
+      Servers in Environment:
+        - fin-web-01 (10.10.10.62): Web Application
+        - fin-db-01 (10.10.10.100): Primary Database
+        - fin-admin-01 (<target_ip>): Administration
+        - fin-backup-01 (10.10.10.110): Backup Server
+
+      Application Configuration:
+        Database: 10.10.10.100:3306
+        API Endpoint: https://api.financecorp.local
+        Monitoring: https://monitor.financecorp.local
+
+      For detailed information, see /var/log/deployment.log
+
+      sysadmin@fin-admin-01:~$
+      ```
+
+      **Flag location: Environment variable**
+      - **Variable name**: `SECURITY_ASSESSMENT_FLAG`
+      - **Flag**: `OCR{...}`
+      - **Access method**: `env` command or `echo $SECURITY_ASSESSMENT_FLAG`
+
+      **Critical findings from command execution:**
+
+      **1. Environment variables with sensitive information:**
+
+      **Security assessment flag:**
+      ```bash
+      SECURITY_ASSESSMENT_FLAG=OCR{...}
+      ```
+
+      **Infrastructure details:**
+      ```bash
+      DB_BACKUP_SERVER=10.10.10.110
+      DB_PRIMARY_HOST=10.10.10.100
+      MONITORING_ENDPOINT=https://monitor.financecorp.local
+      ```
+
+      **Deployment credentials:**
+      ```bash
+      DEPLOYMENT_KEY=fc_deploy_abc123xyz789
+      ```
+
+      **2. User privileges (HIGH):**
+      ```bash
+      uid=1003(sysadmin) gid=1003(sysadmin) groups=1003(sysadmin),27(sudo),1004(administrators)
+      ```
+      - Member of sudo group
+      - Member of administrators group
+      - Can escalate to root
+
+      **3. Custom administrative scripts:**
+
+      **/usr/local/bin/system-check:**
+      - Reveals complete system health
+      - Service status information
+      - Network configuration
+      - Storage details
+      - Security configuration status
+
+      **Key intelligence gathered:**
+      - SSH server running
+      - Apache web server running
+      - MySQL database at 10.10.10.100
+      - Monitoring agent active
+      - Backup service configured
+
+      **/usr/local/bin/deployment-info:**
+      - Complete environment architecture
+      - Server inventory with IP addresses
+      - Application configuration details
+      - API endpoints
+
+      **Server inventory discovered:**
+      - fin-web-01 (10.10.10.62): Web Application
+      - fin-db-01 (10.10.10.100): Primary Database
+      - fin-admin-01 (<target_ip>): Administration (current system)
+      - fin-backup-01 (10.10.10.110): Backup Server
+
+      **4. System information:**
+      ```bash
+      Linux fin-admin-01 5.4.0-96-generic
+      ```
+      - Kernel: 5.4.0-96-generic
+      - Potential privilege escalation vulnerabilities
+
+      **Attack chain possibilities:**
+
+      **Step 1: Initial access (completed)**
+      - SSH as sysadmin:SysAdmin2024#
+
+      **Step 2: Environment enumeration (completed)**
+      - Discovered deployment key
+      - Identified network topology
+      - Found database server location
+
+      **Step 3: Privilege escalation**
+      ```bash
+      $ sudo -l
+      [sudo] password for sysadmin: SysAdmin2024#
+
+      User sysadmin may run the following commands:
+          (ALL : ALL) ALL
+
+      $ sudo su -
+      root@fin-admin-01:~#
+      ```
+
+      **Step 4: Lateral movement**
+      Using discovered infrastructure:
+      - Database server: 10.10.10.100
+      - Web server: 10.10.10.62
+      - Backup server: 10.10.10.110
+      - Deployment key: fc_deploy_abc123xyz789
+
+      **Step 5: API exploitation**
+      ```bash
+      curl -H "Authorization: Bearer fc_deploy_abc123xyz789" \
+           https://api.financecorp.local/deploy
+      ```
+
+      **Professional penetration testing report:**
+
+      **FINDING: Sensitive Information in Environment Variables**
+      - Severity: MEDIUM
+      - Variables: SECURITY_ASSESSMENT_FLAG, DEPLOYMENT_KEY, DB hosts
+      - Impact: Information disclosure, credential exposure
+      - Recommendation: Minimize sensitive data in environment, use secrets management
+
+      **FINDING: Deployment Key Exposure**
+      - Severity: HIGH
+      - Key: fc_deploy_abc123xyz789
+      - Location: Environment variable DEPLOYMENT_KEY
+      - Impact: Unauthorized deployment capabilities
+      - Recommendation: Rotate key immediately, use short-lived tokens
+
+      **FINDING: Infrastructure Mapping via Custom Scripts**
+      - Severity: MEDIUM
+      - Scripts: system-check, deployment-info
+      - Information: Complete network topology, service locations
+      - Impact: Assists attacker reconnaissance and lateral movement
+      - Recommendation: Restrict script access, minimize information disclosure
+
+      **FINDING: Excessive sudo Privileges**
+      - Severity: HIGH
+      - User: sysadmin
+      - Privileges: (ALL : ALL) ALL
+      - Impact: Direct privilege escalation to root
+      - Recommendation: Implement role-based access control, principle of least privilege
+
+      **Defense recommendations:**
+      1. Remove sensitive information from environment variables
+      2. Implement secrets management system
+      3. Rotate deployment key immediately
+      4. Restrict access to administrative scripts
+      5. Minimize information disclosure in script output
+      6. Review and reduce sudo privileges
+      7. Implement MFA for privileged accounts
+      8. Monitor command execution for suspicious activity
+
+      **Lessons for security:**
+      - Environment variables often contain sensitive information
+      - Custom scripts can disclose network topology
+      - Command execution reveals dynamic system state
+      - sudo privileges provide direct privilege escalation
+      - Administrative tools should minimize information disclosure
+
+      **Why environment variables are risky:**
+      - Visible to all processes owned by user
+      - Inherited by child processes
+      - Often logged in various locations
+      - Easy to accidentally expose
+      - Difficult to rotate/revoke
+
+      **Secure alternatives:**
+      - Use configuration files with proper permissions (600)
+      - Implement secrets management (HashiCorp Vault, AWS Secrets Manager)
+      - Use short-lived, scoped credentials
+      - Environment variables only for non-sensitive config
+      - Regular security audits of environment variables
+
+      The flag demonstrates that command execution can reveal information stored in
+      environment variables or generated dynamically by system scripts, which isn't
+      accessible through simple file reading.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "sysadmin"
+    password: "SysAdmin2024#"
+    role: "ssh-user"
+    description: "SSH login credentials for sysadmin account"
+
+workbook: "wiki/range/linpt/CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "SSH banner check"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "SSH login and retrieve flag from environment variable"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'env | grep OCR 2>/dev/null || echo $SECURITY_ASSESSMENT_FLAG' 2>/dev/null"
+      expect: "OCR{cmd_3x3c}"

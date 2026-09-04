@@ -1,0 +1,32 @@
+
+services:
+  webserver:
+    mem_limit: 512m
+    cpus: 0.5
+    build:
+      context: ./containers/webserver
+      dockerfile: Dockerfile
+    hostname: shop-webserver
+    labels:
+      ip_offset: "23"
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    mem_limit: 512m
+    cpus: 0.5
+    build:
+      context: ./containers/database
+      dockerfile: Dockerfile
+    hostname: db-mysql
+    labels:
+      ip_offset: "31"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s

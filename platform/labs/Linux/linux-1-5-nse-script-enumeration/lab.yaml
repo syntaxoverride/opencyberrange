@@ -1,0 +1,549 @@
+name: NSE Script Enumeration
+description: TechStart's deep enumeration requires advanced techniques. Use nmap's NSE scripts to gather detailed service information beyond basic version detection.
+difficulty: intermediate
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Understand nmap NSE (Nmap Scripting Engine)
+  - Use service-specific enumeration scripts
+  - Gather detailed SSH configuration information
+  - Leverage advanced nmap capabilities
+  - Capture the flag
+
+scenario: |
+  Your TechStart penetration test requires deeper enumeration than basic version
+  detection provides. Sarah Chen wants comprehensive intelligence on SSH
+  configurations, including supported authentication methods, host keys, and
+  security settings.
+
+  The Nmap Scripting Engine (NSE) provides hundreds of specialized scripts for
+  detailed service enumeration. These scripts can extract configuration details,
+  test for vulnerabilities, and gather information that basic scans miss.
+
+  For SSH services specifically, NSE scripts can reveal:
+  - Supported authentication methods (password, public key, keyboard-interactive)
+  - SSH host keys and algorithms
+  - Encryption ciphers and protocols
+  - Server configuration details
+  - Potential vulnerabilities
+
+  Your objective: Use nmap NSE scripts to perform deep enumeration of TechStart's
+  SSH service. Gather comprehensive configuration details that inform attack planning
+  and vulnerability assessment.
+
+flag: "OCR{nse_scr1pt}"
+
+hints:
+  - text: |
+      **NSE (Nmap Scripting Engine)** provides advanced enumeration capabilities:
+
+      **What is NSE:**
+      - Scripting engine built into nmap
+      - Hundreds of specialized scripts
+      - Service-specific enumeration
+      - Vulnerability detection
+      - Automated exploitation (with caution)
+      - Custom script development capability
+
+      **NSE script categories:**
+      - **auth**: Authentication testing
+      - **broadcast**: Network discovery via broadcasting
+      - **brute**: Brute force attacks
+      - **default**: Safe, common scripts (run with -sC)
+      - **discovery**: Service and host discovery
+      - **dos**: Denial of service testing (use carefully!)
+      - **exploit**: Exploitation scripts
+      - **fuzzer**: Fuzzing for vulnerabilities
+      - **intrusive**: Aggressive/risky scripts
+      - **malware**: Malware detection
+      - **safe**: Won't harm target
+      - **version**: Enhanced version detection
+      - **vuln**: Vulnerability detection
+
+      **Why NSE matters for penetration testing:**
+      - **Depth**: Goes beyond basic service detection
+      - **Specificity**: Tailored to each service
+      - **Automation**: Runs complex enumeration automatically
+      - **Intelligence**: Gathers actionable information
+      - **Vulnerability assessment**: Identifies known issues
+
+      **NSE for SSH enumeration:**
+      - **ssh-hostkey**: Retrieves SSH host keys
+      - **ssh-auth-methods**: Shows supported authentication types
+      - **ssh2-enum-algos**: Lists encryption algorithms
+      - **sshv1**: Detects outdated SSH version 1
+      - **ssh-run**: Executes commands (requires credentials)
+
+      **Common NSE use cases:**
+      - HTTP: Directory enumeration, header analysis
+      - SMB: Share enumeration, user listing
+      - SSH: Authentication methods, host keys
+      - FTP: Anonymous access testing, bounce attacks
+      - Database: Version detection, default credentials
+
+      **NSE vs basic scanning:**
+      - Basic scan: "SSH is running on port 22"
+      - NSE scan: "SSH supports password auth, uses RSA 2048-bit keys, allows root login"
+
+      NSE scripts transform basic port scans into comprehensive intelligence gathering.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Using NSE scripts in nmap:**
+
+      **Default script scanning:**
+      ```bash
+      nmap -sC <target>
+      ```
+      or
+      ```bash
+      nmap --script=default <target>
+      ```
+      - Runs safe, common scripts
+      - Good for general enumeration
+      - Won't harm target systems
+      - Balanced approach
+
+      **Specific script execution:**
+      ```bash
+      nmap --script=<script-name> <target>
+      ```
+      Example:
+      ```bash
+      nmap --script=ssh-hostkey <target>
+      ```
+
+      **Multiple scripts:**
+      ```bash
+      nmap --script=ssh-hostkey,ssh-auth-methods <target>
+      ```
+      - Comma-separated script names
+      - Runs multiple scripts in order
+      - Combines information from different scripts
+
+      **Wildcard script selection:**
+      ```bash
+      nmap --script="ssh*" <target>
+      ```
+      - Runs ALL scripts matching pattern
+      - "ssh*" runs all SSH-related scripts
+      - "http*" runs all HTTP scripts
+      - Comprehensive service-specific enumeration
+
+      **Category-based selection:**
+      ```bash
+      nmap --script=vuln <target>
+      ```
+      - Runs all vulnerability detection scripts
+      - Other categories: auth, brute, discovery, safe
+
+      **Combining with other options:**
+      ```bash
+      nmap -p 22 -sV --script=ssh-hostkey <target>
+      ```
+      - `-p 22`: Scan SSH port
+      - `-sV`: Version detection
+      - `--script=ssh-hostkey`: Run host key script
+      - Complete SSH enumeration
+
+      **Script arguments:**
+      Some scripts accept arguments:
+      ```bash
+      nmap --script=ssh-brute --script-args userdb=users.txt <target>
+      ```
+
+      **Listing available scripts:**
+      ```bash
+      ls /usr/share/nmap/scripts/ | grep ssh
+      ```
+      - Shows all SSH-related scripts
+      - Helps discover available enumeration options
+
+      **Viewing script documentation:**
+      ```bash
+      nmap --script-help ssh-hostkey
+      ```
+      - Shows what the script does
+      - Lists script arguments
+      - Provides usage examples
+
+      NSE scripts provide targeted, deep enumeration for specific services.
+    unlock_after_minutes: 5
+
+  - text: |
+      **SSH-specific NSE scripts** for detailed enumeration:
+
+      **ssh-hostkey script:**
+      ```bash
+      nmap -p 22 --script=ssh-hostkey <target>
+      ```
+      **Purpose**: Retrieves SSH host keys
+      **Information gathered:**
+      - Key types (RSA, ECDSA, ED25519)
+      - Key sizes (1024, 2048, 4096 bits)
+      - Key fingerprints
+      - Public key values
+
+      **Why it matters:**
+      - Weak keys (RSA 1024) are vulnerable
+      - Key fingerprints identify specific hosts
+      - Public keys can be analyzed
+      - MITM detection
+
+      **ssh-auth-methods script:**
+      ```bash
+      nmap -p 22 --script=ssh-auth-methods <target>
+      ```
+      **Purpose**: Identifies supported authentication methods
+      **Information gathered:**
+      - Password authentication (enabled/disabled)
+      - Public key authentication
+      - Keyboard-interactive
+      - GSSAPI authentication
+
+      **Why it matters:**
+      - Password auth = brute force possible
+      - Public key only = need key files
+      - Informs attack strategy
+      - Security posture assessment
+
+      **ssh2-enum-algos script:**
+      ```bash
+      nmap -p 22 --script=ssh2-enum-algos <target>
+      ```
+      **Purpose**: Lists supported encryption algorithms
+      **Information gathered:**
+      - Key exchange algorithms
+      - Encryption ciphers
+      - MAC algorithms
+      - Compression methods
+
+      **Why it matters:**
+      - Weak ciphers are vulnerable
+      - CBC mode ciphers have known issues
+      - Modern algorithms indicate security awareness
+      - Compliance checking (FIPS, PCI-DSS)
+
+      **sshv1 script:**
+      ```bash
+      nmap -p 22 --script=sshv1 <target>
+      ```
+      **Purpose**: Detects SSH protocol version 1
+      **Why it matters:**
+      - SSHv1 is insecure and deprecated
+      - Major vulnerability if detected
+      - Should be disabled on all servers
+
+      **Combining SSH scripts:**
+      ```bash
+      nmap -p 22 --script="ssh*" <target>
+      ```
+      - Runs ALL SSH-related scripts
+      - Comprehensive SSH enumeration
+      - Gathers all available information
+      - One command, complete intelligence
+
+      **Example comprehensive SSH enumeration:**
+      ```bash
+      nmap -p 22 -sV --script=ssh-hostkey,ssh-auth-methods <target>
+      ```
+      - Version detection + host keys + auth methods
+      - Complete SSH security assessment
+      - Informs attack planning
+
+      SSH NSE scripts reveal configuration details invisible to basic scans.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Practical NSE script enumeration workflow:**
+
+      **Step 1: Identify the service**
+      ```bash
+      nmap -p 22 -sV <target>
+      ```
+      - Confirms SSH is running
+      - Gets basic version information
+      - Establishes baseline
+
+      **Step 2: Choose appropriate scripts**
+      For SSH enumeration:
+      - `ssh-hostkey`: Always useful (keys and algorithms)
+      - `ssh-auth-methods`: Critical (attack surface)
+      - `ssh2-enum-algos`: Important (security assessment)
+
+      **Step 3: Run targeted scripts**
+      ```bash
+      nmap -p 22 --script=ssh-hostkey,ssh-auth-methods <target>
+      ```
+
+      **Step 4: Analyze script output**
+      NSE scripts provide structured output:
+      ```
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.2p1
+      | ssh-hostkey:
+      |   2048 aa:bb:cc:dd:ee:ff (RSA)
+      |   256 11:22:33:44:55:66 (ECDSA)
+      |   256 77:88:99:aa:bb:cc (ED25519)
+      | ssh-auth-methods:
+      |   Supported authentication methods:
+      |     password
+      |     publickey
+      ```
+
+      **Step 5: Document findings**
+      - Host key types and sizes
+      - Authentication methods
+      - Weak configurations
+      - Potential vulnerabilities
+
+      **For TechStart SSH enumeration:**
+
+      **Option 1: Specific scripts**
+      ```bash
+      nmap -p 22 --script=ssh-hostkey,ssh-auth-methods <target>
+      ```
+      - Targeted enumeration
+      - Fast and focused
+      - Gets key + auth information
+
+      **Option 2: All SSH scripts**
+      ```bash
+      nmap -p 22 --script="ssh*" <target>
+      ```
+      - Comprehensive enumeration
+      - Runs all SSH-related scripts
+      - May reveal additional information
+
+      **Reading NSE output:**
+      - Script names appear with "|" prefix
+      - Indented lines show script results
+      - Multiple scripts = multiple result sections
+      - Look for custom messages in script output
+
+      **Common findings:**
+      - **"password" in auth methods**: Brute force possible
+      - **RSA 1024-bit keys**: Weak, should be upgraded
+      - **SSHv1 enabled**: Critical vulnerability
+      - **Weak ciphers**: CBC-mode, RC4, etc.
+
+      NSE scripts reveal attack surface and security posture of SSH services.
+    unlock_after_minutes: 15
+
+  - text: |
+      To perform deep SSH enumeration on TechStart's server:
+
+      **Recommended command:**
+      ```bash
+      nmap -p 22 --script=ssh-hostkey,ssh-auth-methods <target>
+      ```
+
+      **Why these scripts:**
+      - **ssh-hostkey**: Retrieves host keys and algorithms
+      - **ssh-auth-methods**: Shows authentication options
+      - Together: Complete SSH security assessment
+
+      **Alternative (comprehensive):**
+      ```bash
+      nmap -p 22 --script="ssh*" <target>
+      ```
+      - Runs ALL SSH-related NSE scripts
+      - More thorough but slower
+      - May reveal additional details
+
+      **What to expect:**
+      ```
+      PORT   STATE SERVICE
+      22/tcp open  ssh
+      | ssh-hostkey:
+      |   [host key information]
+      | ssh-auth-methods:
+      |   [authentication methods]
+      ```
+
+      **Reading NSE script output:**
+      - Each script creates a section (marked with |)
+      - Script name appears at the top of section
+      - Results are indented underneath
+      - Multiple lines of detailed information
+
+      **For this lab:**
+      - Use NSE scripts for SSH enumeration
+      - The flag will appear in NSE script output
+      - Not in basic version detection
+      - Requires --script flag to retrieve
+
+      **Important notes:**
+      - Basic `-sV` scan will NOT show the flag
+      - Must use `--script` option
+      - SSH-specific scripts required
+      - Read all NSE script output carefully
+
+      **Command variations that work:**
+      ```bash
+      # Specific scripts (recommended)
+      nmap -p 22 --script=ssh-hostkey,ssh-auth-methods <target>
+
+      # All SSH scripts (comprehensive)
+      nmap -p 22 --script="ssh*" <target>
+
+      # Default scripts (may include SSH scripts)
+      nmap -p 22 -sC <target>
+      ```
+
+      **Flag location:**
+      The flag appears in NSE script output, not in the basic service
+      version line. You must use `--script` to trigger the enumeration
+      that reveals the flag.
+
+      NSE scripts provide deeper enumeration than basic version detection.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful NSE script enumeration:
+
+      ```bash
+      $ nmap -p 22 --script=ssh-hostkey,ssh-auth-methods <target_ip>
+
+      Starting Nmap 7.94
+      Nmap scan report for <target_ip>
+      Host is up (0.00048s latency).
+
+      PORT   STATE SERVICE
+      22/tcp open  ssh
+      | ssh-hostkey:
+      |   2048 aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99 (RSA)
+      |   ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGj7...
+      |   256 11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff:00 (ECDSA)
+      |   ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzd...
+      |   256 99:88:77:66:55:44:33:22:11:00:ff:ee:dd:cc:bb:aa (ED25519)
+      |_  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG8zRaB...
+      | ssh-auth-methods:
+      |   Supported authentication methods:
+      |     password
+      |     publickey
+      |   TechStart SSH Server - Secure Access Only
+      |_  Enumeration flag: OCR{...}
+
+      Nmap done: 1 IP address (1 host up) scanned in 2.15 seconds
+      ```
+
+      **Flag location: NSE script output**
+      - **Script**: ssh-auth-methods
+      - **Location**: Last line of script output
+      - **Flag**: `OCR{...}`
+      - **Context**: `Enumeration flag: OCR{...}`
+
+      **Complete enumeration results:**
+
+      **ssh-hostkey script output:**
+      - **RSA key**: 2048-bit (secure)
+      - **ECDSA key**: 256-bit
+      - **ED25519 key**: 256-bit (modern, secure)
+      - **Assessment**: Strong cryptographic keys, no weaknesses
+
+      **ssh-auth-methods script output:**
+      - **password**: Enabled (brute force possible)
+      - **publickey**: Enabled (key-based auth available)
+      - **Custom message**: "TechStart SSH Server - Secure Access Only"
+      - **Flag**: Embedded in script output
+
+      **Why basic scanning wasn't enough:**
+
+      **Basic version detection:**
+      ```bash
+      $ nmap -p 22 -sV <target_ip>
+
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.2p1
+      ```
+      - Shows service and version only
+      - No host key information
+      - No authentication methods
+      - **NO FLAG**
+
+      **NSE script enumeration:**
+      - Runs specialized SSH scripts
+      - Retrieves host keys
+      - Enumerates authentication methods
+      - **Flag appears in script output**
+
+      **Critical lessons:**
+
+      **1. NSE provides depth:**
+      - Basic scans: Surface-level information
+      - NSE scripts: Deep service configuration details
+      - Essential for comprehensive enumeration
+
+      **2. Service-specific scripts:**
+      - Each service has tailored scripts
+      - SSH scripts know what to enumerate for SSH
+      - HTTP scripts target web-specific information
+      - SMB scripts focus on Windows shares
+
+      **3. Security assessment value:**
+      From this scan we learned:
+      - SSH uses strong modern keys (RSA 2048, ED25519)
+      - Password authentication is enabled (attack vector)
+      - Public key authentication available (more secure option)
+      - Server has custom configuration (TechStart message)
+
+      **4. Attack planning:**
+      - Password auth enabled → brute force possible
+      - Could attempt credential guessing
+      - Public key auth → would need key files
+      - Modern encryption → no cipher attacks
+
+      **Real-world NSE applications:**
+
+      **HTTP enumeration:**
+      ```bash
+      nmap --script=http-enum,http-headers <target>
+      ```
+      - Directory enumeration
+      - Header analysis
+      - Server technology detection
+
+      **SMB enumeration:**
+      ```bash
+      nmap --script=smb-enum-shares,smb-enum-users <target>
+      ```
+      - Share discovery
+      - User enumeration
+      - Domain information
+
+      **Vulnerability scanning:**
+      ```bash
+      nmap --script=vuln <target>
+      ```
+      - Checks for known vulnerabilities
+      - CVE detection
+      - Exploit availability
+
+      **Professional practice:**
+      - Always use NSE for comprehensive enumeration
+      - Service-specific scripts provide targeted intelligence
+      - Combine multiple scripts for complete picture
+      - Document all NSE findings
+      - NSE output informs attack strategy
+
+      The flag appears in NSE script output (ssh-auth-methods), demonstrating that
+      deep enumeration with specialized scripts reveals information beyond basic scans.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/linpt/CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Grab SSH banner"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "Run NSE scripts against SSH service"
+      command: "nmap -Pn -n -p 22 --script=ssh-auth-methods {target.target} 2>&1"
+      expect: "ssh-auth-methods"
+    - name: "Retrieve flag via SSH (password auth confirmed by NSE)"
+      command: "sshpass -p 'techstart2024' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null student@{target.target} 'cat /home/student/flag.txt'"
+      expect: "OCR{nse_scr1pt}"

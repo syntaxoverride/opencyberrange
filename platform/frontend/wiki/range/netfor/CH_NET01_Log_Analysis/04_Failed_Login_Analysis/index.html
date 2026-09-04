@@ -1,0 +1,1537 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+        <link rel="prev" href="../03_DNS_Anomaly_Detection/">
+      
+      
+        <link rel="next" href="../05_Chapter_Review/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.4 -- Failed Login Analysis - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-14-failed-login-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.4 -- Failed Login Analysis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-ssh-brute-force-attacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SSH Brute-Force Attacks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-download-the-auth-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Download the Auth Log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-count-total-failed-attempts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Count Total Failed Attempts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-count-failures-per-source-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Count Failures per Source IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-analyze-the-attackers-attempts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Analyze the Attacker's Attempts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-verify-no-successful-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Verify No Successful Login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-find-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Find the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-ssh-brute-force-attacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SSH Brute-Force Attacks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-download-the-auth-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Download the Auth Log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-count-total-failed-attempts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Count Total Failed Attempts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-count-failures-per-source-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Count Failures per Source IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-analyze-the-attackers-attempts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Analyze the Attacker's Attempts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-verify-no-successful-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Verify No Successful Login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-find-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Find the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-14-failed-login-analysis">Exercise 1.4: Failed Login Analysis</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 1.4 is the final lab in Chapter N1. In Exercise 1.1 you analyzed firewall logs to detect a port scan, in Exercise 1.2 you examined HTTP traffic in a packet capture using Wireshark, and in Exercise 1.3 you investigated DNS query logs for signs of data exfiltration. Exercise 1.4 focuses on SSH authentication logs; the standard format used by every Linux system to record login attempts. The command-line skills you have practiced throughout this chapter (<code>grep</code>, <code>awk</code>, <code>sort</code>, <code>uniq</code>) apply directly here.</p>
+<h2 id="scenario">Scenario</h2>
+<p>MediCare's CISO received automated alerts about an excessive number of failed SSH login attempts on a critical server. A small number of failed logins is normal; users occasionally mistype passwords or forget credentials after a vacation. However, the volume flagged by the alerting system suggests something far more deliberate. Your task is to analyze the authentication logs, determine whether this activity constitutes a brute-force attack, and document the evidence.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Download SSH authentication logs from the target machine.</li>
+<li>Count failed login attempts and identify the source IP addresses responsible.</li>
+<li>Determine whether the traffic pattern matches a brute-force attack.</li>
+<li>Check whether any unauthorized login succeeded.</li>
+<li>Find and submit the flag.</li>
+</ul>
+<h2 id="background-ssh-brute-force-attacks">Background: SSH Brute-Force Attacks</h2>
+<p>SSH (Secure Shell) is the standard protocol for encrypted remote access to Linux and Unix servers. System administrators use SSH to manage servers from the command line, transfer files, and run maintenance scripts. Because SSH provides full shell access to a system, it is a high-value target for attackers.</p>
+<p>A brute-force attack against SSH works by trying many username and password combinations in rapid succession. Pure brute force attempts every possible combination, but this is slow and impractical. A more common variant is a <strong>dictionary attack</strong>, which uses pre-compiled lists of common usernames (admin, root, test, guest, backup, oracle, postgres) and commonly leaked passwords. Dictionary attacks are far faster because they target the credentials that real users and administrators actually choose.</p>
+<p>SSH servers log every authentication attempt; both successes and failures; in the system's auth log. Each log entry records the result, the username tried, the source IP address, and the timestamp. The key fields to look for are:</p>
+<ul>
+<li><strong><code>Accepted password</code></strong>: the login succeeded with the correct credentials.</li>
+<li><strong><code>Failed password</code></strong>: the login failed due to wrong credentials.</li>
+<li><strong><code>invalid user</code></strong>: the username does not exist on the system at all.</li>
+</ul>
+<p>A normal user's log signature is zero to two failures from an internal IP address, followed by a successful login within a few minutes. An attacker's log signature is dozens or hundreds of failures from an external IP address, across many different usernames, with no successful login at all.</p>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Start the lab environment and note the target IP address displayed on the launch page. You will use this IP to download the authentication log file. The target machine is hosting the auth log from MediCare's SSH server on a web server so you can retrieve it for analysis.</p>
+<h3 id="step-2-download-the-auth-log">Step 2: Download the Auth Log</h3>
+<div class="admonition kali">
+<p class="admonition-title">Download the auth log from the target</p>
+<p>Open a terminal on your analyst Kali workstation and download the SSH authentication log from the target machine.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>http://&lt;target_ip&gt;/auth.log<span class="w"> </span>-o<span class="w"> </span>auth.log
+</code></pre></div>
+<p>The <code>curl -o</code> flag saves the log file to your current directory.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Preview the auth log structure</p>
+<p>View the first several lines to understand its structure.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>head<span class="w"> </span>-20<span class="w"> </span>auth.log
+</code></pre></div>
+</div>
+<p>Each line follows the standard sshd log format:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Jan 15 08:15:23 medicare-ssh sshd[12345]: Accepted password for jthompson from 10.50.1.15 port 54321 ssh2
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Jan 15 11:23:45 medicare-ssh sshd[23456]: Failed password for admin from 185.220.101.77 port 49152 ssh2
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Jan 15 11:23:52 medicare-ssh sshd[23457]: Failed password for invalid user root from 185.220.101.77 port 49153 ssh2
+</code></pre></div>
+<p>The important fields in each line are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Example</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Timestamp</td>
+<td><code>Jan 15 11:23:45</code></td>
+<td>Date and time of the attempt.</td>
+</tr>
+<tr>
+<td>Hostname</td>
+<td><code>medicare-ssh</code></td>
+<td>The server that recorded the event.</td>
+</tr>
+<tr>
+<td>Result</td>
+<td><code>Failed password</code></td>
+<td>Whether the login succeeded or failed.</td>
+</tr>
+<tr>
+<td>Username</td>
+<td><code>admin</code></td>
+<td>The account name the user or attacker tried.</td>
+</tr>
+<tr>
+<td>Source IP</td>
+<td><code>185.220.101.77</code></td>
+<td>The IP address the attempt came from.</td>
+</tr>
+</tbody>
+</table>
+<p>Note that lines containing <code>invalid user</code> indicate the username does not exist on the system at all.</p>
+<h3 id="step-3-count-total-failed-attempts">Step 3: Count Total Failed Attempts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Count total failed login attempts</p>
+<p>Search the log for every failed login attempt and count the total.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>grep<span class="w"> </span><span class="s2">&quot;Failed password&quot;</span><span class="w"> </span>auth.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
+</code></pre></div>
+<p>The total count tells you the overall scale of the problem. A handful of failures across an entire day is normal; users forget passwords, mistype them, or try old credentials after a password change. Dozens or more concentrated in a short time window is a strong indicator of automated activity.</p>
+</div>
+<h3 id="step-4-count-failures-per-source-ip">Step 4: Count Failures per Source IP</h3>
+<div class="admonition kali">
+<p class="admonition-title">Count failures per source IP</p>
+<p>Now determine which IP addresses are responsible for the failures. The total count is useful, but you need to know whether the failures come from one source or many. The pipeline below extracts the source IP from each failed attempt, counts the occurrences, and sorts by frequency in descending order.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>grep<span class="w"> </span><span class="s2">&quot;Failed password&quot;</span><span class="w"> </span>auth.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oE<span class="w"> </span><span class="s2">&quot;from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $2}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-rn
+</code></pre></div>
+<p>The output shows a dramatic imbalance. One external IP address has roughly 60 failures, while internal IP addresses have only one or two each; consistent with normal typos by legitimate users.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<p>Fill in the table with the top results from your output:</p>
+<table>
+<thead>
+<tr>
+<th>Source IP</th>
+<th>Failed Attempts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Which IP address accounts for the overwhelming majority of failures? <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p>Is this IP address internal (10.x.x.x, 172.16-31.x.x, 192.168.x.x) or external? <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<hr />
+<h3 id="step-5-analyze-the-attackers-attempts">Step 5: Analyze the Attacker's Attempts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Filter failed attempts from the suspicious IP</p>
+<p>Filter the log for only the failed attempts from the suspicious IP address.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>grep<span class="w"> </span><span class="s2">&quot;185.220.101.77&quot;</span><span class="w"> </span>auth.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Failed password&quot;</span>
+</code></pre></div>
+</div>
+<p>Examine the output and look for three characteristics of a brute-force attack:</p>
+<p><strong>Timing.</strong> Compare the timestamps of consecutive attempts. The attacker sends a new attempt every 8 to 15 seconds. A legitimate user would pause, think, and retry after 30 seconds to a minute.</p>
+<p><strong>Username variety.</strong> Scan the usernames being tried. You will see admin, root, user, test, guest, backup, oracle, postgres, and dozens of other common account names. The attacker is cycling through a dictionary list rather than targeting a single known account.</p>
+<p><strong>Volume.</strong> Count how many unique usernames the attacker tried.</p>
+<div class="admonition kali">
+<p class="admonition-title">Count unique usernames attempted</p>
+<p>The pipeline below pulls the username from each failed line, deduplicates, and counts the distinct values.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>grep<span class="w"> </span><span class="s2">&quot;185.220.101.77&quot;</span><span class="w"> </span>auth.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Failed password&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s2">&quot;for (invalid user )?\K\S+&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
+</code></pre></div>
+<p>The attacker tried approximately 57 unique usernames across a window of roughly 10 to 15 minutes.</p>
+</div>
+<h3 id="step-6-verify-no-successful-login">Step 6: Verify No Successful Login</h3>
+<div class="admonition kali">
+<p class="admonition-title">Check for any successful login from the attacker</p>
+<p>The most critical question in any brute-force investigation is whether the attacker succeeded. Search for any accepted login from the attacker's IP address.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>grep<span class="w"> </span><span class="s2">&quot;185.220.101.77&quot;</span><span class="w"> </span>auth.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Accepted&quot;</span>
+</code></pre></div>
+<p>The <code>grep Accepted</code> command should return no output, confirming that none of the attacker's attempts succeeded. In this case the brute-force attack failed entirely.</p>
+</div>
+<p>If this command had returned a result, it would mean the attacker guessed a valid credential and gained shell access to the server. That scenario requires immediate containment: disabling the compromised account, isolating the server from the network, and beginning a full incident response investigation.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<p>Approximate duration of the attack (first to last attempt): <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p>Number of unique usernames tried: <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p>Did the attacker successfully log in? <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p>What type of attack does this evidence describe? <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<hr />
+<h3 id="step-7-find-the-flag">Step 7: Find the Flag</h3>
+<div class="admonition kali">
+<p class="admonition-title">Search the log for the flag</p>
+<p>Search the log file for the flag.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>grep<span class="w"> </span><span class="s2">&quot;OCR{&quot;</span><span class="w"> </span>auth.log
+</code></pre></div>
+<p>Record the flag you find in <code>OCR{&lt;flag_here&gt;}</code> format.</p>
+</div>
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The attacker tried 57 different usernames. What type of brute-force attack is this?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>This is a dictionary attack; the attacker uses a pre-compiled list of common usernames rather than trying every possible combination. Dictionary attacks are faster than pure brute force and often include admin, root, test, guest, backup, and service account names found on typical systems.</p>
+</details>
+<p><strong>2. None of the attacker's attempts succeeded. Does that mean the server is secure?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The server defended against this specific attack, but it is not necessarily secure. The attack revealed that SSH is exposed directly to the internet, which it should not be. A more sophisticated attacker with a better wordlist or credential stuffing data from breached databases might succeed on a future attempt. The correct response is to block the attacker's IP immediately, deploy fail2ban to automatically block IPs after a threshold of failures, and restrict SSH access so that it is reachable only through a VPN.</p>
+</details>
+<p><strong>3. How would you distinguish a brute-force attack from a legitimate user who forgot their password?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A legitimate user typically has one to three failures from an internal IP address, followed by a successful login, with attempts spread across several minutes. A brute-force attack produces dozens or hundreds of failures from an external IP address with no successes, occurring every few seconds, and cycling through many different usernames. The volume, speed, source location, and variety of usernames are the distinguishing factors.</p>
+</details>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>SSH authentication logs record every login attempt with the result, username, source IP, and timestamp.</li>
+<li>Brute-force attacks produce a distinctive pattern: dozens of failures, many different usernames, rapid succession, an external source IP, and no successful logins.</li>
+<li>The same <code>grep</code>, <code>awk</code>, <code>sort</code>, and <code>uniq</code> pipeline you have used throughout this chapter applies to any text-based log format.</li>
+<li>Checking for both <code>Failed password</code> and <code>Accepted password</code> entries from a suspicious IP is critical; a successful login means the attacker gained access to the system.</li>
+<li>Real-world defenses against SSH brute force include fail2ban (automatic IP blocking after repeated failures), SSH key-based authentication (which eliminates password guessing entirely), and restricting SSH access to VPN-connected users only.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

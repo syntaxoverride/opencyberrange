@@ -1,0 +1,131 @@
+name: "Crestline Financial - Credential Pivot Attack"
+description: "A web server at Crestline Financial leaks database credentials through misconfigured application files. Discover the credentials and pivot laterally to the internal database server."
+
+difficulty: intermediate
+category: post-exploitation
+duration_minutes: 50
+randomize_ip_offsets: true
+visibility: course
+week: 11
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/11_Credential_Pivot_Attack/"
+flag: "OCR{cr3d_p1v0t}"
+
+objectives:
+  - Enumerate a compromised web server for stored credentials and configuration files
+  - Identify hardcoded database credentials in application configuration
+  - Use discovered credentials to pivot laterally to an internal server
+  - Extract evidence from the database server to complete the assessment
+  - Capture the flag
+
+scenario: |
+  Crestline Financial Services, a regional investment firm based in Charlotte,
+  North Carolina, engaged your team at Apex Red Team for an internal network
+  penetration test. Phase 1 is complete - your team gained initial access to the
+  company's front-end web server through a vulnerability in their customer portal.
+
+  You now have SSH access to the web server as the "webdev" service account. Your
+  objective for Phase 2 is lateral movement: find a way to reach other systems on
+  the internal network. Crestline's IT manager, Nathan Cole, mentioned during the
+  scoping call that the web application connects to an internal database server
+  that "only the app can reach." He's confident the database credentials are
+  properly secured.
+
+  Prove him wrong. Find the database credentials, pivot to the internal server,
+  and extract the assessment marker to demonstrate the risk. Document the full
+  attack chain for the final report.
+
+  **Credentials**
+
+  - Web Server SSH: `webdev` / `Cr3st_W3b_2024#`
+
+credentials:
+  - username: "webdev"
+    password: "Cr3st_W3b_2024#"
+    role: "webdev"
+    description: "Web server service account obtained during Phase 1"
+  - username: "dbadmin"
+    password: "F1n4nc3_DB_Pr0d#"
+    role: "dbadmin"
+    description: "Database credentials discovered on the web server"
+
+hints:
+  - text: |
+      You're on the web server as the webdev user. Start by exploring the
+      filesystem - web applications often store configuration files with database
+      credentials. Check common locations: /var/www/, application directories,
+      and any files ending in .env, .conf, .cfg, or .ini.
+    unlock_after_minutes: 8
+  - text: |
+      Look in /var/www/crestline-portal/. The application has a .env file and a
+      config/ directory. One of these contains the database credentials including
+      the hostname, username, and password. Use those to SSH to the database server.
+    unlock_after_minutes: 16
+  - text: |
+      The file /var/www/crestline-portal/.env contains DB_PASS=F1n4nc3_DB_Pr0d#
+      and DB_HOST=dbserver. Use these credentials to SSH to the database server
+      as dbadmin. Once there, check the dbadmin home directory for the assessment
+      marker. The first flag part is on the webserver in the config directory.
+    unlock_after_minutes: 24
+
+topology:
+  nodes:
+    - id: "webserver"
+      label: "Web Server"
+      type: "server"
+      ip_offset: "12"
+      ports: [22, 80]
+      services: ["OpenSSH", "nginx"]
+      x: 2
+      y: 1
+    - id: "dbserver"
+      label: "Database Server"
+      type: "database"
+      ip_offset: "34"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webserver"
+      label: "SSH:22"
+      access: "direct"
+    - from: "attacker"
+      to: "dbserver"
+      label: "SSH:22"
+      access: "direct"
+    - from: "webserver"
+      to: "dbserver"
+      label: "PostgreSQL:5432"
+      access: "internal"
+
+test:
+  steps:
+    - name: "SSH to web server as webdev"
+      command: "sshpass -p '{cred.webdev.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.webdev.user}@{target.webserver} 'whoami' 2>/dev/null"
+      expect: "webdev"
+      timeout: 15
+
+    - name: "Discover application config with database credentials"
+      command: "sshpass -p '{cred.webdev.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.webdev.user}@{target.webserver} 'cat /var/www/crestline-portal/.env 2>/dev/null | grep DB_PASS' 2>/dev/null"
+      expect: "F1n4nc3_DB_Pr0d#"
+      timeout: 15
+
+    - name: "Find flag part 1 on web server"
+      command: "sshpass -p '{cred.webdev.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.webdev.user}@{target.webserver} 'cat /var/www/crestline-portal/config/api_keys.bak 2>/dev/null | grep -o \"assessment_token=[a-z0-9_]*\" | sed \"s/^assessment_token=//\"' 2>/dev/null"
+      expect: "cr3d"
+      timeout: 15
+
+    - name: "Pivot to database server using discovered credentials"
+      command: "sshpass -p '{cred.dbadmin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.dbadmin.user}@{target.dbserver} 'whoami' 2>/dev/null"
+      expect: "dbadmin"
+      timeout: 15
+
+    - name: "Find flag part 2 on database server"
+      command: "sshpass -p '{cred.dbadmin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.dbadmin.user}@{target.dbserver} 'cat /home/dbadmin/maintenance/assessment_token.txt 2>/dev/null' 2>/dev/null"
+      expect: "p1v0t"
+      timeout: 15
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{cr3d_p1v0t}'"
+      expect: "OCR{cr3d_p1v0t}"

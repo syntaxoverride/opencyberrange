@@ -1,0 +1,1477 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise ICSPT-1.3: Reading ICS Traffic on the Wire - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-icspt-13-reading-ics-traffic-on-the-wire" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise ICSPT-1.3: Reading ICS Traffic on the Wire
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-modbustcp-on-the-wire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Modbus/TCP on the Wire
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Modbus/TCP on the Wire">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-mbap-header-7-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The MBAP Header (7 bytes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-pdu-function-code-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The PDU (Function Code + Data)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-you-will-need" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools You Will Need
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-download-the-pcap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Download the PCAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-initial-triage-with-tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Initial Triage with tshark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-open-in-wireshark-and-apply-the-modbus-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Open in Wireshark and Apply the Modbus Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-find-the-anomalous-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Find the Anomalous Response
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-confirm-the-decode-by-hand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Confirm the Decode by Hand
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-read-the-raw-bytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Read the Raw Bytes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-compose-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Compose and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations-to-masa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations to Masa
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-icspt-13-reading-ics-traffic-on-the-wire">Exercise ICSPT-1.3: Reading ICS Traffic on the Wire</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Masa Foods, Inc. (fictional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>OT Security Engineer, Plant 1</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Discovery <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Enumeration</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Exploitation <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Reporting</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> You have a first-pass asset inventory. Reyna now wants protocol-level confirmation of a quality event by decoding a captured Modbus exchange from the Plant 1 network tap.</p>
+<hr />
+<h2 id="environment-checklist">Environment Checklist</h2>
+<p>Every ICSPT exercise assumes you read the Before-You-Begin section in <a href="../../CH_ICSPT01_Touring_Masa_Foods/01_Plant_Tour/">Exercise 1.1 (Touring Masa Foods)</a> first. If you have not, open that page now: it explains the two attacker-host options (your own Kali over VPN, or the browser-mounted RangeBox) and walks you through the one-time <code>/etc/hosts</code> setup that lets you call every Plant 1 target by its friendly name.</p>
+<p>Exercise 1.3 uses only one live service: a small HTTP file server that hosts the PCAP you will analyze. Exercises 1.3 and 1.4 use a sixth <code>/etc/hosts</code> entry for <code>pcaphost.masa.local</code> that was not in the Exercise 1.1 block. Add it now if you have not already:</p>
+<div class="admonition example">
+<p class="admonition-title">Kali (one-time for Exercise 1.3 and 1.4)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Replace the example IP with the pcaphost value from the Exercise</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># Network panel on the OCR track page.</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts<span class="w"> </span><span class="s">&lt;&lt;&#39;HOSTS&#39;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="s">10.100.42.7   pcaphost.masa.local</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="s">HOSTS</span>
+</code></pre></div>
+</div>
+<p>Then confirm name resolution and reachability:</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>getent<span class="w"> </span>hosts<span class="w"> </span>pcaphost.masa.local
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ping<span class="w"> </span>-c<span class="w"> </span><span class="m">2</span><span class="w"> </span>pcaphost.masa.local
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;HTTP %{http_code}\n&#39;</span><span class="w"> </span>http://pcaphost.masa.local/
+</code></pre></div>
+</div>
+<p>Expected: one name-to-IP line, two successful pings, and <code>HTTP 200</code> from curl. If any step fails, the lab is not Running yet; fix connectivity before continuing.</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>The Plant 1 network tap recorded an hour of HMI polling traffic during a window when shift supervisors noted that the oven ran hot. The capture file is <code>plant1_mixed_protocols.pcap</code>, hosted at <code>http://pcaphost.masa.local/</code>. Download it to your Kali, open it in Wireshark, and decode the Modbus Read Holding Registers response that contains the anomalous oven setpoint.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Most real plant incident response runs on PCAPs that nobody knew would be important when they were captured. A shift supervisor notices oven temperature drift at 02:30, files a ticket, and goes home. The network tap has been rolling the whole time. Three weeks later, quality control pulls a batch of burnt tortillas off the line and asks "what happened that night?" The only honest answer is "open the PCAP and decode it."</p>
+<p>The skill this exercise teaches is protocol literacy on captured evidence. Without it you cannot reconstruct a historical incident, debunk a false positive from an IDS, or answer a regulator's question about whether a specific write ever hit a specific register during a specific window. With it you can walk into any plant, any vendor, any historical tape and pull the answer out of raw bytes. Protocol literacy is the single most portable OT forensic skill because every vendor eventually reuses Modbus/TCP somewhere in their stack.</p>
+<p>Masa wants the answer in the form <code>OCR{________}</code> where <code>NNN</code> is the MBAP transaction identifier in decimal and <code>XXXX</code> is the raw register value that was returned.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operator HMI</td>
+<td><code>plant_op</code></td>
+<td><code>masa_op_2025</code></td>
+<td>Reference only; the capture is offline analysis</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="objectives">Objectives</h2>
+<ul>
+<li>Download the Plant 1 traffic capture from <code>pcaphost.masa.local</code></li>
+<li>Apply the <code>modbus</code> display filter in Wireshark</li>
+<li>Decode the MBAP header and PDU of a Read Holding Registers response</li>
+<li>Extract the MBAP transaction identifier and the returned register value</li>
+<li>Compose the flag from the transaction identifier and register value</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Difficulty</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> Beginner</td>
+</tr>
+<tr>
+<td>Estimated Time</td>
+<td>40 to 60 minutes</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>Exercises 1.1 and 1.2</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Source</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OCR{TID..._SP...}</code></td>
+<td>Decoded Modbus response in the capture</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-modbustcp-on-the-wire">Background: Modbus/TCP on the Wire</h2>
+<p>Modbus is one of the oldest still-deployed fieldbus protocols. The 1979 Modicon release targeted PLCs on a serial bus. Modbus/TCP is the 1999 wrapping that carries the same Application Data Unit (ADU) over TCP port 502. The ADU breaks into two parts:</p>
+<h3 id="the-mbap-header-7-bytes">The MBAP Header (7 bytes)</h3>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>Size</th>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>Transaction Identifier</td>
+<td>Matches request to response, chosen freely by the client</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>Protocol Identifier</td>
+<td>Always <code>0x0000</code> for Modbus</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2</td>
+<td>Length</td>
+<td>Number of bytes that follow in this ADU</td>
+</tr>
+<tr>
+<td>6</td>
+<td>1</td>
+<td>Unit Identifier</td>
+<td>Slave address, usually <code>1</code> on Modbus/TCP</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-pdu-function-code-data">The PDU (Function Code + Data)</h3>
+<p>The first byte after the MBAP header is the function code. Function code <code>3</code> is Read Holding Registers. The next bytes depend on whether the frame is a request or a response.</p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>PDU layout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Request</td>
+<td><code>FC (1) | start_addr (2) | count (2)</code></td>
+</tr>
+<tr>
+<td>Response</td>
+<td><code>FC (1) | byte_count (1) | values (2 bytes per register)</code></td>
+</tr>
+</tbody>
+</table>
+<p>A single-register Read Holding Registers response therefore has a total wire length of <code>7 (MBAP) + 1 (FC) + 1 (byte_count) + 2 (value) = 11 bytes</code>. You will confirm this byte count when you inspect the capture.</p>
+<div class="admonition warning">
+<p class="admonition-title">No authentication, no integrity</p>
+<p>Everything above is on the wire in plaintext. The MBAP header has no signature, no nonce, and no encryption. Anyone on the operations VLAN who can read port 502 can decode every Modbus transaction. Anyone who can write port 502 can forge function codes and values. The security model is "the cable is trusted," and the cable is rarely trusted.</p>
+</div>
+<hr />
+<h2 id="tools-you-will-need">Tools You Will Need</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Install Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>curl</code></td>
+<td>Download the PCAP</td>
+<td><code>curl --version</code></td>
+</tr>
+<tr>
+<td>Wireshark</td>
+<td>Full decode of the capture</td>
+<td><code>wireshark --version</code></td>
+</tr>
+<tr>
+<td><code>tshark</code></td>
+<td>Command-line Wireshark</td>
+<td><code>tshark --version</code></td>
+</tr>
+<tr>
+<td><code>xxd</code></td>
+<td>Hex view of raw bytes</td>
+<td><code>xxd -v</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-download-the-pcap">Step 1: Download the PCAP</h3>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/plant1_forensics
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>~/plant1_forensics
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>curl<span class="w"> </span>-O<span class="w"> </span>http://pcaphost.masa.local/plant1_mixed_protocols.pcap
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>ls<span class="w"> </span>-la<span class="w"> </span>plant1_mixed_protocols.pcap
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>-rw-r--r-- 1 kali kali 5583 Apr  1 14:00 plant1_mixed_protocols.pcap
+</code></pre></div>
+</details>
+<h3 id="step-2-initial-triage-with-tshark">Step 2: Initial Triage with tshark</h3>
+<p>Before opening Wireshark, get a feel for the capture with the command-line equivalent. The <code>-z io,phs</code> option prints a protocol hierarchy.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>plant1_mixed_protocols.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output</summary>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>===================================================================
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Protocol Hierarchy Statistics
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Filter:
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>eth                                      frames:66 bytes:...
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  ip                                     frames:66 bytes:...
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    tcp                                  frames:66 bytes:...
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>      mbtcp                              frames:66 bytes:...
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        modbus                           frames:66 bytes:...
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>===================================================================
+</code></pre></div>
+Every packet is Modbus. Sixty-six frames add up to thirty-three request/response pairs, which matches a roughly 60-second capture at a two-second polling cadence.</p>
+</details>
+<h3 id="step-3-open-in-wireshark-and-apply-the-modbus-filter">Step 3: Open in Wireshark and Apply the Modbus Filter</h3>
+<p>Open the PCAP in Wireshark:</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>wireshark<span class="w"> </span>plant1_mixed_protocols.pcap<span class="w"> </span><span class="p">&amp;</span>
+</code></pre></div>
+</div>
+<p>Apply the display filter <code>modbus</code> in the filter bar. You will see alternating request and response frames. Modbus function code 3 (Read Holding Registers) covers every frame in this capture.</p>
+<div class="admonition tip">
+<p class="admonition-title">Faster filter</p>
+<p><code>modbus.func_code == 3 &amp;&amp; modbus.byte_cnt == 2</code> narrows the view to responses that return exactly one register (two bytes of payload). The anomalous setpoint response is a single-register response, so it lives in that filtered set.</p>
+</div>
+<h3 id="step-4-find-the-anomalous-response">Step 4: Find the Anomalous Response</h3>
+<p>A typical Plant 1 oven setpoint is around 3500 (tenths of a degree Fahrenheit, so 350.0 deg F). The anomalous response returns a value well above that baseline. Sort the filtered list by response value or simply scroll until you spot the outlier.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<p>Using tshark from the command line:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>plant1_mixed_protocols.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;modbus.func_code == 3 &amp;&amp; modbus.byte_cnt == 2&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>mbtcp.trans_id<span class="w"> </span>-e<span class="w"> </span>modbus.regval_uint16
+</code></pre></div></p>
+</div>
+<details class="example">
+<summary>Expected output</summary>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>265     3500
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>275     3500
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>277     4250
+</code></pre></div>
+Three single-register responses. The first two return the normal baseline setpoint. The third response returns <code>4250</code>, which decodes to <code>425.0</code> degrees Fahrenheit, well into the range that Reyna flagged as anomalous.</p>
+</details>
+<h3 id="step-5-confirm-the-decode-by-hand">Step 5: Confirm the Decode by Hand</h3>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>plant1_mixed_protocols.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;mbtcp.trans_id == 277&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>mbtcp.trans_id<span class="w"> </span>-e<span class="w"> </span>modbus.regval_uint16
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output</summary>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>44   172.30.1.13   172.30.1.10   277
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>45   172.30.1.10   172.30.1.13   277    4250
+</code></pre></div>
+Frame 44 is the HMI request. Frame 45 is the PLC response carrying the register value <code>4250</code>. Transaction identifier <code>277</code> links the two frames.</p>
+</details>
+<h3 id="step-6-read-the-raw-bytes">Step 6: Read the Raw Bytes</h3>
+<p>Confirm the parser got it right by looking at the response frame in hex.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>plant1_mixed_protocols.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;frame.number == 45&#39;</span><span class="w"> </span>-x<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output (partial)</summary>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>0030  ...  01 15 00 00 00 05 01 03 02 10 9a
+</code></pre></div>
+The last eleven bytes are the full Modbus ADU. Decoding by field:</p>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>01 15</code></td>
+<td>Transaction Identifier</td>
+<td><code>277</code></td>
+</tr>
+<tr>
+<td><code>00 00</code></td>
+<td>Protocol Identifier</td>
+<td><code>0</code> (Modbus)</td>
+</tr>
+<tr>
+<td><code>00 05</code></td>
+<td>Length</td>
+<td><code>5</code> bytes follow</td>
+</tr>
+<tr>
+<td><code>01</code></td>
+<td>Unit Identifier</td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>03</code></td>
+<td>Function Code</td>
+<td><code>3</code> (Read Holding Registers response)</td>
+</tr>
+<tr>
+<td><code>02</code></td>
+<td>Byte Count</td>
+<td><code>2</code> (one register)</td>
+</tr>
+<tr>
+<td><code>10 9a</code></td>
+<td>Register Value</td>
+<td><code>4250</code></td>
+</tr>
+</tbody>
+</table>
+<p>The register value <code>4250</code> matches the tenths-of-a-degree scaling in the register map, so the decoded setpoint is <code>425.0</code> degrees Fahrenheit.</p>
+</details>
+<h3 id="step-7-compose-and-submit-the-flag">Step 7: Compose and Submit the Flag</h3>
+<div class="admonition example">
+<p class="admonition-title">Composing the flag</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>TID = 277
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>SP  = 4250
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>flag = OCR{________}
+</code></pre></div>
+</div>
+<p>Submit the flag in the OCR platform flag box.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>A single-register Read Holding Registers response is exactly 11 bytes on the wire. Any deviation from 11 bytes on an FC3 response with byte count <code>0x02</code> is a protocol anomaly and worth investigating</li>
+<li>MBAP transaction identifiers are chosen by the client. A real capture of a well-behaved HMI will show monotonically increasing identifiers with small gaps</li>
+<li>Register values returned in tenths of a degree are a Maxon Controls convention. Other vendors use different scalings; always confirm the scaling from the vendor's register map before interpreting the number</li>
+<li>Wireshark's <code>modbus.regval_uint16</code> is the parsed integer value, not a hex dump. Use <code>-x</code> to cross-check against the raw bytes when you are new to a protocol</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why does the MBAP header include a Transaction Identifier instead of relying on TCP sequence numbers to pair requests and responses?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Modbus was designed to carry multiple logical transactions over a single TCP connection, and a client can pipeline requests without waiting for the previous response. The transaction identifier gives the client a cheap way to match responses back to the originating request regardless of TCP-level ordering or any intermediate gateway that might reorder frames. Because the identifier is chosen by the client and never validated, it is also a handy fingerprint for traffic analysis (see Exercise 1.4).</p>
+</details>
+<p><strong>2. How would you detect the anomalous setpoint read in near real time rather than hours later from a PCAP?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Deploy a Modbus-aware monitoring tool (Zeek with the Modbus parser, a passive Modbus probe, or a commercial tool like Dragos or Claroty) that baselines the normal value range for each polled register. Alert when the returned value steps outside the baseline. A simple Zeek script can do the read-side baseline in under fifty lines.</p>
+</details>
+<p><strong>3. Wireshark shows the protocol as <code>mbtcp</code> in some places and <code>modbus</code> in others. What is the difference?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Wireshark's <code>mbtcp</code> dissector handles the MBAP header (transaction ID, protocol ID, length, unit ID). The <code>modbus</code> dissector handles the PDU (function code and data). You use <code>mbtcp.trans_id</code> for header fields and <code>modbus.func_code</code> or <code>modbus.regval_uint16</code> for PDU fields. The separation is historical: the same Modbus PDU rides over both serial Modbus (RTU and ASCII) and TCP, and each transport has a distinct dissector.</p>
+</details>
+<p><strong>4. Could you run <code>pymodbus</code> against the captured traffic to decode it instead of Wireshark?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Not directly. <code>pymodbus</code> is a live client and does not parse PCAP files. You would either use Wireshark or tshark for dissection, or write a small Python parser using <code>scapy</code> (which has a Modbus contrib layer) or raw byte slicing against the MBAP header layout. For training, Wireshark remains the gold standard because it shows both the parsed fields and the hex bytes side by side.</p>
+</details>
+<hr />
+<h2 id="defensive-recommendations-to-masa">Defensive Recommendations to Masa</h2>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anomalous oven setpoint went unnoticed for hours</td>
+<td>Medium</td>
+<td>Deploy a Modbus-aware IDS with per-register value baselining</td>
+</tr>
+<tr>
+<td>No copy of the network tap capture retained outside the plant</td>
+<td>Low</td>
+<td>Forward captures to a central SIEM with a 30-day retention window</td>
+</tr>
+<tr>
+<td>Unauthenticated Modbus on the operations VLAN</td>
+<td>Critical</td>
+<td>Plant 1 segmentation plan (tracked separately for Week 13 in the curriculum)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>MBAP header is seven bytes: transaction ID, protocol ID, length, unit ID</li>
+<li>Function code 3 response wire format is <code>FC | byte_count | values</code></li>
+<li>Transaction ID is the pairing fingerprint for matching requests to responses</li>
+<li>Wireshark <code>-x</code> hex dump is the fastest way to sanity-check a parser</li>
+<li>Decoding scaled register values (tenths of a degree) requires a copy of the vendor's register map</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

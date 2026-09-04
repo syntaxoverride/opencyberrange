@@ -1,0 +1,1922 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.3: SMB Tour - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-13-smb-tour" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.3: SMB Tour
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lab-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lab Topology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-effective-access-is-computed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Effective Access is Computed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-smb-shares-and-access-masks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SMB Shares and Access Masks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: SMB Shares and Access Masks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-share-names-and-meanings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common share names and meanings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-pattern-read-everything-once-filter-forever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The pattern: read everything once, filter forever
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#netexec-for-share-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        netexec for share inventory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smbclient-interactive-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        smbclient interactive mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manspider-for-content-scanning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manspider for content scanning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-note-your-scope-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Note Your Scope Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-inventory-shares-on-both-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Inventory Shares on Both Hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-walk-the-engineering-share" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Walk the Engineering Share
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-filter-to-your-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Filter to Your Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-download-and-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Download and Read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-try-the-mass-spider-approach-bonus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Try the Mass-Spider Approach (Bonus)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-13-smb-tour">Exercise 1.3: SMB Tour</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>The least glamorous attack in offensive AD is reading files. Operators leak credentials, network diagrams, deploy scripts, and configuration files onto SMB shares constantly. Defenders almost never audit them. Exercise 1.3 asks you to do what every senior pentester does in the first hour of an engagement: tour every reachable share, classify what is in it, and find the document with your scope token in its filename.</p>
+<p><strong>Tools required:</strong> <code>netexec</code>, <code>smbclient</code>, <code>manspider</code>, plus optional GUI helper <code>smbmap</code>. All are pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "Half of the breaches I have done in the last five years started by reading a file someone left on a share. Engineering at Nordport keeps a quarterly handover folder that everyone forgets to clean up. Find the document with your scope token in its filename. Open it. Submit the flag inside."</p>
+<p>Your <strong>scope token</strong> is a four-character lowercase hex string assigned to you by the platform. You see it on the lab dashboard ("Your scope: <code>a7f3</code>") and your Kali workstation has it set as the environment variable <code>OCR_SCOPE_TOKEN</code>.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Enumerate shares on <code>corp-dc01</code> and <code>corp-dc01</code></li>
+<li>Identify shares with read access for <code>j.chen</code></li>
+<li>Recursively spider the readable shares</li>
+<li>Locate the handover document whose filename contains your scope token</li>
+<li>Read the file, extract the flag, and submit it</li>
+</ul>
+<h3 id="lab-topology">Lab Topology</h3>
+<p>All shares for this exercise live on <code>corp-dc01</code>. You attack from Kali; the DC exposes both replicated shares (SYSVOL, NETLOGON) and the department shares (Engineering, Public, Backup-Old).</p>
+<pre class="mermaid"><code>flowchart LR
+    Kali["Kali Workstation"]
+    DC["corp-dc01&lt;br/&gt;SYSVOL, NETLOGON, Engineering, Public, Backup-Old"]
+    Kali -- "SMB :445" --&gt; DC</code></pre>
+<h3 id="how-effective-access-is-computed">How Effective Access is Computed</h3>
+<p>Two ACLs gate every share read. The effective answer is the AND of both. The flowchart below mirrors the decision the file server makes for every request.</p>
+<pre class="mermaid"><code>flowchart TD
+    Q["SMB request from j.chen"]
+    Q --&gt; S{"Share-level ACL&lt;br/&gt;permits action?"}
+    S -- "No" --&gt; D1["Deny&lt;br/&gt;NT_STATUS_ACCESS_DENIED"]
+    S -- "Yes" --&gt; N{"NTFS ACL on&lt;br/&gt;file/folder permits?"}
+    N -- "No" --&gt; D2["Deny&lt;br/&gt;NT_STATUS_ACCESS_DENIED"]
+    N -- "Yes" --&gt; A["Allow&lt;br/&gt;read returns data"]</code></pre>
+<hr />
+<h2 id="background-smb-shares-and-access-masks">Background: SMB Shares and Access Masks</h2>
+<p>A <strong>share</strong> is a named directory exposed over SMB. Every share has two layers of permissions:</p>
+<ol>
+<li><strong>Share-level permissions</strong> (configured on the share itself: <code>Full</code>, <code>Change</code>, <code>Read</code>, <code>None</code>)</li>
+<li><strong>NTFS permissions</strong> on the underlying directory (the file-system ACLs)</li>
+</ol>
+<p>The effective permission is the <strong>most restrictive of the two</strong>. If the share grants <code>Full</code> but NTFS only allows <code>Read</code>, you get <code>Read</code>.</p>
+<p>For enumeration, you mostly care about whether you have any read access at all. <code>netexec --shares</code> reports the share-level masks; <code>smbclient</code> will fail with <code>NT_STATUS_ACCESS_DENIED</code> if NTFS denies you regardless of share permission.</p>
+<h3 id="common-share-names-and-meanings">Common share names and meanings</h3>
+<table>
+<thead>
+<tr>
+<th>Share name</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADMIN$</code></td>
+<td>Hidden admin share, mapped to <code>C:\Windows</code>. Requires admin to access.</td>
+</tr>
+<tr>
+<td><code>C$</code>, <code>D$</code>, etc.</td>
+<td>Hidden drive shares. Admin-only.</td>
+</tr>
+<tr>
+<td><code>IPC$</code></td>
+<td>Inter-process communication endpoint. Always present, used for null sessions.</td>
+</tr>
+<tr>
+<td><code>NETLOGON</code></td>
+<td>Replicated logon scripts. Read-only to domain users. Often readable.</td>
+</tr>
+<tr>
+<td><code>SYSVOL</code></td>
+<td>Replicated GPOs and scripts. Read-only to domain users. Often readable.</td>
+</tr>
+<tr>
+<td><code>Public</code>, <code>Common</code>, <code>Departmental</code></td>
+<td>Custom org shares. Usually readable by <code>Domain Users</code>.</td>
+</tr>
+<tr>
+<td><code>Backup-Old</code>, <code>Archives</code>, <code>Legacy</code></td>
+<td>Stale shares. Most credential leaks live here.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-pattern-read-everything-once-filter-forever">The pattern: read everything once, filter forever</h3>
+<p>The first sweep should pull every readable file to local disk. Once everything is local, <code>grep</code> and pattern-matching make finding interesting strings near-instant. Reading files individually over SMB is slow and rate-limited.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="netexec-for-share-inventory">netexec for share inventory</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>&lt;host&gt;<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>--shares
+</code></pre></div>
+<p>Output shows a table:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>SMB    10.x.x.10    445   CORP-DC01     [+] corp.nordport.local\j.chen:Welcome2026#
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>SMB    10.x.x.10    445   CORP-DC01     [*] Enumerated shares
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>SMB    10.x.x.10    445   CORP-DC01     Share         Permissions     Remark
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>SMB    10.x.x.10    445   CORP-DC01     -----         -----------     ------
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>SMB    10.x.x.10    445   CORP-DC01     ADMIN$                        Remote Admin
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>SMB    10.x.x.10    445   CORP-DC01     C$                            Default share
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>SMB    10.x.x.10    445   CORP-DC01     IPC$          READ            Remote IPC
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>SMB    10.x.x.10    445   CORP-DC01     Engineering   READ            Engineering team share
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>SMB    10.x.x.10    445   CORP-DC01     Public        READ            Company-wide bulletin board
+</code></pre></div>
+<p>A blank <code>Permissions</code> column means access denied. <code>READ</code> means you can list and download. <code>READ,WRITE</code> means you can also drop files (rare on production shares but huge if you find it).</p>
+<h3 id="smbclient-interactive-mode">smbclient interactive mode</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>smbclient<span class="w"> </span>//corp-dc01/Engineering<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span>
+</code></pre></div>
+<p>At the <code>smb: \&gt;</code> prompt:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ls</code></td>
+<td>List current directory</td>
+</tr>
+<tr>
+<td><code>cd &lt;path&gt;</code></td>
+<td>Change directory</td>
+</tr>
+<tr>
+<td><code>recurse on</code></td>
+<td>Toggle recursive operations</td>
+</tr>
+<tr>
+<td><code>prompt off</code></td>
+<td>Disable per-file confirmation</td>
+</tr>
+<tr>
+<td><code>mget *</code></td>
+<td>Download all files in current directory</td>
+</tr>
+<tr>
+<td><code>get &lt;file&gt;</code></td>
+<td>Download a single file</td>
+</tr>
+<tr>
+<td><code>more &lt;file&gt;</code></td>
+<td>View a file inline</td>
+</tr>
+<tr>
+<td><code>exit</code></td>
+<td>Quit</td>
+</tr>
+</tbody>
+</table>
+<p>The combination <code>recurse on; prompt off; mget *</code> mirrors a share to your current local directory.</p>
+<h3 id="manspider-for-content-scanning">manspider for content scanning</h3>
+<p><code>manspider</code> recursively spiders shares and greps file contents for arbitrary patterns. Useful for hunting credentials at scale.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>manspider<span class="w"> </span>&lt;host&gt;<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>--content<span class="w"> </span><span class="s2">&quot;OCR\{&quot;</span><span class="w"> </span>-e<span class="w"> </span>txt,docx,xml,ini,xls,xlsx
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--content "OCR\{"</code></td>
+<td>regex to match in file contents</td>
+</tr>
+<tr>
+<td><code>-e txt,docx,xml,ini,xls,xlsx</code></td>
+<td>only search these file extensions</td>
+</tr>
+<tr>
+<td><code>-d</code></td>
+<td>domain</td>
+</tr>
+<tr>
+<td>- Hits print the file path and the matching line</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-note-your-scope-token">Step 1: Note Your Scope Token</h3>
+<p>The platform injects your scope token into your Kali container's environment as <code>OCR_SCOPE_TOKEN</code>. Workbook commands reference <code>${OCR_SCOPE_TOKEN}</code> directly so the same paste works for any student. Confirm the variable is set before you start so a missing token does not waste 20 minutes of attempts.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Print scope token</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$OCR_SCOPE_TOKEN</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p>What this does:</p>
+<ul>
+<li><code>echo</code> prints its arguments. With variable expansion (the <code>$VAR</code> form), bash substitutes the value before echo sees it.</li>
+<li>Quoted with double-quotes so an empty variable produces an empty (but visible) output rather than a parse error.</li>
+</ul>
+<p>The output should be a four-character lowercase string (example: <code>a7f3</code>, <code>j001</code>, or <code>fsat</code>). If the variable is empty, find your token in the lab dashboard banner ("Your scope: ...") and export it manually with <code>export OCR_SCOPE_TOKEN=&lt;your_token&gt;</code>.</p>
+</div>
+<h3 id="step-2-inventory-shares-on-both-hosts">Step 2: Inventory Shares on Both Hosts</h3>
+<p>SMB share enumeration is the first step of any share-credential hunt. The goal is a list of every reachable share with the access mask the authenticating user has on each. <code>netexec --shares</code> gets you the table in one call.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Enumerate shares on the DC</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>--shares
+</code></pre></div>
+<p>What each option does:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>smb</code></td>
+<td>Module: speaks SMB on port 445.</td>
+</tr>
+<tr>
+<td><code>&lt;dc_ip&gt;</code></td>
+<td>Target. Accepts a single IP, a CIDR (<code>10.0.0.0/24</code>), or a host file (<code>-t hosts.txt</code>).</td>
+</tr>
+<tr>
+<td><code>-u j.chen</code></td>
+<td>Username for the bind.</td>
+</tr>
+<tr>
+<td><code>-p 'Welcome2026#'</code></td>
+<td>Password. Quote so <code>#</code> and <code>!</code> survive bash.</td>
+</tr>
+<tr>
+<td><code>-d corp.nordport.local</code></td>
+<td>Domain realm.</td>
+</tr>
+<tr>
+<td><code>--shares</code></td>
+<td>Issue an SRVSVC <code>NetShareEnumAll</code> RPC and parse the results.</td>
+</tr>
+</tbody>
+</table>
+<p>What the columns mean in the output:</p>
+<ul>
+<li><strong>Share</strong>: the share name as registered on the host (e.g. <code>IPC$</code>, <code>Engineering</code>, <code>Public</code>).</li>
+<li><strong>Permissions</strong>: what the authenticated user can do on the share. Possible values: blank (denied), <code>READ</code>, <code>READ,WRITE</code>, or <code>Admin</code> (rare, only for service accounts that are local admin).</li>
+<li><strong>Remark</strong>: the description set by the share's creator. Sometimes useful (helpdesk staff put notes here).</li>
+</ul>
+<p>Note every share where Permissions is non-blank. Skip the standard hidden shares (<code>ADMIN$</code>, <code>C$</code>, <code>D$</code>, <code>IPC$</code>) unless the access shows you have unexpected rights on them.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Enumerate shares on corp-dc01</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>&lt;fileserver_ip&gt;<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>--shares
+</code></pre></div>
+<p>Same flags, different host. The DC and corp-dc01 expose different share sets because the DC has SYSVOL and NETLOGON (replicated GPO content) while corp-dc01 has the actual user-accessible department shares like <code>Engineering</code>, <code>Finance</code>, <code>IT-Tools</code>, and <code>Public</code>. The Engineering share on corp-dc01 is the target for this exercise.</p>
+</div>
+<h3 id="step-3-walk-the-engineering-share">Step 3: Walk the Engineering Share</h3>
+<p><code>netexec</code> told us WHICH shares are reachable; <code>smbclient</code> lets us browse them interactively. The interactive shell is faster than running 20 separate commands when you are exploring a directory tree.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Browse the Engineering share</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>smbclient<span class="w"> </span>//corp-dc01/Engineering<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span>
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>//corp-dc01/Engineering</code> UNC path: <code>//&lt;host&gt;/&lt;share&gt;</code>. NetBIOS name resolution comes from the lab's DNS (the DC), so <code>corp-dc01</code> resolves to the right IP if your <code>/etc/resolv.conf</code> points at it; otherwise use the literal IP.</li>
+<li><code>-U "CORP\j.chen%Welcome2026#"</code> credential bundle. Format: <code>DOMAIN\user%password</code>. The backslash needs no escaping inside double quotes for bash.</li>
+</ul>
+<p>Once connected, you land at the <code>smb: \&gt;</code> prompt. Useful built-in commands:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ls</code></td>
+<td>List the current directory.</td>
+</tr>
+<tr>
+<td><code>cd &lt;path&gt;</code></td>
+<td>Change directory. Use forward slashes; backslashes work too.</td>
+</tr>
+<tr>
+<td><code>recurse on</code></td>
+<td>Toggle recursive operations for subsequent <code>ls</code>/<code>mget</code>.</td>
+</tr>
+<tr>
+<td><code>prompt off</code></td>
+<td>Disable per-file confirmation on bulk operations.</td>
+</tr>
+<tr>
+<td><code>mget *</code></td>
+<td>Download every file in current directory to local CWD.</td>
+</tr>
+<tr>
+<td><code>more &lt;file&gt;</code></td>
+<td>Page a file inline without downloading.</td>
+</tr>
+<tr>
+<td><code>exit</code> or <code>quit</code></td>
+<td>Leave the prompt.</td>
+</tr>
+</tbody>
+</table>
+<p>Walk the directory tree:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ls
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>cd Handovers
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>ls
+</code></pre></div>
+<p>The Handovers directory holds the per-quarter notes engineering teams typically forget to clean up. One file in there has your token in its filename.</p>
+</div>
+<h3 id="step-4-filter-to-your-token">Step 4: Filter to Your Token</h3>
+<p>Walking the entire directory tree by hand is fine for a small share. For a real engagement with hundreds of files, use the non-interactive form of <code>smbclient</code> and let glob matching do the filtering.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Find your file with one smbclient command</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>smbclient<span class="w"> </span>//corp-dc01/Engineering<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;cd Handovers; ls *</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">*&quot;</span>
+</code></pre></div>
+<p>What is new on this invocation:</p>
+<ul>
+<li><code>-c "..."</code> non-interactive command string. <code>smbclient</code> runs the semicolon-separated commands and exits, instead of dropping into the interactive prompt. Same shell built-ins as the interactive mode work.</li>
+<li><code>ls *${OCR_SCOPE_TOKEN}*</code> shell-glob filter. The <code>*</code> wildcards match any chars; the variable is expanded by BASH (not by smbclient) before the command is sent. So if your token is <code>j001</code>, the literal command sent is <code>ls *j001*</code>.</li>
+</ul>
+<p>The output shows exactly one matching file: <code>engineering_handover_&lt;token&gt;.txt</code>.</p>
+</div>
+<h3 id="step-5-download-and-read">Step 5: Download and Read</h3>
+<p>Same non-interactive <code>smbclient</code> pattern, but this time use <code>get</code> to pull the file to local disk, then <code>cat</code> it.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Get the file</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>smbclient<span class="w"> </span>//corp-dc01/Engineering<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;cd Handovers; get engineering_handover_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">.txt&quot;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>cat<span class="w"> </span>engineering_handover_<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span>.txt
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>get &lt;remote-name&gt;</code> download a file from the share to your current local directory. To save under a different name use <code>get &lt;remote&gt; &lt;local&gt;</code>.</li>
+<li>The variable expansion happens in the BASH layer, not the SMB layer; if <code>OCR_SCOPE_TOKEN</code> is unset, the path becomes <code>engineering_handover_.txt</code> and <code>get</code> will return <code>NT_STATUS_OBJECT_NAME_NOT_FOUND</code>.</li>
+<li><code>cat</code> is the standard Unix file printer; nothing SMB-specific.</li>
+</ul>
+<p>The flag string appears inside the file. Submit it on the platform. The flag has the form <code>OCR{&lt;shares_as_directory_listings_theme&gt;}</code> for this exercise, distinct from any other exercise's flag.</p>
+</div>
+<h3 id="step-6-try-the-mass-spider-approach-bonus">Step 6: Try the Mass-Spider Approach (Bonus)</h3>
+<p>When you do not know the filename pattern (which is the realistic case in a fresh engagement), grep file CONTENTS instead of names. <code>manspider</code> is purpose-built for this: it spiders every reachable share, opens supported file types, and runs your regex against the content.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Mass content search across the Engineering share</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>manspider<span class="w"> </span>&lt;fileserver_ip&gt;<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span>--content<span class="w"> </span><span class="s2">&quot;OCR\{smb_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-e<span class="w"> </span>txt
+</code></pre></div>
+<p>What each option does:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;fileserver_ip&gt;</code></td>
+<td>Target host. Accepts CIDR for multi-host sweeps.</td>
+</tr>
+<tr>
+<td><code>-u</code>, <code>-p</code>, <code>-d</code></td>
+<td>Same credentials as smbclient/netexec.</td>
+</tr>
+<tr>
+<td><code>--content "&lt;regex&gt;"</code></td>
+<td>Regex to match file contents. Supports the full Python <code>re</code> syntax.</td>
+</tr>
+<tr>
+<td><code>-e txt</code></td>
+<td>Restrict to .txt extension. Add more with comma: <code>-e txt,docx,xlsx,csv,ini</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Other flags worth knowing:</p>
+<ul>
+<li><code>-d corp.nordport.local</code>: the domain (already shown above; included in the comparison only if you confuse it with the manspider <code>-d</code> for "search depth").</li>
+<li><code>--depth 5</code>: limit recursion depth. Default is unlimited; for very deep shares this prevents runaway scans.</li>
+<li><code>--exclude-shares ADMIN$,C$,IPC$</code>: skip the noisy admin shares. Default behaviour skips <code>IPC$</code> already.</li>
+</ul>
+<p>Manspider returns the file path that contains the matching string. Both approaches (filename glob in step 4, content regex here) reach the same answer; the second one scales when you do not yet know the filename pattern.</p>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>Share enumeration and bulk file reads are noisy at the file-server log level even though they look benign on the wire. A SOC pulling the Security log can spot a wide spider in minutes. The mapping below shows what each step lights up.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connect to share</td>
+<td>5140</td>
+<td>File server Security log</td>
+</tr>
+<tr>
+<td>File access (object access auditing)</td>
+<td>4663</td>
+<td>File server Security log</td>
+</tr>
+<tr>
+<td>Detailed file access</td>
+<td>5145</td>
+<td>File server Security log</td>
+</tr>
+<tr>
+<td>Failed share access</td>
+<td>5140 + 4625</td>
+<td>File server Security log</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Why a manspider sweep stands out</p>
+<p>A manspider against a single share generates one 5140 per file plus a 4663 burst. On a healthy share with 5,000 files the audit log gains ~10,000 entries in under a minute, which is the same volume a backup agent generates over four hours. SOCs that baseline events per identity per minute on file servers catch the burst.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>Defenders cannot disable SMB without breaking file services, but they can shrink the attack surface significantly. The list below is the practical checklist.</p>
+<div class="admonition tip">
+<p class="admonition-title">What would have stopped this exercise</p>
+<ul>
+<li>Scope <code>Domain Users</code> off the Engineering share; replace with <code>Engineering_All</code>.</li>
+<li>Enforce <strong>Object Access auditing</strong> on file servers and ship 4663/5140/5145 to the SIEM.</li>
+<li>Run quarterly internal <code>manspider</code> against all readable shares with a credential-pattern regex; remove or quarantine matches.</li>
+<li>Disable <strong>SMB1</strong> entirely (<code>Set-SmbServerConfiguration -EnableSMB1Protocol $false</code>).</li>
+<li>Require <strong>SMB signing</strong> on all servers and enforce it via Group Policy.</li>
+<li>Tag stale shares with a 30-day archival lifecycle so <code>Backup-Old</code> and <code>Archives</code> cannot accumulate forever.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Shares with read access on corp-dc01:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Share</th>
+<th>Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Filename containing your token:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>(filename here)
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(OCR{...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The <code>Engineering</code> share allows read for <code>Domain Users</code>. From a defender's perspective, what makes that configuration risky, and what is the standard mitigation?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Granting read on a department share to all <code>Domain Users</code> means every authenticated user in the company, including freshly hired junior staff, contractors, and any compromised account, can read every file. Engineering teams routinely place onboarding docs, deploy scripts, vendor lists, and partial credentials on those shares. The standard mitigation is <strong>least-privileged share scoping</strong>: each share is restricted to a department-specific group (<code>Engineering_All</code>) rather than <code>Domain Users</code>, NTFS permissions match, and the share contents are audited periodically with tools like <code>manspider</code> against a regex of common credential patterns. A defender who ran <code>manspider --content "password"</code> against their own shares quarterly would catch most of these leaks.</p>
+</details>
+<p><strong>2. <code>manspider</code> matches against file contents, including binary files like <code>.docx</code> and <code>.xlsx</code>. How does it read inside those compressed Office formats?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p><code>.docx</code>, <code>.xlsx</code>, <code>.pptx</code> are zip archives containing XML files (<code>word/document.xml</code>, <code>xl/sharedStrings.xml</code>, etc.). Manspider unzips each file in memory, concatenates the XML content, and runs the regex against the concatenated text. Older <code>.doc</code> and <code>.xls</code> formats use a binary OLE container, for which manspider relies on a converter (<code>olefile</code> or <code>antiword</code> style libraries). PDFs are extracted with <code>pdftotext</code> under the hood. Encrypted Office documents will not match because the inner XML is encrypted at rest; manspider cannot search them without a known password.</p>
+</details>
+<p><strong>3. You have read access on the <code>IT-Tools</code> share. Name three patterns to grep for that frequently surface credentials.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p><code>password\s*=</code>, <code>password:\s*</code>, <code>pwd:</code>; match config files and shell scripts. <code>cpassword</code>; the Group Policy Preferences AES-encrypted password attribute (legacy, but still found). <code>connectionString=</code> and <code>DSN=</code>; ODBC and ADO.NET connection strings often embed plaintext passwords. Bonus targets: <code>BEGIN OPENSSH PRIVATE KEY</code>, <code>aws_secret_access_key</code>, <code>client_secret</code>, <code>Authorization: Basic</code>. Combine with manspider's <code>--content</code> flag in a regex alternation: <code>--content "password\s*=|cpassword|connectionString=|client_secret"</code>.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>SMB share enumeration is the highest-yield activity in the first hour of an AD engagement.</li>
+<li><code>netexec --shares</code> gives a clean inventory; <code>smbclient</code> browses interactively; <code>manspider</code> greps at scale.</li>
+<li>Two permission layers (share + NTFS) determine effective access; the most restrictive wins.</li>
+<li><code>recurse on; prompt off; mget *</code> is the smbclient idiom to mirror a share to local disk.</li>
+<li>Tools that grep inside <code>.docx</code> and <code>.xlsx</code> work because those formats are zipped XML.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below are the SMB tour, condensed. Run them on every host that exposes 445 in the first 30 minutes of any AD engagement.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inventory shares with permission masks</td>
+<td><code>netexec smb &lt;host&gt; -u &lt;user&gt; -p '&lt;pw&gt;' -d &lt;domain&gt; --shares</code></td>
+</tr>
+<tr>
+<td>Browse a share interactively</td>
+<td><code>smbclient //&lt;host&gt;/&lt;share&gt; -U "&lt;DOMAIN&gt;\&lt;user&gt;%&lt;pw&gt;"</code></td>
+</tr>
+<tr>
+<td>Mirror a share to local disk</td>
+<td><code>smbclient //&lt;host&gt;/&lt;share&gt; -U "..." -c "recurse on; prompt off; mget *"</code></td>
+</tr>
+<tr>
+<td>Grep file contents at scale</td>
+<td><code>manspider &lt;host&gt; -u &lt;user&gt; -p '&lt;pw&gt;' -d &lt;domain&gt; --content "&lt;regex&gt;" -e txt,ini,xml,docx,xlsx</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: netexec Share Enumeration</strong></p>
+<p>Q: Write the netexec command to list shares on <code>10.10.10.10</code> for <code>corp.local</code> as <code>j.smith</code> / <code>Pass#</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span><span class="m">10</span>.10.10.10<span class="w"> </span>-u<span class="w"> </span>j.smith<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Pass#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.local<span class="w"> </span>--shares
+</code></pre></div>
+<p>Add <code>--filter-shares READ,WRITE</code> to show only shares with at least read access.</p>
+</details>
+<p><strong>Card 2: smbclient One-Liner Mirror</strong></p>
+<p>Q: Write the smbclient command that recursively downloads all files from <code>\\srv01\Backup-Old</code> using <code>corp.local\j.smith</code> / <code>Pass#</code> to your current directory.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>smbclient<span class="w"> </span>//srv01/Backup-Old<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.smith%Pass#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;recurse on; prompt off; mget *&quot;</span>
+</code></pre></div>
+<p><code>recurse on</code> enables descent into subdirectories. <code>prompt off</code> skips the per-file confirmation. <code>mget *</code> downloads everything in the current remote directory.</p>
+</details>
+<p><strong>Card 3: manspider for Credential Hunt</strong></p>
+<p>Q: Write the manspider command to search every reachable share on <code>10.10.10.10</code> for the substring "password=" inside <code>.txt</code>, <code>.ini</code>, <code>.xml</code>, and <code>.config</code> files.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>manspider<span class="w"> </span><span class="m">10</span>.10.10.10<span class="w"> </span>-u<span class="w"> </span>j.smith<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Pass#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span>--content<span class="w"> </span><span class="s2">&quot;password=&quot;</span><span class="w"> </span>-e<span class="w"> </span>txt,ini,xml,config
+</code></pre></div>
+<p>Add multiple patterns with <code>|</code>: <code>--content "password=|cpassword|client_secret"</code>.</p>
+</details>
+<p><strong>Card 4: Effective Permission Rule</strong></p>
+<p>Q: A share grants <code>Full Control</code> to <code>Domain Users</code> but the underlying NTFS permission grants only <code>Read</code>. What can a domain user do?</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>Read</code> only. The effective permission is the <strong>most restrictive</strong> of share and NTFS. The share-level permission gates SMB-layer access; the NTFS permission gates filesystem-layer access. Both must permit an action for it to succeed. Defenders often leave share-level permissions wide (<code>Full Control</code> to <code>Everyone</code>) and rely on NTFS to do the gating, which works but is harder to audit.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

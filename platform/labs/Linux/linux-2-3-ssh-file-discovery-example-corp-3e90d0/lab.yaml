@@ -1,0 +1,49 @@
+name: SSH File Discovery
+description: Your assessment of Example Corp continues with file system exploration.
+  After gaining SSH access, enumerate the host beyond the home directory and recover
+  the secret left behind in a web backup file.
+difficulty: beginner
+category: post-exploitation
+duration_minutes: 120
+objectives:
+- Navigate the Linux file system after authentication
+- Search for files using the find command
+- Explore directories beyond the home directory
+- Identify readable sensitive files
+- Capture the flag
+scenario: Your assessment of Example Corp continues with file system exploration.
+  After gaining SSH access, enumerate the host beyond the home directory and recover
+  the secret left behind in a web backup file.
+flag: OCR{8aac3344d366}
+credentials:
+- username: webadmin
+  password: WebServer2024#
+  role: ssh-user
+  description: SSH login
+topology:
+  nodes:
+  - id: target
+    label: target
+    type: server
+    ip_offset: '10'
+    ports:
+    - 22
+    services:
+    - OpenSSH
+  edges: []
+hostnames:
+- corp-web
+visibility: draft
+test:
+  steps:
+  - name: Verify SSH port is open
+    command: nc -z -w 5 {target.target} 22 && echo 'port_open'
+    expect: port_open
+  - name: SSH banner check
+    command: nc -w 5 {target.target} 22 </dev/null | head -1
+    expect: SSH
+  - name: SSH login and retrieve flag from web backups
+    command: sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o
+      UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'cat /var/www/html/backups/deployment_notes.txt
+      2>/dev/null || grep -r OCR /var/www/ 2>/dev/null' 2>/dev/null
+    expect: OCR{8aac3344d366}

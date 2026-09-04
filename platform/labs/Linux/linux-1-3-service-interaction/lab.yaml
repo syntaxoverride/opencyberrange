@@ -1,0 +1,440 @@
+name: Service Interaction
+description: TechStart's enumeration reveals services that require direct interaction. Port scanning alone isn't enough-you must connect to services to gather complete information.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Understand limitations of port scanning
+  - Connect directly to services for deeper enumeration
+  - Use FTP client for service interaction
+  - Gather information beyond nmap banners
+  - Capture the flag
+
+scenario: |
+  Your TechStart penetration test has revealed that some services don't expose all
+  information through port scans alone. Sarah Chen wants you to demonstrate
+  thorough enumeration techniques that go beyond basic scanning.
+
+  Port scanners like nmap provide excellent initial reconnaissance, but they have
+  limitations. Some services only reveal detailed information after authentication,
+  during the connection handshake, or through interactive sessions. Complete
+  enumeration requires actually connecting to services.
+
+  Your objective: Connect directly to TechStart's services to gather information
+  that isn't visible in port scans. Use appropriate client tools to interact with
+  services and retrieve complete banner and configuration details.
+
+flag: "OCR{ftp_1nt3r4ct}"
+
+hints:
+  - text: |
+      **Service Interaction** goes beyond passive port scanning:
+
+      **Limitations of port scanning:**
+      - **Banner sampling**: nmap may not retrieve complete banners
+      - **Pre-authentication**: Some info only appears after connecting
+      - **Welcome messages**: MOTD and greetings require full connection
+      - **Interactive prompts**: Services reveal details during interaction
+      - **Timeout limitations**: Quick scans miss delayed messages
+
+      **Why direct connection is necessary:**
+      - **Complete banners**: Full welcome messages and MOTD
+      - **Service behavior**: How services respond to commands
+      - **Error messages**: Reveal software versions and configurations
+      - **Authentication methods**: What credentials are accepted
+      - **Custom configurations**: Organization-specific messages
+
+      **Common services requiring interaction:**
+      - **FTP (21)**: Welcome banner after connection
+      - **SSH (22)**: Pre-authentication banner and MOTD
+      - **SMTP (25)**: EHLO/HELO response reveals capabilities
+      - **HTTP (80)**: Full response headers and content
+      - **Telnet (23)**: Login prompt and system information
+      - **Databases**: Version info in connection handshake
+
+      **Interaction methods:**
+      - **Protocol-specific clients**: ftp, ssh, mysql, psql, etc.
+      - **Generic clients**: netcat (nc), telnet
+      - **Automated tools**: Scripts for repeated interactions
+      - **Manual testing**: Direct command-line interaction
+
+      **Information gathering strategy:**
+      1. Port scan identifies services
+      2. Connect using appropriate client
+      3. Observe connection banner/welcome
+      4. Test basic commands
+      5. Document all responses
+      6. Note differences from scan results
+
+      Direct service interaction reveals information invisible to port scans.
+    unlock_after_minutes: 0
+
+  - text: |
+      **FTP (File Transfer Protocol)** is a common service requiring interaction:
+
+      **FTP basics:**
+      - **Port**: TCP 21 (control), TCP 20 (data)
+      - **Purpose**: File upload/download and directory management
+      - **Authentication**: Username/password or anonymous
+      - **Modes**: Active and passive
+      - **Common servers**: ProFTPD, vsftpd, Pure-FTPd
+
+      **FTP enumeration value:**
+      - **Welcome banners**: Often contain system info
+      - **Anonymous access**: May allow unauthenticated browsing
+      - **Directory listings**: Reveal file structure
+      - **MOTD**: Message of the day with custom info
+      - **Server version**: Exposed in banner
+      - **OS information**: Banner may reveal operating system
+
+      **FTP commands:**
+      - `USER <username>`: Specify username
+      - `PASS <password>`: Provide password
+      - `SYST`: Display system type
+      - `LIST`: List directory contents
+      - `RETR <file>`: Download file
+      - `QUIT`: Close connection
+
+      **FTP client usage:**
+      ```bash
+      ftp <target>
+      ```
+      - Opens interactive FTP session
+      - Displays server welcome banner
+      - Prompts for credentials
+      - Allows command execution
+
+      **Anonymous FTP:**
+      Many FTP servers allow anonymous access:
+      - Username: `anonymous`
+      - Password: (any email or blank)
+      - Useful for reconnaissance
+      - May expose public files
+
+      **Banner analysis:**
+      FTP servers often display:
+      - Server software and version
+      - Organization name
+      - System information
+      - Custom welcome messages
+      - Security warnings or notices
+
+      **nmap vs direct connection:**
+      - **nmap**: May show "ftp ProFTPD 1.3.5" (basic version)
+      - **FTP client**: Shows complete welcome message with detailed info
+
+      FTP interaction reveals significantly more information than port scanning.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Connecting to FTP services** for complete enumeration:
+
+      **Step 1: Identify FTP service**
+      ```bash
+      nmap -p 21 -sV <target>
+      ```
+      - Confirms FTP is running
+      - Shows basic version information
+      - May not reveal complete banner
+
+      **Step 2: Connect with FTP client**
+      ```bash
+      ftp <target>
+      ```
+      or
+      ```bash
+      ftp <target> 21
+      ```
+      - Initiates full FTP connection
+      - Triggers server welcome message
+      - Displays complete banner
+
+      **Step 3: Observe welcome banner**
+      ```
+      Connected to <target>.
+      220 Welcome to TechStart FTP Server
+      220 ProFTPD 1.3.5 Server
+      220 [Additional information here]
+      Name (<target>:user):
+      ```
+      - First messages (220 codes) are welcome banner
+      - May contain multiple lines
+      - Read ALL lines before entering credentials
+
+      **Step 4: Test anonymous access**
+      ```
+      Name: anonymous
+      Password: (press Enter or type email)
+      ```
+      - Common first attempt
+      - Often allowed for public access
+      - Reveals if anonymous login is enabled
+
+      **Step 5: Enumerate after connection**
+      If login successful:
+      ```
+      ftp> SYST
+      ftp> LIST
+      ftp> pwd
+      ftp> ls -la
+      ftp> quit
+      ```
+
+      **What to document:**
+      - **Complete welcome banner** (all 220 lines)
+      - **Server software** and version
+      - **Organization name** in banner
+      - **Custom messages** or MOTD
+      - **Anonymous access** (allowed or denied)
+      - **Available commands** after login
+
+      **Comparison:**
+      - **Port scan**: "21/tcp open ftp ProFTPD 1.3.5"
+      - **Direct connection**: Full multi-line welcome with custom messages
+
+      Direct FTP connection reveals information that nmap cannot capture.
+    unlock_after_minutes: 10
+
+  - text: |
+      **FTP client syntax** for TechStart enumeration:
+
+      **Basic FTP connection:**
+      ```bash
+      ftp <target>
+      ```
+      - Connects to FTP server on default port 21
+      - Displays server welcome banner
+      - Prompts for username
+
+      **Specifying port explicitly:**
+      ```bash
+      ftp <target> 21
+      ```
+
+      **Alternative connection method with netcat:**
+      ```bash
+      nc <target> 21
+      ```
+      - Shows raw FTP banner
+      - Less user-friendly but works for quick checks
+      - Useful when FTP client unavailable
+
+      **Telnet as FTP banner grabber:**
+      ```bash
+      telnet <target> 21
+      ```
+      - Displays FTP welcome banner
+      - Allows manual command entry
+      - Good for banner enumeration
+
+      **Full FTP client workflow:**
+      ```bash
+      $ ftp <target_ip>
+      Connected to <target_ip>.
+      220-======================================
+      220-Welcome to TechStart FTP Server
+      220-======================================
+      220-ProFTPD 1.3.5 Server (TechStart)
+      220-[additional information]
+      220
+      Name (<target_ip>:user): anonymous
+      331 Anonymous login ok, send your complete email address as your password
+      Password:
+      230 Anonymous access granted, restrictions apply
+      ftp> quit
+      221 Goodbye.
+      ```
+
+      **Key points:**
+      - **220 lines**: Server welcome banner (read all of them)
+      - **Name prompt**: After banner, server asks for username
+      - **Try anonymous**: Common reconnaissance technique
+      - **Read everything**: Don't skip any server output
+
+      **Banner reading strategy:**
+      1. Connect with `ftp <target>`
+      2. Wait for ALL 220 lines to appear
+      3. Read complete welcome message
+      4. Document custom information
+      5. Try anonymous login if appropriate
+      6. Type `quit` to disconnect cleanly
+
+      **What makes FTP banners valuable:**
+      - Custom welcome messages from administrators
+      - Organization-specific information
+      - Server configuration details
+      - System information not in nmap scans
+      - Hidden messages or Easter eggs
+
+      The FTP welcome banner contains information beyond what port scanning reveals.
+    unlock_after_minutes: 15
+
+  - text: |
+      To gather complete FTP information from TechStart's server:
+
+      **Command to use:**
+      ```bash
+      ftp <target>
+      ```
+
+      **What will happen:**
+      1. FTP client connects to server
+      2. Server sends complete welcome banner
+      3. Banner may contain multiple lines (220 codes)
+      4. Server prompts for username
+      5. You can test anonymous access or quit
+
+      **Expected interaction:**
+      ```bash
+      $ ftp <target>
+      Connected to <target>.
+      220-[Welcome message line 1]
+      220-[Welcome message line 2]
+      220-[Additional information]
+      220 [Final banner line]
+      Name (<target>:user):
+      ```
+
+      **Banner analysis:**
+      - **220 code**: Each line starting with 220 is part of welcome
+      - **Multiple lines**: Banner may span several lines
+      - **Custom content**: Organizations add their own messages
+      - **Complete reading**: Read ALL 220 lines before proceeding
+
+      **After reading banner:**
+      You can:
+      - Type `anonymous` to test anonymous login
+      - Press Ctrl+C to disconnect
+      - Type a username if you have credentials
+      - Simply observe the banner and quit
+
+      **Important notes:**
+      - The flag is in the **FTP welcome banner**
+      - The banner appears **before** the username prompt
+      - You must **connect** to see it (nmap scan is insufficient)
+      - Read the **complete** banner (all lines)
+
+      **Why nmap wasn't enough:**
+      - nmap performs quick service probes
+      - May not retrieve multi-line welcome banners
+      - FTP client performs full protocol handshake
+      - Reveals complete server welcome message
+
+      **Workflow:**
+      1. Run `ftp <target>`
+      2. Wait for connection to establish
+      3. Read ALL welcome banner lines (220 codes)
+      4. Document the complete banner
+      5. The flag will be visible in the banner text
+
+      Direct FTP connection is required to see the complete welcome banner.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful FTP service interaction:
+
+      ```bash
+      $ ftp <target_ip>
+
+      Connected to <target_ip>.
+      220-======================================
+      220-   TechStart FTP Server
+      220-======================================
+      220-Welcome to the TechStart file transfer service
+      220-This server is for authorized use only
+      220-
+      220-Server: ProFTPD 1.3.5
+      220-Flag: OCR{...}
+      220-
+      220-For support contact: it@techstart.local
+      220 ProFTPD 1.3.5 Server ready.
+      Name (<target_ip>:user): quit
+      221 Goodbye.
+      ```
+
+      **Flag location: FTP welcome banner**
+      - **Line 7**: `220-Flag: OCR{...}`
+      - Appears in multi-line welcome banner
+      - Visible immediately upon connection
+      - Before username prompt
+
+      **Banner analysis:**
+
+      **Lines 1-3**: Header with organization name
+      ```
+      220-======================================
+      220-   TechStart FTP Server
+      220-======================================
+      ```
+
+      **Lines 4-6**: Welcome message and notice
+      ```
+      220-Welcome to the TechStart file transfer service
+      220-This server is for authorized use only
+      220-
+      ```
+
+      **Lines 7-9**: Server details and FLAG
+      ```
+      220-Server: ProFTPD 1.3.5
+      220-Flag: OCR{...}
+      220-
+      ```
+
+      **Lines 10-11**: Contact and ready message
+      ```
+      220-For support contact: it@techstart.local
+      220 ProFTPD 1.3.5 Server ready.
+      ```
+
+      **Critical lesson:**
+      This exercise demonstrates that **port scanning alone is insufficient**:
+
+      **nmap scan would show:**
+      ```
+      21/tcp open  ftp     ProFTPD 1.3.5
+      ```
+      - Basic service identification
+      - Version number
+      - NO custom banner content
+      - NO flag
+
+      **FTP client connection reveals:**
+      - Complete welcome banner (11 lines)
+      - Organization name and branding
+      - Custom messages and notices
+      - Server configuration details
+      - **The flag** embedded in banner
+
+      **Professional enumeration requires:**
+      1. **Initial scanning**: Identify services with nmap
+      2. **Service interaction**: Connect with appropriate clients
+      3. **Banner analysis**: Read complete welcome messages
+      4. **Documentation**: Record all information
+      5. **Comparison**: Note differences from scan results
+
+      **Other services requiring interaction:**
+      - **SSH**: `ssh user@target` (pre-auth banner, MOTD after login)
+      - **SMTP**: `telnet target 25` then `EHLO test`
+      - **HTTP**: `curl -v target` (full headers)
+      - **MySQL**: `mysql -h target` (connection banner)
+
+      The flag appears in the FTP welcome banner, which is only visible through direct connection.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/linpt/CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/"
+
+test:
+  steps:
+    - name: "Verify FTP port is open"
+      command: "nc -z -w 5 {target.target} 21 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Detect FTP service with nmap"
+      command: "nmap -Pn -n -p 21 -sV {target.target} 2>&1"
+      expect: "ftp"
+    - name: "Grab FTP banner via netcat"
+      command: "nc -w 5 {target.target} 21 </dev/null 2>&1"
+      expect: "ProFTPD"
+    - name: "Retrieve flag from FTP welcome banner"
+      command: "nc -w 5 {target.target} 21 </dev/null 2>&1 | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{ftp_1nt3r4ct}"

@@ -1,0 +1,524 @@
+name: LDAP Base DN Enumeration
+description: Enumerate base DN and root DSE on FinanceCorp's Active Directory to understand domain structure.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - enumerate base dn and root dse
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your anonymous LDAP bind testing for FinanceCorp has been successful. James Mitchell 
+  wants to understand the domain structure by enumerating the base Distinguished Name 
+  (DN) and root DSE information.
+  
+  Base DN enumeration provides critical information about Active Directory structure, 
+  which is essential for understanding the domain organization. FinanceCorp needs to 
+  know if this information is exposed through LDAP.
+  
+  Your objective: Enumerate the base DN and root DSE information from FinanceCorp's 
+  Active Directory. Document the domain structure and naming context to understand 
+  the directory organization.
+
+flag: "OCR{ldap_b4s3_dn}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Base DN and Root DSE
+
+      ### What Is a Distinguished Name (DN)?
+
+      In LDAP, every entry has a unique identifier called a **Distinguished
+      Name (DN)**. Think of it like a full file path in a filesystem:
+
+      ```
+      Filesystem:  /home/users/jmitchell/documents
+      LDAP DN:     cn=jmitchell,ou=Users,dc=financecorp,dc=local
+      ```
+
+      A DN is read **right to left**, from the most general to the most
+      specific component:
+
+      | Component | Meaning                    | Example                |
+      |-----------|----------------------------|------------------------|
+      | `dc`      | Domain Component           | `dc=financecorp`       |
+      | `ou`      | Organizational Unit        | `ou=Users`             |
+      | `cn`      | Common Name                | `cn=jmitchell`         |
+      | `uid`     | User ID                    | `uid=jmitchell`        |
+
+      ### What Is the Base DN?
+
+      The **Base DN** is the root of the LDAP directory tree. It defines
+      the top-level entry from which all searches start. For a domain
+      like `financecorp.local`, the Base DN would be:
+
+      ```
+      dc=financecorp,dc=local
+      ```
+
+      Knowing the Base DN is **essential** for any further LDAP enumeration.
+      Without it, you cannot construct queries to search for users, groups,
+      or other objects.
+
+      ### What Is the Root DSE?
+
+      The **Root DSE** (DSA-Specific Entry) is a special entry at the very
+      top of the LDAP tree (accessed with an empty base DN: `""`). It
+      contains metadata about the LDAP server itself:
+
+      - **namingContexts** -- Lists all Base DNs the server holds
+      - **supportedLDAPVersion** -- Protocol versions supported
+      - **supportedSASLMechanisms** -- Authentication methods available
+      - **supportedControl** -- LDAP controls the server supports
+      - **supportedExtension** -- Extended operations available
+      - **subschemaSubentry** -- Location of schema definitions
+
+      ### Why This Matters for Penetration Testing
+
+      The Base DN is the **key that unlocks** the rest of LDAP enumeration.
+      Once you know the Base DN, you can enumerate users, groups,
+      organizational units, and the entire directory structure.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tool Introduction: Querying the Root DSE
+
+      ### ldapsearch for Root DSE Queries
+
+      The Root DSE is queried using a special ldapsearch syntax with an
+      **empty base DN** and **base scope**:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+      Breakdown:
+
+      - `-x` -- Simple authentication (anonymous bind)
+      - `-H ldap://<target>` -- Target LDAP server
+      - `-b ""` -- Empty base DN (Root DSE)
+      - `-s base` -- Base scope (only the Root DSE entry itself)
+
+      ### Requesting Specific Root DSE Attributes
+
+      You can request specific attributes from the Root DSE:
+
+      ```bash
+      # Get naming contexts (Base DNs)
+      ldapsearch -x -H ldap://<target> -b "" -s base namingContexts
+
+      # Get supported LDAP versions
+      ldapsearch -x -H ldap://<target> -b "" -s base supportedLDAPVersion
+
+      # Get all operational attributes
+      ldapsearch -x -H ldap://<target> -b "" -s base "+"
+
+      # Get all user attributes
+      ldapsearch -x -H ldap://<target> -b "" -s base "*"
+
+      # Get everything (operational + user attributes)
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      ### Understanding Attribute Types
+
+      LDAP has two categories of attributes:
+
+      - **User attributes** (requested with `*`) -- Normal data attributes
+        like `cn`, `mail`, `description`
+      - **Operational attributes** (requested with `+`) -- Server-managed
+        metadata like `namingContexts`, `supportedLDAPVersion`,
+        `subschemaSubentry`
+
+      The `namingContexts` attribute is an **operational attribute**, so
+      you may need to explicitly request it with `+` or by name.
+
+      ### Using nmap for Root DSE
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+      The `ldap-rootdse` NSE script automatically queries the Root DSE
+      and displays all available attributes in a formatted output.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Deeper Context: namingContexts and Directory Structure
+
+      ### How namingContexts Reveals the Domain
+
+      The `namingContexts` attribute in the Root DSE tells you exactly
+      which directory partitions the server holds. For a typical OpenLDAP
+      server, you might see:
+
+      ```
+      namingContexts: dc=financecorp,dc=local
+      ```
+
+      For an Active Directory server, you would see multiple contexts:
+
+      ```
+      namingContexts: DC=financecorp,DC=local
+      namingContexts: CN=Configuration,DC=financecorp,DC=local
+      namingContexts: CN=Schema,CN=Configuration,DC=financecorp,DC=local
+      namingContexts: DC=DomainDnsZones,DC=financecorp,DC=local
+      namingContexts: DC=ForestDnsZones,DC=financecorp,DC=local
+      ```
+
+      ### Interpreting the Base DN
+
+      A Base DN like `dc=financecorp,dc=local` maps to the DNS domain
+      `financecorp.local`:
+
+      ```
+      dc=financecorp,dc=local  -->  financecorp.local
+      dc=example,dc=com        -->  example.com
+      dc=corp,dc=megacorp,dc=net --> corp.megacorp.net
+      ```
+
+      ### What Else the Root DSE Reveals
+
+      Beyond the Base DN, the Root DSE provides intelligence about the
+      server:
+
+      **supportedSASLMechanisms** -- Tells you what authentication methods
+      are available:
+
+      ```
+      supportedSASLMechanisms: PLAIN
+      supportedSASLMechanisms: LOGIN
+      supportedSASLMechanisms: CRAM-MD5
+      supportedSASLMechanisms: DIGEST-MD5
+      supportedSASLMechanisms: GSSAPI
+      ```
+
+      If `GSSAPI` is listed, Kerberos authentication is supported,
+      indicating a more enterprise-grade setup.
+
+      **supportedControl** -- LDAP controls enable special features:
+
+      - `1.2.840.113556.1.4.319` -- Paged results (important for large queries)
+      - `1.2.840.113556.1.4.805` -- Tree delete
+      - `2.16.840.1.113730.3.4.18` -- Proxied authorization
+
+      ### Using the Base DN for Further Enumeration
+
+      Once you have the Base DN, you can search the entire directory:
+
+      ```bash
+      # List all entries below the Base DN
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" -s sub
+
+      # Search one level below Base DN
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" -s one
+      ```
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install Required Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils nmap
+      ```
+
+      ### Step 2: Confirm LDAP Is Accessible
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      Verify port 389 is open.
+
+      ### Step 3: Query the Root DSE for namingContexts
+
+      This is the core task of this lab -- enumerate the Base DN:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base namingContexts
+      ```
+
+      Look for the `namingContexts` attribute in the output. This gives
+      you the Base DN.
+
+      ### Step 4: Retrieve All Root DSE Information
+
+      Get the complete Root DSE with all attributes:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      Document all returned attributes:
+
+      - namingContexts
+      - supportedLDAPVersion
+      - supportedSASLMechanisms
+      - supportedControl
+      - supportedExtension
+      - subschemaSubentry
+
+      ### Step 5: Use nmap for Additional Root DSE Data
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+      Compare the nmap output with your ldapsearch results to ensure
+      you have not missed any information.
+
+      ### Step 6: Verify the Base DN by Searching Below It
+
+      Use the discovered Base DN to confirm it works:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s one -LLL
+      ```
+
+      This should return the top-level entries (OUs, CNs) under the
+      Base DN.
+
+      ### Step 7: Retrieve the Flag
+
+      Search the directory tree for the flag:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s sub "(objectClass=*)" -LLL
+      ```
+
+      Examine the output for the flag value in entry attributes.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for Base DN Enumeration
+
+      ### Primary Command -- Enumerate namingContexts
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base namingContexts
+      ```
+
+      This is the single most important command for this lab. It queries
+      the Root DSE and requests specifically the `namingContexts` attribute,
+      which reveals the Base DN.
+
+      ### Full Root DSE Dump
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      ### Clean Output Format
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL namingContexts
+      ```
+
+      Expected output:
+
+      ```
+      dn:
+      namingContexts: dc=financecorp,dc=local
+      ```
+
+      ### Query Supported LDAP Version
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base supportedLDAPVersion
+      ```
+
+      ### Query Supported SASL Mechanisms
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base supportedSASLMechanisms
+      ```
+
+      ### Query Schema Location
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base subschemaSubentry
+      ```
+
+      ### Verify Base DN by Listing Top-Level Entries
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s one -LLL dn
+      ```
+
+      This returns only the DNs of entries one level below the Base DN.
+
+      ### nmap Root DSE Script
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+      ### Search for the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s sub "(objectClass=*)" -LLL \
+        | grep -i "OCR{"
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils nmap
+      ```
+
+      ### Step 2: Confirm LDAP Service
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      **Expected output:**
+
+      ```
+      PORT    STATE SERVICE VERSION
+      389/tcp open  ldap    OpenLDAP 2.2.X - 2.4.X
+      ```
+
+      ### Step 3: Enumerate the Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base namingContexts
+      ```
+
+      **Expected output:**
+
+      ```
+      # extended LDIF
+      #
+      # LDAPv3
+      # base <> with scope baseObject
+      # filter: (objectclass=*)
+      # requesting: namingContexts
+      #
+
+      #
+      dn:
+      namingContexts: dc=financecorp,dc=local
+
+      # search result
+      search: 2
+      result: 0 Success
+
+      # numResponses: 2
+      # numEntries: 1
+      ```
+
+      The Base DN is **dc=financecorp,dc=local**.
+
+      ### Step 4: Full Root DSE Enumeration
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      **Expected output includes:**
+
+      ```
+      dn:
+      objectClass: top
+      objectClass: OpenLDAProotDSE
+      namingContexts: dc=financecorp,dc=local
+      supportedLDAPVersion: 3
+      subschemaSubentry: cn=Subschema
+      ```
+
+      ### Step 5: Verify with nmap
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+      **Expected output includes:**
+
+      ```
+      | ldap-rootdse:
+      |   LDAP Results
+      |     <ROOT>
+      |         namingContexts: dc=financecorp,dc=local
+      |         supportedLDAPVersion: 3
+      |_        subschemaSubentry: cn=Subschema
+      ```
+
+      ### Step 6: Confirm by Querying Below the Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s one -LLL dn
+      ```
+
+      **Expected output:**
+
+      ```
+      dn: ou=Users,dc=financecorp,dc=local
+      dn: ou=Groups,dc=financecorp,dc=local
+      ```
+
+      ### Step 7: Find the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s sub "(objectClass=*)" -LLL \
+        | grep -i "OCR{"
+      ```
+
+      The flag `OCR{...}` will be found in the directory entries.
+
+      ### Summary of Discovered Information
+
+      | Attribute                | Value                         |
+      |--------------------------|-------------------------------|
+      | Base DN                  | dc=financecorp,dc=local       |
+      | Domain Name              | financecorp.local             |
+      | LDAP Version             | 3                             |
+      | Schema Location          | cn=Subschema                  |
+      | Anonymous Bind           | Allowed                       |
+      | Top-Level OUs            | Users, Groups                 |
+
+      ### Penetration Testing Report Note
+
+      > **Finding**: Base DN enumeration via Root DSE query reveals the
+      > domain structure `dc=financecorp,dc=local` (financecorp.local).
+      > The Root DSE is accessible without authentication, exposing
+      > naming contexts, supported LDAP versions, SASL mechanisms,
+      > and schema locations. **Risk**: Medium. **Recommendation**:
+      > While Root DSE access is expected per RFC 4512, ensure that
+      > directory data below the Base DN requires authentication.
+
+workbook: "wiki/range/winpt/CH07_LDAP_Enumeration/03_LDAP_Base_DN_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify LDAP port 389 is open"
+      command: "nmap -Pn -p 389 {target.target} | grep '389/tcp'"
+      expect: "open"
+
+    - name: "Enumerate Base DN via Root DSE"
+      command: "ldapsearch -x -H ldap://{target.target} -b '' -s base namingContexts 2>&1 | grep namingContexts"
+      expect: "dc=financecorp,dc=local"
+
+    - name: "LDAP search for flag"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{' || (sleep 3 && ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{')"
+      expect: "OCR{"

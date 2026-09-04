@@ -1,0 +1,432 @@
+name: WinRM Manual Authentication
+description: Test WinRM authentication on FinanceCorp's systems using known credentials to assess access controls.
+difficulty: beginner
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - authenticate to winrm with known credentials
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your enumeration of FinanceCorp's WinRM services has provided configuration 
+  information. James Mitchell wants to test authentication security by attempting 
+  connections with known credentials.
+  
+  Testing WinRM authentication helps identify if weak credentials or misconfigurations 
+  allow unauthorized access. FinanceCorp needs to understand if their authentication 
+  mechanisms are properly secured.
+  
+  Your objective: Test WinRM authentication against FinanceCorp's systems using known 
+  credentials. Attempt manual authentication to assess whether access controls are 
+  functioning correctly.
+
+flag: "OCR{w1nrm_m4nu4l_4uth}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    title: "Understanding WinRM Authentication"
+    text: |
+      ## WinRM Authentication Concepts
+
+      **WinRM authentication** is how a client proves its identity to a
+      Windows Remote Management service before gaining access. Understanding
+      authentication mechanisms is critical for penetration testing.
+
+      ### Authentication Methods in WinRM
+
+      WinRM supports several authentication methods:
+
+      | Method | Description | Security Level |
+      |--------|-------------|---------------|
+      | **Basic** | Username/password in Base64 | Low (cleartext) |
+      | **Negotiate** | NTLM or Kerberos auto-negotiation | Medium-High |
+      | **Kerberos** | Ticket-based domain authentication | High |
+      | **Certificate** | Client certificate authentication | High |
+      | **CredSSP** | Credential delegation | Medium |
+
+      ### Evil-WinRM: The Penetration Tester's Tool
+
+      In real-world penetration testing, **evil-winrm** is the go-to tool
+      for WinRM authentication and exploitation:
+
+      ```bash
+      evil-winrm -i <target> -u username -p password
+      ```
+
+      Evil-WinRM provides:
+      - Interactive PowerShell sessions
+      - File upload/download capabilities
+      - In-memory script execution
+      - DLL loading for advanced attacks
+
+      ### Manual Authentication Concept
+
+      Manual authentication means connecting to a remote management
+      service using known credentials, as opposed to brute forcing or
+      exploiting a vulnerability. This simulates a scenario where you
+      have obtained credentials through:
+      - Social engineering
+      - Password dumps or credential harvesting
+      - Configuration file exposure
+      - Previous exploitation steps
+
+      In this lab, you will authenticate manually using SSH (which
+      simulates the WinRM authentication process).
+
+  - id: 2
+    unlock_after_minutes: 5
+    title: "SSH Authentication Tools and Syntax"
+    text: |
+      ## Tools for Manual Authentication
+
+      ### SSH Client
+
+      The SSH client is the primary tool for remote authentication in
+      this lab environment. It simulates the WinRM manual authentication
+      process.
+
+      **Basic SSH syntax:**
+      ```bash
+      ssh <username>@<target>
+      ```
+
+      **Common SSH options:**
+
+      | Option | Description |
+      |--------|-------------|
+      | `-p <port>` | Connect to a non-standard port |
+      | `-o StrictHostKeyChecking=no` | Skip host key verification |
+      | `-v` | Verbose mode (debugging) |
+      | `-i <key>` | Use a private key file |
+
+      ### sshpass for Non-Interactive Authentication
+
+      When you know the password, `sshpass` allows non-interactive
+      SSH authentication:
+
+      ```bash
+      sshpass -p '<password>' ssh <username>@<target>
+      ```
+
+      ### Evil-WinRM Comparison
+
+      In a real WinRM scenario, you would use:
+      ```bash
+      # Evil-WinRM with password
+      evil-winrm -i <target> -u <username> -p <password>
+
+      # Evil-WinRM with NTLM hash (pass-the-hash)
+      evil-winrm -i <target> -u <username> -H <hash>
+      ```
+
+      In this lab, the SSH connection simulates the same process:
+      ```bash
+      # SSH equivalent (simulating WinRM manual auth)
+      ssh <username>@<target>
+      ```
+
+      ### Key Differences
+
+      - Evil-WinRM gives you a PowerShell prompt
+      - SSH gives you a Bash/shell prompt
+      - Both provide remote command execution
+      - Both require valid credentials
+
+  - id: 3
+    unlock_after_minutes: 10
+    title: "Authentication Best Practices and Context"
+    text: |
+      ## Practical Authentication Techniques
+
+      ### Pre-Authentication Checklist
+
+      Before attempting manual authentication, always:
+
+      1. **Verify the service is running**
+         ```bash
+         nmap -sV -p 22 <target>
+         ```
+
+      2. **Confirm the port is accepting connections**
+         ```bash
+         nc -zv <target> 22
+         ```
+
+      3. **Check for login banners** (may reveal OS/policy info)
+         ```bash
+         ssh -v <username>@<target> 2>&1 | head -20
+         ```
+
+      ### Handling SSH Host Key Warnings
+
+      On first connection, SSH will warn about an unknown host key:
+      ```
+      The authenticity of host '<target>' can't be established.
+      ECDSA key fingerprint is SHA256:xxxxx.
+      Are you sure you want to continue connecting (yes/no)?
+      ```
+
+      In a penetration testing lab, type `yes` to proceed.
+
+      To skip this prompt automatically:
+      ```bash
+      ssh -o StrictHostKeyChecking=no <username>@<target>
+      ```
+
+      ### Credential Format
+
+      For this lab, the credentials are:
+      - **Username:** `admin`
+      - **Password:** `password`
+
+      > **Note:** This lab uses a simpler password than other labs
+      > in this series. Pay attention to the exact credentials.
+
+      ### What to Do After Authentication
+
+      Once authenticated, you have a shell session. Common first steps:
+      ```bash
+      whoami          # Confirm your user identity
+      id              # Check group memberships
+      pwd             # See current directory
+      ls -la          # List files in current directory
+      cat flag.txt    # Read the flag file
+      ```
+
+  - id: 4
+    unlock_after_minutes: 15
+    title: "Step-by-Step Workflow for This Lab"
+    text: |
+      ## Lab Workflow
+
+      ### Step 1: Verify the Target Service
+
+      Confirm SSH is running on port 22:
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      Expected: Port 22 is open with SSH service.
+
+      ### Step 2: Attempt SSH Connection
+
+      Connect using the provided credentials:
+      ```bash
+      ssh admin@<target>
+      ```
+
+      When prompted:
+      - Host key verification: Type `yes`
+      - Password: Enter `password`
+
+      ### Step 3: Verify Access
+
+      Once connected, verify your identity:
+      ```bash
+      whoami
+      ```
+      Expected output: `admin`
+
+      ### Step 4: Locate the Flag
+
+      Check the home directory for the flag:
+      ```bash
+      ls -la /home/admin/
+      ```
+
+      You should see `flag.txt` in the listing.
+
+      ### Step 5: Read the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Step 6: Document and Exit
+
+      Copy the flag value, then exit the session:
+      ```bash
+      exit
+      ```
+
+      ### Troubleshooting
+
+      If authentication fails:
+      - Double-check the username: `admin`
+      - Double-check the password: `password` (NOT password123)
+      - Ensure you are connecting to the correct target IP
+      - Try with verbose mode: `ssh -v admin@<target>`
+
+  - id: 5
+    unlock_after_minutes: 20
+    title: "Exact Commands for This Lab"
+    text: |
+      ## Commands to Complete This Lab
+
+      ### 1. Service Verification
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### 2. Connect with SSH
+
+      ```bash
+      ssh admin@<target>
+      ```
+
+      Accept the host key when prompted (type `yes`).
+
+      Enter password when prompted: `password`
+
+      ### 3. Verify Access and Get Flag
+
+      Once connected, run:
+      ```bash
+      whoami
+      cat /home/admin/flag.txt
+      ```
+
+      ### 4. Exit the Session
+
+      ```bash
+      exit
+      ```
+
+      ### Alternative: Non-Interactive One-Liner
+
+      If you prefer a single command:
+      ```bash
+      sshpass -p 'password' ssh -o StrictHostKeyChecking=no admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+      > **Install sshpass if needed:**
+      > ```bash
+      > apt install sshpass
+      > ```
+
+      ### Important Notes
+
+      - The password for this lab is `password` (NOT `password123`)
+      - The flag is located at `/home/admin/flag.txt`
+      - The flag format is `OCR{...}`
+      - In a real penetration test, you would use evil-winrm:
+        ```bash
+        evil-winrm -i <target> -u admin -p password
+        ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    title: "Complete Solution Walkthrough"
+    text: |
+      ## Full Solution Walkthrough
+
+      ### Step 1: Scan the Target
+
+      ```bash
+      nmap -sV -sC -p 22 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      Starting Nmap 7.94 ( https://nmap.org )
+      Nmap scan report for <target>
+      Host is up (0.001s latency).
+
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu
+      | ssh-hostkey:
+      |   256 xx:xx:xx:xx (ECDSA)
+      |_  256 xx:xx:xx:xx (ED25519)
+      ```
+
+      ### Step 2: Authenticate via SSH
+
+      ```bash
+      ssh admin@<target>
+      ```
+
+      **Expected Interaction:**
+      ```
+      The authenticity of host '<target>' can't be established.
+      ED25519 key fingerprint is SHA256:xxxxx.
+      Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+      Warning: Permanently added '<target>' (ED25519) to the list of known hosts.
+      admin@<target>'s password: [type: password]
+
+      Welcome to Ubuntu 22.04 LTS
+      admin@target:~$
+      ```
+
+      ### Step 3: Retrieve the Flag
+
+      ```bash
+      whoami
+      ```
+      ```
+      admin
+      ```
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+      ```
+      OCR{...}
+      ```
+
+      ### Step 4: Exit
+
+      ```bash
+      exit
+      ```
+      ```
+      Connection to <target> closed.
+      ```
+
+      ### One-Liner Alternative
+
+      ```bash
+      sshpass -p 'password' ssh -o StrictHostKeyChecking=no admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+      **Expected Output:**
+      ```
+      OCR{...}
+      ```
+
+      ### Summary
+
+      | Step | Action | Result |
+      |------|--------|--------|
+      | 1 | Nmap scan port 22 | SSH service detected |
+      | 2 | SSH with admin:password | Authentication successful |
+      | 3 | cat flag.txt | Flag retrieved |
+
+      This lab demonstrates that with valid credentials, manual
+      authentication to remote management services is straightforward.
+      In a real engagement, these credentials might come from password
+      spraying, credential dumps, or social engineering.
+
+credentials:
+  - username: "admin"
+    password: "password"
+    role: "winrm-user"
+    description: "WinRM/SSH admin credentials"
+
+workbook: "wiki/range/winpt/CH05_WinRM_Exploitation/03_WinRM_Manual_Authentication/"
+
+test:
+  steps:
+    - name: "Verify SSH port 22 is open"
+      command: "nmap -Pn -p 22 {target.target} | grep '22/tcp'"
+      expect: "open"
+
+    - name: "Authenticate and verify access via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'whoami'"
+      expect: "admin"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'cat /home/admin/flag.txt'"
+      expect: "OCR{"

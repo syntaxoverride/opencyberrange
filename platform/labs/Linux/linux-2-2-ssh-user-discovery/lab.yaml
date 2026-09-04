@@ -1,0 +1,819 @@
+name: SSH User Discovery
+description: FinanceCorp requires investigation of user account configurations. After SSH authentication, enumerate user-specific information and home directory contents.
+difficulty: beginner
+category: authentication
+duration_minutes: 120
+objectives:
+  - Understand user context after SSH login
+  - Enumerate current user information
+  - Explore user home directory
+  - Identify user-specific files and configurations
+  - Capture the flag
+
+scenario: |
+  Your FinanceCorp penetration test continues with deeper investigation of user
+  accounts. James Mitchell wants you to demonstrate the risks of weak user account
+  security and information accessible to authenticated users.
+
+  When you successfully authenticate via SSH, you're placed in a specific user
+  context with access to that user's files, configurations, and permissions. User
+  home directories often contain:
+  - Configuration files (.bashrc, .bash_profile, .ssh/config)
+  - SSH keys (.ssh/id_rsa, .ssh/id_rsa.pub)
+  - History files (.bash_history, .mysql_history)
+  - Personal files and documents
+  - Application credentials and tokens
+  - Notes and temporary files
+
+  Sometimes users store sensitive information in their home directories, including:
+  - Passwords in notes or scripts
+  - SSH keys for other systems
+  - Database credentials
+  - API keys and tokens
+  - Internal documentation
+  - Backup files with sensitive data
+
+  Your objective: Authenticate to FinanceCorp's SSH server and enumerate the user
+  account. Investigate user-specific information, home directory contents, and any
+  files that reveal additional intelligence about the system or user.
+
+  **Test Credentials:**
+  - Username: `jmitchell`
+  - Password: `Finance2024#`
+
+flag: "OCR{us3r_d1sc0v3ry}"
+
+hints:
+  - text: |
+      **User context and enumeration** after SSH authentication:
+
+      **What is user context:**
+      - Each login session runs with specific user privileges
+      - User ID (UID) and Group ID (GID) define permissions
+      - Home directory provides personal file space
+      - Environment variables configure session
+      - Shell determines command interface
+
+      **Why user enumeration matters:**
+      - **Privilege level**: Standard user vs administrator
+      - **Group memberships**: Special access or privileges
+      - **Home directory**: Personal files and configurations
+      - **SSH keys**: Access to other systems
+      - **sudo privileges**: Can this user run commands as root?
+      - **History**: What commands has this user run?
+
+      **Common user information commands:**
+
+      **Current user identity:**
+      - `whoami`: Display current username
+      - `id`: Show UID, GID, and group memberships
+      - `groups`: List all groups for current user
+
+      **User information:**
+      - `w`: Who is logged in and what they're doing
+      - `who`: Show logged-in users
+      - `last`: Recent login history
+      - `finger user`: User information (if installed)
+
+      **Home directory location:**
+      - Standard users: `/home/username`
+      - Root user: `/root`
+      - Service accounts: Varies (`/var/lib/service`, etc.)
+
+      **Important user files:**
+
+      **Configuration files (hidden, start with .):**
+      - `.bashrc`: Bash shell configuration
+      - `.bash_profile`: Login shell configuration
+      - `.bash_history`: Command history
+      - `.ssh/`: SSH configuration and keys
+      - `.vimrc`: Vim editor configuration
+      - `.gitconfig`: Git configuration
+
+      **SSH-related files:**
+      - `.ssh/id_rsa`: Private SSH key
+      - `.ssh/id_rsa.pub`: Public SSH key
+      - `.ssh/authorized_keys`: Keys that can log in as this user
+      - `.ssh/known_hosts`: Trusted remote hosts
+      - `.ssh/config`: SSH client configuration
+
+      **History files:**
+      - `.bash_history`: Bash commands
+      - `.mysql_history`: MySQL commands (may contain passwords!)
+      - `.psql_history`: PostgreSQL commands
+      - `.python_history`: Python REPL history
+
+      **User enumeration for privilege escalation:**
+      - Check sudo privileges: `sudo -l`
+      - Find SUID binaries: `find / -perm -4000 2>/dev/null`
+      - Check cron jobs: `crontab -l`
+      - Review authorized SSH keys
+      - Examine command history for passwords/secrets
+
+      **Information disclosure risks:**
+      - Users store passwords in plain text files
+      - SSH keys allow lateral movement
+      - History reveals network topology
+      - Configuration files expose database connections
+      - Notes contain administrator passwords
+
+      After SSH authentication, always enumerate the user context and home directory.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Basic Linux navigation and file listing:**
+
+      **Determining current location:**
+      ```bash
+      pwd
+      ```
+      - **P**rint **W**orking **D**irectory
+      - Shows your current location in filesystem
+      - After SSH login, typically in user's home directory
+
+      **Listing files:**
+
+      **Basic listing:**
+      ```bash
+      ls
+      ```
+      - Lists visible files and directories
+      - Does NOT show hidden files (those starting with .)
+
+      **List all files (including hidden):**
+      ```bash
+      ls -la
+      ```
+      - `-l`: Long format (permissions, owner, size, date)
+      - `-a`: All files (including hidden)
+      - **Critical**: Most user configs are hidden files
+
+      **Example output:**
+      ```
+      $ ls -la
+      total 48
+      drwxr-xr-x 5 jmitchell jmitchell 4096 Jan  4 10:30 .
+      drwxr-xr-x 8 root      root      4096 Dec 15 08:15 ..
+      -rw-r--r-- 1 jmitchell jmitchell  220 Dec 15 08:15 .bash_logout
+      -rw-r--r-- 1 jmitchell jmitchell 3771 Dec 15 08:15 .bashrc
+      -rw-r--r-- 1 jmitchell jmitchell  807 Dec 15 08:15 .profile
+      drwx------ 2 jmitchell jmitchell 4096 Dec 20 14:22 .ssh
+      -rw-r--r-- 1 jmitchell jmitchell   45 Jan  3 16:42 notes.txt
+      drwxr-xr-x 2 jmitchell jmitchell 4096 Jan  4 10:30 Documents
+      ```
+
+      **Reading file permissions:**
+      ```
+      -rw-r--r--  1 jmitchell jmitchell  220 Dec 15 08:15 .bash_logout
+      │││││││││││  │ │         │         │   │           │
+      │││││││││││  │ │         │         │   │           └─ Filename
+      │││││││││││  │ │         │         │   └─ Modified date
+      │││││││││││  │ │         │         └─ Size (bytes)
+      │││││││││││  │ │         └─ Group owner
+      │││││││││││  │ └─ File owner
+      │││││││││││  └─ Number of hard links
+      ││└┴┴┴┴┴┴┴┴─ Permissions (owner, group, others)
+      │└─ File type (- = file, d = directory, l = link)
+      ```
+
+      **Directory navigation:**
+      ```bash
+      cd Documents        # Change to Documents directory
+      cd ..              # Go up one level
+      cd ~               # Go to home directory
+      cd /etc            # Go to /etc (absolute path)
+      ```
+
+      **Viewing file contents:**
+      ```bash
+      cat filename       # Display entire file
+      head filename      # First 10 lines
+      tail filename      # Last 10 lines
+      less filename      # Scroll through file (q to quit)
+      more filename      # Page through file
+      ```
+
+      **Finding files:**
+      ```bash
+      find . -name "*.txt"      # Find all .txt files in current directory
+      find ~ -name "flag*"      # Find files starting with "flag" in home
+      ```
+
+      **Searching file content:**
+      ```bash
+      grep "password" notes.txt    # Search for "password" in file
+      grep -r "password" .         # Recursively search all files
+      ```
+
+      **Hidden files are critical:**
+      - Configuration files start with `.` (dot)
+      - `ls` alone won't show them
+      - Always use `ls -la` for complete enumeration
+      - `.bash_history`, `.ssh/`, `.bashrc` are treasure troves
+
+      **User home directory exploration workflow:**
+      1. `pwd` - Confirm location
+      2. `ls -la` - List all files including hidden
+      3. `cat interesting_file` - Read file contents
+      4. `cd .ssh` - Explore SSH directory
+      5. `cat .bash_history` - Review command history
+
+      Thorough file system navigation reveals user-specific information and secrets.
+    unlock_after_minutes: 5
+
+  - text: |
+      **User information enumeration commands:**
+
+      **Identity and privileges:**
+
+      **whoami - Current username:**
+      ```bash
+      $ whoami
+      jmitchell
+      ```
+      - Shows current user
+      - Simple identity check
+
+      **id - Detailed user information:**
+      ```bash
+      $ id
+      uid=1001(jmitchell) gid=1001(jmitchell) groups=1001(jmitchell),27(sudo),1002(finance)
+      ```
+      - **UID**: User ID number
+      - **GID**: Primary group ID
+      - **groups**: All group memberships
+      - **sudo group**: User can run sudo commands!
+      - **finance group**: Department-specific group
+
+      **groups - Group memberships:**
+      ```bash
+      $ groups
+      jmitchell sudo finance
+      ```
+      - Lists all groups for current user
+      - Special groups indicate special privileges
+
+      **sudo -l - Sudo privileges:**
+      ```bash
+      $ sudo -l
+      [sudo] password for jmitchell:
+      User jmitchell may run the following commands on fin-prod-web-01:
+          (ALL : ALL) ALL
+      ```
+      - Shows what commands user can run as root
+      - `(ALL : ALL) ALL` = complete sudo access
+      - Requires user's password
+      - Critical for privilege escalation
+
+      **Environment variables:**
+      ```bash
+      $ env
+      HOME=/home/jmitchell
+      USER=jmitchell
+      PATH=/usr/local/bin:/usr/bin:/bin
+      SHELL=/bin/bash
+      ```
+      - System configuration variables
+      - HOME points to user's directory
+      - PATH shows command search locations
+
+      **Practical enumeration workflow:**
+
+      **Step 1: After SSH login:**
+      ```bash
+      $ ssh jmitchell@target
+      [authentication...]
+      jmitchell@server:~$
+      ```
+
+      **Step 2: Verify identity:**
+      ```bash
+      $ whoami
+      jmitchell
+      ```
+
+      **Step 3: Check privileges:**
+      ```bash
+      $ id
+      uid=1001(jmitchell) gid=1001(jmitchell) groups=1001(jmitchell),27(sudo)
+      ```
+      → User is in sudo group (significant!)
+
+      **Step 4: Confirm location:**
+      ```bash
+      $ pwd
+      /home/jmitchell
+      ```
+
+      **Step 5: List all files:**
+      ```bash
+      $ ls -la
+      [shows all files including hidden]
+      ```
+
+      **Step 6: Examine interesting files:**
+      ```bash
+      $ cat notes.txt
+      $ cat .bash_history
+      $ ls -la .ssh/
+      ```
+
+      **What to look for in home directory:**
+
+      **Files with potential secrets:**
+      - `notes.txt`, `passwords.txt`, `creds.txt`
+      - `backup.sql`, `database_dump.sql`
+      - `.env`, `config.php`, `settings.py`
+      - Hidden files: `.secret`, `.password`
+
+      **SSH keys (.ssh directory):**
+      - `id_rsa` - Private key (access to other systems!)
+      - `id_rsa.pub` - Public key
+      - `authorized_keys` - Who can log in as this user
+      - `config` - SSH configuration
+
+      **Command history:**
+      - `.bash_history` - All bash commands
+      - May reveal: passwords in commands, internal IPs, database access
+
+      **Configuration files:**
+      - `.bashrc` - May have aliases, paths to sensitive files
+      - `.bash_profile` - Login scripts
+      - `.vimrc` - Editor config (sometimes has embedded secrets)
+
+      **User documents:**
+      - `Documents/` directory
+      - `Downloads/` directory
+      - Any text files with names suggesting content
+
+      User enumeration reveals privilege level, group memberships, and access to sensitive files.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Investigating user-specific files and directories:**
+
+      **Home directory structure (typical):**
+      ```
+      /home/jmitchell/
+      ├── .bash_history      # Command history
+      ├── .bash_logout       # Logout script
+      ├── .bashrc            # Shell configuration
+      ├── .profile           # Login profile
+      ├── .ssh/              # SSH keys and config
+      │   ├── id_rsa         # Private key
+      │   ├── id_rsa.pub     # Public key
+      │   ├── authorized_keys# Allowed keys
+      │   └── known_hosts    # Trusted hosts
+      ├── .vimrc             # Vim config
+      ├── Documents/         # User documents
+      ├── notes.txt          # Personal notes
+      └── user_info.txt      # User information
+      ```
+
+      **Prioritized enumeration:**
+
+      **High value targets (check first):**
+      1. `notes.txt`, `passwords.txt`, `creds.txt`
+      2. `.bash_history`
+      3. `.ssh/id_rsa` (private keys)
+      4. Any files with "config", "password", "credential" in name
+      5. `.env` files (environment variables)
+
+      **Reading user notes and text files:**
+      ```bash
+      $ ls -la
+      -rw-r--r-- 1 jmitchell jmitchell  156 Jan  3 16:42 notes.txt
+      -rw-r--r-- 1 jmitchell jmitchell  312 Jan  4 09:15 user_info.txt
+
+      $ cat notes.txt
+      Production database server: 10.10.10.100
+      Credentials: dbadmin:P@ssw0rd123
+      Backup schedule: Daily at 2 AM
+
+      $ cat user_info.txt
+      [user-specific information]
+      ```
+
+      **Examining SSH directory:**
+      ```bash
+      $ ls -la .ssh/
+      drwx------ 2 jmitchell jmitchell 4096 Dec 20 14:22 .
+      drwxr-xr-x 5 jmitchell jmitchell 4096 Jan  4 10:30 ..
+      -rw------- 1 jmitchell jmitchell 1766 Dec 20 14:22 id_rsa
+      -rw-r--r-- 1 jmitchell jmitchell  398 Dec 20 14:22 id_rsa.pub
+      -rw-r--r-- 1 jmitchell jmitchell  222 Dec 20 14:22 known_hosts
+
+      $ cat id_rsa.pub
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAA... jmitchell@fin-prod-web-01
+      ```
+      - Private key (`id_rsa`): Could use to SSH to other servers
+      - Public key shows username and hostname
+      - `known_hosts`: Shows other servers this user accesses
+
+      **Reviewing command history:**
+      ```bash
+      $ cat .bash_history
+      ls -la
+      cd Documents
+      mysql -u root -p
+      [password visible in history!]
+      ssh admin@10.10.10.50
+      sudo vim /etc/shadow
+      cat /etc/passwd
+      ```
+      - Reveals user's activities
+      - May show passwords typed in commands
+      - Indicates other systems accessed
+      - Shows privilege escalation attempts
+
+      **Finding files with specific names:**
+      ```bash
+      $ find ~ -name "*password*"
+      /home/jmitchell/.mysql_history
+      /home/jmitchell/Documents/passwords_backup.txt
+
+      $ find ~ -name "*flag*"
+      /home/jmitchell/user_flag.txt
+
+      $ find ~ -type f -name "*.txt"
+      /home/jmitchell/notes.txt
+      /home/jmitchell/user_info.txt
+      /home/jmitchell/Documents/readme.txt
+      ```
+
+      **Searching file contents for keywords:**
+      ```bash
+      $ grep -r "password" ~ 2>/dev/null
+      /home/jmitchell/notes.txt:Database password: SecretPass123
+      /home/jmitchell/.bashrc:# export DB_PASSWORD=test123
+
+      $ grep -r "flag" ~ 2>/dev/null
+      /home/jmitchell/user_info.txt:Flag: OCR{...}
+      ```
+
+      **Checking for sudo privileges:**
+      ```bash
+      $ sudo -l
+      [sudo] password for jmitchell: Finance2024#
+
+      User jmitchell may run the following commands:
+          (ALL : ALL) ALL
+      ```
+      - Requires user's password
+      - Shows allowed sudo commands
+      - `(ALL : ALL) ALL` = full root access via sudo
+
+      **Common findings in user directories:**
+      - Plain text passwords in notes
+      - Database credentials
+      - SSH keys for lateral movement
+      - Command history revealing internal network
+      - Backup files with sensitive data
+      - Configuration files with API keys
+
+      Thorough user directory enumeration reveals sensitive information and escalation paths.
+    unlock_after_minutes: 15
+
+  - text: |
+      To enumerate user-specific information on FinanceCorp's server:
+
+      **Step 1: Authenticate with provided credentials:**
+      ```bash
+      ssh jmitchell@<target>
+      ```
+      - Username: `jmitchell`
+      - Password: `Finance2024#`
+
+      **Step 2: After successful login, enumerate user context:**
+
+      **Confirm identity:**
+      ```bash
+      whoami
+      ```
+
+      **Check privileges and groups:**
+      ```bash
+      id
+      ```
+
+      **Verify location:**
+      ```bash
+      pwd
+      ```
+
+      **Step 3: List ALL files in home directory:**
+      ```bash
+      ls -la
+      ```
+      **IMPORTANT**: Must use `-la` to see hidden files (starting with .)
+
+      **Step 4: Investigate interesting files:**
+
+      **Read user notes and text files:**
+      ```bash
+      cat notes.txt
+      cat user_info.txt
+      ```
+
+      **Check for files with "user", "info", or "flag" in name:**
+      ```bash
+      ls -la | grep -i user
+      ls -la | grep -i info
+      ls -la | grep -i flag
+      ```
+
+      **Step 5: Search for specific content:**
+      ```bash
+      grep -r "flag" ~ 2>/dev/null
+      find ~ -name "*flag*" 2>/dev/null
+      find ~ -name "*user*" 2>/dev/null
+      ```
+
+      **What to look for:**
+      - Text files in home directory
+      - Files with "user", "info", or "flag" in filename
+      - User-specific configuration or notes
+      - The flag in one of these files
+
+      **Common file locations for this lab:**
+      - `~/notes.txt`
+      - `~/user_info.txt`
+      - `~/user_flag.txt`
+      - `~/Documents/user_info.txt`
+      - Hidden files: `~/.user_info`
+
+      **Reading file contents:**
+      ```bash
+      cat <filename>
+      ```
+
+      **Important notes:**
+      - The flag is in a user-specific file in the home directory
+      - Must be authenticated as jmitchell to access
+      - Use `ls -la` to see all files
+      - Read text files to find the flag
+
+      **Expected workflow:**
+      1. SSH in as jmitchell
+      2. Run `ls -la` to see all files
+      3. Identify interesting text files
+      4. `cat` each file to view contents
+      5. Flag will be in one of the user-specific files
+
+      The flag is located in a user-specific file in jmitchell's home directory.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH authentication and user discovery:
+
+      ```bash
+      $ ssh jmitchell@<target_ip>
+
+      jmitchell@<target_ip>'s password: [Finance2024#]
+
+      Welcome to FinanceCorp Server
+      Last login: Fri Jan 3 09:42:11 2025 from 10.10.14.8
+
+      jmitchell@fin-prod-web-01:~$ whoami
+      jmitchell
+
+      jmitchell@fin-prod-web-01:~$ id
+      uid=1001(jmitchell) gid=1001(jmitchell) groups=1001(jmitchell),27(sudo),1002(finance)
+
+      jmitchell@fin-prod-web-01:~$ pwd
+      /home/jmitchell
+
+      jmitchell@fin-prod-web-01:~$ ls -la
+      total 52
+      drwxr-xr-x 5 jmitchell jmitchell 4096 Jan  4 10:30 .
+      drwxr-xr-x 8 root      root      4096 Dec 15 08:15 ..
+      -rw------- 1 jmitchell jmitchell  156 Jan  4 11:23 .bash_history
+      -rw-r--r-- 1 jmitchell jmitchell  220 Dec 15 08:15 .bash_logout
+      -rw-r--r-- 1 jmitchell jmitchell 3771 Dec 15 08:15 .bashrc
+      -rw-r--r-- 1 jmitchell jmitchell  807 Dec 15 08:15 .profile
+      drwx------ 2 jmitchell jmitchell 4096 Dec 20 14:22 .ssh
+      drwxr-xr-x 2 jmitchell jmitchell 4096 Jan  3 15:30 Documents
+      -rw-r--r-- 1 jmitchell jmitchell  189 Jan  3 16:42 notes.txt
+      -rw-r--r-- 1 jmitchell jmitchell  412 Jan  4 09:15 user_info.txt
+
+      jmitchell@fin-prod-web-01:~$ cat notes.txt
+      FinanceCorp Internal Notes
+      ===========================
+
+      Production database server: 10.10.10.100
+      Staging environment: 10.10.10.105
+      Backup server: 10.10.10.110
+
+      DB Credentials: dbadmin:TempP@ss2024
+      (Remember to change after deployment!)
+
+      jmitchell@fin-prod-web-01:~$ cat user_info.txt
+      ================================================================================
+                            FinanceCorp User Information
+      ================================================================================
+
+      User Account: jmitchell (James Mitchell)
+      Department: Finance & IT Management
+      Role: Senior Finance Manager / IT Liaison
+      Employee ID: FC-2019-1047
+      Email: jmitchell@financecorp.local
+
+      System Access:
+        - Production web servers (sudo access)
+        - Database servers (read/write)
+        - Backup systems (administrator)
+        - Financial reporting systems
+
+      SSH Key: /home/jmitchell/.ssh/id_rsa
+        Provides access to:
+          - fin-db-prod-01 (10.10.10.100)
+          - fin-backup-01 (10.10.10.110)
+          - fin-reporting-01 (10.10.10.120)
+
+      Notes:
+        - User has full sudo privileges on this system
+        - Member of 'finance' group with access to sensitive financial data
+        - Authorized to access production systems
+
+      Security Assessment Flag: OCR{...}
+
+      Last Updated: 2025-01-04
+      ================================================================================
+
+      jmitchell@fin-prod-web-01:~$
+      ```
+
+      **Flag location: user_info.txt**
+      - **File**: `/home/jmitchell/user_info.txt`
+      - **Flag**: `OCR{...}`
+      - **Context**: In user information document
+
+      **User enumeration findings:**
+
+      **User identity:**
+      - **Username**: jmitchell
+      - **UID**: 1001
+      - **Full name**: James Mitchell
+      - **Role**: Senior Finance Manager / IT Liaison
+
+      **Group memberships:**
+      - **jmitchell** (1001): Primary group
+      - **sudo** (27): **CRITICAL** - User can run commands as root!
+      - **finance** (1002): Department group with sensitive data access
+
+      **File system discoveries:**
+
+      **notes.txt (database credentials exposed!):**
+      - Production DB server: 10.10.10.100
+      - Staging: 10.10.10.105
+      - Backup: 10.10.10.110
+      - **Database credentials**: `dbadmin:TempP@ss2024`
+      - Lateral movement opportunities identified
+
+      **user_info.txt (comprehensive intelligence):**
+      - Complete user profile
+      - System access details
+      - SSH key location
+      - Lateral movement targets listed
+      - Sudo privileges confirmed
+      - Finance group membership
+
+      **Critical security findings:**
+
+      **1. Excessive privileges:**
+      ```bash
+      $ id
+      groups=1001(jmitchell),27(sudo),1002(finance)
+      ```
+      - Member of sudo group
+      - Full administrative access possible
+      - Can escalate to root: `sudo su -`
+
+      **2. Information disclosure:**
+      - Plain text database credentials in `notes.txt`
+      - Complete network topology in notes
+      - User access map in `user_info.txt`
+      - SSH key locations documented
+
+      **3. Lateral movement paths:**
+      SSH keys provide access to:
+      - fin-db-prod-01 (10.10.10.100) - Database server
+      - fin-backup-01 (10.10.10.110) - Backup server
+      - fin-reporting-01 (10.10.10.120) - Reporting server
+
+      **4. Privilege escalation path:**
+      ```bash
+      $ sudo -l
+      [sudo] password for jmitchell: Finance2024#
+
+      User jmitchell may run the following commands:
+          (ALL : ALL) ALL
+
+      $ sudo su -
+      [enters password]
+      root@fin-prod-web-01:~#
+      ```
+      Direct path to root access!
+
+      **Real-world attack chain from this information:**
+
+      **Step 1: Initial access (completed)**
+      - SSH as jmitchell:Finance2024#
+
+      **Step 2: Enumeration (completed)**
+      - Found database credentials
+      - Identified lateral movement targets
+      - Discovered sudo access
+
+      **Step 3: Privilege escalation**
+      ```bash
+      sudo su -
+      ```
+      → Root access on current system
+
+      **Step 4: Lateral movement**
+      ```bash
+      # Use SSH key to access database server
+      ssh -i ~/.ssh/id_rsa dbadmin@10.10.10.100
+
+      # Or use discovered credentials
+      mysql -h 10.10.10.100 -u dbadmin -p'TempP@ss2024'
+      ```
+      → Access to other systems
+
+      **Step 5: Data exfiltration**
+      - Access financial data via finance group
+      - Database access via lateral movement
+      - Backup system access for complete data
+
+      **Professional penetration testing report:**
+
+      **FINDING: Excessive User Privileges**
+      - Severity: HIGH
+      - User: jmitchell
+      - Issue: Member of sudo group with full administrative access
+      - Impact: Any compromise of this account = root access
+      - Recommendation: Remove sudo access, use role-based access control
+
+      **FINDING: Credentials in Plain Text**
+      - Severity: CRITICAL
+      - File: /home/jmitchell/notes.txt
+      - Issue: Database credentials stored in plain text
+      - Credentials: dbadmin:TempP@ss2024
+      - Impact: Database compromise, lateral movement
+      - Recommendation: Use credential management system, remove plain text credentials
+
+      **FINDING: Information Disclosure**
+      - Severity: MEDIUM
+      - File: /home/jmitchell/user_info.txt
+      - Issue: Detailed system access map, network topology
+      - Impact: Assists attacker reconnaissance
+      - Recommendation: Limit information in user files, use centralized documentation
+
+      **FINDING: SSH Key Lateral Movement**
+      - Severity: HIGH
+      - Keys: /home/jmitchell/.ssh/id_rsa
+      - Access to: fin-db-prod-01, fin-backup-01, fin-reporting-01
+      - Impact: Single compromise = multi-system access
+      - Recommendation: Implement jump hosts, key rotation, MFA
+
+      **Defense recommendations:**
+      1. Remove jmitchell from sudo group (principle of least privilege)
+      2. Implement centralized credential management
+      3. Prohibit plain text credential storage
+      4. Rotate database passwords immediately
+      5. Implement SSH certificate authority
+      6. Add MFA for privileged access
+      7. Monitor file access in user home directories
+      8. Implement data loss prevention for sensitive files
+
+      **Lessons for security:**
+      - User home directories often contain sensitive information
+      - sudo group membership provides privilege escalation
+      - Plain text credentials enable lateral movement
+      - Comprehensive enumeration reveals attack paths
+      - Information disclosure aids attacker planning
+
+      The flag demonstrates the critical importance of user context enumeration and
+      the security risks of storing sensitive information in user directories.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "jmitchell"
+    password: "Finance2024#"
+    role: "ssh-user"
+    description: "SSH login credentials for jmitchell account"
+
+workbook: "wiki/range/linpt/CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "SSH banner check"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "SSH login and retrieve flag from user_info.txt"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'cat ~/user_info.txt 2>/dev/null || grep -r OCR /home/ 2>/dev/null' 2>/dev/null"
+      expect: "OCR{us3r_d1sc0v3ry}"

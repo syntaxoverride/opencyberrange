@@ -1,0 +1,1359 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.7: User Enumeration via Null Session - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-27-user-enumeration-via-null-session" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.7: User Enumeration via Null Session
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-why-user-enumeration-is-the-most-dangerous-null-session-capability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Why User Enumeration Is the Most Dangerous Null Session Capability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-rpcclient-user-enumeration-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: rpcclient User Enumeration Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-establish-a-null-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Establish a Null Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-enumerate-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Enumerate Users
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-query-a-specific-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Query a Specific User
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-enumerate-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Enumerate Groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-exit-rpcclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Exit rpcclient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-find-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Find the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-27-user-enumeration-via-null-session">Exercise 2.7: User Enumeration via Null Session</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 2.6 showed that null sessions can enumerate shares. this exercise reveals what many consider the most dangerous null session capability: <strong>user enumeration</strong>. A list of valid usernames is half of every credential attack; and null sessions hand it over for free.</p>
+<h2 id="scenario">Scenario</h2>
+<p>FinanceCorp's null session enumeration has already revealed significant information disclosure. James Mitchell is particularly concerned about user enumeration, as this can aid credential attacks and social engineering. Your task is to use the null session to enumerate all user accounts on the target, understand what each account's RID tells you, and capture the flag.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Enumerate all user accounts on the target through a null session using rpcclient</li>
+<li>Understand RID significance and what it reveals about each account</li>
+<li>Identify the built-in Administrator account by its RID</li>
+<li>Capture the flag</li>
+</ul>
+<hr />
+<h2 id="background-why-user-enumeration-is-the-most-dangerous-null-session-capability">Background: Why User Enumeration Is the Most Dangerous Null Session Capability</h2>
+<p>Every credential attack needs two things: a <strong>username</strong> and a <strong>password</strong>. When a null session exposes the full list of valid usernames, it eliminates half the guesswork. An attacker no longer needs to guess <em>who</em> exists; only <em>what their password is</em>.</p>
+<p>Windows assigns each account a <strong>Relative Identifier (RID)</strong>, a numeric value appended to the domain's Security Identifier (SID). Certain RIDs are fixed and always mean the same thing:</p>
+<table>
+<thead>
+<tr>
+<th>RID (Decimal)</th>
+<th>RID (Hex)</th>
+<th>Account</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>500</td>
+<td>0x1f4</td>
+<td>Built-in Administrator (always exists, cannot be deleted)</td>
+</tr>
+<tr>
+<td>501</td>
+<td>0x1f5</td>
+<td>Guest account</td>
+</tr>
+<tr>
+<td>1000+</td>
+<td>0x3e8+</td>
+<td>Regular user accounts created by administrators</td>
+</tr>
+</tbody>
+</table>
+<p>Low RIDs indicate built-in or privileged accounts. The built-in Administrator (RID 500) is a high-value target in every penetration test because it always exists and typically holds the highest privileges on the system. Even if an administrator renames this account, its RID remains 500.</p>
+<p>User enumeration feeds directly into Chapter 3 (credential attacks). this exercise is the bridge between reconnaissance and exploitation; the user list you gather here becomes the input for brute force and password spraying attacks later.</p>
+<p><strong>Converting hex RIDs to decimal:</strong> The output from rpcclient displays RIDs in hexadecimal. To convert, use standard hex-to-decimal conversion. For example, <code>0x1f4</code> = (1 x 256) + (15 x 16) + 4 = 500. The most important ones to recognize on sight are 0x1f4 (500) and 0x1f5 (501).</p>
+<h2 id="tool-primer-rpcclient-user-enumeration-commands">Tool Primer: rpcclient User Enumeration Commands</h2>
+<p>You used rpcclient in Exercise 2.5 to establish a null session. this exercise introduces new commands for user and group enumeration:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What It Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enumdomusers</code></td>
+<td>List all domain/local users with their RIDs</td>
+</tr>
+<tr>
+<td><code>queryuser &lt;RID&gt;</code></td>
+<td>Detailed info about a specific user (description, last logon, etc.)</td>
+</tr>
+<tr>
+<td><code>enumdomgroups</code></td>
+<td>List all groups on the domain/machine</td>
+</tr>
+<tr>
+<td><code>lookupnames &lt;username&gt;</code></td>
+<td>Look up a specific username and return its SID/RID</td>
+</tr>
+</tbody>
+</table>
+<p>The output format for <code>enumdomusers</code> looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>user:[admin] rid:[0x3e8]
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>user:[user1] rid:[0x3e9]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>user:[guest] rid:[0x1f5]
+</code></pre></div>
+<p>Each line gives you the account name in brackets and its RID in hexadecimal. In this exercise, you should expect to find three accounts: admin, user1, and guest.</p>
+<p>Note that <code>queryuser</code> takes the RID as its argument, not the username. To query the built-in Administrator, you would pass <code>0x1f4</code>: the hex form of RID 500.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. The target has SMB running on port 445 with null sessions enabled.</p>
+<ul>
+<li>Navigate to the appropriate learning path and locate Exercise 2.7</li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-establish-a-null-session">Step 2: Establish a Null Session</h3>
+<div class="admonition kali">
+<p class="admonition-title">Establish a null session with rpcclient</p>
+<p>Connect to the target using rpcclient with empty credentials:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>The <code>-U ""</code> flag specifies an empty username, and <code>-N</code> suppresses the password prompt. You should see the <code>rpcclient $&gt;</code> prompt, confirming the null session is established.</p>
+</div>
+<h3 id="step-3-enumerate-users">Step 3: Enumerate Users</h3>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate domain users</p>
+<p>At the rpcclient prompt, list all user accounts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>rpcclient<span class="w"> </span>$&gt;<span class="w"> </span>enumdomusers
+</code></pre></div>
+<p>You should see output listing each user account with its RID in the format <code>user:[username] rid:[0xHEX]</code>. Note every username and its corresponding RID; you will need these for the Record Your Findings section below.</p>
+<p>Pay close attention to the hex values and which RID ranges they fall into. Any account with a RID below 1000 (0x3e8) is a built-in account. Accounts at 1000 and above were created by an administrator after initial setup.</p>
+</div>
+<h3 id="step-4-query-a-specific-user">Step 4: Query a Specific User</h3>
+<div class="admonition kali">
+<p class="admonition-title">Query the built-in Administrator account</p>
+<p>Use the RID to pull detailed information about the built-in Administrator account:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>rpcclient<span class="w"> </span>$&gt;<span class="w"> </span>queryuser<span class="w"> </span>0x1f4
+</code></pre></div>
+<p>The <code>queryuser</code> command returns extended details including the account description, last logon time, and account flags. Review the output and note the description field and when the account last logged in. Such detail can reveal whether an account is actively used, which informs your attack prioritization in later chapters.</p>
+</div>
+<h3 id="step-5-enumerate-groups">Step 5: Enumerate Groups</h3>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate domain groups</p>
+<p>List all groups on the target:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>rpcclient<span class="w"> </span>$&gt;<span class="w"> </span>enumdomgroups
+</code></pre></div>
+<p>Group names reveal how the system is organized and which groups might grant elevated privileges. Note any groups that suggest administrative access. Common groups to look for include Domain Admins, Administrators, and Remote Desktop Users.</p>
+</div>
+<h3 id="step-6-exit-rpcclient">Step 6: Exit rpcclient</h3>
+<div class="admonition kali">
+<p class="admonition-title">Close the null session</p>
+<p>Close the null session cleanly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rpcclient<span class="w"> </span>$&gt;<span class="w"> </span><span class="nb">exit</span>
+</code></pre></div>
+<p>You are now back at your regular shell prompt.</p>
+</div>
+<h3 id="step-7-find-the-flag">Step 7: Find the Flag</h3>
+<div class="admonition kali">
+<p class="admonition-title">List shares and read the server string</p>
+<p>Use smbclient to list available shares and look for the flag in the server string:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>//&lt;target_ip&gt;<span class="w"> </span>-N
+</code></pre></div>
+<p>The server string in the output contains the flag. Look for the line that reads "DC01 - Users Enumerable"; the flag in <code>OCR{...}</code> format appears in this server description string. Copy the flag and submit it on the platform.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>My enumdomusers output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>(paste your output here)
+</code></pre></div>
+<p><strong>Users discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>RID (Hex)</th>
+<th>RID (Decimal)</th>
+<th>Account Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>My queryuser output for RID 0x1f4:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>(paste your output here)
+</code></pre></div>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <code>___________________________</code></p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Think through each question before reading the provided answer.</p>
+<p><strong>1. You discovered a user with RID 500. Why is this account significant in a penetration test?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>RID 500 is the built-in Administrator account. It cannot be deleted, is often targeted first in credential attacks, and typically holds the highest privileges on the system. Even if an administrator renames it, the RID remains 500; making it always identifiable through enumeration.</p>
+</details>
+<p><strong>2. How does the user list you just discovered directly enable the attacks in Chapter 3?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Chapter 3 focuses on credential attacks such as brute force and password spraying. Having a confirmed list of valid usernames eliminates half the guesswork. Instead of guessing both usernames and passwords, you only need to guess passwords. Narrowing the search to passwords alone dramatically increases the success rate of credential attacks and reduces the number of failed attempts, which in turn lowers the risk of detection.</p>
+</details>
+<p><strong>3. An administrator renamed the Administrator account to "sysadmin" for security. Does this protect against the technique you just used?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>No. The <code>enumdomusers</code> command returns the account regardless of its display name, and the RID remains 500. RID-based enumeration bypasses name-based obscurity entirely. An attacker who sees RID 0x1f4 knows immediately that this is the built-in Administrator, no matter what it has been renamed to.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><code>enumdomusers</code> lists all user accounts accessible through null sessions, providing both usernames and RIDs</li>
+<li>RIDs identify account types: 500 is always the built-in Administrator, 501 is Guest, and 1000+ are regular user accounts created by administrators</li>
+<li>User enumeration is the most dangerous null session capability because it directly enables credential attacks by providing half of every username-password pair</li>
+<li>Renaming accounts does not change their RIDs; RID 500 is always the built-in Administrator, regardless of its display name</li>
+<li>You have now enumerated shares, server info, and users individually. The final lab in this chapter combines everything into a single automated enumeration pass.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

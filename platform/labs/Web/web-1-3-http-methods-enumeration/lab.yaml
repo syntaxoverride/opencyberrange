@@ -1,0 +1,152 @@
+name: HTTP Methods Enumeration
+description: Your TechStart assessment has identified an API endpoint. Test HTTP methods to identify potential vulnerabilities and misconfigurations.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Understand HTTP methods and their purposes
+  - Use OPTIONS method to enumerate allowed methods
+  - Test various HTTP methods for potential vulnerabilities
+  - Identify dangerous methods (PUT, DELETE, TRACE)
+  - Capture the flag
+
+scenario: |
+  Your reconnaissance of TechStart Inc.'s infrastructure has revealed an API endpoint 
+  at api.lab. Sarah Chen is particularly concerned about API security, as their 
+  application relies heavily on RESTful services for mobile and third-party 
+  integrations.
+  
+  During your initial assessment, you noticed the API responds to various HTTP 
+  methods. You need to enumerate which methods are allowed and test for potential 
+  vulnerabilities. Dangerous methods like PUT or DELETE could allow unauthorized 
+  modifications or deletions if not properly secured.
+  
+  Your objective: Enumerate all allowed HTTP methods on the API endpoint and 
+  identify any potentially dangerous methods that could be exploited. Document 
+  your findings for TechStart's development team.
+
+hostnames:
+  - ip_offset: "47"
+    hostname: "api.lab"
+    description: "Target API endpoint"
+
+
+
+flag: "OCR{http_m3th0ds_3num3r4t10n}"
+
+hints:
+  - text: |
+      **HTTP methods** (also called verbs) define the action to be performed on a resource. While most users only encounter GET and POST, web servers support many methods.
+
+      **Common HTTP methods:**
+      - **GET**: Retrieve a resource (read-only)
+      - **POST**: Submit data to create/update resources
+      - **PUT**: Replace an entire resource
+      - **DELETE**: Remove a resource
+      - **OPTIONS**: Describe communication options
+      - **HEAD**: Like GET but returns only headers
+      - **TRACE**: Echo the request (debugging)
+      - **PATCH**: Partial resource modification
+
+      **Security risk**: Dangerous methods like PUT, DELETE, or TRACE enabled without proper authorization can lead to data modification or information disclosure.
+    unlock_after_minutes: 0
+
+  - text: |
+      The **OPTIONS** method is designed to reveal which HTTP methods are allowed on a given endpoint. Servers return this information in the `Allow` header.
+
+      OPTIONS request workflow:
+      1. Send OPTIONS request to the target endpoint
+      2. Server responds with `Allow` header listing supported methods
+      3. Analyze which methods are available
+      4. Test dangerous methods for proper access control
+
+      This is the standard, non-intrusive way to enumerate HTTP methods.
+    unlock_after_minutes: 5
+
+  - text: |
+      **curl** can send any HTTP method using the `-X` flag. This makes it perfect for testing different HTTP methods on API endpoints.
+
+      Basic syntax:
+
+      ```bash
+      curl -X METHOD http://target
+      ```
+
+      Common examples:
+      - `curl -X OPTIONS http://api.lab` - Enumerate allowed methods
+      - `curl -X GET http://api.lab` - Standard GET request
+      - `curl -X DELETE http://api.lab/resource` - Try deleting a resource
+      - `curl -X PUT http://api.lab/resource -d "data"` - Try uploading data
+    unlock_after_minutes: 10
+
+  - text: |
+      To enumerate allowed methods using OPTIONS:
+
+      ```bash
+      curl -X OPTIONS http://api.lab -v
+      ```
+
+      The `-v` (verbose) flag is important here because it shows response headers, including the `Allow` header that lists permitted methods.
+
+      Look for the `Allow` header in the response:
+
+      ```
+      < Allow: GET, POST, PUT, DELETE, OPTIONS
+      ```
+
+      This reveals all methods the server accepts.
+    unlock_after_minutes: 15
+
+  - text: |
+      After discovering allowed methods, test each one to understand the security implications:
+
+      ```bash
+      # Check OPTIONS to see allowed methods
+      curl -X OPTIONS http://api.lab -v
+
+      # Test if PUT is enabled
+      curl -X PUT http://api.lab -v
+
+      # Test if DELETE is enabled
+      curl -X DELETE http://api.lab -v
+
+      # Test if TRACE is enabled (debugging method)
+      curl -X TRACE http://api.lab -v
+      ```
+
+      Each method may reveal different information or functionality.
+    unlock_after_minutes: 20
+
+  - text: |
+      **What to look for in the responses:**
+
+      - **Allow header**: Lists all supported methods
+      - **405 Method Not Allowed**: Method not supported
+      - **200 OK**: Method accepted and executed
+      - **401/403**: Method requires authentication (but is enabled!)
+      - **501 Not Implemented**: Server doesn't support this method
+
+      **Red flags:**
+      - PUT or DELETE returning 200/401/403 (should return 405)
+      - TRACE method enabled (security risk)
+      - Inconsistent method support between endpoints
+
+      The flag is hidden in the response when testing the various HTTP methods. Try each method and examine the response body carefully.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/webpt/CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/"
+
+test:
+  steps:
+    - name: "Web server responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+    - name: "OPTIONS method returns allowed methods"
+      command: "curl -s -X OPTIONS http://{target.webserver}/"
+      expect: "GET, POST, PUT, DELETE, OPTIONS, TRACE"
+    - name: "PUT method triggers flag creation"
+      command: "curl -s -X PUT http://{target.webserver}/ -d 'test'"
+      expect: "PUT method accepted"
+    - name: "Flag file accessible after PUT"
+      command: "curl -s http://{target.webserver}/uploads/flag.txt"
+      expect: "OCR{http_m3th0ds_3num3r4t10n}"

@@ -1,0 +1,232 @@
+version: "1"
+template_id: "network-firewall-fundamentals"
+name: "Firewall Fundamentals"
+class: "ephemeral"
+archetype: "network"
+source_lab_slug: "network-12-1-firewall-fundamentals"
+description: >
+  Three-host network lab. The student SSHes into a firewall, watches live traffic
+  from a development server hitting an internal web server, and writes iptables
+  FORWARD rules to allow only HTTP/HTTPS while dropping everything else.
+  De-identified from the network-12-1-firewall-fundamentals seed lab: company
+  names, persona, hostnames, scenario and credentials are cosmetic; the topology,
+  iptables exploit path and tester are structural.
+
+tags:
+  - firewall
+  - iptables
+  - network
+  - traffic-filtering
+
+# ----------------------------------------------------------------------------
+# STRUCTURAL ZONE (locked on cosmetic instantiate)
+# ----------------------------------------------------------------------------
+structural:
+  difficulty: "beginner"
+  category: "network"
+  duration_minutes: 60
+
+  # Track placement so the rendered slug parses in discover_labs:
+  #   {track}-{level}-{lab_num}-{base_slug} => network-12-1-firewall-fundamentals
+  track: "network"
+  level: 12
+  lab_num: 1
+  base_slug: "firewall-fundamentals"
+
+  topology:
+    nodes:
+      - id: "firewall"
+        label: "Firewall"
+        type: "firewall"
+        ip_offset: "10"
+        ports: [22]
+        services: ["OpenSSH", "iptables"]
+        x: 2
+        y: 1
+      - id: "devserver"
+        label: "Dev Server"
+        type: "workstation"
+        ip_offset: "23"
+        ports: [22]
+        services: ["Traffic Generator"]
+        x: 1
+        y: 2
+      - id: "webserver"
+        label: "Web Server"
+        type: "server"
+        ip_offset: "47"
+        ports: [80, 443]
+        services: ["Apache", "HTTPS"]
+        x: 3
+        y: 2
+    edges:
+      - from: "attacker"
+        to: "firewall"
+        label: "SSH:22"
+        access: "direct"
+      - from: "devserver"
+        to: "firewall"
+        label: "Mixed Traffic"
+        access: "internal"
+      - from: "firewall"
+        to: "webserver"
+        label: "Filtered Traffic"
+        access: "internal"
+
+  # Flag is revealed by the check-rules script reading /root/flag.txt on the
+  # firewall. Value is cosmetic; injected via FLAG with a baked fallback.
+  flag_location: "/root/flag.txt (revealed by sudo check-rules)"
+  flag_fallback: "OCR{tr4ff1c_c0ntr0ll3d}"
+
+  credential_roles:
+    - role: "analyst"
+      user_fallback: "analyst"
+      pass_fallback: "M3r1d14n_Fw#"
+      description: "SSH access to the firewall appliance"
+
+  test:
+    steps:
+      - name: "SSH to firewall"
+        command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'echo connected' 2>/dev/null"
+        expect: "connected"
+        timeout: 15
+      - name: "Traffic generator is sending traffic"
+        command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'sudo monitor --count 5 2>/dev/null | head -10' 2>/dev/null"
+        expect: "ALLOW"
+        timeout: 30
+      - name: "Web server responds on HTTP"
+        command: "curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 http://{target.webserver}/"
+        expect: "200"
+        timeout: 10
+      - name: "Apply correct firewall rules and validate"
+        command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'sudo iptables -F FORWARD && sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT && sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT && sudo iptables -A FORWARD -j DROP && sleep 3 && sudo check-rules' 2>/dev/null"
+        expect: "{flag}"
+        timeout: 30
+
+# ----------------------------------------------------------------------------
+# COSMETIC SCHEMA (skinnable, typed fields with de-identified defaults)
+# ----------------------------------------------------------------------------
+cosmetic_schema:
+  type: "object"
+  required: ["company", "persona", "hostname", "scenario"]
+  properties:
+    company:
+      type: "string"
+      label: "Company Name"
+      description: "Defending organization in the scenario narrative"
+      default: "Example Health"
+      minLength: 3
+      maxLength: 100
+    contractor:
+      type: "string"
+      label: "Contractor / Threat Source"
+      description: "Third party whose dev server sends the suspicious traffic"
+      default: "Apex Digital"
+      minLength: 3
+      maxLength: 100
+    persona:
+      type: "string"
+      label: "Persona / Supervisor"
+      description: "Network security lead who briefs the student"
+      default: "Jordan Whitfield, Network Security Lead"
+      minLength: 5
+      maxLength: 150
+    hostname:
+      type: "array"
+      itemType: "string"
+      label: "Hostnames (firewall, dev, web)"
+      description: "One hostname per node, in topology order"
+      default: ["example-fw", "apex-dev", "example-web"]
+    scenario:
+      type: "textarea"
+      label: "Scenario Narrative"
+      default: >
+        Example Health hired Apex Digital to build a patient intake web app and
+        gave them a development server on the internal segment. The SOC flagged
+        unusual traffic from that dev server: port scans, database probes, and
+        reverse shell callbacks. SSH into the firewall, observe the live traffic,
+        and write iptables FORWARD rules to allow only HTTP and HTTPS while
+        blocking everything else.
+      minLength: 50
+      maxLength: 2000
+    objectives:
+      type: "array"
+      itemType: "string"
+      label: "Learning Objectives"
+      default:
+        - "Explain what a firewall does and why it sits between network segments"
+        - "Identify the components of an iptables rule (chain, protocol, port, action)"
+        - "Observe live network traffic flowing through a firewall"
+        - "Write iptables FORWARD rules to allow specific traffic and block the rest"
+        - "Verify firewall effectiveness before and after rule application"
+        - "Capture the flag"
+      maxItems: 10
+    credentials:
+      type: "array"
+      itemType: "object"
+      label: "Credentials"
+      description: "Username/password for the firewall analyst; the role id is locked"
+      items:
+        role:
+          type: "string"
+          enum: ["analyst"]
+        user:
+          type: "string"
+          default: "analyst"
+          minLength: 3
+          maxLength: 50
+          pattern: "^[a-z_][a-z0-9_-]{2,31}$"
+        pass:
+          type: "string"
+          default: "M3r1d14n_Fw#"
+          minLength: 8
+          maxLength: 100
+          pattern: "^[^!]+$"
+      default:
+        - role: "analyst"
+          user: "analyst"
+          pass: "M3r1d14n_Fw#"
+    flag:
+      type: "object"
+      label: "Flag"
+      properties:
+        mode:
+          type: "enum"
+          values: ["fixed", "auto"]
+          default: "fixed"
+        value:
+          type: "string"
+          default: "OCR{tr4ff1c_c0ntr0ll3d}"
+          pattern: "^OCR\\{[a-z0-9_]+\\}$"
+    difficulty:
+      type: "enum"
+      label: "Difficulty"
+      values: ["beginner", "intermediate", "advanced"]
+      default: "beginner"
+
+# ----------------------------------------------------------------------------
+# ENVIRONMENT CONTRACT
+# ----------------------------------------------------------------------------
+env_contract:
+  variables:
+    - name: "FLAG"
+      service: "firewall"
+      source: "cosmetic.flag.value"
+      required: false
+      description: "Flag written to /root/flag.txt on the firewall at spawn"
+    - name: "CRED_analyst_USER"
+      service: "firewall"
+      source: "cosmetic.credentials[role=analyst].user"
+      required: false
+      description: "Firewall SSH username"
+    - name: "CRED_analyst_PASS"
+      service: "firewall"
+      source: "cosmetic.credentials[role=analyst].pass"
+      required: false
+      description: "Firewall SSH password"
+  # Peer offsets are LOCKED: the monitor and traffic-loop scripts discover peers
+  # dynamically from the subnet at these offsets regardless of assigned subnet.
+  peer_offsets:
+    firewall: 10
+    devserver: 23
+    webserver: 47

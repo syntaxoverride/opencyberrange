@@ -1,0 +1,329 @@
+name: RDP Manual Connection Test
+description: Test RDP authentication on FinanceCorp's systems using known credentials to assess access controls.
+difficulty: beginner
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - attempt rdp connection with known credentials
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your enumeration of FinanceCorp's RDP services has provided version and capability 
+  information. James Mitchell wants to test authentication security by attempting 
+  connections with known credentials.
+  
+  Testing RDP authentication helps identify if weak credentials or misconfigurations 
+  allow unauthorized access. FinanceCorp needs to understand if their authentication 
+  mechanisms are properly secured.
+  
+  Your objective: Test RDP authentication against FinanceCorp's systems using known 
+  credentials. Attempt manual connections to assess whether authentication controls 
+  are functioning correctly.
+
+flag: "OCR{rdp_m4nu4l_c0nn3ct}"
+
+hints:
+  - text: |
+      ## What is a Manual RDP Connection Test?
+
+      A **manual RDP connection test** is the process of connecting to a remote system
+      using known or discovered credentials via an RDP client. This simulates what an
+      attacker would do after obtaining valid credentials through reconnaissance,
+      credential dumping, phishing, or other methods.
+
+      ### Why Manual Connection Testing Matters
+
+      In penetration testing, proving that credentials work is a critical step:
+
+      - **Validates discovered credentials**: Confirms that username/password combinations
+        actually grant access to the target system
+      - **Demonstrates impact**: Shows the client what an attacker can do with compromised
+        credentials - full graphical desktop access
+      - **Identifies post-exploitation opportunities**: Once connected, you can explore
+        the system for sensitive data, misconfigurations, and lateral movement paths
+      - **Tests authentication controls**: Reveals whether the system enforces account
+        lockout, MFA, IP restrictions, or other defensive measures
+
+      ### RDP vs Other Remote Access
+
+      Unlike command-line access (SSH, WinRM), RDP provides a **full graphical desktop
+      session**. This means an attacker gains the same experience as a legitimate user
+      sitting at the computer - they can open applications, browse files, access the
+      clipboard, and interact with the GUI.
+
+      In this lab, you will connect to the FinanceCorp system using known credentials
+      and a graphical RDP client to demonstrate unauthorized access.
+    unlock_after_minutes: 0
+
+  - text: |
+      ## Tool Introduction: xfreerdp (FreeRDP Client)
+
+      **xfreerdp** is the command-line RDP client from the FreeRDP project. It is the
+      most widely used open-source RDP client for Linux and is included in most
+      penetration testing distributions.
+
+      ### Installation
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Basic Syntax
+
+      ```bash
+      xfreerdp /v:<target> /u:<username> /p:<password> [options]
+      ```
+
+      ### Common xfreerdp Options
+
+      | Option          | Purpose                                           |
+      |-----------------|---------------------------------------------------|
+      | `/v:<host>`     | Target hostname or IP address                     |
+      | `/port:<port>`  | Target port (default: 3389)                       |
+      | `/u:<user>`     | Username for authentication                       |
+      | `/p:<pass>`     | Password for authentication                       |
+      | `/cert:ignore`  | Accept any certificate (skip TLS validation)      |
+      | `/size:WxH`     | Set screen resolution (e.g., `/size:1280x720`)    |
+      | `+clipboard`    | Enable clipboard sharing between local and remote |
+      | `/dynamic-resolution` | Allow resizing the window dynamically        |
+      | `/sec:tls`      | Force TLS security mode                           |
+      | `/sec:rdp`      | Force standard RDP security mode                  |
+
+      ### Alternative RDP Clients
+
+      Other RDP clients available on Linux include:
+      - **rdesktop**: Older, simpler RDP client
+      - **Remmina**: GUI-based remote desktop client
+      - **vinagre**: GNOME remote desktop viewer
+    unlock_after_minutes: 5
+
+  - text: |
+      ## Practical Examples and Connection Details
+
+      ### Understanding xfreerdp Connection Flow
+
+      When you connect via xfreerdp, several things happen:
+
+      1. **TCP Connection**: Client connects to target port 3389
+      2. **TLS Negotiation**: Encryption is established (you may see certificate warnings)
+      3. **Authentication**: Your credentials are validated against the server
+      4. **Session Creation**: If successful, a desktop session is created
+      5. **Desktop Rendering**: The remote desktop is displayed in a local window
+
+      ### Common Connection Examples
+
+      Basic connection:
+      ```bash
+      xfreerdp /v:192.168.1.100 /u:admin /p:password /cert:ignore
+      ```
+
+      Connection with specific resolution:
+      ```bash
+      xfreerdp /v:192.168.1.100 /u:admin /p:password /cert:ignore /size:1280x720
+      ```
+
+      Connection with clipboard and dynamic resolution:
+      ```bash
+      xfreerdp /v:192.168.1.100 /u:admin /p:password /cert:ignore +clipboard /dynamic-resolution
+      ```
+
+      ### Certificate Handling
+
+      The `/cert:ignore` flag is essential in lab environments. Without it, xfreerdp
+      will prompt you to verify the server's TLS certificate, which can block automated
+      connections. In real penetration tests, you should note certificate details as
+      they can reveal domain information.
+
+      ### This Lab's Target
+
+      This lab target runs **xrdp with an xfce4 desktop environment**. This means:
+      - You will get a full graphical desktop session
+      - The desktop uses the lightweight XFCE window manager
+      - You can open a terminal emulator within the desktop to run commands
+      - Files on the system are accessible through the file manager or terminal
+    unlock_after_minutes: 10
+
+  - text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install the RDP Client
+
+      Ensure xfreerdp is installed on your attack machine:
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      Verify installation:
+      ```bash
+      xfreerdp --version
+      ```
+
+      ### Step 2: Verify the Target RDP Service
+
+      Confirm the RDP service is running before attempting to connect:
+
+      ```bash
+      nmap -p 3389 -Pn <target>
+      ```
+
+      You should see port 3389 as **open**.
+
+      ### Step 3: Connect with Known Credentials
+
+      Use xfreerdp with the credentials provided in the lab scenario:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password /cert:ignore
+      ```
+
+      ### Step 4: Navigate the Remote Desktop
+
+      Once connected, you will see the XFCE desktop. To find the flag:
+      - Right-click the desktop and open a **Terminal Emulator**
+      - Or use the application menu to find a terminal application
+      - Navigate to the flag location using the command line
+
+      ### Step 5: Read the Flag
+
+      In the terminal on the remote system, read the flag file:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Step 6: Document and Submit
+
+      Copy the flag value and submit it. Note any interesting findings about
+      the system configuration for your penetration test report.
+    unlock_after_minutes: 15
+
+  - text: |
+      ## Exact Commands to Run
+
+      ### Install FreeRDP Client
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Connect to the Target
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password /cert:ignore +clipboard /size:1280x720
+      ```
+
+      This command:
+      - `/v:<target>` : Connects to the lab target on port 3389
+      - `/u:admin` : Authenticates as the "admin" user
+      - `/p:password` : Uses the password "password"
+      - `/cert:ignore` : Skips certificate verification
+      - `+clipboard` : Enables clipboard sharing (useful for copying the flag)
+      - `/size:1280x720` : Sets a comfortable resolution
+
+      ### Once Connected to the Remote Desktop
+
+      Open a terminal in the XFCE desktop session (right-click desktop, select
+      "Open Terminal Here" or find Terminal in the application menu), then run:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Copy the Flag
+
+      If clipboard sharing is enabled (`+clipboard`), you can select the flag
+      text in the remote terminal, copy it (Ctrl+Shift+C in the remote terminal),
+      and paste it locally.
+
+      ### Disconnect
+
+      Close the xfreerdp window or press Ctrl+C in your local terminal to
+      disconnect the RDP session.
+    unlock_after_minutes: 20
+
+  - text: |
+      ## Complete Solution Walkthrough
+
+      ### 1. Install the RDP Client
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### 2. Verify the Service is Running
+
+      ```bash
+      nmap -p 3389 -sV -Pn <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE        VERSION
+      3389/tcp open  ms-wbt-server  xrdp
+      ```
+
+      ### 3. Connect via RDP
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password /cert:ignore +clipboard /size:1280x720
+      ```
+
+      Expected behavior:
+      - A new window opens showing the xrdp login screen or the XFCE desktop
+      - The XFCE desktop will load with a panel at the top or bottom
+
+      ### 4. Open a Terminal
+
+      In the XFCE desktop:
+      - Right-click on the desktop background
+      - Select **"Open Terminal Here"** from the context menu
+      - Alternatively, look for **"Terminal Emulator"** in the application menu
+
+      ### 5. Read the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      Expected output:
+      ```
+      OCR{...}
+      ```
+
+      ### 6. Submit the Flag
+
+      Copy the flag value from the terminal output and submit it through the
+      lab platform to complete the exercise.
+
+      ### Troubleshooting
+
+      If the connection fails:
+      - Ensure port 3389 is open: `nmap -p 3389 -Pn <target>`
+      - Try forcing TLS: `xfreerdp /v:<target> /u:admin /p:password /cert:ignore /sec:tls`
+      - Try without NLA: `xfreerdp /v:<target> /u:admin /p:password /cert:ignore /sec:rdp`
+      - Check your network connectivity to the target
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "admin"
+    password: "password"
+    role: "rdp-user"
+    description: "RDP admin credentials"
+
+workbook: "wiki/range/winpt/CH04_RDP_Exploitation/03_RDP_Manual_Connection_Test/"
+
+test:
+  steps:
+    - name: "Verify RDP port 3389 is open"
+      command: "nmap -Pn -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "open"
+
+    - name: "Detect RDP service on port 3389"
+      command: "nmap -Pn -sV -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "ms-wbt-server"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p 'password' ssh -o StrictHostKeyChecking=no admin@{target.target} cat /home/admin/flag.txt"
+      expect: "OCR{"

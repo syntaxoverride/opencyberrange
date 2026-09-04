@@ -1,0 +1,1334 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise WS-4.3: Service Principal Name Discovery - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-ws-43-service-principal-name-discovery" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise WS-4.3: Service Principal Name Discovery
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-service-principal-names-and-kerberoasting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Service Principal Names and Kerberoasting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Service Principal Names and Kerberoasting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-kerberoasting-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Kerberoasting Attack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-service-accounts-are-vulnerable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Service Accounts Are Vulnerable
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-ldapsearch-for-spn-enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: ldapsearch for SPN Enumeration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Lab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-query-for-all-spn-bearing-user-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Query for All SPN-Bearing User Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-analyze-the-spn-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Analyze the SPN Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-filter-out-machine-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Filter Out Machine Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-check-account-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Check Account Descriptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-assess-the-kerberoasting-attack-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Assess the Kerberoasting Attack Surface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-find-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Find and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-ws-43-service-principal-name-discovery">Exercise WS-4.3: Service Principal Name Discovery</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercises WS-4.1 and WS-4.2 demonstrated that authenticated domain users can read SMB shares and GPO templates that are invisible to anonymous connections. Service Principal Name (SPN) discovery takes authenticated enumeration in a different direction; querying Active Directory (AD) directly for accounts that run services. SPN-registered accounts are high-value targets because any authenticated user can request a Kerberos service ticket for them, and that ticket can be cracked offline to recover the account's password.</p>
+<h2 id="scenario">Scenario</h2>
+<p>You continue your assessment of the <code>corp.ocr-range.lab</code> domain using the <code>guest.user</code> credentials. The engagement lead wants you to identify all accounts with registered SPNs, document the services they provide, and assess the Kerberoasting attack surface. Service accounts frequently run with elevated privileges and use passwords that are weaker than expected because administrators set them once and rarely rotate them. Your task is to query Lightweight Directory Access Protocol (LDAP) for all SPN-bearing user accounts and analyze what you find.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Query the AD directory for all user accounts that have a <code>servicePrincipalName</code> attribute</li>
+<li>Identify what services each account provides based on its SPN values</li>
+<li>Understand how SPN discovery enables the Kerberoasting attack</li>
+<li>Document the Kerberoasting attack surface for the domain</li>
+<li>Locate and submit the flag from a service account description</li>
+</ul>
+<hr />
+<h2 id="background-service-principal-names-and-kerberoasting">Background: Service Principal Names and Kerberoasting</h2>
+<p>A Service Principal Name is a unique identifier that associates a service instance with a logon account in Active Directory. When a client application needs to authenticate to a service (such as a SQL Server database or a web application), Kerberos uses the SPN to locate the correct service account and issue a service ticket. SPNs follow a structured format that encodes the service type, hostname, and optional port number.</p>
+<p><strong>SPN format:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>serviceclass/hostname:port
+</code></pre></div>
+<p><strong>Common SPN examples:</strong></p>
+<table>
+<thead>
+<tr>
+<th>SPN</th>
+<th>Service</th>
+<th>Typical Account</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MSSQLSvc/sql01.corp.ocr-range.lab:1433</code></td>
+<td>Microsoft SQL Server</td>
+<td>svc-sql</td>
+</tr>
+<tr>
+<td><code>HTTP/web01.corp.ocr-range.lab</code></td>
+<td>Web application (IIS/HTTP)</td>
+<td>svc-web</td>
+</tr>
+<tr>
+<td><code>CIFS/fileserver.corp.ocr-range.lab</code></td>
+<td>SMB file sharing</td>
+<td>Machine account</td>
+</tr>
+<tr>
+<td><code>exchangeMDB/mail01.corp.ocr-range.lab</code></td>
+<td>Exchange mailbox service</td>
+<td>svc-exchange</td>
+</tr>
+<tr>
+<td><code>ldap/dc01.corp.ocr-range.lab</code></td>
+<td>LDAP directory service</td>
+<td>Machine account</td>
+</tr>
+</tbody>
+</table>
+<p>SPNs registered to <strong>machine accounts</strong> (accounts ending with <code>$</code>) are not useful for Kerberoasting because machine account passwords are 120+ character random strings that cannot be cracked. SPNs registered to <strong>user accounts</strong> (standard <code>sAMAccountName</code> entries) are the targets, because human-set passwords are typically much weaker and susceptible to offline cracking.</p>
+<h3 id="the-kerberoasting-attack">The Kerberoasting Attack</h3>
+<p>Kerberoasting exploits a fundamental design feature of Kerberos authentication. When any authenticated user requests a service ticket (TGS) for an SPN, the Key Distribution Center (KDC) encrypts part of that ticket using the service account's password hash. The user receives the ticket regardless of whether they actually have permission to access the service.</p>
+<p>The attack proceeds in four steps:</p>
+<pre class="mermaid"><code>graph LR
+    A["Enumerate SPNs&lt;br/&gt;via LDAP"] --&gt; B["Request TGS&lt;br/&gt;Tickets"]
+    B --&gt; C["Extract Encrypted&lt;br/&gt;Ticket Data"]
+    C --&gt; D["Crack Password&lt;br/&gt;Offline"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#6aaa64,color:#fff
+    style C fill:#e8a735,color:#fff
+    style D fill:#d9534f,color:#fff</code></pre>
+<ol>
+<li><strong>Enumerate SPNs</strong>: Query LDAP for user accounts with <code>servicePrincipalName</code> attributes (the focus of this exercise)</li>
+<li><strong>Request service tickets</strong>: Ask the KDC for a TGS ticket for each SPN</li>
+<li><strong>Extract ticket data</strong>: Pull the encrypted portion from the ticket</li>
+<li><strong>Crack offline</strong>: Use a tool like Hashcat or John the Ripper to brute-force the service account password</li>
+</ol>
+<p>The critical security implication is that steps 2 and 3 require no special privileges; any authenticated domain user can perform them. The KDC does not check whether the requesting user has access to the service. SPN discovery (step 1) is therefore the reconnaissance phase that identifies which accounts to target.</p>
+<h3 id="why-service-accounts-are-vulnerable">Why Service Accounts Are Vulnerable</h3>
+<p>Service accounts often have characteristics that make their passwords easier to crack than regular user passwords:</p>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Passwords set once, rarely changed</td>
+<td>Old passwords may predate current complexity requirements</td>
+</tr>
+<tr>
+<td>Created by administrators, not users</td>
+<td>May use predictable patterns (e.g., <code>ServiceName2020!</code>)</td>
+</tr>
+<tr>
+<td>Password never expires flag</td>
+<td>Often set to prevent service outages from password rotation</td>
+</tr>
+<tr>
+<td>Elevated privileges</td>
+<td>Service accounts frequently hold admin rights on multiple servers</td>
+</tr>
+</tbody>
+</table>
+<p>A cracked service account password provides the attacker with that account's full set of permissions, which often includes local administrator access on the servers running the service.</p>
+<hr />
+<h2 id="tool-primer-ldapsearch-for-spn-enumeration">Tool Primer: ldapsearch for SPN Enumeration</h2>
+<p>The <code>ldapsearch</code> tool can query AD for all user accounts that have an SPN registered. The key is combining an LDAP filter that matches user objects with a presence test for the <code>servicePrincipalName</code> attribute.</p>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate user accounts with SPNs</p>
+<p>Combine an <code>objectClass=user</code> filter with a presence test for <code>servicePrincipalName</code> to return only user accounts that have an SPN registered.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ldapsearch<span class="w"> </span>-D<span class="w"> </span><span class="s2">&quot;guest.user@corp.ocr-range.lab&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;Guest2024#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-H<span class="w"> </span>ldap://dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=ocr-range,DC=lab&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(objectClass=user)(servicePrincipalName=*))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>servicePrincipalName<span class="w"> </span>description
+</code></pre></div>
+<p>Each result block is one Kerberoasting candidate; record the <code>sAMAccountName</code>, every <code>servicePrincipalName</code>, and any <code>description</code> text.</p>
+</div>
+<p>The filter components work together to narrow the results:</p>
+<table>
+<thead>
+<tr>
+<th>Filter Component</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(objectClass=user)</code></td>
+<td>Match user account objects (not groups, OUs, or containers)</td>
+</tr>
+<tr>
+<td><code>(servicePrincipalName=*)</code></td>
+<td>Match entries that have at least one SPN attribute</td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td>Boolean AND; both conditions must be true</td>
+</tr>
+</tbody>
+</table>
+<p>The requested attributes provide the information needed for attack planning:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sAMAccountName</code></td>
+<td>The account's logon name (used in Kerberoasting tools)</td>
+</tr>
+<tr>
+<td><code>servicePrincipalName</code></td>
+<td>The registered SPN values (identifies which services the account runs)</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>Administrator-written notes (may reveal account purpose or credentials)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Expected output (approximate):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># svc-sql, Users, corp.ocr-range.lab
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>dn: CN=svc-sql,CN=Users,DC=corp,DC=ocr-range,DC=lab
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>sAMAccountName: svc-sql
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>servicePrincipalName: MSSQLSvc/sql01.corp.ocr-range.lab:1433
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>description: SQL Server service account
+</code></pre></div>
+<p>Each result block shows one account that could be targeted for Kerberoasting. Multiple <code>servicePrincipalName</code> lines on a single entry indicate the account serves multiple hosts or ports.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-lab">Step 1: Launch the Lab</h3>
+<p>Open the Open Cyber Range platform in your browser and start the lab environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong>, then <strong>Windows Server</strong>, then <strong>Level 4</strong></li>
+<li>Click <strong>Launch</strong> on "Service Principal Name Discovery"</li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-query-for-all-spn-bearing-user-accounts">Step 2: Query for All SPN-Bearing User Accounts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Query for all SPN-bearing user accounts</p>
+<p>Run the LDAP query that searches the entire domain for user accounts with registered SPNs.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ldapsearch<span class="w"> </span>-D<span class="w"> </span><span class="s2">&quot;guest.user@corp.ocr-range.lab&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;Guest2024#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-H<span class="w"> </span>ldap://dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=ocr-range,DC=lab&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(objectClass=user)(servicePrincipalName=*))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>servicePrincipalName<span class="w"> </span>description
+</code></pre></div>
+<p>Examine the output carefully. Each result block represents one account that the Kerberos KDC will issue service tickets for. Note the <code>sAMAccountName</code>, all <code>servicePrincipalName</code> values, and any <code>description</code> text.</p>
+</div>
+<h3 id="step-3-analyze-the-spn-values">Step 3: Analyze the SPN Values</h3>
+<p>For each account returned in Step 2, break down the SPN values to understand what services are running and where. Parse the SPN format to extract the service class, hostname, and port.</p>
+<p><strong>Example analysis:</strong></p>
+<table>
+<thead>
+<tr>
+<th>SPN Value</th>
+<th>Service Class</th>
+<th>Hostname</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MSSQLSvc/sql01.corp.ocr-range.lab:1433</code></td>
+<td>MSSQLSvc</td>
+<td>sql01</td>
+<td>1433</td>
+</tr>
+<tr>
+<td><code>HTTP/web01.corp.ocr-range.lab</code></td>
+<td>HTTP</td>
+<td>web01</td>
+<td>(default)</td>
+</tr>
+</tbody>
+</table>
+<p>The service class tells you what application the account supports. The hostname reveals which server runs the service. The port confirms the listening port, which is useful for direct service enumeration.</p>
+<h3 id="step-4-filter-out-machine-accounts">Step 4: Filter Out Machine Accounts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Compare against machine accounts</p>
+<p>Machine accounts (computer objects) also have SPNs, but they are not useful for Kerberoasting. Verify that your filter targets user objects by running an unfiltered presence query and comparing the results.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ldapsearch<span class="w"> </span>-D<span class="w"> </span><span class="s2">&quot;guest.user@corp.ocr-range.lab&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;Guest2024#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-H<span class="w"> </span>ldap://dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=ocr-range,DC=lab&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="s2">&quot;(servicePrincipalName=*)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>servicePrincipalName<span class="w"> </span>objectClass
+</code></pre></div>
+<p>The unfiltered query returns both user and computer accounts with SPNs. Machine accounts have <code>objectClass: computer</code> and their <code>sAMAccountName</code> ends with a <code>$</code> character. Comparing the two result sets confirms that the filtered query from Step 2 correctly targets only user accounts; the ones vulnerable to Kerberoasting.</p>
+</div>
+<h3 id="step-5-check-account-descriptions">Step 5: Check Account Descriptions</h3>
+<div class="admonition kali">
+<p class="admonition-title">Check account descriptions</p>
+<p>Service account descriptions frequently contain useful information that administrators leave as internal documentation. Query for all user accounts with SPNs and pay close attention to the <code>description</code> attribute.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ldapsearch<span class="w"> </span>-D<span class="w"> </span><span class="s2">&quot;guest.user@corp.ocr-range.lab&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;Guest2024#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-H<span class="w"> </span>ldap://dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=ocr-range,DC=lab&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(objectClass=user)(servicePrincipalName=*))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>description
+</code></pre></div>
+<p>Administrators sometimes store password hints, creation dates, responsible teams, or operational notes in the description field. Any of this information helps profile the account for targeted password guessing or social engineering.</p>
+</div>
+<h3 id="step-6-assess-the-kerberoasting-attack-surface">Step 6: Assess the Kerberoasting Attack Surface</h3>
+<p>Document the complete Kerberoasting attack surface based on your findings. For each SPN-bearing user account, record the account name, the services it provides, and any notes from the description field. An account running with elevated privileges or a critical service warrants higher priority in an actual Kerberoasting attack.</p>
+<p>Consider the following questions for each account:</p>
+<ul>
+<li>What service does the account run? (SQL, web, file services)</li>
+<li>Does the account likely have elevated privileges?</li>
+<li>How old might the password be based on description or naming patterns?</li>
+<li>Are multiple services registered to a single account (broader blast radius if compromised)?</li>
+</ul>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>SPN-bearing user accounts discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>sAMAccountName</th>
+<th>SPN Values</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total user accounts with SPNs (Kerberoasting targets):</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>Total machine accounts with SPNs (not Kerberoastable):</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>Highest-value target account and reasoning:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+</blockquote>
+<hr />
+<h3 id="step-7-find-and-submit-the-flag">Step 7: Find and Submit the Flag</h3>
+<p>The flag for this exercise is stored in the <code>description</code> attribute of one of the service accounts with a registered SPN. Review the LDAP output from Steps 2 and 5. The flag follows the <code>OCR{...}</code> format. Copy the flag value and paste it into the <strong>Submit Flag</strong> form on the platform, then click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why can any authenticated domain user request a Kerberos service ticket for any SPN?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Kerberos was designed so that authentication happens before authorization. When a client requests a service ticket, the KDC verifies the client's identity (authentication) and issues the ticket without checking whether the client has permission to use the service (authorization). Authorization is the service's responsibility; the service checks the ticket and decides whether to grant access. The KDC's willingness to issue tickets to any authenticated user is what makes Kerberoasting possible.</p>
+</details>
+<p><strong>2. Why are SPNs registered to user accounts vulnerable but SPNs registered to machine accounts are not?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Machine account passwords are automatically generated by Windows as 120+ character random strings that change every 30 days by default. Cracking a password of that length and complexity is computationally infeasible with current hardware. User account passwords, by contrast, are set by humans (typically administrators) and are subject to human password-selection habits; shorter, less random, and often unchanged for years. The difference in password strength makes user-account SPNs practical targets for offline cracking.</p>
+</details>
+<p><strong>3. How does SPN discovery fit into a broader attack chain against Active Directory?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>SPN discovery is a reconnaissance step that identifies Kerberoasting targets. If the attacker cracks a service account password, they gain that account's permissions; often local administrator access on one or more servers. From there, the attacker can move laterally to other systems, extract additional credentials from memory, and work toward domain administrator access. SPN discovery turns a low-privilege domain account into a path toward high-privilege compromise without exploiting any software vulnerability.</p>
+</details>
+<p><strong>4. What defenses can an organization implement to reduce Kerberoasting risk?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Organizations can defend against Kerberoasting through several measures: use long (25+ character) random passwords for all service accounts, use Group Managed Service Accounts (gMSAs) that rotate passwords automatically, monitor for anomalous TGS ticket requests (a spike in SPN ticket requests from a single user is suspicious), implement the "Protected Users" group for sensitive accounts, and audit SPN registrations to remove unnecessary entries. Reducing the number of user accounts with SPNs directly shrinks the attack surface.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Any authenticated domain user can query LDAP for all accounts with registered SPNs</li>
+<li>SPNs registered to user accounts (not machine accounts) are targets for Kerberoasting</li>
+<li>Kerberoasting allows offline password cracking of service account credentials without triggering account lockout</li>
+<li>Service account descriptions may contain operational details that help profile the account</li>
+<li>The LDAP filter <code>(&amp;(objectClass=user)(servicePrincipalName=*))</code> isolates user accounts with SPNs</li>
+<li>SPN discovery requires no special tools or privileges; standard <code>ldapsearch</code> is sufficient</li>
+<li>Exercise WS-4.4 examines another category of AD information accessible to authenticated users: object permissions and DACLs</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

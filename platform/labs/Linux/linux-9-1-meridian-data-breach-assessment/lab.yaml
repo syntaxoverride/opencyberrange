@@ -1,0 +1,148 @@
+name: "Meridian Financial: Data Breach Assessment"
+description: "Meridian Financial Group's intranet may have exposed sensitive data through misconfigured backup storage. Investigate the web application and backend database to determine the scope of the breach and locate the compliance finding."
+
+difficulty: intermediate
+category: forensics
+duration_minutes: 60
+randomize_ip_offsets: true
+visibility: course
+week: 9
+
+flag: "OCR{d4ta_br34ch_3xp0s3d}"
+
+objectives:
+  - Enumerate the corporate intranet to discover all available pages and directories
+  - Identify exposed backup files containing sensitive data
+  - Extract database credentials from backup artifacts
+  - Connect to the backend database and enumerate schemas and tables
+  - Locate the compliance finding that documents the data breach
+  - Capture the flag
+
+scenario: |
+  Meridian Financial Group, a mid-size investment advisory firm headquartered in
+  Raleigh, North Carolina, has engaged your team at Ironwood Security Consulting
+  for a data protection assessment. The engagement was triggered by an internal
+  audit that flagged "potential data exposure", but the scope and severity are
+  unknown.
+
+  Your point of contact, James Park (IT Director), explains: "We migrated our
+  internal systems last quarter and stood up a new employee intranet. The
+  development team assures me everything is locked down, but our compliance
+  officer noticed some anomalies in the access logs. I need your team to
+  investigate the intranet and our backend database to determine if any
+  sensitive data was exposed during the migration."
+
+  James shares that the intranet runs on one server and the company database
+  runs on a separate host. He believes the database is only accessible to
+  authenticated application users. Your task is to assess both systems,
+  identify any data protection failures, and document your findings.
+
+  **Credentials**
+
+  - Database Access: `meridian_app` / `M3r1d14n_App_2024#`
+
+credentials:
+  - username: "meridian_app"
+    password: "M3r1d14n_App_2024#"
+    role: "dbuser"
+    description: "Low-privilege database user discovered in backup SQL dump"
+
+hints:
+  - text: |
+      The intranet has more than what's visible on the homepage. Web applications
+      often have directories for internal resources, documentation, and backups.
+      Use directory enumeration techniques to discover hidden paths on the web
+      server.
+    unlock_after_minutes: 10
+  - text: |
+      Look for backup directories on the web server. The path /backups/ is
+      restricted, but legacy backup paths may still be accessible. Try common
+      variations like /backups/legacy/, /backups/old/, or /backups/archive/.
+      The SQL dump file inside contains database credentials.
+    unlock_after_minutes: 18
+  - text: |
+      The file at http://<target_ip>/backups/legacy/meridian_dump.sql contains
+      the credentials: meridian_app / M3r1d14n_App_2024#. Connect to the
+      database server on port 3306:
+      mysql -h <db_ip> -u meridian_app -p'M3r1d14n_App_2024#'
+      Then enumerate databases with SHOW DATABASES, explore tables with
+      SHOW TABLES, and look for compliance-related tables.
+    unlock_after_minutes: 25
+
+topology:
+  nodes:
+    - id: "webserver"
+      label: "Intranet Server"
+      type: "server"
+      ip_offset: "18"
+      ports: [80]
+      services: ["nginx"]
+      x: 2
+      y: 1
+    - id: "dbserver"
+      label: "Database Server"
+      type: "database"
+      ip_offset: "41"
+      ports: [3306]
+      services: ["MySQL 8.0"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webserver"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "direct"
+    - from: "webserver"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Intranet web server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+
+    - name: "Staff directory page exists"
+      command: "curl -s http://{target.webserver}/staff/"
+      expect: "James Park"
+
+    - name: "IT notices page exists"
+      command: "curl -s http://{target.webserver}/notices/"
+      expect: "backup migration"
+
+    - name: "Backups root is access-restricted"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/backups/"
+      expect: "403"
+
+    - name: "Legacy backup directory is accessible"
+      command: "curl -s http://{target.webserver}/backups/legacy/"
+      expect: "meridian_dump.sql"
+
+    - name: "SQL dump contains database credentials"
+      command: "curl -s http://{target.webserver}/backups/legacy/meridian_dump.sql | grep -o \"M3r1d14n_App_2024#\""
+      expect: "M3r1d14n_App_2024#"
+
+    - name: "MySQL is accessible with dump credentials"
+      command: "mysql -h {target.dbserver} -u {cred.dbuser.user} -p'{cred.dbuser.pass}' -N -e 'SHOW DATABASES' 2>&1"
+      expect: "meridian_compliance"
+      timeout: 20
+
+    - name: "HR and finance databases are permission-denied"
+      command: "mysql -h {target.dbserver} -u {cred.dbuser.user} -p'{cred.dbuser.pass}' -N -e 'SELECT * FROM meridian_hr.employees LIMIT 1' 2>&1"
+      expect: "denied"
+      timeout: 15
+
+    - name: "Data classifications table exists in compliance database"
+      command: "mysql -h {target.dbserver} -u {cred.dbuser.user} -p'{cred.dbuser.pass}' meridian_compliance -N -e 'SELECT classification, record_name FROM data_classifications WHERE classification=\"PII\"' 2>&1"
+      expect: "PII"
+      timeout: 15
+
+    - name: "Flag is in compliance_findings table"
+      command: "mysql -h {target.dbserver} -u {cred.dbuser.user} -p'{cred.dbuser.pass}' meridian_compliance -N -e 'SELECT finding_detail FROM compliance_findings WHERE severity=\"CRITICAL\"' 2>&1"
+      expect: "OCR{"
+      timeout: 15

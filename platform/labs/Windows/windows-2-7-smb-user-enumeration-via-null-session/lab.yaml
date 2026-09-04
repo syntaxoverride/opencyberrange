@@ -1,0 +1,229 @@
+name: SMB User Enumeration via Null Session
+description: Enumerate FinanceCorp user accounts through null session connections to identify potential targets.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - enumerate users using null session
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your null session enumeration of FinanceCorp's SMB service has revealed significant 
+  information disclosure. James Mitchell is particularly concerned about user 
+  enumeration, as this can aid credential attacks and social engineering attempts.
+  
+  User enumeration through null sessions provides attackers with a list of valid 
+  usernames, which is the first step in many credential-based attacks. FinanceCorp 
+  needs to understand the scope of this information disclosure.
+  
+  Your objective: Enumerate user accounts on FinanceCorp's system using null session 
+  connections. Document all discovered usernames, as this information will be valuable 
+  for subsequent credential testing phases of your assessment.
+
+flag: "OCR{smb_us3r_3num}"
+
+hints:
+  - text: |
+      **User enumeration via null sessions** is one of the most dangerous capabilities of SMB misconfigurations. It allows attackers to obtain a complete list of user accounts without authentication.
+
+      **Why user enumeration is critical:**
+      - **Credential attacks**: Valid usernames for password spraying
+      - **Brute force**: Targets for authentication attacks
+      - **Social engineering**: Real employee names for phishing
+      - **Privilege mapping**: Identify administrative accounts
+      - **Account validation**: Test username guesses
+      - **Pattern analysis**: Understand naming conventions
+
+      A complete user list dramatically reduces the difficulty of gaining unauthorized access.
+    unlock_after_minutes: 0
+
+  - text: |
+      **rpcclient user enumeration commands** provide detailed account information:
+
+      **Primary commands:**
+      - `enumdomusers`: List all domain users
+      - `queryuser RID`: Get details about specific user
+      - `enumdomgroups`: List domain groups
+      - `querygroupmem RID`: List group members
+      - `lookupnames username`: Get user SID from name
+
+      **Information revealed:**
+      - Usernames (primary target)
+      - User RIDs (Relative Identifiers)
+      - Account descriptions
+      - Group memberships
+      - Account status (active/disabled)
+      - Password policies (in some cases)
+
+      **Why RIDs matter:**
+      - RID 500: Built-in Administrator
+      - RID 501: Guest account
+      - RID 1000+: Regular user accounts
+      - Low RIDs often indicate privileged accounts
+
+      This information enables targeted credential attacks.
+    unlock_after_minutes: 5
+
+  - text: |
+      **User enumeration techniques** go beyond basic username listing:
+
+      **Basic enumeration workflow:**
+      1. List all users: `enumdomusers`
+      2. Extract usernames from output
+      3. Query individual user details: `queryuser RID`
+      4. List groups: `enumdomgroups`
+      5. Identify group members: `querygroupmem`
+
+      **Advanced enumeration:**
+      - Cross-reference users with groups
+      - Identify administrative accounts
+      - Find service accounts
+      - Detect disabled/locked accounts
+      - Analyze naming patterns
+
+      **Using enum4linux for automation:**
+      ```bash
+      enum4linux -U <target>     # Users only
+      enum4linux -G <target>     # Groups only
+      enum4linux -a <target>     # All enumeration
+      ```
+
+      enum4linux automates the entire enumeration workflow.
+    unlock_after_minutes: 10
+
+  - text: |
+      **rpcclient user enumeration syntax:**
+
+      **Basic user enumeration:**
+      ```bash
+      rpcclient -U "" -N <target>
+      rpcclient $> enumdomusers
+      rpcclient $> exit
+      ```
+
+      **Get specific user details:**
+      ```bash
+      rpcclient -U "" -N <target>
+      rpcclient $> enumdomusers
+      rpcclient $> queryuser 0x1f4    # Query RID 500 (Administrator)
+      rpcclient $> exit
+      ```
+
+      **Non-interactive user enumeration:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'enumdomusers'
+      ```
+
+      **Enumerate users and groups:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'enumdomusers;enumdomgroups'
+      ```
+
+      **Using enum4linux:**
+      ```bash
+      enum4linux -U <target>              # Users only
+      enum4linux -a <target>              # Complete enumeration
+      enum4linux -a <target> | grep user  # Filter for users
+      ```
+    unlock_after_minutes: 15
+
+  - text: |
+      To enumerate users on FinanceCorp via null session:
+
+      ```bash
+      rpcclient -U "" -N <target>
+      rpcclient $> enumdomusers
+      ```
+
+      This command:
+      - Queries SAM database via RPC
+      - Returns all enumerable user accounts
+      - Provides usernames and RIDs
+      - Works without authentication
+
+      **Quick non-interactive version:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'enumdomusers'
+      ```
+
+      **Comprehensive enumeration with enum4linux:**
+      ```bash
+      enum4linux -U <target>
+      ```
+
+      **For complete domain information:**
+      ```bash
+      enum4linux -a <target>
+      ```
+
+      The `-a` flag performs complete enumeration including users, groups, shares, and policies.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful user enumeration output:
+
+      ```bash
+      rpcclient $> enumdomusers
+      user:[Administrator] rid:[0x1f4]
+      user:[Guest] rid:[0x1f5]
+      user:[james.mitchell] rid:[0x3e8]
+      user:[sarah.chen] rid:[0x3e9]
+      user:[admin] rid:[0x3ea]
+      user:[backup] rid:[0x3eb]
+      user:[service_account] rid:[0x3ec]
+      ```
+
+      **Analyzing the output:**
+      - **user:[name]**: Username (primary target for attacks)
+      - **rid:[hex]**: Relative Identifier (account ID)
+      - **0x1f4 (500)**: Administrator account
+      - **0x1f5 (501)**: Guest account
+      - **0x3e8+ (1000+)**: Regular user accounts
+
+      **Using enum4linux output:**
+      ```bash
+      $ enum4linux -U <target_ip>
+
+       ============================
+      |    Users on <target_ip>    |
+       ============================
+      index: 0x1 RID: 0x1f4 acb: 0x00000010 Account: Administrator	Name: 	Desc:
+      index: 0x2 RID: 0x3e8 acb: 0x00000010 Account: james.mitchell	Name: James Mitchell	Desc: IT Security Manager
+      index: 0x3 RID: 0x3e9 acb: 0x00000010 Account: sarah.chen	Name: Sarah Chen	Desc: System Administrator
+      ```
+
+      **What to document:**
+      1. Complete username list
+      2. Usernames with RID 500-510 (built-in accounts)
+      3. Service accounts (service_, svc_, etc.)
+      4. Administrative usernames (admin, administrator variants)
+      5. Naming patterns (first.last, firstinitial+lastname)
+
+      **Next steps after enumeration:**
+      - Create username list for password spraying
+      - Identify high-value targets (admins)
+      - Test common passwords against discovered users
+      - Use usernames for targeted social engineering
+
+      The flag is related to successful user enumeration. Look for the flag in the enumdomusers output or user descriptions.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/07_User_Enumeration_via_Null_Session/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Enumerate users via rpcclient null session"
+      command: "rpcclient -U '' -N {target.target} -c 'enumdomusers' 2>&1"
+      expect: "admin"
+
+    - name: "Confirm multiple users are enumerable"
+      command: "rpcclient -U '' -N {target.target} -c 'enumdomusers' 2>&1"
+      expect: "user1"
+
+    - name: "Retrieve flag from SMB server string"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"

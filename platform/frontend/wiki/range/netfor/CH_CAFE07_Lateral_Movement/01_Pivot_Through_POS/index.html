@@ -1,0 +1,1562 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4A: Pivot Through the POS - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-4a-pivot-through-the-pos" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4A: Pivot Through the POS
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-lateral-movement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Lateral Movement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-know" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Know
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-1-pos-terminal-information-disclosure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 1: POS Terminal: Information Disclosure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hop 1: POS Terminal: Information Disclosure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-2-enumerate-pos-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Enumerate POS Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-extract-credentials-from-the-debug-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Extract Credentials from the Debug Endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-2-barista-workstation-credential-harvesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 2: Barista Workstation: Credential Harvesting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hop 2: Barista Workstation: Credential Harvesting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-4-ssh-to-the-barista-workstation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: SSH to the Barista Workstation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-enumerate-the-home-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Enumerate the Home Directory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-read-nas-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Read NAS Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hop-3-nas-backup-server-data-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hop 3: NAS Backup Server: Data Access
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hop 3: NAS Backup Server: Data Access">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-7-ssh-to-the-nas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: SSH to the NAS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-enumerate-backup-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Enumerate Backup Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-extract-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Extract the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-review-the-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Review the Impact
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-4a-pivot-through-the-pos">Exercise 4A: Pivot Through the POS</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Previous exercises identified vulnerabilities on individual devices across the Bean &amp; Byte Cafe network. Exercise 7 chains those findings into a lateral movement scenario: you will compromise three devices in sequence, pivoting from one to the next using credentials discovered along the way. Your VPN must be connected and your terminal open before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>The Bean &amp; Byte Cafe owner wants to understand the worst-case impact of a single compromised device. Previous assessments revealed default credentials, debug endpoints, and poor credential hygiene across the network. Your job is to demonstrate how an attacker could start with the POS terminal, the most internet-facing device, and pivot through the internal network until they reach the NAS backup server containing sensitive customer and employee data.</p>
+<p>Your scope covers three devices: the POS terminal, the barista workstation, and the NAS backup server. Your goal is to build a credential chain from the POS to the NAS and retrieve the flag from backup data stored on the NAS.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Discover an information disclosure vulnerability on the POS terminal</li>
+<li>Extract credentials from a debug endpoint and use them to access the staff workstation</li>
+<li>Enumerate the workstation for stored credentials pointing to additional systems</li>
+<li>Pivot to the NAS backup server using discovered credentials</li>
+<li>Retrieve the flag from sensitive data in the NAS backup files</li>
+</ul>
+<hr />
+<h2 id="background-lateral-movement">Background: Lateral Movement</h2>
+<p>Lateral movement is the process of moving through a network after an initial compromise. Attackers rarely land directly on their target; instead, they compromise an accessible system, harvest credentials or keys from it, and use those to reach the next system in the chain. Each hop reveals new credentials, configurations, or data that enable further movement.</p>
+<p>The credential chain in this exercise follows a realistic pattern seen in enterprise breaches:</p>
+<ol>
+<li><strong>Initial access</strong> through an exposed service (web application debug endpoint)</li>
+<li><strong>Credential harvesting</strong> from the compromised system (leaked SSH credentials)</li>
+<li><strong>Lateral pivot</strong> to a second system using harvested credentials</li>
+<li><strong>Secondary harvesting</strong> of credentials stored by the user on the second system</li>
+<li><strong>Final pivot</strong> to the high-value target (backup server with sensitive data)</li>
+</ol>
+<pre class="mermaid"><code>graph LR
+    A["Attacker"] --&gt;|"HTTP :8080&lt;br/&gt;/debug endpoint"| B["POS Terminal"]
+    B --&gt;|"Leaked creds:&lt;br/&gt;barista:C0ff33_Br3w#"| C["Barista&lt;br/&gt;Workstation"]
+    C --&gt;|"Stored creds:&lt;br/&gt;admin:password"| D["NAS Backup&lt;br/&gt;Server"]
+    D --&gt;|"Flag in&lt;br/&gt;pos_database.sql.bak"| E["FLAG"]
+
+    style A fill:#d9534f,color:#fff
+    style B fill:#f0ad4e,color:#000
+    style C fill:#f0ad4e,color:#000
+    style D fill:#5cb85c,color:#fff
+    style E fill:#ffd700,color:#000</code></pre>
+<p>Network segmentation is the primary defense against lateral movement. If the POS terminal cannot reach the barista workstation over SSH, the credential chain breaks at the first pivot. Defense in depth adds layers: removing debug endpoints, encrypting stored credentials, requiring multi-factor authentication, and monitoring for unusual cross-system access patterns.</p>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reconnaissance</td>
+<td>Complete (Exercises 1-2)</td>
+</tr>
+<tr>
+<td>Service Enumeration</td>
+<td>Complete (Exercises 3-5)</td>
+</tr>
+<tr>
+<td>Exploitation</td>
+<td>Complete (Exercise 6)</td>
+</tr>
+<tr>
+<td><strong>Lateral Movement</strong></td>
+<td><strong>Active</strong></td>
+</tr>
+<tr>
+<td>Data Exfiltration</td>
+<td>Pending</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-you-know">What You Know</h2>
+<p>From prior exercises, you have already discovered:</p>
+<ul>
+<li>The POS terminal runs a web application on port 8080 with an API and admin panel</li>
+<li>The barista workstation accepts SSH with password authentication (<code>barista:C0ff33_Br3w#</code>)</li>
+<li>The NAS backup server uses default credentials (<code>admin:password</code>)</li>
+<li>The barista workstation has been used to harvest customer WiFi credentials</li>
+</ul>
+<p>Exercise 7 demonstrates how an attacker chains these individual findings into a complete compromise path.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate <strong>Exercise 7: Pivot Through the POS</strong></li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the target IP addresses displayed in the Active Lab View</li>
+</ul>
+<p>Three containers will start: the POS terminal, the barista workstation, and the NAS backup server.</p>
+<hr />
+<h3 id="hop-1-pos-terminal-information-disclosure">Hop 1: POS Terminal: Information Disclosure</h3>
+<h4 id="step-2-enumerate-pos-endpoints">Step 2: Enumerate POS Endpoints</h4>
+<div class="admonition kali">
+<p class="admonition-title">Confirm the POS dashboard</p>
+<p>The POS terminal serves a web application on port 8080. Replace <code>&lt;pos_ip&gt;</code> with the POS address from the Active Lab View. The <code>head -5</code> trims the output to the first few lines so you can confirm the page loads.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;pos_ip&gt;:8080/<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-5
+</code></pre></div>
+<p>A block of dashboard HTML confirms the service is reachable.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Browse to the POS dashboard</p>
+<p>Open <code>http://&lt;pos_ip&gt;:8080/</code> in your browser to see the same page rendered. The landing page loads with no login prompt, which is the first sign that this terminal trusts anyone who can reach it on the network.</p>
+</div>
+<figure>
+<p><img alt="Bean and Byte POS dashboard showing the day's transactions, revenue, and average order with no login required" src="../img/cafe-pos-dashboard.png" width="820" />
+  </p>
+<figcaption>The POS dashboard at port 8080 serves transaction data without authentication. An unauthenticated landing page is the entry point for the whole pivot chain.</figcaption>
+</figure>
+<div class="admonition kali">
+<p class="admonition-title">Probe for leftover endpoints</p>
+<p>Beyond the main dashboard, probe for additional endpoints that may have been left enabled. The <code>-o /dev/null -w '%{http_code}'</code> flags discard the body and print only the HTTP status code.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}&#39;</span><span class="w"> </span>http://&lt;pos_ip&gt;:8080/debug
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}&#39;</span><span class="w"> </span>http://&lt;pos_ip&gt;:8080/admin
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}&#39;</span><span class="w"> </span>http://&lt;pos_ip&gt;:8080/api/transactions
+</code></pre></div>
+<p>A <code>200</code> response indicates the endpoint exists and is accessible.</p>
+</div>
+<h4 id="step-3-extract-credentials-from-the-debug-endpoint">Step 3: Extract Credentials from the Debug Endpoint</h4>
+<div class="admonition kali">
+<p class="admonition-title">Dump the debug endpoint</p>
+<p>The <code>/debug</code> endpoint exposes internal configuration, including service credentials. Fetch the full response so you can read the credential block.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;pos_ip&gt;:8080/debug
+</code></pre></div>
+<p>Examine the output for credential entries. The debug page includes a "Service Credentials" section that leaks SSH credentials for the barista workstation. Record the username and password: you will use them in the next hop.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Browse to the debug console</p>
+<p>Load <code>http://&lt;pos_ip&gt;:8080/debug</code> in your browser for the rendered console. The "Service Credentials" panel prints the barista SSH login in plaintext, which is exactly the leak that opens Hop 2.</p>
+</div>
+<figure>
+<p><img alt="POS debug console with System Info, Network Configuration, and a Service Credentials panel listing the barista SSH login in plaintext" src="../img/cafe-pos-debug.png" width="820" />
+  </p>
+<figcaption>The debug console left enabled in production. The Service Credentials panel leaks the barista workstation SSH password, handing you the next hop.</figcaption>
+</figure>
+<hr />
+<h3 id="hop-2-barista-workstation-credential-harvesting">Hop 2: Barista Workstation: Credential Harvesting</h3>
+<h4 id="step-4-ssh-to-the-barista-workstation">Step 4: SSH to the Barista Workstation</h4>
+<div class="admonition kali">
+<p class="admonition-title">SSH to the barista workstation</p>
+<p>Use the credentials extracted from the POS debug page to SSH into the barista workstation. <code>sshpass -p</code> supplies the leaked password non-interactively so the login completes in one command.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sshpass<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;C0ff33_Br3w#&#39;</span><span class="w"> </span>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>barista@&lt;barista_ip&gt;
+</code></pre></div>
+<p>You are now on the barista workstation as the <code>barista</code> user.</p>
+</div>
+<h4 id="step-5-enumerate-the-home-directory">Step 5: Enumerate the Home Directory</h4>
+<div class="admonition target">
+<p class="admonition-title">Enumerate the barista home directory</p>
+<p>Check the user's home directory for stored credentials, configuration files, and access history. These commands run on the barista workstation you just landed on.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>~/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ls<span class="w"> </span>-la<span class="w"> </span>~/.config/
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>cat<span class="w"> </span>~/.bash_history
+</code></pre></div>
+<p>The <code>.bash_history</code> file reveals previous SSH connections to <code>cafe-nas</code>, indicating the barista user has accessed the NAS. The <code>.config/</code> directory contains a saved login file.</p>
+</div>
+<h4 id="step-6-read-nas-credentials">Step 6: Read NAS Credentials</h4>
+<div class="admonition target">
+<p class="admonition-title">Read the saved NAS login file</p>
+<p>The saved login file contains the NAS hostname, username, and password. Read it on the barista workstation to harvest the next set of credentials.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cat<span class="w"> </span>~/.config/nas_saved_login.txt
+</code></pre></div>
+<p>Record the NAS credentials.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Inspect harvested evidence</p>
+<p>Before disconnecting, check the Documents directory for additional evidence. The file contents reveal what the actor has already stolen.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>cat<span class="w"> </span>~/Documents/wifi_capture_log.csv
+</code></pre></div>
+<p>The file contains harvested customer WiFi credentials: the same data discovered in earlier exercises, confirming an ongoing credential harvesting operation. Exit the SSH session when done.</p>
+</div>
+<hr />
+<h3 id="hop-3-nas-backup-server-data-access">Hop 3: NAS Backup Server: Data Access</h3>
+<h4 id="step-7-ssh-to-the-nas">Step 7: SSH to the NAS</h4>
+<div class="admonition target">
+<p class="admonition-title">Pivot from the barista host to the NAS</p>
+<p>Use the credentials found on the barista workstation to access the NAS. Run this from the barista shell so the connection originates inside the network, as a real pivot would.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sshpass<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;password&#39;</span><span class="w"> </span>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no<span class="w"> </span>admin@&lt;nas_ip&gt;
+</code></pre></div>
+<p>A successful login drops you onto the NAS backup server as <code>admin</code>.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Browse to the NAS console</p>
+<p>The NAS also exposes a web console at <code>https://&lt;nas_ip&gt;:8443/</code> (self-signed certificate, accept the warning). The same <code>admin:password</code> default that worked over SSH logs into the DiskStation Manager UI, where the backup data is browsable through File Station.</p>
+</div>
+<figure>
+<p><img alt="CafeNAS Synology DiskStation Manager login page served over HTTPS on port 8443" src="../img/cafe-nas-console.png" width="820" />
+  </p>
+<figcaption>The CafeNAS DiskStation Manager console on port 8443. The same default credentials that pivot you in over SSH also unlock this web UI, the final target of the chain.</figcaption>
+</figure>
+<h4 id="step-8-enumerate-backup-files">Step 8: Enumerate Backup Files</h4>
+<div class="admonition target">
+<p class="admonition-title">List the backup directory</p>
+<p>List the backup directory to see what data is stored. The command runs on the NAS you just reached.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>/srv/backups/
+</code></pre></div>
+<p>The directory contains database backups, employee records, network configuration archives, and WiFi capture logs. Each file represents sensitive data that an attacker now has full access to.</p>
+</div>
+<h4 id="step-9-extract-the-flag">Step 9: Extract the Flag</h4>
+<div class="admonition target">
+<p class="admonition-title">Search the database backup for the flag</p>
+<p>The POS database backup contains the flag. <code>grep OCR</code> scans the dump on the NAS for the flag marker so you do not have to read the whole file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>grep<span class="w"> </span>OCR<span class="w"> </span>/srv/backups/pos_database.sql.bak
+</code></pre></div>
+<p>The flag appears in the <code>admin_config</code> table of the database backup. The individual tokens within the flag value are prefixed with <code>OCR-SN:</code> in the service responses where they originated. Record the complete flag value.</p>
+</div>
+<h4 id="step-10-review-the-impact">Step 10: Review the Impact</h4>
+<div class="admonition target">
+<p class="admonition-title">Review the breach scope on the NAS</p>
+<p>Before exiting, examine the other files to understand the full scope of the breach. Reading them on the NAS shows what an attacker would now have full access to.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cat<span class="w"> </span>/srv/backups/employee_records.csv
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>cat<span class="w"> </span>/srv/backups/wifi_capture_log.csv
+</code></pre></div>
+<p>The employee records contain PII (personally identifiable information) including partial SSNs. The WiFi capture log matches the copy on the barista workstation, confirming that harvested credentials are backed up to the NAS. Exit the SSH session.</p>
+</div>
+<hr />
+<blockquote>
+<p><strong>Record Your Findings:</strong></p>
+<p><strong>POS debug credential extraction (Step 3):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>(paste the credential line here)
+</code></pre></div>
+<p><strong>Barista NAS credentials (Step 6):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>(paste nas_saved_login.txt contents here)
+</code></pre></div>
+<p><strong>NAS flag extraction (Step 9):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(paste the grep output here)
+</code></pre></div>
+<p><strong>Pivot chain summary:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hop</th>
+<th>Source</th>
+<th>Target</th>
+<th>Credential Used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Attacker</td>
+<td>POS Terminal</td>
+<td>HTTP (no auth)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>POS Terminal</td>
+<td>Barista Workstation</td>
+<td><code>barista:C0ff33_Br3w#</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Barista Workstation</td>
+<td>NAS Backup</td>
+<td><code>admin:password</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag:</strong> <code>OCR{...}</code></p>
+</blockquote>
+<h3 id="step-11-submit-the-flag">Step 11: Submit the Flag</h3>
+<p>Paste the flag into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The pivot chain in this exercise relies on credentials being stored in plaintext at every hop. Identify each location where credentials were exposed and suggest a mitigation for each.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Three locations expose credentials: (1) The POS <code>/debug</code> endpoint displays service credentials in HTML, mitigation: disable debug endpoints in production or require authentication. (2) The barista workstation stores NAS credentials in <code>~/.config/nas_saved_login.txt</code>, mitigation: use a credential manager or SSH key-based authentication instead of saved passwords. (3) The NAS backup contains a database dump with the flag in an <code>admin_config</code> table, mitigation: encrypt backups at rest and restrict access with role-based permissions. Each plaintext credential storage point enables the next hop in the chain.</p>
+</details>
+<p><strong>2. If the cafe implemented network segmentation so that the POS terminal could only reach the payment gateway and not the barista workstation, how would that affect this attack chain?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Network segmentation would break the chain at Hop 2. Even though the attacker obtains barista SSH credentials from the debug endpoint, they cannot use those credentials if the POS terminal has no network path to the barista workstation on port 22. The attacker would be contained to the POS terminal, limiting the impact to the data accessible from that single device. Segmentation is the most effective defense against lateral movement because it removes the network connectivity that pivoting depends on.</p>
+</details>
+<p><strong>3. The <code>wifi_capture_log.csv</code> file appears on both the barista workstation and the NAS backup. What does this tell you about the threat actor's operational security?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The presence of the same file on both systems indicates that the threat actor (or negligent employee) is backing up harvested credentials to the NAS, creating a persistent copy of stolen data. The duplicate suggests the actor values data preservation over operational security: the backup creates additional evidence of the operation. It also means that even if the workstation is reimaged, the harvested data persists on the NAS. From a forensic perspective, the NAS backup timestamps could help establish a timeline of the credential harvesting operation.</p>
+</details>
+<hr />
+<h2 id="defensive-recommendations">Defensive Recommendations</h2>
+<p>Based on the complete pivot chain demonstrated in this exercise, the following controls would significantly reduce risk:</p>
+<ol>
+<li>
+<p><strong>Network segmentation</strong>: Isolate the POS terminal, IoT devices, staff workstations, and backup infrastructure on separate VLANs with firewall rules restricting inter-VLAN traffic to only necessary protocols and ports.</p>
+</li>
+<li>
+<p><strong>Disable debug endpoints</strong>: Remove or authentication-gate all debug, status, and diagnostic endpoints before deploying applications to production.</p>
+</li>
+<li>
+<p><strong>Credential management</strong>: Replace plaintext credential storage with a password manager or vault. Use SSH key-based authentication for system-to-system access and rotate keys on a defined schedule.</p>
+</li>
+<li>
+<p><strong>Backup encryption</strong>: Encrypt backup files at rest using a key that is not stored on the same system. Restrict backup access to a dedicated service account with minimal permissions.</p>
+</li>
+<li>
+<p><strong>Monitoring and alerting</strong>: Implement logging for SSH access across all systems. Alert on access patterns that deviate from normal operations: for example, the barista workstation SSHing to the NAS at unusual hours.</p>
+</li>
+</ol>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Lateral movement</strong> chains multiple individual vulnerabilities into a complete compromise path; each hop provides credentials or access for the next</li>
+<li><strong>Information disclosure</strong> on one device can compromise an entirely different device if it leaks cross-system credentials</li>
+<li><strong>Credential reuse and plaintext storage</strong> are the enablers of lateral movement; an attacker only needs to find one stored password to reach the next system</li>
+<li><strong>Network segmentation</strong> is the most effective control against lateral movement because it removes the network connectivity between devices that pivoting depends on</li>
+<li><strong>Backup servers</strong> are high-value targets because they aggregate sensitive data from across the network into a single, often poorly-secured location</li>
+<li>The WiFi capture log appearing on multiple systems demonstrates how evidence persists across a network and how forensic analysis can trace attacker operations</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

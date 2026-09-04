@@ -1,0 +1,1773 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise ICSPT-2.3: Safe Read-Only Interrogation - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-icspt-23-safe-read-only-interrogation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise ICSPT-2.3: Safe Read-Only Interrogation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-safe-vs-dangerous-modbus-function-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Safe vs Dangerous Modbus Function Codes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Safe vs Dangerous Modbus Function Codes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#safe-function-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safe function codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dangerous-function-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dangerous function codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-you-will-need" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools You Will Need
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#methodology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methodology
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methodology">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-1-read-the-register-map-from-the-docs-portal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint 1: Read the Register Map From the Docs Portal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-2-read-the-mixer-serial-with-mbpoll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint 2: Read the Mixer Serial with mbpoll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-3-read-the-plc1-commissioning-certificate-with-mbpoll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint 3: Read the plc1 Commissioning Certificate with mbpoll
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-4-confirm-on-the-wire-that-you-used-only-safe-function-codes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint 4: Confirm on the Wire That You Used Only Safe Function Codes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-5-record-your-findings-and-compose-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint 5: Record Your Findings and Compose the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations-to-masa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations to Masa
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-icspt-23-safe-read-only-interrogation">Exercise ICSPT-2.3: Safe Read-Only Interrogation</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Masa Foods, Inc. (fictional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>OT Security Engineer, Plant 1</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Discovery <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Enumeration</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Exploitation <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Reporting</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> You have crossed the enterprise-to-OT boundary (Exercise 2.1) and audited a contractor's after-hours activity (Exercise 2.2). You have never issued a dangerous Modbus function code against a Plant 1 PLC. Exercise 2.3 makes that discipline explicit: learn the safe function codes, use them deliberately, and leave the PLCs in exactly the state you found them.</p>
+<hr />
+<h2 id="environment-checklist">Environment Checklist</h2>
+<p>Every ICSPT exercise assumes you read the Before-You-Begin section in <a href="../../CH_ICSPT01_Touring_Masa_Foods/01_Plant_Tour/">Exercise 1.1 (Touring Masa Foods)</a> first. If you have not, open that page now: it explains the two attacker-host options and walks you through the one-time <code>/etc/hosts</code> setup that lets you call every Plant 1 target by its friendly name.</p>
+<p>Exercise 2.3 reaches <code>plc1.masa.local</code>, <code>mixer.masa.local</code>, and <code>docs.masa.local</code>. All three names are already in your <code>/etc/hosts</code> from the Exercise 1.1 block. Confirm resolution and reachability:</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>getent<span class="w"> </span>hosts<span class="w"> </span>plc1.masa.local<span class="w"> </span>mixer.masa.local<span class="w"> </span>docs.masa.local
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>nc<span class="w"> </span>-zv<span class="w"> </span>plc1.masa.local<span class="w"> </span><span class="m">502</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>nc<span class="w"> </span>-zv<span class="w"> </span>mixer.masa.local<span class="w"> </span><span class="m">502</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;HTTP %{http_code}\n&#39;</span><span class="w"> </span>http://docs.masa.local/
+</code></pre></div>
+</div>
+<p>Expected: three name-to-IP lines, two <code>succeeded!</code> TCP probes, and <code>HTTP 200</code> from the docs portal. If any step fails, fix connectivity before continuing.</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>Reyna Alvarado has booked a one-hour read-only assessment window on the Plant 1 tortilla line. During the window, she wants proof that you can interrogate both the MC-7200 tortilla PLC and the MC-3100 mixer PLC without issuing any dangerous Modbus function code. Reyna is sensitive because the mixer is known to crash on malformed packets, and she wants the new OT security engineer to demonstrate safe technique in front of operations.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Real OT engagements are contractually bounded by scope. Most of them say "read-only" in the statement of work, and some of them say it more than once, in bold, with the client's legal team copied. The reasons are not theoretical:</p>
+<ul>
+<li><strong>Insurance carriers.</strong> Cyber-insurance policies for manufacturing plants commonly require that any third-party testing be certified read-only. An engineer who issues a write during a read-only engagement violates the policy, and the carrier may decline to pay on any incident that occurs during the test window regardless of whether the engineer's write was the cause. One careless function code can cost seven figures.</li>
+<li><strong>Regulatory scope.</strong> NERC CIP and similar regimes require change control on any action that modifies a Critical Cyber Asset. A pen tester who writes to a register without a change ticket creates a regulatory incident for the client, even if nothing bad happens operationally.</li>
+<li><strong>Reputation and repeat business.</strong> The first engagement with a new OT client is always on probation. If the shift supervisor sees a single tag jitter that cannot be explained, the pen test firm does not get called back. Clean read-only discipline is how you earn the second engagement, and the second engagement is where the real work happens.</li>
+</ul>
+<p>Knowing which function codes are safe is not an academic classification. It is the line between a professional who gets hired again and one who gets a legal letter. Exercise 2.3 forces you to internalize the function-code table by using it under conditions that match a real engagement: an operator watching, a fragile PLC on the other end, and zero tolerance for an errant write.</p>
+<p>In this exercise you learn the distinction between safe Modbus function codes (reads, diagnostic queries, device identification) and dangerous function codes (writes, diagnostic resets, mask writes). You read the mixer serial string from the MC-3100, read the <code>plc1</code> commissioning certificate from the MC-7200, and compose a composite flag that proves both reads succeeded. Every read is one <code>mbpoll</code> Function Code 3 query, and you decode the ASCII by hand.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operator HMI</td>
+<td><code>plant_op</code></td>
+<td><code>masa_op_2025</code></td>
+<td>Reference only; not used here</td>
+</tr>
+</tbody>
+</table>
+<p>The flag is a composite that proves you read two specific fields without writing anything: the mixer PLC serial string and the <code>plc1</code> commissioning certificate. The format is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>OCR{&lt;serial&gt;_&lt;cert&gt;}
+</code></pre></div>
+<p>where <code>&lt;serial&gt;</code> is the mixer serial lowercased with hyphens removed, and <code>&lt;cert&gt;</code> is the decoded commissioning certificate text with the <code>OCR{</code> and <code>}</code> wrapper stripped off. You read and decode each piece yourself; neither component is printed in this workbook.</p>
+<hr />
+<h2 id="objectives">Objectives</h2>
+<ul>
+<li>List the Modbus function codes that are safe and the ones that are dangerous</li>
+<li>Read the mixer PLC serial from holding registers 40110 through 40117 with one <code>mbpoll</code> command</li>
+<li>Read the <code>plc1</code> commissioning certificate at holding registers 40500 through 40515 with one <code>mbpoll</code> command</li>
+<li>Decode each register block to ASCII by hand and compose the composite flag</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Difficulty</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> Beginner</td>
+</tr>
+<tr>
+<td>Estimated Time</td>
+<td>40 to 60 minutes</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>Exercises 3.1 and 2.2</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Source</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OCR{&lt;serial&gt;_&lt;cert&gt;}</code></td>
+<td>Composite of two register-block reads</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-safe-vs-dangerous-modbus-function-codes">Background: Safe vs Dangerous Modbus Function Codes</h2>
+<p>The Modbus specification defines about 20 function codes. In an OT engagement, you must know by heart which ones are safe to issue against a production PLC and which ones are not. The consequences of guessing wrong range from "the PLC ignores your packet" to "the PLC reboots and stops a live process." Older PLCs (pre-2010 firmware) are especially fragile; newer PLCs tolerate more but still expose process state to any write.</p>
+<h3 id="safe-function-codes">Safe function codes</h3>
+<p>The "safe" list is the read family plus diagnostic queries that do not modify PLC state.</p>
+<table>
+<thead>
+<tr>
+<th>FC</th>
+<th>Name</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Read Coils</td>
+<td>Returns N bits of coil state</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Read Discrete Inputs</td>
+<td>Returns N bits of discrete input state</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Read Holding Registers</td>
+<td>Returns N 16-bit holding register values</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Read Input Registers</td>
+<td>Returns N 16-bit input register values</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Read Exception Status</td>
+<td>Returns 8 bits of exception state</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Get Comm Event Counter</td>
+<td>Returns a 16-bit communication event counter</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Get Comm Event Log</td>
+<td>Returns a communication event log</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Report Server ID</td>
+<td>Returns a vendor-specific server identification</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Read File Record</td>
+<td>Returns N records from a file</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Read FIFO Queue</td>
+<td>Returns the contents of a FIFO queue</td>
+</tr>
+<tr>
+<td>43</td>
+<td>Encapsulated Interface Transport (subfunction 14)</td>
+<td>Returns device identification (vendor, product, version)</td>
+</tr>
+</tbody>
+</table>
+<p>All of these are reads. None of them cause state changes on the PLC. FC 7, 11, 12, 17, 20, and 24 are historical and less common on modern PLCs but are still safe on the wire.</p>
+<h3 id="dangerous-function-codes">Dangerous function codes</h3>
+<p>Anything that modifies PLC state, resets counters, or exercises the diagnostic subsystem is dangerous. Treat this list as off-limits for reconnaissance:</p>
+<table>
+<thead>
+<tr>
+<th>FC</th>
+<th>Name</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>Write Single Coil</td>
+<td>Sets one coil to ON or OFF</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Write Single Register</td>
+<td>Sets one holding register to a new value</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Diagnostics</td>
+<td>Multiple subfunctions including Restart Communications Option (reboots the PLC)</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Write Multiple Coils</td>
+<td>Sets a contiguous block of coils</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Write Multiple Registers</td>
+<td>Sets a contiguous block of holding registers</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Write File Record</td>
+<td>Modifies file records</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Mask Write Register</td>
+<td>Applies an AND/OR mask to a holding register</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Read/Write Multiple Registers</td>
+<td>Reads a block and writes a different block in one transaction</td>
+</tr>
+</tbody>
+</table>
+<p>FC 8 deserves a special mention. The diagnostic subfunction numbers include Restart Communications Option (subfunction 1), Clear Counters (subfunction 10), and Clear Overrun (subfunction 20). Every one of them mutates PLC state and several have been used in the field to crash controllers.</p>
+<div class="admonition warning">
+<p class="admonition-title">The mixer crashes on function codes it does not recognize</p>
+<p>The MC-3100 Mixer Controller running on the Masa Plant 1 dough line is a 2012-era PLC. Reyna's note "reboots if you look at it funny" is not an exaggeration. Stick to FC 3 (Read Holding Registers) on the mixer for this entire exercise. FC 43 would also be safe in theory, but the MC-3100 does not implement it cleanly, so convention at Masa is "mixer is FC 3 only."</p>
+</div>
+<hr />
+<h2 id="tools-you-will-need">Tools You Will Need</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mbpoll</code></td>
+<td>Modbus/TCP command-line client: read holding registers with no code</td>
+<td><code>which mbpoll</code></td>
+</tr>
+<tr>
+<td>Wireshark / <code>tshark</code></td>
+<td>Capture the query on TCP/502 and confirm the function code is a safe read</td>
+<td><code>wireshark --version</code></td>
+</tr>
+<tr>
+<td><code>curl</code></td>
+<td>Fetch the docs portal register map for reference</td>
+<td><code>curl --version</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="methodology">Methodology</h2>
+<p>You build the answer with tools, not scripts. Checkpoint 1 rereads the register map so you know where the safe read targets live. Checkpoint 2 reads the mixer serial with one <code>mbpoll</code> command and decodes it by hand. Checkpoint 3 reads the <code>plc1</code> certificate the same way. Checkpoint 4 captures one of the reads in Wireshark and confirms on the wire that you issued only Function Code 3. Checkpoint 5 records the decoded tokens and composes the flag.</p>
+<h3 id="checkpoint-1-read-the-register-map-from-the-docs-portal">Checkpoint 1: Read the Register Map From the Docs Portal</h3>
+<p>Before any Modbus command, reread the <code>plc1</code> register map from the engineering docs portal. Skim the map to remind yourself where the safe read targets live. On a real plant the move is identical, which is to read the vendor's register map before you touch the PLC.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://docs.masa.local/register-map.html<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;4010|4050|40100|40500|40800|40980&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+</code></pre></div>
+</div>
+<details class="example">
+<summary>Expected output</summary>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>&lt;tr&gt;&lt;td&gt;40010&lt;/td&gt;&lt;td&gt;oven_temp_sp&lt;/td&gt;...
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>&lt;tr&gt;&lt;td&gt;40020&lt;/td&gt;&lt;td&gt;mixer_speed_pv&lt;/td&gt;...
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>&lt;tr&gt;&lt;td&gt;40040&lt;/td&gt;&lt;td&gt;batch_count&lt;/td&gt;...
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>&lt;tr&gt;&lt;td&gt;40050&lt;/td&gt;&lt;td&gt;line_state&lt;/td&gt;...
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>&lt;tr&gt;&lt;td&gt;40100-40106&lt;/td&gt;&lt;td&gt;device_ident&lt;/td&gt;...
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>&lt;tr&gt;&lt;td&gt;40500-40515&lt;/td&gt;&lt;td&gt;commission_cert&lt;/td&gt;...
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>&lt;tr&gt;&lt;td&gt;40800-40815&lt;/td&gt;&lt;td&gt;incident_log&lt;/td&gt;...
+</code></pre></div>
+The docs portal lists every important register block on plc1. Every target in this exercise is in the 40100 or 40500 range.</p>
+</details>
+<h3 id="checkpoint-2-read-the-mixer-serial-with-mbpoll">Checkpoint 2: Read the Mixer Serial with mbpoll</h3>
+<p><strong>Where the register numbers come from.</strong> The MC-3100 mixer stores its serial number in holding registers 40110 through 40117 as ASCII text, two characters per register. That is eight registers, sixteen characters of capacity. The docs portal publishes the layout; you are not guessing addresses.</p>
+<p><strong>The documented register, the wire address, and what mbpoll wants.</strong> Holding registers are documented in the 4xxxx range. On the wire the address is zero-based and drops the leading 4, so documented register 40110 is wire address 109. The <code>mbpoll</code> tool hides that arithmetic for you: its <code>-r</code> option takes the register number without the leading 4, so <code>-r 110</code> reads documented register 40110. Reading the eight-register block 40110 through 40117 is therefore <code>-r 110 -c 8</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Documented register</th>
+<th>Holds</th>
+<th>mbpoll <code>-r</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>40110 through 40117</td>
+<td>mixer serial (2 ASCII chars per register, big-endian)</td>
+<td>110, count 8</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Read the block with one command.</strong> There is no client to write. <code>mbpoll</code> is the standard Modbus/TCP CLI, and a single read covers the whole block. Function Code 3 (read holding registers) is the one code the fragile MC-3100 is guaranteed to accept.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>mbpoll<span class="w"> </span>-1<span class="w"> </span>-a<span class="w"> </span><span class="m">1</span><span class="w"> </span>-t<span class="w"> </span><span class="m">4</span><span class="w"> </span>-r<span class="w"> </span><span class="m">110</span><span class="w"> </span>-c<span class="w"> </span><span class="m">8</span><span class="w"> </span>mixer.masa.local
+</code></pre></div>
+<code>-1</code> polls once and exits, <code>-a 1</code> is the Modbus unit id, <code>-t 4</code> selects holding registers (Function Code 3), <code>-r 110</code> starts at documented register 40110, and <code>-c 8</code> reads the eight-register serial block. Port 502 is the default. <code>mbpoll</code> labels each value with its register number, so you read the layout straight off the output.</p>
+</div>
+<!-- CAPTURE: mbpoll -1 -a 1 -t 4 -r 110 -c 8 mixer.masa.local -->
+
+<p>The eight values on your screen are the serial, one register at a time, as decimal integers. They are not human-readable yet because each register is two packed ASCII bytes. You convert them to text by hand below.</p>
+<p><strong>Decode one register so the method is clear.</strong> Each holding register is 16 bits, which is two bytes, which is two ASCII characters with the high byte first (the Modbus big-endian convention). Convert each register's decimal value to hex, then read the two bytes as characters. A register reading <code>19777</code> is <code>0x4D41</code> in hex: the high byte <code>0x4D</code> is the ASCII character <code>M</code>, and the low byte <code>0x41</code> is <code>A</code>, so that register carries <code>MA</code>. The <code>0x4D41</code> -&gt; <code>MA</code> example is deliberately not part of the mixer serial, so you still have to run the read and do the decode yourself.</p>
+<p>Apply the same split to every register in your output, in register order, and concatenate the characters. Drop any trailing null padding (<code>0x0000</code>). The remaining characters spell the mixer serial, which is a Maxon part-number string with a hyphen in it. For the flag you need the lowercased version with the hyphen removed; record both forms in the Checkpoint 5 table.</p>
+<h3 id="checkpoint-3-read-the-plc1-commissioning-certificate-with-mbpoll">Checkpoint 3: Read the plc1 Commissioning Certificate with mbpoll</h3>
+<p>The commissioning certificate lives at 40500 through 40515 on <code>plc1</code>, packed as sixteen registers of ASCII, two characters per register, big-endian. The wire address for documented register 40500 is 499, and <code>mbpoll</code>'s <code>-r</code> option takes the register number without the leading 4, so <code>-r 500 -c 16</code> reads the whole block.</p>
+<table>
+<thead>
+<tr>
+<th>Documented register</th>
+<th>Holds</th>
+<th>mbpoll <code>-r</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>40500 through 40515</td>
+<td>commissioning certificate (2 ASCII chars per register, big-endian)</td>
+<td>500, count 16</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition example">
+<p class="admonition-title">Kali</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>mbpoll<span class="w"> </span>-1<span class="w"> </span>-a<span class="w"> </span><span class="m">1</span><span class="w"> </span>-t<span class="w"> </span><span class="m">4</span><span class="w"> </span>-r<span class="w"> </span><span class="m">500</span><span class="w"> </span>-c<span class="w"> </span><span class="m">16</span><span class="w"> </span>plc1.masa.local
+</code></pre></div>
+Same options as Checkpoint 2, except the target is <code>plc1.masa.local</code>, <code>-r 500</code> starts at documented register 40500, and <code>-c 16</code> reads the sixteen-register certificate block.</p>
+</div>
+<!-- CAPTURE: mbpoll -1 -a 1 -t 4 -r 500 -c 16 plc1.masa.local -->
+
+<p><strong>Decode the same way.</strong> Convert each of the sixteen register values to hex, split into two ASCII bytes high byte first, and concatenate in register order. Drop the trailing null registers. The decoded string is an <code>OCR{...}</code> certificate. For the flag you need the inner token only, which is the certificate with the <code>OCR{</code> prefix and the <code>}</code> suffix stripped off. Record both the full certificate and the inner token in the Checkpoint 5 table.</p>
+<h3 id="checkpoint-4-confirm-on-the-wire-that-you-used-only-safe-function-codes">Checkpoint 4: Confirm on the Wire That You Used Only Safe Function Codes</h3>
+<p><code>mbpoll</code> is the fast path; Wireshark is how you prove to Reyna and the operator that every packet you sent was a read. Capture TCP port 502 while you re-run one of the reads, then confirm the dissected function code is <code>3</code> (Read Holding Registers) and not a write code like <code>6</code> or <code>16</code>.</p>
+<p><strong>Capture the query while you run it.</strong> Start a capture on TCP port 502, re-run a Checkpoint 2 or 3 read, then stop the capture and set the display filter to <code>modbus</code>.</p>
+<div class="admonition example">
+<p class="admonition-title">Kali (shell one)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>tshark<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>-f<span class="w"> </span><span class="s1">&#39;tcp port 502&#39;</span><span class="w"> </span>-w<span class="w"> </span>/tmp/modbus_safe.pcap<span class="w"> </span><span class="p">&amp;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nb">echo</span><span class="w"> </span><span class="nv">$!</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/tshark.pid
+</code></pre></div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Kali (shell two)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>mbpoll<span class="w"> </span>-1<span class="w"> </span>-a<span class="w"> </span><span class="m">1</span><span class="w"> </span>-t<span class="w"> </span><span class="m">4</span><span class="w"> </span>-r<span class="w"> </span><span class="m">110</span><span class="w"> </span>-c<span class="w"> </span><span class="m">8</span><span class="w"> </span>mixer.masa.local
+</code></pre></div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Kali (shell one, after the read completes)</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sudo<span class="w"> </span>pkill<span class="w"> </span>-F<span class="w"> </span>/tmp/tshark.pid<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="o">||</span><span class="w"> </span>sudo<span class="w"> </span>pkill<span class="w"> </span>tshark
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>tshark<span class="w"> </span>-r<span class="w"> </span>/tmp/modbus_safe.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;modbus&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>-e<span class="w"> </span>modbus.func_code<span class="w"> </span>-e<span class="w"> </span>modbus.reference_num<span class="w"> </span>-e<span class="w"> </span>modbus.word_cnt
+</code></pre></div>
+The <code>modbus.func_code</code> column reads <code>3</code> on the query. A write would read <code>6</code>, <code>16</code>, or <code>5</code>. Seeing only <code>3</code> is your wire-level proof of read-only discipline.</p>
+</div>
+<p><strong>Now open the capture in the Wireshark GUI.</strong> The terminal fields prove the data is there; the GUI is where you point at the function code and recognize a read on sight. Walk these steps exactly:</p>
+<ol>
+<li><strong>Open the capture.</strong> From a terminal run <code>wireshark /tmp/modbus_safe.pcap &amp;</code>, or inside Wireshark choose <strong>File &gt; Open</strong> and pick the file. To capture live instead, double-click your network interface on the Wireshark welcome screen to start, run the <code>mbpoll</code> read, then click the red square <strong>Stop</strong> button in the toolbar.</li>
+<li><strong>Filter to Modbus.</strong> In the display filter bar (the wide bar directly under the toolbar), type <code>modbus</code> and press <strong>Enter</strong>. The packet list narrows to just the query and its response.</li>
+<li><strong>Select the query.</strong> In the <strong>Packet List</strong> (top pane), click the row whose <strong>Info</strong> column reads <code>Query: ... Func: 3: Read Holding Registers</code>. The word <code>Query</code> and <code>Func: 3</code> together tell you this is a read going to the PLC.</li>
+<li><strong>Expand the MBAP header.</strong> In the <strong>Packet Details</strong> (middle pane), click the arrow to the left of <strong>Modbus/TCP</strong>. The four MBAP fields drop down: Transaction Identifier, Protocol Identifier, Length, and Unit Identifier.</li>
+<li><strong>Expand the PDU and read the Function Code.</strong> Click the arrow next to the <strong>Modbus</strong> node just below it. The first field is <strong>Function Code: 3 (Read Holding Registers)</strong>, followed by the Reference Number and Word Count. That <code>3</code> is the field that proves you stayed read-only; a <code>6</code> or <code>16</code> here would be a write.</li>
+<li><strong>Tie the field to the bytes.</strong> Click the <strong>Function Code</strong> field name and watch the matching byte highlight in the <strong>Packet Bytes</strong> pane at the bottom. The single byte <code>03</code> is the function code on the wire. That is how you connect a decoded field to its exact position in the frame.</li>
+</ol>
+<!-- CAPTURE: wireshark /tmp/modbus_safe.pcap (display filter "modbus", query packet selected, Modbus/TCP MBAP header tree and Modbus PDU tree expanded, Function Code 3 field highlighted with byte 03 selected in the Packet Bytes pane) -->
+
+<h3 id="checkpoint-5-record-your-findings-and-compose-the-flag">Checkpoint 5: Record Your Findings and Compose the Flag</h3>
+<p>You now hold two decoded tokens: the normalized mixer serial and the inner certificate token. Turn each into the form the flag template <code>OCR{&lt;serial&gt;_&lt;cert&gt;}</code> expects, then submit the result in the OCR platform flag box. The platform tells you immediately whether the composite is correct, so the finished string is not printed here.</p>
+<blockquote>
+<p><strong>Read-only audit:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Register block</th>
+<th>mbpoll command</th>
+<th>Decoded value</th>
+<th>Token for flag</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mixer</td>
+<td>40110-40117</td>
+<td><code>-r 110 -c 8</code></td>
+<td>_____</td>
+<td>_____ (lowercase, no hyphen)</td>
+</tr>
+<tr>
+<td>plc1</td>
+<td>40500-40515</td>
+<td><code>-r 500 -c 16</code></td>
+<td>_____</td>
+<td>_____ (inner token, no <code>OCR{}</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Function code observed in Wireshark:</strong> _____ (should read <code>3</code>, Read Holding Registers)</p>
+<p><strong>Flag:</strong> <code>OCR{&lt;serial&gt;_&lt;cert&gt;}</code></p>
+</blockquote>
+<p>Substitute the two tokens you decoded into the template and submit. Do not write the components or the assembled flag anywhere in this workbook; the platform is the only place you confirm the answer.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>A clean read of the mixer serial tells you that <code>plc1.masa.local</code> and <code>mixer.masa.local</code> are both on the operations VLAN and both accept FC 3 from your Kali</li>
+<li>The commissioning certificate is stored as plaintext ASCII. That is a training convention; real plants hide serial numbers behind vendor-specific encapsulated device identification responses (FC 43 subfunction 14)</li>
+<li>The Wireshark function-code column is your engagement evidence. A capture that shows only <code>Func: 3</code> across every packet is the artifact you hand Reyna to prove read-only discipline, far stronger than a verbal assurance</li>
+<li>The composite flag format is deliberately fussy: it requires you to normalize the serial (lowercase, no hyphens) and strip the OCR wrapper off the certificate. Real engagements produce reports that require the same kind of careful text handling</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is FC 8 (Diagnostics) considered dangerous even though the name sounds read-only?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>FC 8 is a family of diagnostic sub-functions. Subfunctions 0, 2, 11, 12, 13, 14, 15, 16, 17, 18, and 19 are queries and are safe; subfunctions 1 (Restart Communications Option), 10 (Clear Counters), and 20 (Clear Overrun) modify PLC state and can cause a PLC to drop its TCP connections or reset its error counters. Treat FC 8 as dangerous by default because distinguishing the sub-functions on the wire is error-prone and real PLCs have silently misimplemented the sub-function mapping for years.</p>
+</details>
+<p><strong>2. The mixer supports FC 43 (Encapsulated Interface Transport) in theory but the convention at Masa is to avoid it. Why?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>FC 43 sub-function 14 (Read Device Identification) is a multi-packet transport. Older MC-3100 firmware versions had a known bug where a mid-sequence disconnect would leave the PLC's socket in a half-open state, and the next incoming connection would get rejected until the PLC was power-cycled. Maxon Controls issued a firmware update in 2016 but Masa never deployed it because the plant has been running the old image for a decade. Convention beats correctness: stick to FC 3.</p>
+</details>
+<p><strong>3. Suppose you wanted to identify the PLC vendor on an unknown Modbus device. What is the first safe command you would try?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Try FC 3 against register block 40100 first. Most vendors put a device identification block in that range, and FC 3 is universally supported. With <code>mbpoll</code> that is one command, <code>-r 100 -c 7</code>. If nothing is there, try FC 43 sub-function 14, which is the standard encapsulated interface transport for device identification. If both fail, check banner grabs on common ports (502, 102, 2222, 20000) and cross-reference against the <code>plcscan</code> database of known vendor fingerprints.</p>
+</details>
+<p><strong>4. Why does the flag format strip the OCR wrapper off the certificate?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Because the flag itself is already wrapped in <code>OCR{}</code>. Nesting the wrapper would produce a doubly wrapped string that is unreadable and would fail the OCR platform flag validator. Stripping wrappers when composing composite flags is the normalization discipline that every real engagement report needs when combining artifacts from multiple sources.</p>
+</details>
+<hr />
+<h2 id="defensive-recommendations-to-masa">Defensive Recommendations to Masa</h2>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MC-3100 mixer running a 2012 firmware image with known FC 43 bug</td>
+<td>Medium</td>
+<td>Schedule a maintenance window and apply the Maxon 2016 firmware update</td>
+</tr>
+<tr>
+<td>Modbus write function codes accepted from any host on the operations VLAN</td>
+<td>Critical</td>
+<td>Deploy a Modbus-aware firewall with write-function-code allowlisting (see Exercise 3.4 Snort rule)</td>
+</tr>
+<tr>
+<td>Commissioning certificate stored as plaintext ASCII on the PLC</td>
+<td>Low</td>
+<td>Accept as a training convention; real plants would store the certificate off-PLC</td>
+</tr>
+<tr>
+<td>No enforced separation between "read-only" and "read-write" Modbus clients</td>
+<td>Medium</td>
+<td>Use Modbus/TCP Security (RFC 8502) where supported, or enforce source-IP allowlisting at the segmentation boundary</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Safe Modbus function codes are 1, 2, 3, 4, 7, 11, 12, 17, 20, 24, and 43. Dangerous ones are 5, 6, 8, 15, 16, 21, 22, 23</li>
+<li>One <code>mbpoll -t 4</code> command reads a whole register block with Function Code 3 and no code to write</li>
+<li>A Wireshark capture showing only <code>Func: 3</code> is the wire-level proof of read-only discipline you hand the client</li>
+<li>Old PLCs crash on unexpected function codes. Never experiment on a production mixer; use an isolated test bench</li>
+<li>Composite flags force you to normalize tokens (lowercase, strip wrappers, remove punctuation) the same way a real report does</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

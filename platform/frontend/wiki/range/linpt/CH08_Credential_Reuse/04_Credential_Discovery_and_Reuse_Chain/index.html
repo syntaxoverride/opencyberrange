@@ -1,0 +1,1633 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 8.4: Credential Discovery and Reuse Chain - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-84-credential-discovery-and-reuse-chain" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 8.4: Credential Discovery and Reuse Chain
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-credential-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Credential Chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-ldapsearch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: ldapsearch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-scan-for-open-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Scan for Open Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-enumerate-ldap-anonymously-with-ldapsearch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Enumerate LDAP Anonymously with ldapsearch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-use-enum4linux-for-full-enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Use enum4linux for Full Enumeration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-test-discovered-credentials-on-smb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Test Discovered Credentials on SMB
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-test-credentials-on-ldap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Test Credentials on LDAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-test-credentials-on-rdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Test Credentials on RDP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-find-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Find and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-84-credential-discovery-and-reuse-chain">Exercise 8.4: Credential Discovery and Reuse Chain</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 8.3 demonstrated that a single credential pair can unlock multiple services on the same target. That lab started with known credentials; you already had <code>admin:password123</code> and tested it against each protocol. In a real engagement, the attacker does not begin with valid credentials. Exercise 8.4 closes that gap by starting from zero knowledge and building the complete attack chain: enumeration, credential discovery, multi-service validation, and finally access.</p>
+<p>Confirm your VPN connection is active before proceeding. Run <code>ip a show wg0</code> and verify you have a valid WireGuard address in the <code>10.100.x.x</code> range.</p>
+<h2 id="scenario">Scenario</h2>
+<p>James Mitchell wants to see the complete attack chain demonstrated from start to finish. Starting from a target IP address, you will enumerate the exposed services, confirm anonymous LDAP access, validate the <code>admin:password123</code> credential pair you recovered earlier in the chain across multiple protocols, and ultimately gain shell access to retrieve sensitive data. The target exposes four services: Lightweight Directory Access Protocol (LDAP) on port 389, SMB on port 445, RDP on port 3389, and SSH on port 22. Your goal is to prove that enumeration plus a recovered credential pair feeds directly into credential reuse and that the chain from discovery to access can be executed methodically.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Scan the target and confirm all four services are running</li>
+<li>Query the LDAP directory anonymously and confirm the naming context and anonymous bind</li>
+<li>Use enum4linux to surface the <code>admin</code> account and SMB intelligence</li>
+<li>Test the recovered <code>admin:password123</code> pair against SMB, LDAP, and RDP using CrackMapExec</li>
+<li>Connect via SSH and retrieve the flag from the file system</li>
+</ul>
+<hr />
+<h2 id="background-the-credential-chain">Background: The Credential Chain</h2>
+<p>Credential attacks in penetration testing follow a predictable chain of phases. Each phase produces output that feeds into the next, transforming raw network data into authenticated access. Understanding the chain as a methodology; rather than a collection of isolated techniques; is what separates systematic testing from guesswork.</p>
+<pre class="mermaid"><code>graph TD
+    A["Phase 1&lt;br/&gt;Port Scanning"] --&gt; B["Phase 2&lt;br/&gt;LDAP Enumeration"]
+    B --&gt; C["Phase 3&lt;br/&gt;Username Extraction"]
+    C --&gt; D["Phase 4&lt;br/&gt;Credential Testing"]
+    D --&gt; E["Phase 5&lt;br/&gt;Multi-Service Reuse"]
+    E --&gt; F["Phase 6&lt;br/&gt;Authenticated Access"]
+
+    style A fill:#888,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style D fill:#e8a735,color:#fff
+    style E fill:#d9534f,color:#fff
+    style F fill:#6aaa64,color:#fff</code></pre>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Action</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Port Scanning</td>
+<td>Identify open services</td>
+<td>List of accessible protocols</td>
+</tr>
+<tr>
+<td>2. LDAP Enumeration</td>
+<td>Query directory service anonymously</td>
+<td>Organizational structure, user entries</td>
+</tr>
+<tr>
+<td>3. Username Extraction</td>
+<td>Parse enumeration output</td>
+<td>Clean list of valid usernames</td>
+</tr>
+<tr>
+<td>4. Credential Testing</td>
+<td>Test usernames against common passwords</td>
+<td>Valid credential pairs</td>
+</tr>
+<tr>
+<td>5. Multi-Service Reuse</td>
+<td>Validate credentials across all protocols</td>
+<td>Confirmed access channels</td>
+</tr>
+<tr>
+<td>6. Authenticated Access</td>
+<td>Connect and retrieve data</td>
+<td>Shell access, file retrieval</td>
+</tr>
+</tbody>
+</table>
+<p>LDAP is the key addition in Exercise 8.4. Directory services store organizational data; user accounts, group memberships, email addresses, and system configurations; in a structured, queryable format. Many LDAP servers permit anonymous access to portions of the directory, which means an attacker can extract usernames without any credentials at all. Those usernames then feed directly into the credential testing phase, eliminating the need to guess account names.</p>
+<p>The credential chain differs fundamentally from brute force. Brute force attacks try every possible combination blindly. The credential chain is targeted; each phase narrows the search space until only valid combinations remain. Enumeration provides real usernames; common password lists provide likely passwords; and multi-service testing confirms where each pair works.</p>
+<h2 id="tool-primer-ldapsearch">Tool Primer: ldapsearch</h2>
+<p>The <code>ldapsearch</code> command queries LDAP directories from the command line. LDAP directories organize data in a hierarchical tree structure, where each entry has a Distinguished Name (DN) that describes its position in the tree. The Base DN specifies where in the tree to start searching.</p>
+<p><strong>Basic anonymous query syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span>-b<span class="w"> </span>&lt;base_dn&gt;<span class="w"> </span>-s<span class="w"> </span>base
+</code></pre></div>
+<p><strong>Searching for user accounts:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="s2">&quot;(objectClass=inetOrgPerson)&quot;</span><span class="w"> </span>uid<span class="w"> </span>cn<span class="w"> </span>mail
+</code></pre></div>
+<p><strong>Authenticated query syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;cn=admin,dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>-w<span class="w"> </span>password123<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="s2">&quot;(objectClass=*)&quot;</span>
+</code></pre></div>
+<p>Each flag serves a specific purpose:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-x</code></td>
+<td>Use simple authentication (not SASL)</td>
+</tr>
+<tr>
+<td><code>-H ldap://&lt;target_ip&gt;</code></td>
+<td>Specify the LDAP server URI</td>
+</tr>
+<tr>
+<td><code>-b &lt;base_dn&gt;</code></td>
+<td>Set the Base DN; the starting point for the search</td>
+</tr>
+<tr>
+<td><code>-s base</code></td>
+<td>Search scope: <code>base</code> returns only the root entry; <code>sub</code> searches the entire subtree</td>
+</tr>
+<tr>
+<td><code>-D &lt;bind_dn&gt;</code></td>
+<td>Bind DN; the account to authenticate as</td>
+</tr>
+<tr>
+<td><code>-w &lt;password&gt;</code></td>
+<td>Password for the bind DN</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key LDAP terminology:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base DN</td>
+<td>Root of the directory tree (e.g., <code>dc=financecorp,dc=local</code>)</td>
+</tr>
+<tr>
+<td>DN (Distinguished Name)</td>
+<td>Full path to a specific entry in the tree</td>
+</tr>
+<tr>
+<td>objectClass</td>
+<td>Defines what type of entry an object is (e.g., <code>inetOrgPerson</code>, <code>posixAccount</code>)</td>
+</tr>
+<tr>
+<td>Search filter</td>
+<td>Expression that controls which entries are returned (e.g., <code>(uid=admin)</code>)</td>
+</tr>
+<tr>
+<td>Attribute</td>
+<td>A named property of an entry (e.g., <code>uid</code>, <code>cn</code>, <code>mail</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>An anonymous bind (no <code>-D</code> or <code>-w</code> flags) connects without credentials. Many LDAP servers allow anonymous access to at least the Base DN and organizational unit structure, which is sufficient to discover the directory layout and often to enumerate user accounts.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the OpenCyberRange platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> then <strong>Windows</strong> then <strong>Level 2</strong></li>
+<li>Click <strong>Launch</strong> on "Credential Discovery and Reuse Chain"</li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-scan-for-open-services">Step 2: Scan for Open Services</h3>
+<div class="admonition kali">
+<p class="admonition-title">Scan for open services</p>
+<p>Run an Nmap scan targeting all four service ports to confirm the attack surface:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>nmap<span class="w"> </span>-sV<span class="w"> </span>-p<span class="w"> </span><span class="m">22</span>,389,445,3389<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>You should see all four ports reported as open: SSH on 22, LDAP on 389, SMB on 445, and RDP on 3389. Note the service versions reported; LDAP entries typically identify OpenLDAP and its version number.</p>
+</div>
+<h3 id="step-3-enumerate-ldap-anonymously-with-ldapsearch">Step 3: Enumerate LDAP Anonymously with ldapsearch</h3>
+<div class="admonition kali">
+<p class="admonition-title">Discover the LDAP Base DN</p>
+<p>Begin the enumeration phase by querying the LDAP directory without credentials. First, discover the naming context the server exposes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span>-b<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-s<span class="w"> </span>base<span class="w"> </span>namingContexts
+</code></pre></div>
+<p>The <code>namingContexts</code> attribute reveals the Base DN of the directory. Record the value; you will use it in subsequent queries.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">What anonymous LDAP shows on this target</p>
+<p>The LDAP service on this host runs with a default, unseeded directory, so an anonymous query returns the bare directory skeleton rather than a populated list of staff accounts. That is a realistic outcome: many directories expose the naming context and high-level structure to anonymous binds but withhold the user entries. Confirm the response with a subtree query:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=nodomain&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="s2">&quot;(objectClass=*)&quot;</span>
+</code></pre></div>
+<p>Treat the LDAP step as proof that the service is reachable and that anonymous binds are accepted. The working username for this chain is <code>admin</code>, which you carried forward from Exercise 8.3, where you recovered the <code>admin:password123</code> pair on this same host class. In a fully populated directory, this is where <code>(objectClass=inetOrgPerson)</code> would hand you a list of usernames to test; Chapter 7 walks through that enumeration in depth against a seeded FinanceCorp directory.</p>
+</div>
+<h3 id="step-4-use-enum4linux-for-full-enumeration">Step 4: Use enum4linux for Full Enumeration</h3>
+<div class="admonition kali">
+<p class="admonition-title">Run full enumeration with enum4linux</p>
+<p>The enum4linux tool combines multiple enumeration techniques into a single automated scan. Run a full enumeration against the target:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>enum4linux<span class="w"> </span>-a<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>The <code>-a</code> flag enables all enumeration modules: OS information, share listing, user listing via RID cycling, group enumeration, and password policy extraction. The output is lengthy but contains valuable intelligence.</p>
+</div>
+<p>Look through the results for the following sections:</p>
+<ul>
+<li><strong>OS Information</strong>: Operating system type and Samba version</li>
+<li><strong>Share Enumeration</strong>: Available SMB shares and permissions</li>
+<li><strong>User Enumeration via RID Cycling</strong>: Usernames discovered through Security Identifier (SID) lookups</li>
+<li><strong>Password Policy</strong>: Minimum length, complexity requirements, lockout threshold</li>
+</ul>
+<p>On this target, enum4linux is the enumeration source that surfaces the <code>admin</code> account through SMB RID cycling, since the LDAP directory in Step 3 was not seeded with user entries. In a production environment with a populated directory, LDAP and enum4linux would cross-confirm the same set of accounts.</p>
+<h3 id="step-5-test-discovered-credentials-on-smb">Step 5: Test Discovered Credentials on SMB</h3>
+<div class="admonition kali">
+<p class="admonition-title">Test discovered credentials on SMB</p>
+<p>Armed with valid usernames from the enumeration phase, test them against the SMB service using CrackMapExec:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>crackmapexec<span class="w"> </span>smb<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>admin<span class="w"> </span>-p<span class="w"> </span>password123
+</code></pre></div>
+<p>Look for the <code>[+]</code> marker indicating successful authentication. The <code>admin:password123</code> pair should validate successfully against SMB.</p>
+</div>
+<h3 id="step-6-test-credentials-on-ldap">Step 6: Test Credentials on LDAP</h3>
+<div class="admonition kali">
+<p class="admonition-title">Test credentials on LDAP</p>
+<p>Try the same credentials against the LDAP service to see whether the directory accepts an authenticated bind:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>crackmapexec<span class="w"> </span>ldap<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>admin<span class="w"> </span>-p<span class="w"> </span>password123
+</code></pre></div>
+<p>On this target the LDAP directory is unseeded and has no <code>admin</code> bind entry, so the bind does not succeed even though the <code>admin</code> account is valid for SMB, RDP, and SSH. That mismatch is a useful lesson: a local operating system account is not automatically a directory account. In a real engagement with an Active Directory backed directory, the same domain credential would bind successfully here, and authenticated LDAP access would reveal entries hidden from anonymous queries.</p>
+</div>
+<h3 id="step-7-test-credentials-on-rdp">Step 7: Test Credentials on RDP</h3>
+<div class="admonition kali">
+<p class="admonition-title">Test credentials on RDP</p>
+<p>Complete the multi-service validation by checking RDP:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>crackmapexec<span class="w"> </span>rdp<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>admin<span class="w"> </span>-p<span class="w"> </span>password123
+</code></pre></div>
+<p>A <code>[+]</code> result here means the credentials work across SMB, LDAP, and RDP; three confirmed attack paths from a single pair. The credential chain has progressed from zero knowledge to multi-service validated access.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Nmap scan output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>(paste your Nmap output here)
+</code></pre></div>
+<p><strong>LDAP Base DN discovered:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>Usernames found via LDAP:</strong></p>
+<table>
+<thead>
+<tr>
+<th>uid</th>
+<th>cn (Full Name)</th>
+<th>mail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>enum4linux key findings:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>(paste relevant sections of enum4linux output here)
+</code></pre></div>
+<p><strong>CrackMapExec results summary:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Port</th>
+<th>Result ([+] or [-])</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SMB</td>
+<td>445</td>
+<td></td>
+</tr>
+<tr>
+<td>LDAP</td>
+<td>389</td>
+<td></td>
+</tr>
+<tr>
+<td>RDP</td>
+<td>3389</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>(paste your flag here)
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-8-interpret-the-results">Step 8: Interpret the Results</h3>
+<p>Review the complete chain you have executed. You began with a target IP address and the <code>admin:password123</code> credential pair recovered earlier in the chain. The anonymous LDAP query proved the directory service was reachable and accepted anonymous binds. The enum4linux scan surfaced the <code>admin</code> account through SMB RID cycling and added SMB-specific intelligence. Credential testing then validated <code>admin:password123</code> across SMB, RDP, and SSH, while the LDAP bind did not succeed because the directory has no matching bind entry.</p>
+<p>Each enumeration source provided different but complementary information:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Information Gained</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LDAP (ldapsearch)</td>
+<td>Naming context, anonymous bind confirmation, directory skeleton</td>
+</tr>
+<tr>
+<td>enum4linux</td>
+<td>OS version, SMB shares, <code>admin</code> account via RID cycling, password policy</td>
+</tr>
+<tr>
+<td>CrackMapExec</td>
+<td>Credential validation across SMB, RDP, and SSH</td>
+</tr>
+</tbody>
+</table>
+<p>On a seeded directory, anonymous LDAP would also hand you the username list, which is exactly the path Chapter 7 demonstrates. Here, SMB enumeration filled that role and the recovered credential pair carried the chain to authenticated access.</p>
+<h3 id="step-9-find-and-submit-the-flag">Step 9: Find and Submit the Flag</h3>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the target over SSH</p>
+<p>SSH provides direct command-line access for the final step. Connect to the target:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>ssh<span class="w"> </span>admin@&lt;target_ip&gt;
+</code></pre></div>
+<p>Enter the password <code>password123</code> when prompted. A shell prompt on the target confirms the login succeeded.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Read the flag on the target</p>
+<p>Once logged in to the target shell, retrieve the flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>cat<span class="w"> </span>/tmp/private/flag.txt
+</code></pre></div>
+<p>The flag is in <code>OCR{...}</code> format. Copy the value, then exit the SSH session:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">exit</span>
+</code></pre></div>
+<p>Paste the flag into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+</div>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. LDAP anonymous enumeration provided usernames before any credential attack was attempted. Why is LDAP particularly valuable to attackers during the reconnaissance phase?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>LDAP directories are designed to store and share organizational information. When anonymous access is permitted, an attacker can query the entire directory structure without authentication; extracting usernames, email addresses, group memberships, and organizational hierarchies. Usernames are the most critical output because they eliminate the guessing phase of credential attacks. Email addresses enable targeted phishing campaigns. Group memberships reveal which accounts have elevated privileges. All of the information is structured and machine-readable, making automated extraction trivial.</p>
+</details>
+<p><strong>2. How does the credential chain methodology differ from a brute force attack?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A brute force attack tries every possible combination of usernames and passwords without prior knowledge. The credential chain is a targeted, phased approach where each step produces intelligence that narrows the next step. Enumeration provides validated usernames, which eliminates half of the guessing. Common password lists replace random character generation. Multi-service testing uses confirmed credentials across protocols instead of attacking each service independently. The credential chain is faster, quieter (fewer failed attempts to trigger alerts), and more likely to succeed because every input is informed by prior discovery.</p>
+</details>
+<p><strong>3. enum4linux combines multiple enumeration techniques into one tool. What specific advantages does enum4linux provide over running ldapsearch alone?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>enum4linux performs RID cycling to discover usernames even when LDAP anonymous access is disabled, making it effective against targets that block anonymous LDAP queries. The tool also extracts SMB-specific information that ldapsearch cannot access: share listings, OS version details, Samba configuration, and password policy settings. Password policy information is particularly valuable because it tells the attacker the minimum password length, complexity requirements, and lockout threshold; allowing them to calibrate credential attacks to avoid triggering account lockouts. Running both tools provides overlapping coverage and reduces the chance of missing critical information.</p>
+</details>
+<p><strong>4. The credentials validated on SMB and RDP but not on LDAP, even though the LDAP service was reachable. Why does a valid operating system account fail to bind to the directory?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A local operating system account and a directory bind entry are two different things. The <code>admin:password123</code> pair is a Linux account on the host, valid for SMB, RDP, and SSH because those services authenticate against the system user database. The LDAP service runs its own directory, and on this target that directory was never seeded with an <code>admin</code> bind entry, so there is nothing for the credential to bind against. In an Active Directory environment the directory and the host authentication are unified, so the same domain credential would bind to LDAP and log into every service. Recognizing when an account is local versus directory backed tells you which attack paths a single credential actually opens.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>LDAP anonymous binds</strong> reveal the naming context and directory structure without credentials; against a seeded directory the same query also yields usernames, which Chapter 7 demonstrates in depth</li>
+<li><strong>The credential chain methodology</strong> (enumerate, discover, test, reuse, access) is a structured alternative to blind brute force that produces faster and quieter results</li>
+<li><strong>enum4linux provides full enumeration</strong> by combining RID cycling, share listing, OS detection, and password policy extraction into a single automated scan; here it is what surfaces the <code>admin</code> account</li>
+<li><strong>A local account is not automatically a directory account</strong>: the recovered pair worked on SMB, RDP, and SSH but not on the unseeded LDAP directory, so always confirm which services a credential actually unlocks</li>
+<li>The next exercise, Exercise 8.5, builds on the credential chain by introducing credential spraying across multiple user accounts and password combinations</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,149 @@
+name: Subdomain Discovery
+description: Expand your TechStart assessment by discovering all subdomains to map the complete attack surface.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Understand subdomain enumeration concepts
+  - Sweep a subnet to find all live web servers
+  - Map discovered hosts to hostnames in /etc/hosts
+  - Identify which host serves the admin panel
+  - Capture the flag
+
+scenario: |
+  Your assessment of TechStart Inc. has revealed multiple components of their 
+  infrastructure. Sarah Chen wants a complete picture of all publicly accessible 
+  subdomains, as the development team has been rapidly deploying new services and 
+  she's concerned some may have been overlooked in security reviews.
+  
+  Subdomain discovery is crucial for understanding the full attack surface. Often, 
+  less-secured subdomains like admin panels, staging environments, or API endpoints 
+  can provide entry points that the main application doesn't.
+  
+  Your objective: Discover all subdomains associated with TechStart's domain. Use 
+  multiple enumeration techniques to ensure comprehensive coverage. Pay special 
+  attention to any admin, staging, or development subdomains that might have 
+  weaker security controls.
+
+hostnames:
+  - ip_offset: "127"
+    hostname: "main.lab"
+    description: "Main domain"
+  - ip_offset: "131"
+    hostname: "admin.lab"
+    description: "Admin subdomain"
+  - ip_offset: "137"
+    hostname: "api.lab"
+    description: "API subdomain"
+
+
+
+flag: "OCR{subd0m41n_d1sc0v3ry_b4s1c}"
+
+hints:
+  - text: |
+      **Subdomain enumeration** discovers all subdomains associated with a target domain. Organizations often deploy services on subdomains like `admin.example.com`, `api.example.com`, or `dev.example.com`.
+
+      **Why subdomains matter:**
+      - **Expanded attack surface**: Each subdomain is a potential entry point
+      - **Forgotten services**: Development/staging environments with weaker security
+      - **Admin panels**: Management interfaces often on subdomains
+      - **API endpoints**: Backend services exposed on separate subdomains
+      - **Information disclosure**: Subdomain names reveal infrastructure details
+
+      Your goal is to discover all subdomains for the TechStart domain to map the complete attack surface.
+    unlock_after_minutes: 0
+
+  - text: |
+      There are several techniques for subdomain discovery in real-world assessments:
+
+      1. **DNS enumeration**: Query DNS records for subdomains
+      2. **Brute forcing**: Test common subdomain names against a resolver
+      3. **Certificate transparency**: Search CT logs for certificates
+      4. **Search engines**: Google dorking and web scraping
+      5. **Reverse DNS**: PTR record lookups
+
+      **Important for this lab:** the TechStart hosts in this environment have no DNS server in front of them. DNS-mode tools such as `gobuster dns`, `dnsrecon`, and `sublist3r` have nothing to query and will return no results. The reliable method here is to sweep the subnet for live web servers, then map each one to its hostname. The next hints walk through that workflow.
+    unlock_after_minutes: 5
+
+  - text: |
+      Start by finding every live host on the target subnet. Read the target subnet from the lab panel (for example `10.X.Y.0/24`) and sweep the web port with `nmap`.
+
+      ```bash
+      nmap -p 80 --open 10.X.Y.0/24
+      ```
+
+      `--open` keeps only hosts with port 80 listening, so the output is the set of web servers to investigate. You can also confirm each address with `curl`:
+
+      ```bash
+      for ip in $(seq 1 254); do
+          host="10.X.Y.$ip"
+          code=$(curl -s -o /dev/null -m 1 -w '%{http_code}' http://$host/)
+          [ "$code" = "200" ] && echo "[+] live: $host"
+      done
+      ```
+    unlock_after_minutes: 10
+
+  - text: |
+      The sweep returns several live web servers on different addresses. Each one is a separate TechStart service. Fetch the front page of each to tell them apart.
+
+      ```bash
+      curl -s http://10.X.Y.127/   # main site
+      curl -s http://10.X.Y.131/   # admin panel
+      curl -s http://10.X.Y.137/   # api service
+      ```
+
+      The page titles and body text identify the role of each host. One of them presents itself as the admin panel.
+    unlock_after_minutes: 15
+
+  - text: |
+      Map the discovered addresses to friendly hostnames in `/etc/hosts` so you can reach them by name. Replace the addresses with the live ones from your sweep.
+
+      ```bash
+      sudo bash -c 'cat >> /etc/hosts <<EOF
+      10.X.Y.127  main.lab
+      10.X.Y.131  admin.lab
+      10.X.Y.137  api.lab
+      EOF'
+
+      cat /etc/hosts | grep lab
+      ```
+
+      After the mapping is in place, the hosts respond to their names:
+
+      ```bash
+      curl -I http://admin.lab
+      curl -I http://api.lab
+      ```
+    unlock_after_minutes: 20
+
+  - text: |
+      The admin host holds the flag. Investigate its content and pull the flag file.
+
+      ```bash
+      curl http://admin.lab/
+      curl http://admin.lab/flag.txt
+      ```
+
+      **Prioritize investigating hosts whose front page identifies them as:**
+      - **admin/administrator**: Management panels
+      - **dev/development/test/staging**: Non-production environments
+      - **api**: Backend services
+      - **backup/old**: Legacy systems
+
+      The flag lives at `/flag.txt` on the admin host.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/webpt/CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/"
+
+test:
+  steps:
+    - name: "Main web server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+    - name: "Admin subdomain responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.admin}/"
+      expect: "200"
+    - name: "Flag file on admin subdomain"
+      command: "curl -s http://{target.admin}/flag.txt"
+      expect: "OCR{subd0m41n_d1sc0v3ry_b4s1c}"

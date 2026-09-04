@@ -1,0 +1,1491 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Lab W1.5: Subdomain Discovery - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lab-w15-subdomain-discovery" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lab W1.5: Subdomain Discovery
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-why-dns-mode-tools-will-not-work-here" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Important: Why DNS-Mode Tools Will Not Work Here
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-why-subdomains-expand-the-attack-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Why Subdomains Expand the Attack Surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-nmap-host-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: nmap Host Sweep
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Lab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-verify-the-main-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Verify the Main Host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-sweep-the-subnet-for-web-servers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Sweep the Subnet for Web Servers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-fingerprint-each-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Fingerprint Each Host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-map-the-hosts-in-etchosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Map the Hosts in /etc/hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-retrieve-the-flag-from-the-admin-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Retrieve the Flag from the Admin Host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-compare-security-across-hosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Compare Security Across Hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-record-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Record the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="lab-w15-subdomain-discovery">Lab W1.5: Subdomain Discovery</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<ul>
+<li>Confirm your VPN connection is active and you can reach the lab network.</li>
+<li>You should have completed Labs W1.1 through W1.4 and be comfortable with nmap and curl.</li>
+<li>No credentials are needed: subdomain discovery in this lab uses a subnet sweep and HTTP requests.</li>
+</ul>
+<h2 id="scenario">Scenario</h2>
+<p>Your assessment of TechStart Inc has focused on a single hostname so far. <strong>Sarah Chen</strong> now wants a complete picture of all publicly accessible subdomains. The development team has been rapidly deploying new services, and Sarah is concerned that some may have been overlooked in security reviews.</p>
+<p>Subdomain discovery is crucial for mapping the full attack surface. Less-secured subdomains (admin panels, staging environments, internal APIs) often provide entry points that the main application does not. Your job is to discover every subdomain associated with TechStart's domain and investigate each one.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Understand subdomain enumeration concepts and techniques</li>
+<li>Sweep the lab subnet to find every live web server</li>
+<li>Fingerprint each host with curl to tell the main, admin, and API services apart</li>
+<li>Map the discovered hosts to hostnames in <code>/etc/hosts</code></li>
+<li>Retrieve the flag from the admin host</li>
+</ul>
+<hr />
+<h2 id="important-why-dns-mode-tools-will-not-work-here">Important: Why DNS-Mode Tools Will Not Work Here</h2>
+<p>In a real engagement, subdomain enumeration leans on DNS. Tools query a resolver, brute-force names against it, or scrape certificate transparency logs. The lab environment is different, and the difference changes the whole approach.</p>
+<p>The TechStart "subdomains" in this lab are not name-based virtual hosts behind a single IP. Each one is a <strong>separate host at its own IP address</strong> on the lab subnet, and there is <strong>no DNS server</strong> in front of them. Nothing resolves <code>admin.lab</code> to an address until you map it yourself.</p>
+<p>As a result, DNS-mode tools have nothing to talk to and will return no results:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Why it fails here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gobuster dns</code></td>
+<td>Brute-forces names against a DNS resolver: there is no resolver</td>
+</tr>
+<tr>
+<td><code>dnsrecon</code></td>
+<td>Queries DNS records: there are no records to query</td>
+</tr>
+<tr>
+<td><code>sublist3r</code></td>
+<td>Scrapes public sources for a real domain: the lab domain is internal</td>
+</tr>
+</tbody>
+</table>
+<p>Host-header fuzzing against a single IP fails for the same reason. The hosts are not vhosts sharing one address, so changing the <code>Host:</code> header on one IP never reveals the others.</p>
+<p>The reliable method is a <strong>subnet sweep</strong>: find every live web server on the subnet, fingerprint each one, then map the addresses to friendly names. The walkthrough below does exactly that.</p>
+<hr />
+<h2 id="background-why-subdomains-expand-the-attack-surface">Background: Why Subdomains Expand the Attack Surface</h2>
+<p>Organisations frequently deploy services on subdomains rather than separate directories. An admin panel might live at <code>admin.example.com</code>, an API at <code>api.example.com</code>, and a staging environment at <code>staging.example.com</code>. Each subdomain is effectively a separate web application, often running on its own server with its own configuration, security controls, and potential vulnerabilities.</p>
+<pre class="mermaid"><code>graph TD
+    A["TechStart hosts on the lab subnet"]
+    A --&gt; B["main.lab\nMain website"]
+    A --&gt; C["admin.lab\nAdmin panel"]
+    A --&gt; D["api.lab\nAPI services"]
+    C --&gt; E["Often weaker auth\nMay expose files"]
+    D --&gt; F["API documentation\nEndpoint listing"]</code></pre>
+<p>The main application may have strong security controls, but a forgotten admin host might have files exposed without authentication. The risk shows up directly in this lab: one of the hosts serves the flag in an accessible file.</p>
+<p><strong>Common subdomain categories:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Examples</th>
+<th>Typical Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admin</td>
+<td><code>admin</code>, <code>panel</code>, <code>manage</code></td>
+<td>Management access, exposed files</td>
+</tr>
+<tr>
+<td>API</td>
+<td><code>api</code>, <code>rest</code>, <code>graphql</code></td>
+<td>Data access, injection points</td>
+</tr>
+<tr>
+<td>Development</td>
+<td><code>dev</code>, <code>test</code>, <code>staging</code>, <code>uat</code></td>
+<td>Debug info, test credentials</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td><code>mail</code>, <code>vpn</code>, <code>monitor</code>, <code>db</code></td>
+<td>Internal service exposure</td>
+</tr>
+<tr>
+<td>Legacy</td>
+<td><code>old</code>, <code>backup</code>, <code>v1</code>, <code>archive</code></td>
+<td>Outdated and unpatched software</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tool-primer-nmap-host-sweep">Tool Primer: nmap Host Sweep</h2>
+<p>Because the hosts live at separate IP addresses, an nmap port sweep is the right discovery tool. Scanning the web port across the whole subnet lists every host that answers on port 80.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nmap<span class="w"> </span>-p<span class="w"> </span><span class="m">80</span><span class="w"> </span>--open<span class="w"> </span>&lt;subnet&gt;/24
+</code></pre></div>
+<p><strong>Key flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-p 80</code></td>
+<td>Scan only the HTTP port (fast)</td>
+</tr>
+<tr>
+<td><code>--open</code></td>
+<td>Show only hosts with the port open, hiding the rest</td>
+</tr>
+<tr>
+<td><code>-sn</code></td>
+<td>Ping sweep with no port scan (host discovery only)</td>
+</tr>
+<tr>
+<td><code>-oG &lt;file&gt;</code></td>
+<td>Save greppable output for scripting follow-up scans</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sample output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Starting Nmap 7.94 ( https://nmap.org )
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Nmap scan report for &lt;subnet&gt;.127
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Host is up.
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>PORT   STATE SERVICE
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>80/tcp open  http
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>Nmap scan report for &lt;subnet&gt;.131
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>Host is up.
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>PORT   STATE SERVICE
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>80/tcp open  http
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>Nmap scan report for &lt;subnet&gt;.137
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>Host is up.
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>PORT   STATE SERVICE
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>80/tcp open  http
+</code></pre></div>
+<p>Each report block is one live web server. The set of addresses is the list of hosts to investigate.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-lab">Step 1: Launch the Lab</h3>
+<p>Navigate to <strong>Learning Paths</strong> then <strong>Web</strong> then <strong>Level 1</strong>, click <strong>Launch</strong>, wait for <strong>Running</strong>. Read the <strong>target subnet</strong> from the lab panel (for example <code>10.X.Y.0/24</code>). The lab deploys three separate hosts on that subnet: a main site, an admin panel, and an API service.</p>
+<p>Write down the subnet. You will use it in the sweep that follows.</p>
+<div class="admonition note">
+<p class="admonition-title">Placeholder addresses</p>
+<p>Throughout this lab, <code>&lt;subnet&gt;</code> stands for the first three octets shown in your lab panel (for example <code>10.X.Y</code>), and addresses like <code>&lt;subnet&gt;.131</code> are the live hosts your own sweep returns. Substitute the real values before running each command.</p>
+</div>
+<h3 id="step-2-verify-the-main-host">Step 2: Verify the Main Host</h3>
+<p>Confirm the main host is reachable. Use the address at the lowest offset from your panel:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;subnet&gt;.127/
+</code></pre></div>
+</div>
+<p>You should see a welcome page for the main TechStart site. The page may hint that other services exist on the network.</p>
+<h3 id="step-3-sweep-the-subnet-for-web-servers">Step 3: Sweep the Subnet for Web Servers</h3>
+<p>DNS enumeration finds nothing here, so sweep the subnet for hosts listening on port 80:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>nmap<span class="w"> </span>-p<span class="w"> </span><span class="m">80</span><span class="w"> </span>--open<span class="w"> </span>&lt;subnet&gt;.0/24
+</code></pre></div>
+</div>
+<p><code>--open</code> keeps only the hosts with port 80 listening, so the output is exactly the set of web servers to investigate. You should see three live addresses.</p>
+<p>If nmap is unavailable, a curl loop does the same job:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">for</span><span class="w"> </span>ip<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>seq<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">254</span><span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nv">host</span><span class="o">=</span><span class="s2">&quot;&lt;subnet&gt;.</span><span class="nv">$ip</span><span class="s2">&quot;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nv">code</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-m<span class="w"> </span><span class="m">1</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}&#39;</span><span class="w"> </span>http://<span class="nv">$host</span>/<span class="k">)</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$code</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;200&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;[+] live: </span><span class="nv">$host</span><span class="s2">&quot;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">done</span>
+</code></pre></div>
+</div>
+<p>Record every live address. Each one is a separate TechStart service.</p>
+<h3 id="step-4-fingerprint-each-host">Step 4: Fingerprint Each Host</h3>
+<p>The sweep gives you addresses but not roles. Fetch the front page of each live host to tell them apart:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;subnet&gt;.127/<span class="w">   </span><span class="c1"># main site</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;subnet&gt;.131/<span class="w">   </span><span class="c1"># admin panel</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;subnet&gt;.137/<span class="w">   </span><span class="c1"># api service</span>
+</code></pre></div>
+</div>
+<p>Read each response carefully:</p>
+<ul>
+<li>The <strong>main</strong> host serves the primary TechStart website.</li>
+<li>The <strong>admin</strong> host presents itself as an administration panel. Its page text tells you where the flag is located.</li>
+<li>The <strong>api</strong> host returns API content rather than a normal web page.</li>
+</ul>
+<p>The admin host is the high-value finding. Admin panels deployed on their own hosts frequently have weaker security controls than the main application.</p>
+<h3 id="step-5-map-the-hosts-in-etchosts">Step 5: Map the Hosts in /etc/hosts</h3>
+<p>Mapping the addresses to friendly names makes the rest of the work readable. Add the live addresses from your sweep:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;cat &gt;&gt; /etc/hosts &lt;&lt;EOF</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="s1">&lt;subnet&gt;.127  main.lab</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="s1">&lt;subnet&gt;.131  admin.lab</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="s1">&lt;subnet&gt;.137  api.lab</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="s1">EOF&#39;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>grep<span class="w"> </span>lab<span class="w"> </span>/etc/hosts
+</code></pre></div>
+</div>
+<p>After the mapping is in place, the hosts respond to their names:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://admin.lab
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://api.lab
+</code></pre></div>
+</div>
+<h3 id="step-6-retrieve-the-flag-from-the-admin-host">Step 6: Retrieve the Flag from the Admin Host</h3>
+<p>The admin host page tells you the flag location. Pull it directly:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>http://admin.lab/
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>curl<span class="w"> </span>http://admin.lab/flag.txt
+</code></pre></div>
+</div>
+<p>The flag file is served without authentication, which is a critical finding. In a real engagement, any attacker who reaches the admin host could read administrative files the same way.</p>
+<h3 id="step-7-compare-security-across-hosts">Step 7: Compare Security Across Hosts</h3>
+<p>Apply the header analysis skills from Lab W1.4 to each host:</p>
+<div class="admonition kali">
+<p class="admonition-title">Run on Kali</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://main.lab
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://admin.lab
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>curl<span class="w"> </span>-I<span class="w"> </span>http://api.lab
+</code></pre></div>
+</div>
+<p>Compare the headers across the three hosts. Note any differences in:</p>
+<ul>
+<li>Server software and versions</li>
+<li>Security headers (X-Frame-Options, CSP, HSTS)</li>
+<li>Information disclosure headers</li>
+</ul>
+<p>Header configurations often vary between hosts. The main application may carry proper headers while the admin host lacks them entirely.</p>
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Target Subnet:</strong> <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p><strong>Discovered Hosts:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Address</th>
+<th>Hostname</th>
+<th>Content / Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;subnet&gt;.127</code></td>
+<td><code>main.lab</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&lt;subnet&gt;.131</code></td>
+<td><code>admin.lab</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&lt;subnet&gt;.137</code></td>
+<td><code>api.lab</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Admin Host Files:</strong></p>
+<table>
+<thead>
+<tr>
+<th>File Path</th>
+<th>Accessible?</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/flag.txt</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <code>OCR{_______________}</code></p>
+</blockquote>
+<h3 id="step-8-record-the-flag">Step 8: Record the Flag</h3>
+<p>Enter the flag from <code>admin.lab/flag.txt</code> in the format <code>OCR{________}</code> on the lab submission page.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why does DNS-mode enumeration (gobuster dns, dnsrecon, sublist3r) find nothing in this lab?</strong></p>
+<blockquote>
+<p>Each tool depends on DNS. Gobuster dns and dnsrecon brute-force or query names against a resolver, and sublist3r scrapes public sources for a registered domain. The lab has no DNS server and no public registration, so there is nothing for them to query. The hosts exist only as separate IP addresses on the subnet, which is why a subnet sweep finds them and DNS tools do not.</p>
+</blockquote>
+<p><strong>2. Why are admin hosts often less secure than the main application?</strong></p>
+<blockquote>
+<p>Admin interfaces are typically built for internal use and receive less scrutiny during security reviews. They may lack authentication on certain paths, skip security header configuration, or rely on the assumption that the host is "hidden." Obscurity is not security: a subnet sweep discovers these hosts in minutes.</p>
+</blockquote>
+<p><strong>3. How does a subnet sweep differ from directory brute forcing?</strong></p>
+<blockquote>
+<p>Directory brute forcing sends HTTP requests to one web server and checks response codes for paths within that single host. A subnet sweep sends connection probes to many addresses and checks which hosts answer on the web port. They operate at different layers: directory enumeration works inside one host, while a subnet sweep discovers entirely separate hosts, each with its own application, server, and configuration.</p>
+</blockquote>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>The lab subdomains are separate hosts</strong> at distinct IP addresses, not name-based vhosts behind one IP.</li>
+<li><strong>No DNS server is present</strong>, so <code>gobuster dns</code>, <code>dnsrecon</code>, and <code>sublist3r</code> return nothing.</li>
+<li><strong>A subnet sweep</strong> (<code>nmap -p 80 --open &lt;subnet&gt;/24</code>) is the reliable discovery method here.</li>
+<li><strong>Per-host fingerprinting with curl</strong> tells the main, admin, and API services apart.</li>
+<li><strong>Mapping hosts in <code>/etc/hosts</code></strong> lets you reach each one by name for the rest of the assessment.</li>
+<li><strong>The flag lives at <code>admin.lab/flag.txt</code></strong>, an unauthenticated file on the admin host, which is a critical finding.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

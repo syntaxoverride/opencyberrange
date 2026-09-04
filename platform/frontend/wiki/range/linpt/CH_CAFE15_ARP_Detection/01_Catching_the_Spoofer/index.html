@@ -1,0 +1,1640 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 8A: Catching the Spoofer - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-8a-catching-the-spoofer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 8A: Catching the Spoofer
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-how-arp-spoofing-detection-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: How ARP Spoofing Detection Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: How ARP Spoofing Detection Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-arp-trust-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ARP Trust Problem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-places-you-will-see-the-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two Places You Will See the Attack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-arpwatch-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What arpwatch Reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-arpdat-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The arp.dat File
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-you-will-need" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools You Will Need
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flag Progress
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-0-ssh-into-the-network-tap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0: SSH Into the Network Tap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-map-the-network-and-record-the-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Map the Network and Record the Baseline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-watch-the-spoof-arrive-with-tcpdump" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Watch the Spoof Arrive with tcpdump
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-confirm-the-change-with-arpwatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Confirm the Change with arpwatch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-read-the-token-from-the-cafe-soc-monitor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Read the Token From the Cafe SOC Monitor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-assemble-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Assemble and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-build-an-attack-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Build an Attack Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrapping-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrapping Up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-8a-catching-the-spoofer">Exercise 8A: Catching the Spoofer</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<p><strong>Client:</strong> Bean &amp; Byte Cafe
+<strong>Role:</strong> Blue Team Analyst
+<strong>Phase:</strong> Reconnaissance <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> Service Enumeration <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> Exploitation <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Detection</strong></p>
+<p><strong>What you know so far:</strong></p>
+<ul>
+<li>You have mapped every device on the cafe network and recorded their MAC addresses</li>
+<li>You have baselined normal ARP behavior in the earlier reconnaissance exercises</li>
+<li>A suspicious customer has been sitting in the corner booth for hours with a laptop</li>
+<li>The POS terminal has been experiencing intermittent network slowdowns</li>
+</ul>
+<p><strong>Your task:</strong> Get onto the cafe broadcast domain, deploy ARP monitoring, catch an active ARP spoofing attack as it happens, and read the detection token from the cafe SOC monitor.</p>
+<hr />
+<h2 id="objective">Objective</h2>
+<p>Detect a live ARP spoofing attack against the Bean &amp; Byte Cafe network. Establish a baseline of trusted MAC-to-IP bindings, observe the rogue device poisoning the gateway binding, identify the rogue MAC address, and retrieve the flag token that the cafe SOC monitor publishes once it independently confirms the attack.</p>
+<p><strong>Difficulty:</strong> Intermediate
+<strong>Estimated time:</strong> 60 minutes</p>
+<hr />
+<h2 id="background-how-arp-spoofing-detection-works">Background: How ARP Spoofing Detection Works</h2>
+<h3 id="the-arp-trust-problem">The ARP Trust Problem</h3>
+<p>ARP has no authentication mechanism. When a device receives an ARP reply, it updates its cache unconditionally, even if it never sent a request. The unconditional acceptance exists for efficiency, but it means any device on the network can claim to own any IP address.</p>
+<p>An ARP spoofing attack abuses that trust by sending forged ARP replies that bind the attacker's MAC address to a victim's IP address. Other devices then send traffic destined for the victim to the attacker instead. In this scenario the rogue device claims to be the cafe gateway, so traffic meant for the gateway flows through the rogue laptop first.</p>
+<h3 id="two-places-you-will-see-the-attack">Two Places You Will See the Attack</h3>
+<p>There are two independent vantage points in this lab, and you use both:</p>
+<ol>
+<li>
+<p><strong>Your network tap (the .250 host).</strong> You run <code>tcpdump</code>, <code>arpwatch</code>, and <code>arp-scan</code> here. The rogue sends its gateway-impersonation reply as an Ethernet <strong>broadcast</strong>, and a Docker bridge floods broadcast frames to every port, so your tap sees the forged replies arrive. The learning happens here: you watch the attack with your own tools.</p>
+</li>
+<li>
+<p><strong>The cafe SOC monitor (the arp-monitor host).</strong> A small active sensor learns the trusted baseline at startup, then probes the protected hosts and watches its own neighbor cache. Once it confirms the gateway binding has changed, it publishes the detection token on an HTTP status page. The flag is delivered here.</p>
+</li>
+</ol>
+<h3 id="what-arpwatch-reports">What arpwatch Reports</h3>
+<p><code>arpwatch</code> watches ARP traffic and keeps a database of MAC-to-IP bindings. When a binding changes, it raises an alert:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>+------------------+---------------------------------------+
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>|  arpwatch alert  |  meaning                              |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>+------------------+---------------------------------------+
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>| new station      | a MAC/IP pair seen for the first time |
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>| changed ethernet | a known IP now answers from a         |
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>|   address        | different MAC than before             |
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>| flip flop        | an IP alternates between two MACs      |
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>+------------------+---------------------------------------+
+</code></pre></div>
+<p>A <strong>changed ethernet address</strong> alert for the gateway IP is the headline detection signal in this lab: the gateway answered from one MAC during baseline, then suddenly answered from the rogue's MAC.</p>
+<h3 id="the-arpdat-file">The arp.dat File</h3>
+<p>arpwatch keeps a flat-file database (<code>arp.dat</code>) with one binding per line:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>&lt;mac_address&gt;    &lt;ip_address&gt;    &lt;timestamp&gt;    &lt;hostname&gt;
+</code></pre></div>
+<p>When you seed it with the trusted baseline before the attack begins, the rogue's forged reply triggers the changed-address alert against your known-good entry.</p>
+<hr />
+<h2 id="tools-you-will-need">Tools You Will Need</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tcpdump</code></td>
+<td>Capture raw ARP frames and read the forged replies</td>
+<td><code>tcpdump -enn arp</code></td>
+</tr>
+<tr>
+<td><code>arpwatch</code></td>
+<td>Track MAC/IP bindings and alert on changes</td>
+<td><code>arpwatch -i eth0 -f /tmp/arp.dat -d</code></td>
+</tr>
+<tr>
+<td><code>arp-scan</code></td>
+<td>Active ARP discovery of the whole subnet</td>
+<td><code>arp-scan -I eth0 --localnet</code></td>
+</tr>
+<tr>
+<td><code>arp</code></td>
+<td>View the local ARP cache</td>
+<td><code>arp -an</code></td>
+</tr>
+<tr>
+<td><code>curl</code></td>
+<td>Read the SOC monitor status page</td>
+<td><code>curl -s http://arp-monitor:8080/</code></td>
+</tr>
+</tbody>
+</table>
+<p>All of these are pre-installed on the network tap.</p>
+<hr />
+<h2 id="flag-progress">Flag Progress</h2>
+<p>The flag has <strong>2 parts</strong>. Both come from the SOC monitor token after the live attack is confirmed:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Source</th>
+<th>Token</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Baseline established, arpwatch-style binding learned</td>
+<td><code>________</code></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Flip-flop / changed ethernet address confirmed for the gateway IP</td>
+<td><code>________</code></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Assembled flag format:</strong> <code>OCR{________}</code></p>
+<hr />
+<h2 id="step-0-ssh-into-the-network-tap">Step 0: SSH Into the Network Tap</h2>
+<p>ARP is a Layer 2 protocol. ARP requests and replies are never forwarded across a router, so you must run your tools from a host that shares the cafe broadcast domain. Blackridge Security has placed a network tap on the cafe subnet at the <code>.250</code> address for exactly this. Reach it over the VPN with SSH.</p>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the tap</p>
+<p>Replace the address with the <code>.250</code> host shown on your lab page. The password is <code>Security1#</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ssh<span class="w"> </span>pentest@10.100.81.250
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pentest@nettap:~$ id
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>uid=1000(pentest) gid=1000(pentest) groups=1000(pentest)
+</code></pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Why not run this over the VPN directly</p>
+<p>ARP tools need to send and receive raw Layer 2 frames on the same wire as the targets. The VPN delivers IP packets, not the broadcast ARP frames you need to see. Running <code>tcpdump arp</code> from your own machine across the VPN shows nothing. Always work from the tap.</p>
+</div>
+<p>Confirm your interface and address on the tap:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ip<span class="w"> </span>-4<span class="w"> </span>addr<span class="w"> </span>show<span class="w"> </span>eth0
+</code></pre></div>
+<p>You are now on the cafe <code>/24</code> alongside every cafe device.</p>
+<hr />
+<h2 id="step-1-map-the-network-and-record-the-baseline">Step 1: Map the Network and Record the Baseline</h2>
+<p>Before the attack escalates, learn the trusted MAC-to-IP bindings. An active ARP sweep is the fastest way to populate them.</p>
+<div class="admonition kali">
+<p class="admonition-title">Sweep the subnet</p>
+<p>The <code>--localnet</code> flag scans the entire <code>/24</code> derived from your interface.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sudo<span class="w"> </span>arp-scan<span class="w"> </span>-I<span class="w"> </span>eth0<span class="w"> </span>--localnet
+</code></pre></div>
+</div>
+<p>Record each host and its MAC. These are your reference for "normal":</p>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>IP offset</th>
+<th>MAC (record yours)</th>
+<th>Seen?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gateway</td>
+<td>.1</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>POS Terminal</td>
+<td>.17</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>Barista Workstation</td>
+<td>.23</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>Printer</td>
+<td>.42</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>Smart Thermostat</td>
+<td>.51</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>Rogue Device</td>
+<td>.150</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+<tr>
+<td>SOC Monitor</td>
+<td>.180</td>
+<td></td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 2v14H5V5z"/></svg></span></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">The rogue is already on the wire</p>
+<p>Notice that an extra host appears at the <code>.150</code> offset. The cafe inventory has no device there. Note its MAC down: in a moment you will match the spoofed gateway reply against it.</p>
+</div>
+<hr />
+<h2 id="step-2-watch-the-spoof-arrive-with-tcpdump">Step 2: Watch the Spoof Arrive with tcpdump</h2>
+<p>The rogue device begins forging ARP replies a short time after the lab starts. The forged reply claims the gateway IP belongs to the rogue's MAC, and it is broadcast to the whole segment, so your tap captures it.</p>
+<div class="admonition kali">
+<p class="admonition-title">Capture ARP frames</p>
+<p>The <code>-e</code> flag prints the source Ethernet MAC, and <code>-nn</code> keeps addresses numeric.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>eth0<span class="w"> </span>-enn<span class="w"> </span>arp
+</code></pre></div>
+</div>
+<p>Within a few seconds you will see a steady stream of unsolicited replies for the gateway IP:</p>
+<p><img alt="tcpdump capturing forged ARP replies for the gateway IP" src="../img/tcpdump_arp_spoof.png" /></p>
+<p>Read one line carefully:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Reply 10.100.81.1 is-at 3a:aa:95:87:6f:99
+</code></pre></div>
+<p>The gateway IP (ending in <code>.1</code>) is being claimed by the MAC <code>3a:aa:95:87:6f:99</code>. Cross-reference that MAC against your <code>arp-scan</code> output: it belongs to the host at the <code>.150</code> offset, the rogue laptop. No legitimate device should ever broadcast "the gateway is at my MAC."</p>
+<div class="admonition warning">
+<p class="admonition-title">Yours will differ</p>
+<p>Docker assigns a fresh MAC to every container each run, so the exact MAC in your capture will not match the one printed here. The pattern is what matters: an unsolicited broadcast reply binding the gateway IP to a MAC that belongs to the unexpected <code>.150</code> host.</p>
+</div>
+<hr />
+<h2 id="step-3-confirm-the-change-with-arpwatch">Step 3: Confirm the Change with arpwatch</h2>
+<p><code>tcpdump</code> shows the raw frames. <code>arpwatch</code> turns them into a clean alert by comparing against a known-good baseline. Seed its database with the trusted bindings you recorded, then let it watch.</p>
+<div class="admonition kali">
+<p class="admonition-title">Seed the baseline, then run arpwatch</p>
+<p>Write the gateway and POS bindings you observed before the attack into <code>/tmp/arp.dat</code>, one binding per line as <code>MAC&lt;tab&gt;IP&lt;tab&gt;timestamp&lt;tab&gt;hostname</code>. Substitute the real MACs from your own Step 1 output.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">TS</span><span class="o">=</span><span class="k">$(</span>date<span class="w"> </span>+%s<span class="k">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;%s\t%s\t%s\t%s\n&#39;</span><span class="w"> </span><span class="s2">&quot;&lt;gateway_mac&gt;&quot;</span><span class="w"> </span><span class="s2">&quot;10.100.81.1&quot;</span><span class="w">  </span><span class="s2">&quot;</span><span class="nv">$TS</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;cafe-gateway&quot;</span><span class="w"> </span>&gt;<span class="w">  </span>/tmp/arp.dat
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;%s\t%s\t%s\t%s\n&#39;</span><span class="w"> </span><span class="s2">&quot;&lt;pos_mac&gt;&quot;</span><span class="w">     </span><span class="s2">&quot;10.100.81.17&quot;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$TS</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;cafe-pos&quot;</span><span class="w">     </span>&gt;&gt;<span class="w"> </span>/tmp/arp.dat
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>sudo<span class="w"> </span>arpwatch<span class="w"> </span>-i<span class="w"> </span>eth0<span class="w"> </span>-f<span class="w"> </span>/tmp/arp.dat<span class="w"> </span>-d
+</code></pre></div>
+<p>The <code>-d</code> flag keeps arpwatch in the foreground so alerts print to your terminal.</p>
+</div>
+<p>Because the gateway now answers from a different MAC than the one you seeded, arpwatch raises a <strong>changed ethernet address</strong> alert:</p>
+<p><img alt="arpwatch reporting a changed ethernet address for the gateway IP" src="../img/arpwatch_changed.png" /></p>
+<p>The alert names the IP (<code>10.100.81.1</code>), the new MAC (the rogue), and the old MAC (the legitimate gateway). The old-versus-new pairing is the heart of ARP spoof detection.</p>
+<div class="admonition note">
+<p class="admonition-title">changed ethernet address vs flip flop</p>
+<p><code>arpwatch</code> reports <strong>changed ethernet address</strong> when a binding moves from one MAC to another. When the real device and the attacker keep answering in turn, the IP bounces back and forth and arpwatch escalates to <strong>flip flop</strong>. Both indicate the same root cause: two devices claim one IP. The cafe SOC monitor labels this condition a flip-flop in its own log.</p>
+</div>
+<hr />
+<h2 id="step-4-read-the-token-from-the-cafe-soc-monitor">Step 4: Read the Token From the Cafe SOC Monitor</h2>
+<p>The cafe runs its own active ARP sensor on the segment, the <code>arp-monitor</code> host at the <code>.180</code> offset. It learns the trusted baseline at startup, probes the protected hosts, and watches for the gateway binding to change. Once it independently confirms the live spoof, it publishes the detection token on a small HTTP status page.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query the monitor</p>
+<p>Reach it by hostname (<code>arp-monitor</code>) or by its <code>.180</code> address.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://arp-monitor:8080/
+</code></pre></div>
+</div>
+<p>If the attack has been confirmed, the page reports the change and serves the token:</p>
+<p><img alt="arp-scan host list correlated with the SOC monitor token page" src="../img/monitor_token.png" /></p>
+<p>The status block shows the trusted baseline, a one-line detail of the binding that changed, and the token on the final line:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>STATUS: live ARP spoof / flip-flop detected.
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>detail: 10.100.81.1 baseline ... now answers as ...
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>OCR-SN:&lt;TOKEN&gt;
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">If the page still says 'monitoring'</p>
+<p>The monitor needs a few seconds after the rogue starts before it confirms the change. Poll it until the status flips:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">until</span><span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>http://arp-monitor:8080/<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span>OCR-SN<span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>sleep<span class="w"> </span><span class="m">5</span><span class="p">;</span><span class="w"> </span><span class="k">done</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://arp-monitor:8080/
+</code></pre></div>
+</div>
+<hr />
+<h2 id="step-5-assemble-and-submit-the-flag">Step 5: Assemble and Submit the Flag</h2>
+<p>The token is delivered after the <code>OCR-SN:</code> prefix. Strip the prefix and wrap the value in the flag format:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>OCR{_____}
+</code></pre></div>
+<p>The first fragment corresponds to the baseline being established, and the second to the confirmed flip-flop on the gateway binding. Submit the assembled flag in the platform.</p>
+<hr />
+<h2 id="step-6-build-an-attack-timeline">Step 6: Build an Attack Timeline</h2>
+<p>With the token captured, write up the incident as you would for the cafe owner. Re-read your captures and answer:</p>
+<ol>
+<li><strong>When did the rogue device first appear?</strong> Look for the unexpected <code>.150</code> host in your <code>arp-scan</code> output.</li>
+<li><strong>When did the spoofing start?</strong> The first forged gateway reply in your <code>tcpdump</code> timestamps marks the attack onset.</li>
+<li><strong>Which binding was poisoned?</strong> The gateway IP at <code>.1</code> is the one whose MAC changed.</li>
+<li><strong>How was it confirmed twice?</strong> Your tap saw the broadcast frames, and the SOC monitor confirmed it independently with active probing.</li>
+</ol>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Think about these as you work through the exercise:</p>
+<ol>
+<li>
+<p><strong>Detection lag.</strong> How long after the first forged reply did arpwatch and the SOC monitor flag the change? Which was faster, and why?</p>
+</li>
+<li>
+<p><strong>False positives.</strong> Are there legitimate reasons a MAC-to-IP binding changes? A device swap, a failover, or a DHCP lease move can all look like a changed ethernet address. How would you rule those out?</p>
+</li>
+<li>
+<p><strong>Passive vs active detection.</strong> <code>arpwatch</code> is passive: it only reports what it happens to see. The SOC monitor is active: it probes on a timer. What does each approach miss that the other catches?</p>
+</li>
+<li>
+<p><strong>Why broadcast matters here.</strong> The directed <code>arpspoof -t</code> replies are unicast and a switch sends them only to the victim's port. Why does the rogue also send a broadcast reply, and how does that broadcast make detection possible from a third host like your tap?</p>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arpwatch</td>
+<td>Low overhead, baseline tracking</td>
+<td>Passive, alerts after the change</td>
+</tr>
+<tr>
+<td>tcpdump + analysis</td>
+<td>Full frame visibility</td>
+<td>Manual reading, no baseline memory</td>
+</tr>
+<tr>
+<td>Active monitor (arp-monitor)</td>
+<td>Confirms independently on a timer</td>
+<td>Needs a trusted startup baseline</td>
+</tr>
+<tr>
+<td>Static ARP entries</td>
+<td>Prevents the poisoning outright</td>
+<td>Does not scale, breaks DHCP</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="defensive-recommendations">Defensive Recommendations</h2>
+<p>If you were writing this up for the cafe owner, here is what you would recommend:</p>
+<ul>
+<li><strong>Dynamic ARP Inspection (DAI)</strong> on a managed switch validates ARP packets against a DHCP snooping table and drops forged replies.</li>
+<li><strong>Static ARP entries</strong> for the gateway and POS terminal stop those critical bindings from being poisoned.</li>
+<li><strong>802.1X port authentication</strong> forces a device to prove its identity before it can put frames on the wire.</li>
+<li><strong>Network segmentation</strong> separates POS, IoT, and guest devices onto isolated VLANs.</li>
+<li><strong>Continuous monitoring</strong> keeps an arpwatch or active sensor running permanently rather than only during an investigation.</li>
+</ul>
+<hr />
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>By completing this exercise, you have learned to:</p>
+<ul>
+<li>Get onto a broadcast domain through a network tap to do real Layer 2 work</li>
+<li>Read forged ARP replies straight off the wire with tcpdump</li>
+<li>Turn raw frames into a clean baseline-versus-now alert with arpwatch</li>
+<li>Correlate a spoofed reply back to the rogue device by MAC</li>
+<li>Retrieve a detection token from an independent active SOC sensor</li>
+</ul>
+<p>Flag tokens in service responses are prefixed with <code>OCR-SN:</code>. Use only the value after the prefix when assembling the flag.</p>
+<p><strong>Submit your flag:</strong> <code>OCR{_____}</code></p>
+<hr />
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><code>man arpwatch</code>: arpwatch options and the arp.dat format</li>
+<li><code>man tcpdump</code>: capture filters and the <code>-e</code> link-layer output</li>
+<li><code>man arp-scan</code>: active ARP discovery options</li>
+<li>RFC 826: the ARP specification, notable for its complete lack of authentication</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

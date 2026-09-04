@@ -1,0 +1,152 @@
+name: Windows Service Version Detection
+description: Your FinanceCorp assessment requires identifying service versions to assess for known vulnerabilities.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Use nmap version detection (-sV) to identify service versions
+  - Interpret version information from nmap output
+  - Understand importance of version detection in enumeration
+  - Capture the flag
+
+scenario: |
+  Your reconnaissance of FinanceCorp's Windows server has identified multiple open 
+  services. James Mitchell wants to know the specific versions of each service, as 
+  outdated or vulnerable versions could pose significant security risks.
+  
+  Service version detection is crucial for identifying known vulnerabilities. Different 
+  versions of the same service may have different security postures, and version 
+  information helps prioritize which services need immediate attention.
+  
+  Your objective: Use version detection techniques to identify the exact versions of 
+  all services running on FinanceCorp's Windows server. Document your findings, as 
+  this information will help identify potential vulnerabilities in subsequent phases.
+
+
+flag: "OCR{v3rs10n_d3t3ct10n}"
+
+hints:
+  - text: |
+      **Service version detection** identifies the exact software version running on each open port. While port scanning reveals which services are listening, version detection provides critical information about potential vulnerabilities.
+
+      **Why version detection matters:**
+      - **Known vulnerabilities**: Specific versions may have public exploits (CVEs)
+      - **Patch status**: Reveals if systems are up-to-date
+      - **Configuration analysis**: Different versions have different default settings
+      - **Exploit selection**: Helps choose the right tools for penetration testing
+
+      Version information is essential for vulnerability assessment and exploitation planning.
+    unlock_after_minutes: 0
+
+  - text: |
+      **nmap version detection** uses the `-sV` flag to probe open ports and identify service versions. It does this by sending specific probes and analyzing responses.
+
+      **How version detection works:**
+      1. nmap connects to each open port
+      2. Sends a series of probes specific to that port
+      3. Analyzes the service's response
+      4. Matches responses against signature database
+      5. Reports the service name and version
+
+      This is more intrusive than basic port scanning but provides valuable reconnaissance data.
+    unlock_after_minutes: 5
+
+  - text: |
+      Windows services reveal different levels of version information:
+
+      **Common Windows service versions:**
+      - **SMB**: Samba version or Windows SMB version
+      - **RDP**: Microsoft Terminal Services version
+      - **HTTP/IIS**: Microsoft IIS web server version
+      - **MS-SQL**: Microsoft SQL Server version
+      - **WinRM**: Windows Remote Management version
+
+      Version strings often include:
+      - Software name (e.g., "Microsoft IIS httpd")
+      - Version number (e.g., "10.0")
+      - Build information (e.g., "Windows Server 2016")
+    unlock_after_minutes: 10
+
+  - text: |
+      **nmap version detection syntax:**
+
+      ```bash
+      nmap -sV <target>
+      ```
+
+      **Version detection intensity levels:**
+      - `--version-intensity 0`: Light probing (fast, less accurate)
+      - `--version-intensity 5`: Default intensity
+      - `--version-intensity 9`: Comprehensive probing (slow, very accurate)
+
+      **Useful combinations:**
+      - `-sV -p-`: Version detect all 65535 ports
+      - `-sV -p 1-1000`: Version detect ports 1-1000
+      - `-sV --version-all`: Try all probes (very thorough)
+
+      Example: `nmap -sV -p 445,3389 <target>`
+    unlock_after_minutes: 15
+
+  - text: |
+      To perform version detection on FinanceCorp's Windows server:
+
+      ```bash
+      nmap -sV <target>
+      ```
+
+      This command:
+      - Scans the most common 1000 ports (default)
+      - Performs version detection on open ports
+      - Returns service names and versions
+      - Uses default intensity (balanced speed/accuracy)
+
+      For faster targeted scanning:
+
+      ```bash
+      nmap -sV -p 445,3389,80,135 <target>
+      ```
+
+      This focuses version detection on key Windows services.
+    unlock_after_minutes: 20
+
+  - text: |
+      nmap version detection output includes service versions:
+
+      ```
+      PORT     STATE SERVICE       VERSION
+      80/tcp   open  http          Microsoft IIS httpd 10.0
+      445/tcp  open  microsoft-ds  Microsoft Windows Server 2016
+      3389/tcp open  ms-wbt-server Microsoft Terminal Services
+      ```
+
+      **Interpreting version information:**
+      - **Service**: The actual service running (not just port assumption)
+      - **VERSION**: Specific software version and build
+      - **OS hints**: Version strings often reveal OS version
+
+      **What to document:**
+      - Each service name and version number
+      - Any outdated or EOL (end-of-life) versions
+      - Version numbers that may have known CVEs
+
+      The flag relates to the detected service versions. Look for version numbers in the nmap output.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH01_Enumeration/03_Service_Version_Detection/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Detect service versions with nmap -sV"
+      command: "nmap -Pn -sV -p 445,80 {target.target} | grep 'open'"
+      expect: "open"
+
+    - name: "Confirm Samba version in service detection"
+      command: "nmap -Pn -sV -p 445 {target.target}"
+      expect: "Samba"
+
+    - name: "Retrieve flag from SMB public share"
+      command: "smbclient //{target.target}/public -N -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

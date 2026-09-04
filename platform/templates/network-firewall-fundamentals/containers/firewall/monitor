@@ -1,0 +1,136 @@
+#!/bin/bash
+# ============================================================================
+# Lab Firewall Traffic Monitor
+# Simulates a live traffic view by probing the web server on common ports
+# and showing whether each connection would be ALLOWED or DROPPED based on
+# the current iptables FORWARD chain rules.
+#
+# Usage: sudo monitor            (continuous, Ctrl+C to stop)
+#        sudo monitor --count N  (show N events then exit)
+# ============================================================================
+
+COUNT=0
+if [[ "$1" == "--count" && -n "$2" ]]; then
+    COUNT="$2"
+fi
+
+# Detect IPs from lab subnet
+SUBNET_PREFIX=$(ip -4 addr show | grep -oP '10\.\d+\.\d+' | head -1)
+WEB_IP="${SUBNET_PREFIX}.47"
+DEV_IP="${SUBNET_PREFIX}.23"
+FW_IP="${SUBNET_PREFIX}.10"
+
+# Box-drawn header
+echo ""
+echo " ┌───────────────────────────────────────────────┐"
+echo " │     Lab Firewall - Traffic Monitor        │"
+echo " ├───────────────────────────────────────────────┤"
+printf " │  Dev Server:         %-24s│\n" "$DEV_IP"
+printf " │  Web Server:         %-24s│\n" "$WEB_IP"
+printf " │  Firewall:           %-24s│\n" "$FW_IP"
+echo " ├───────────────────────────────────────────────┤"
+echo " │  Watching FORWARD chain...   Ctrl+C to stop   │"
+echo " └───────────────────────────────────────────────┘"
+echo ""
+printf " \033[37;2m%-9s %-8s %-44s %-6s %s\033[0m\n" \
+    "TIME" "VERDICT" "SOURCE" "PROTO" "INFO"
+printf " \033[37;2m%-9s %-8s %-44s %-6s %s\033[0m\n" \
+    "─────────" "────────" "────────────────────────────────────────────" "──────" "──────────────────────"
+
+# Function to check if a packet to a given port would be accepted or dropped
+check_verdict() {
+    local DPT="$1"
+
+    # Get user rules (skip LOG rules and chain/header lines)
+    local USER_RULES
+    USER_RULES=$(iptables -L FORWARD -n 2>/dev/null | grep -v "^Chain\|^target\|LOG")
+    local USER_RULE_COUNT
+    USER_RULE_COUNT=$(echo "$USER_RULES" | grep -c -v "^$" 2>/dev/null)
+
+    # If no user rules, default policy is ACCEPT
+    if [[ "$USER_RULE_COUNT" -eq 0 || -z "$USER_RULES" ]]; then
+        echo "ALLOW"
+        return
+    fi
+
+    # Walk rules in order (first match wins)
+    while IFS= read -r rule; do
+        [[ -z "$rule" ]] && continue
+
+        local ACTION
+        ACTION=$(echo "$rule" | awk '{print $1}')
+
+        if [[ "$ACTION" != "ACCEPT" && "$ACTION" != "DROP" && "$ACTION" != "REJECT" ]]; then
+            continue
+        fi
+
+        # Check if rule has a port match
+        local RULE_DPT
+        RULE_DPT=$(echo "$rule" | grep -oP 'dpt:\K\d+')
+
+        if [[ -z "$RULE_DPT" ]]; then
+            # No port specified = matches everything
+            if [[ "$ACTION" == "ACCEPT" ]]; then
+                echo "ALLOW"
+            else
+                echo "DROP"
+            fi
+            return
+        elif [[ "$RULE_DPT" == "$DPT" ]]; then
+            if [[ "$ACTION" == "ACCEPT" ]]; then
+                echo "ALLOW"
+            else
+                echo "DROP"
+            fi
+            return
+        fi
+    done <<< "$USER_RULES"
+
+    # No rule matched, use chain default policy (ACCEPT)
+    echo "ALLOW"
+}
+
+# Traffic pattern: ports the Contractor dev server is "sending" to
+# Mix of legitimate (80, 443) and suspicious (22, 3306, 4444, 8080)
+PORTS=(80 443 22 80 3306 4444 80 8080)
+DESCS=("HTTP request" "HTTPS request" "SSH connection attempt" "HTTP request" "MySQL database probe" "Reverse shell callback" "HTTP request" "Suspicious C2 traffic")
+
+LINES=0
+IDX=0
+
+while true; do
+    PORT=${PORTS[$IDX]}
+    DESC=${DESCS[$IDX]}
+
+    # Generate a random source port
+    SPT=$((RANDOM % 16384 + 49152))
+
+    # Timestamp
+    TSTAMP=$(date +%H:%M:%S)
+
+    # Check verdict against current iptables rules
+    VERDICT=$(check_verdict "$PORT")
+
+    # Build the flow string and pad to fixed width
+    FLOW="${DEV_IP}:${SPT} -> ${WEB_IP}:${PORT}"
+
+    # Color output
+    if [[ "$VERDICT" == "ALLOW" ]]; then
+        printf " %s  \033[1;32m%-8s\033[0m %-44s %-6s %s\n" \
+            "$TSTAMP" "ALLOW" "$FLOW" "TCP" "$DESC"
+    else
+        printf " %s  \033[1;31m%-8s\033[0m %-44s %-6s %s\n" \
+            "$TSTAMP" "DROP" "$FLOW" "TCP" "$DESC"
+    fi
+
+    LINES=$((LINES + 1))
+    if [[ "$COUNT" -gt 0 && "$LINES" -ge "$COUNT" ]]; then
+        exit 0
+    fi
+
+    # Advance to next traffic type
+    IDX=$(( (IDX + 1) % ${#PORTS[@]} ))
+
+    # Pace the output (2-4 seconds between events)
+    sleep $(( (RANDOM % 3) + 2 ))
+done

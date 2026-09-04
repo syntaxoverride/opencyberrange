@@ -1,0 +1,88 @@
+version: '3.8'
+
+# ============================================================
+# OpenCyberRange — Production Docker Compose
+# ============================================================
+# Usage:
+#   cp .env.example .env   # fill in all values
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml exec backend python /app/app/scripts/init_platform.py
+#
+# Differences from development docker-compose.yml:
+#   - Backend code is baked into the image (no bind mount)
+#   - Frontend is built at image build time
+#   - No default credentials — .env is required
+# ============================================================
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ocr-db
+    entrypoint: ["/usr/local/bin/ensure-db-password.sh"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/ensure-db-password.sh:/usr/local/bin/ensure-db-password.sh:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ocr-backend
+    ports:
+      - "127.0.0.1:8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      WG_SERVER_ENDPOINT: ${WG_SERVER_ENDPOINT}
+      WG_SERVER_PUBLIC_KEY: ${WG_SERVER_PUBLIC_KEY}
+      WG_API_URL: ${WG_API_URL}
+      WG_API_KEY: ${WG_API_KEY}
+      WG_ENCRYPTION_KEY: ${WG_ENCRYPTION_KEY}
+      WG_NETWORK_BASE: ${WG_NETWORK_BASE:-10.100}
+      WG_CLIENT_BASE: ${WG_CLIENT_BASE:-10.0.0}
+      LABS_HOST_PATH: ${LABS_HOST_PATH}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${LABS_HOST_PATH}:/labs
+      # Exercise Studio template catalog lives outside the backend build context,
+      # so it is mounted in read-only. The publish-gate linters are baked into
+      # the backend image (app/services/workbook_linters), not mounted, so no
+      # external/dev tooling directory is present in production.
+      - ./templates:/app/templates:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ocr-frontend:latest
+    container_name: ocr-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

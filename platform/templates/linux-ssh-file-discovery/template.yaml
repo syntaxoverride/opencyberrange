@@ -1,0 +1,189 @@
+version: "1"
+template_id: "linux-ssh-file-discovery"
+name: "SSH File Discovery"
+class: "ephemeral"
+archetype: "linux"
+source_lab_slug: "linux-2-3-ssh-file-discovery"
+description: >
+  Single-host Linux post-exploitation lab. After SSH authentication, the student
+  enumerates the file system and recovers a flag hidden in a web backup file.
+  De-identified from the linux-2-3-ssh-file-discovery seed lab: company name,
+  persona, hostname, scenario narrative and credentials are cosmetic; the exploit
+  path (SSH login, /var/www file discovery) and tester are structural.
+
+tags:
+  - ssh
+  - enumeration
+  - file-discovery
+  - post-exploitation
+
+# ----------------------------------------------------------------------------
+# STRUCTURAL ZONE (locked on cosmetic instantiate)
+# The exploit path, topology, flag location, env contract and tester spec.
+# Cosmetic instantiation never touches anything in this block.
+# ----------------------------------------------------------------------------
+structural:
+  difficulty: "beginner"
+  category: "post-exploitation"
+  duration_minutes: 120
+
+  # Track placement so the rendered slug parses in discover_labs:
+  #   {track}-{level}-{lab_num}-{base_slug} => linux-2-3-ssh-file-discovery
+  track: "linux"
+  level: 2
+  lab_num: 3
+  base_slug: "ssh-file-discovery"
+
+  topology:
+    nodes:
+      - id: "target"
+        label: "target"
+        type: "server"
+        ip_offset: "10"
+        ports: [22]
+        services: ["OpenSSH"]
+    edges: []
+
+  # Flag location is structural (the tester reads this exact path). The value is
+  # cosmetic, injected via the FLAG env var with a baked fallback.
+  flag_location: "/var/www/html/backups/deployment_notes.txt"
+  flag_fallback: "OCR{f1l3_d1sc0v3ry}"
+
+  # Credential roles are locked; usernames/passwords are cosmetic overrides.
+  credential_roles:
+    - role: "ssh-user"
+      user_fallback: "webadmin"
+      pass_fallback: "WebServer2024#"
+      description: "SSH login"
+
+  # Tester spec uses {target.NODE}, {cred.ROLE.user}, {cred.ROLE.pass} grammar.
+  test:
+    steps:
+      - name: "Verify SSH port is open"
+        command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+        expect: "port_open"
+      - name: "SSH banner check"
+        command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+        expect: "SSH"
+      - name: "SSH login and retrieve flag from web backups"
+        command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'cat /var/www/html/backups/deployment_notes.txt 2>/dev/null || grep -r OCR /var/www/ 2>/dev/null' 2>/dev/null"
+        expect: "{flag}"
+
+# ----------------------------------------------------------------------------
+# COSMETIC SCHEMA (skinnable, typed fields with de-identified defaults)
+# An instructor may override any of these at instantiate time. Validation rules
+# enforce platform standards (no "!" in passwords, OCR{...} flag format).
+# ----------------------------------------------------------------------------
+cosmetic_schema:
+  type: "object"
+  required: ["company", "persona", "hostname", "scenario"]
+  properties:
+    company:
+      type: "string"
+      label: "Company Name"
+      description: "Organization name used in the scenario narrative"
+      default: "Example Corp"
+      minLength: 3
+      maxLength: 100
+    persona:
+      type: "string"
+      label: "Persona / Sponsor"
+      description: "Hiring manager or engagement sponsor"
+      default: "Jordan Avery, Lead Security Engineer"
+      minLength: 5
+      maxLength: 150
+    hostname:
+      type: "string"
+      label: "Target Hostname"
+      description: "Container hostname (appears in the SSH prompt and logs)"
+      default: "corp-web"
+      pattern: "^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$"
+    scenario:
+      type: "textarea"
+      label: "Scenario Narrative"
+      description: "Student-facing scenario rendered in the workbook intro"
+      default: >
+        Your assessment of Example Corp continues with file system exploration.
+        After gaining SSH access, enumerate the host beyond the home directory
+        and recover the secret left behind in a web backup file.
+      minLength: 50
+      maxLength: 2000
+    objectives:
+      type: "array"
+      itemType: "string"
+      label: "Learning Objectives"
+      default:
+        - "Navigate the Linux file system after authentication"
+        - "Search for files using the find command"
+        - "Explore directories beyond the home directory"
+        - "Identify readable sensitive files"
+        - "Capture the flag"
+      maxItems: 10
+    credentials:
+      type: "array"
+      itemType: "object"
+      label: "Credentials"
+      description: "Username/password per role; the role id is locked"
+      items:
+        role:
+          type: "string"
+          enum: ["ssh-user"]
+        user:
+          type: "string"
+          default: "webadmin"
+          minLength: 3
+          maxLength: 50
+          pattern: "^[a-z_][a-z0-9_-]{2,31}$"
+        pass:
+          type: "string"
+          default: "WebServer2024#"
+          minLength: 8
+          maxLength: 100
+          pattern: "^[^!]+$"
+      default:
+        - role: "ssh-user"
+          user: "webadmin"
+          pass: "WebServer2024#"
+    flag:
+      type: "object"
+      label: "Flag"
+      properties:
+        mode:
+          type: "enum"
+          values: ["fixed", "auto"]
+          description: "fixed = same flag for all students; auto = unique per student"
+          default: "fixed"
+        value:
+          type: "string"
+          default: "OCR{f1l3_d1sc0v3ry}"
+          pattern: "^OCR\\{[a-z0-9_]+\\}$"
+    difficulty:
+      type: "enum"
+      label: "Difficulty"
+      values: ["beginner", "intermediate", "advanced"]
+      default: "beginner"
+
+# ----------------------------------------------------------------------------
+# ENVIRONMENT CONTRACT
+# Declares the env vars the rendered containers read at spawn. The orchestrator
+# (docker_manager) injects these per instance; the container entrypoint uses
+# them with a baked fallback so the image still runs standalone.
+# ----------------------------------------------------------------------------
+env_contract:
+  variables:
+    - name: "FLAG"
+      service: "target"
+      source: "cosmetic.flag.value"
+      required: false
+      description: "Flag written into the deployment notes file at spawn"
+    - name: "CRED_ssh-user_USER"
+      service: "target"
+      source: "cosmetic.credentials[role=ssh-user].user"
+      required: false
+      description: "SSH username"
+    - name: "CRED_ssh-user_PASS"
+      service: "target"
+      source: "cosmetic.credentials[role=ssh-user].pass"
+      required: false
+      description: "SSH password"
+  peer_offsets: {}

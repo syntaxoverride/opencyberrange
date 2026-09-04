@@ -1,0 +1,1153 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 10B: Find the Impersonator - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-10b-find-the-impersonator" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 10B: Find the Impersonator
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recall-from-lab-10a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recall From Lab 10A
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tools-at-your-disposal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools at Your Disposal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-0-connect-to-the-network-tap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0: Connect to the Network Tap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-read-the-dvr-side-capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Read the DVR-Side Capture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-attribute-the-real-sender" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Attribute the Real Sender
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-prove-it-by-forging-your-own-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Prove It by Forging Your Own Source
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deliverables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wrapping-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wrapping Up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-10b-find-the-impersonator">Exercise 10B: Find the Impersonator</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<p><strong>Client:</strong> Bean &amp; Byte Cafe
+<strong>Role:</strong> Security Auditor
+<strong>Phase:</strong> Reconnaissance <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> Service Enumeration <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> Exploitation <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Detection</strong></p>
+<p><strong>What you know so far:</strong></p>
+<ul>
+<li>The cafe has called you back: the security camera DVR is rebooting on its own</li>
+<li>Configuration changes are appearing that no staff member made</li>
+<li>The requests reaching the DVR claim to come from the gateway</li>
+<li>A different set of devices is involved this time, but the technique is the same one from Lab 10A</li>
+</ul>
+<p><strong>Your task:</strong> Find the rogue device, confirm it is impersonating the gateway against the DVR, pull the flag token out of the traffic, and report the real sender. No step-by-step hand-holding: you have the skills.</p>
+<hr />
+<h2 id="objective">Objective</h2>
+<p>A rogue device is sending forged commands to the Bean &amp; Byte Cafe security camera DVR while spoofing the gateway's source IP. Independently read the DVR-side capture, recognize the spoofed traffic, extract the flag token, attribute the real device with the ARP table, and prove the concept by forging your own source address.</p>
+<p><strong>Difficulty:</strong> Beginner
+<strong>Estimated time:</strong> 30 minutes</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>The Bean &amp; Byte Cafe back-office segment includes several devices:</p>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cafe Gateway</td>
+<td>Network router and internet access</td>
+</tr>
+<tr>
+<td>Security Camera DVR</td>
+<td>Records and stores surveillance footage</td>
+</tr>
+<tr>
+<td>Menu Display</td>
+<td>Digital signage system</td>
+</tr>
+<tr>
+<td>NAS Backup</td>
+<td>Network-attached storage for business data</td>
+</tr>
+<tr>
+<td>Rogue Device</td>
+<td>The impersonator, hiding behind a forged gateway IP</td>
+</tr>
+</tbody>
+</table>
+<p>The DVR is the target. Someone on the network is sending it <code>reboot</code> and config commands that appear to originate from the gateway. The gateway is a router and never sends those commands, so the source address is forged.</p>
+<hr />
+<h2 id="recall-from-lab-10a">Recall From Lab 10A</h2>
+<p>A source IP address is just a field in the packet header that the sender writes. It can be set to any value, so it cannot prove who sent the packet. On a switched or bridged network, a passive third host does not see the rogue device's unicast to the DVR. The destination does. The DVR runs its own packet capture of the HTTP traffic arriving on its web port and serves the running log over HTTP, so you read the forged traffic from the capture the destination keeps.</p>
+<hr />
+<h2 id="tools-at-your-disposal">Tools at Your Disposal</h2>
+<ul>
+<li><code>curl</code>: Read the served destination-side capture from the DVR</li>
+<li><code>grep</code>: Filter the capture for the spoofed source or the token</li>
+<li><code>arp</code>: ARP table inspection to attribute the real sender</li>
+<li><code>tcpdump</code>: Link-layer capture on the tap (<code>-enn</code>)</li>
+<li><code>hping3</code>: Forge your own source address to prove the technique</li>
+</ul>
+<p>All tools are pre-installed on the network tap.</p>
+<hr />
+<h2 id="flag">Flag</h2>
+<p>The flag token rides in the HTTP payload of the spoofed packets and is prefixed with <code>OCR-SN:</code>. Use only the value after the prefix.</p>
+<p><strong>Format:</strong> <code>OCR{token}</code></p>
+<p>You confirm the flag once you have:</p>
+<ol>
+<li>Read the spoofed packet in the DVR capture and pulled the token from the body</li>
+<li>Attributed the real sender by comparing the gateway IP against the ARP table</li>
+<li>Forged your own source address and watched it arrive in the same capture</li>
+</ol>
+<hr />
+<h2 id="step-0-connect-to-the-network-tap">Step 0: Connect to the Network Tap</h2>
+<p>Layer 2/3 work has to run on the cafe subnet, not over the VPN. SSH into the Blackridge network tap at offset <code>.250</code> so your tools sit on the same broadcast domain as the DVR.</p>
+<div class="admonition kali">
+<p class="admonition-title">SSH into the network tap</p>
+<p>Replace the placeholder with the tap address for your subnet (offset <code>.250</code>). The credentials are <code>pentest</code> / <code>Security1#</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ssh<span class="w"> </span>pentest@&lt;tap-ip&gt;
+</code></pre></div>
+<p>Your prompt becomes <code>pentest@nettap</code>. Every command below runs from here.</p>
+</div>
+<hr />
+<h2 id="step-1-read-the-dvr-side-capture">Step 1: Read the DVR-Side Capture</h2>
+<p>The DVR serves its running capture at <code>/tap</code> on port 80. Pull it and find the gateway-sourced requests. The rogue device fires every 15 to 25 seconds, so re-run the command for a minute or two if nothing is there yet.</p>
+<div class="admonition kali">
+<p class="admonition-title">Pull the served capture and look for gateway-sourced packets</p>
+<p>Replace <code>&lt;dvr-ip&gt;</code> with the DVR address (offset <code>.67</code>) and <code>&lt;gateway-ip&gt;</code> with the gateway address (offset <code>.1</code>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;dvr-ip&gt;/tap<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A9<span class="w"> </span><span class="s1">&#39;IP &lt;gateway-ip&gt;\.&#39;</span>
+</code></pre></div>
+<p>You should see HTTP POST requests whose source is the gateway IP, carrying a token in the body.</p>
+</div>
+<p>On the lab subnet the DVR is <code>10.100.101.67</code> and the gateway is <code>10.100.101.1</code>. The forged source shows up plainly:</p>
+<p><img alt="Served DVR capture showing a spoofed gateway source and the flag token" src="../img/01_spoofed_capture.png" /></p>
+<p>The line <code>10.100.101.1.58849 &gt; 10.100.101.67.80</code> claims the gateway sent a <code>POST /api/config</code> with an <code>action=reboot</code>. The gateway is a router and never does that, so the source is forged. The body carries:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>action=reboot&amp;token=OCR-SN:&lt;TOKEN&gt;&amp;source=gateway&amp;priority=high
+</code></pre></div>
+<p>The token after the <code>OCR-SN:</code> prefix is the value you wrap as your flag; read it from your own capture.</p>
+<div class="admonition note">
+<p class="admonition-title">Output Interpretation</p>
+<p>The DVR answers each forged data packet with a TCP reset (<code>Flags [R]</code>) because nothing is expecting that connection. The forgery still reached the destination and was captured, which is exactly why a destination-side capture catches what a passive side host cannot.</p>
+</div>
+<hr />
+<h2 id="step-2-attribute-the-real-sender">Step 2: Attribute the Real Sender</h2>
+<p>A forged IP does not change the Ethernet frame the packet rode in on. Use the ARP table to learn the real MAC behind the gateway IP, then compare against the rogue device.</p>
+<div class="admonition kali">
+<p class="admonition-title">Populate and read the ARP table</p>
+<p>Ping the gateway, the DVR, and the rogue device so their bindings land in the ARP table, then read it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">for</span><span class="w"> </span>h<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">67</span><span class="w"> </span><span class="m">150</span><span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>ping<span class="w"> </span>-c1<span class="w"> </span>-W1<span class="w"> </span><span class="m">10</span>.100.101.<span class="nv">$h</span><span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="p">;</span><span class="w"> </span><span class="k">done</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>arp<span class="w"> </span>-n
+</code></pre></div>
+</div>
+<p><img alt="ARP table on the tap mapping the gateway, DVR, and rogue device MACs" src="../img/02_arp_attribution.png" /></p>
+<p>The gateway IP <code>10.100.101.1</code> resolves to MAC <code>02:b5:de:fe:10:d7</code>, the real gateway. The rogue device sits at <code>10.100.101.150</code> with MAC <code>ee:16:9e:e7:4a:08</code>. The spoofer forged the source IP, but it could not make the gateway host actually originate the traffic. The forged gateway-sourced commands plus the IP-versus-MAC mismatch name the impersonator: the device at <code>.150</code>.</p>
+<hr />
+<h2 id="step-3-prove-it-by-forging-your-own-source">Step 3: Prove It by Forging Your Own Source</h2>
+<p>Send packets from the tap that claim to come from the gateway, then read them back out of the DVR capture.</p>
+<div class="admonition kali">
+<p class="admonition-title">Send spoofed SYN packets with hping3</p>
+<p><code>-a</code> sets the forged source, <code>-S</code> sends a SYN, <code>-p</code> sets the destination port, <code>-c</code> limits the count.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sudo<span class="w"> </span>hping3<span class="w"> </span>-a<span class="w"> </span>&lt;gateway-ip&gt;<span class="w"> </span>-S<span class="w"> </span>-p<span class="w"> </span><span class="m">80</span><span class="w"> </span>-c<span class="w"> </span><span class="m">3</span><span class="w"> </span>&lt;dvr-ip&gt;
+</code></pre></div>
+<p>The 100% packet loss is expected: the replies go to the gateway you impersonated, not to you.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Confirm your forged packets arrived</p>
+<p>Re-read the served capture and filter for the SYN packets.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;dvr-ip&gt;/tap<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;Flags \[S\]&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-3
+</code></pre></div>
+</div>
+<p><img alt="hping3 forging the gateway source and the forged SYNs arriving in the DVR capture" src="../img/03_hping3_forge.png" /></p>
+<p>On the lab subnet the forged SYNs read back as <code>IP 10.100.101.1.&lt;port&gt; &gt; 10.100.101.67.80: Flags [S]</code>. You sent them from <code>10.100.101.250</code>, but the capture credits them to <code>10.100.101.1</code>. The receiver cannot tell from the IP header that you were the real origin.</p>
+<hr />
+<h2 id="deliverables">Deliverables</h2>
+<p>Document the following from your own capture:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Your Finding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Attacker (rogue) IP</td>
+<td></td>
+</tr>
+<tr>
+<td>Attacker (rogue) MAC</td>
+<td></td>
+</tr>
+<tr>
+<td>Spoofed source IP</td>
+<td></td>
+</tr>
+<tr>
+<td>Target device and port</td>
+<td></td>
+</tr>
+<tr>
+<td>Attack method</td>
+<td></td>
+</tr>
+<tr>
+<td>Flag token</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<ol>
+<li>
+<p><strong>Impact:</strong> The forged requests carried <code>action=reboot</code>. If the DVR had trusted the source IP and acted on those requests, what would the operational impact have been for the cafe?</p>
+</li>
+<li>
+<p><strong>Comparison:</strong> In Lab 10A the spoofer hit the POS on port 8080; here it hit the DVR on port 80. What stays the same about the technique regardless of the target, and what changes?</p>
+</li>
+<li>
+<p><strong>Defense:</strong> Name one control that would have stopped the forged packet at the network edge and one that would have stopped it at the DVR application. Which is more robust, and why?</p>
+</li>
+</ol>
+<hr />
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>By completing this challenge, you have independently:</p>
+<ul>
+<li>Read a destination-side capture to find forged unicast traffic</li>
+<li>Recognized a spoofed source IP by the request the gateway would never send</li>
+<li>Attributed the real sender with the ARP table</li>
+<li>Forged your own source address and confirmed it on the wire</li>
+</ul>
+<p>Flag tokens in service responses are prefixed with <code>OCR-SN:</code>: use only the value after the prefix when assembling the flag.</p>
+<p><strong>Submit your flag:</strong> <code>OCR{________________}</code></p>
+<hr />
+<h2 id="additional-resources">Additional Resources</h2>
+<ul>
+<li><code>man hping3</code>: Packet crafting and source-address spoofing</li>
+<li><code>man tcpdump</code>: Reading capture output and link-layer headers</li>
+<li>RFC 2827 (BCP 38): Network ingress filtering to defeat source-address spoofing</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

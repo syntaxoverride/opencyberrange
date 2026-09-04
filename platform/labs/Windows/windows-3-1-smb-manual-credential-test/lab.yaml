@@ -1,0 +1,226 @@
+name: SMB Manual Credential Test
+description: Continuing your FinanceCorp assessment, you've found SMB services requiring authentication. Test credential attacks to gain access to protected shares.
+difficulty: beginner
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - manually test one username/password combination
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Continuing your penetration test for FinanceCorp, your SMB enumeration has revealed 
+  that some shares require authentication. James Mitchell wants to understand if weak 
+  credentials could provide unauthorized access to protected resources.
+  
+  Credential testing is a critical component of penetration testing, as weak passwords 
+  are one of the most common security vulnerabilities. FinanceCorp needs to assess 
+  whether their authentication mechanisms are properly secured.
+  
+  Your objective: Test credential authentication against FinanceCorp's SMB service. 
+  Start with manual testing of common username/password combinations to identify if 
+  weak credentials are in use.
+
+flag: "OCR{smb_m4nu4l_4uth}"
+
+hints:
+  - text: |
+      **Credential testing** is the process of attempting to authenticate with username/password combinations to gain access to protected resources. This is one of the most fundamental attack techniques in penetration testing.
+
+      **Why credential testing matters:**
+      - **Weak passwords**: Most common security vulnerability
+      - **Default credentials**: Many systems use vendor defaults
+      - **Password reuse**: Users often reuse passwords across systems
+      - **Easy access**: Successful authentication provides legitimate access
+      - **No exploits needed**: Bypasses patches and security controls
+
+      Manual credential testing helps understand authentication mechanisms before automation.
+    unlock_after_minutes: 0
+
+  - text: |
+      **SMB authentication** uses Windows credentials to control access to shares and resources:
+
+      **Authentication methods:**
+      - **LM (Lan Manager)**: Legacy, extremely weak (deprecated)
+      - **NTLMv1**: Older protocol, still insecure
+      - **NTLMv2**: Current standard for non-domain authentication
+      - **Kerberos**: Domain authentication (most secure)
+
+      **How SMB authentication works:**
+      1. Client requests access to share
+      2. Server requests credentials
+      3. Client provides username/password
+      4. Server validates against local SAM or domain controller
+      5. Access granted or denied based on permissions
+
+      **Common weak credentials:**
+      - Username = Password (e.g., admin/admin)
+      - Default credentials (administrator/password)
+      - Simple passwords (password, 123456, company name)
+      - Variations of username (john/john123)
+
+      Testing common weak credentials is standard practice in security assessments.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Manual credential testing workflow** helps understand authentication before automation:
+
+      **Step-by-step approach:**
+      1. **Identify target**: Service requiring authentication
+      2. **Select username**: From enumeration or guessing
+      3. **Choose password**: Common weak passwords
+      4. **Test authentication**: Attempt to connect
+      5. **Analyze response**: Success or failure
+      6. **Document results**: Note valid credentials
+
+      **Common test credentials for Windows:**
+      - `administrator:password`
+      - `admin:admin`
+      - `administrator:admin`
+      - `guest:guest`
+      - Company name or variations
+      - Seasonal passwords (Spring2024!, Winter2024!)
+
+      **What to observe:**
+      - Authentication success/failure messages
+      - Account lockout behavior
+      - Password policy enforcement
+      - Response time differences
+
+      Manual testing builds understanding before automated brute force attacks.
+    unlock_after_minutes: 10
+
+  - text: |
+      **smbclient authentication syntax:**
+
+      ```bash
+      smbclient //target/share -U username
+      ```
+
+      When prompted, enter the password. Alternatively, provide password directly:
+
+      ```bash
+      smbclient //target/share -U username%password
+      ```
+
+      **Testing credentials:**
+      ```bash
+      # Test with username and password prompt
+      smbclient //<target>/share -U administrator
+
+      # Test with inline password (less secure, visible in history)
+      smbclient //<target>/share -U administrator%password
+
+      # Test against IPC$ share (always exists)
+      smbclient //<target>/IPC$ -U username%password
+      ```
+
+      **Reading the response:**
+      - **Success**: `smb: \>` prompt appears
+      - **Failure**: `NT_STATUS_LOGON_FAILURE` or similar error
+      - **Account locked**: `NT_STATUS_ACCOUNT_LOCKED_OUT`
+      - **Invalid user**: `NT_STATUS_NO_SUCH_USER`
+
+      The IPC$ share is ideal for testing credentials since it exists on all Windows systems.
+    unlock_after_minutes: 15
+
+  - text: |
+      To manually test credentials against FinanceCorp's SMB service:
+
+      ```bash
+      smbclient //<target>/IPC$ -U administrator%password
+      ```
+
+      This command:
+      - Targets the IPC$ share (always present)
+      - Uses username `administrator`
+      - Tests password `password`
+      - Returns success or failure
+
+      **Common passwords to test:**
+      ```bash
+      smbclient //<target>/IPC$ -U administrator%admin
+      smbclient //<target>/IPC$ -U administrator%password
+      smbclient //<target>/IPC$ -U administrator%Password123
+      smbclient //<target>/IPC$ -U admin%admin
+      smbclient //<target>/IPC$ -U guest%guest
+      ```
+
+      **Interactive approach (more secure):**
+      ```bash
+      smbclient //<target>/IPC$ -U administrator
+      Password: [type password, not visible in history]
+      ```
+
+      **Testing against actual shares:**
+      ```bash
+      smbclient //<target>/Public -U username%password
+      ```
+
+      If credentials are valid, you'll get the `smb: \>` prompt.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful manual credential test output:
+
+      ```bash
+      $ smbclient //<target_ip>/IPC$ -U administrator%password
+      Try "help" to get a list of possible commands.
+      smb: \>
+      ```
+
+      This indicates successful authentication. You can now execute commands:
+
+      ```bash
+      smb: \> ls
+      smb: \> exit
+      ```
+
+      **Failed authentication output:**
+      ```bash
+      $ smbclient //<target_ip>/IPC$ -U administrator%wrongpass
+      session setup failed: NT_STATUS_LOGON_FAILURE
+      ```
+
+      **Different error messages:**
+      - `NT_STATUS_LOGON_FAILURE`: Invalid credentials
+      - `NT_STATUS_ACCOUNT_LOCKED_OUT`: Account locked from too many attempts
+      - `NT_STATUS_ACCOUNT_DISABLED`: Account is disabled
+      - `NT_STATUS_PASSWORD_EXPIRED`: Password needs changing
+      - `NT_STATUS_NO_SUCH_USER`: Username doesn't exist
+
+      **What to document:**
+      - Valid username/password combinations
+      - Error messages for different accounts
+      - Account lockout behavior
+      - Password policy indicators
+
+      **Next steps after successful authentication:**
+      - List accessible shares: `smbclient -L //<target> -U user%pass`
+      - Access protected shares
+      - Document privilege level
+      - Test file access permissions
+
+      The flag may be accessible through successfully authenticated access. Try common weak credentials like admin/admin, administrator/password, or similar combinations.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH03_SMB_Credential_Attacks/01_Manual_Credential_Test/"
+
+credentials:
+  - username: "admin"
+    password: "password"
+    role: "smb-user"
+    description: "SMB authenticated user"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Authenticate to SMB with valid credentials"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'ls' 2>&1"
+      expect: "flag.txt"
+
+    - name: "Retrieve flag from SMB private share"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

@@ -1,0 +1,1464 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 14: Live IDS Detection - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-14-live-ids-detection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 14: Live IDS Detection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-intrusion-detection-systems-and-suricata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Intrusion Detection Systems and Suricata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-writing-suricata-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Writing Suricata Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer: Writing Suricata Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rule-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-content-modifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Content Modifiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#eve-json-log-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Eve JSON Log Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parsing-eve-json-with-jq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parsing Eve JSON with jq
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ssh-to-the-ids-sensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SSH to the IDS Sensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verify-suricata-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Verify Suricata Is Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-observe-live-attack-traffic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Observe Live Attack Traffic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-write-suricata-rules-for-sqli-and-cmdi-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Write Suricata Rules for SQLi and CMDi Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-reload-suricata-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Reload Suricata Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-verify-alerts-are-firing-in-eve-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Verify Alerts Are Firing in Eve JSON
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-extract-the-sqli-indicator-campaign-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Extract the SQLi Indicator (Campaign Tag)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-extract-the-cmdi-indicator-exfil-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Extract the CMDi Indicator (Exfil Tag)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-investigate-the-web-portal-access-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Investigate the Web Portal Access Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-12-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 12: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-14-live-ids-detection">Exercise 14: Live IDS Detection</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Week 13 introduced offline traffic analysis using PCAP (Packet Capture) files; you examined pre-recorded network data for signs of malicious activity. Week 14 shifts from post-incident analysis to real-time detection. The attack is happening <em>now</em>, and your job is to write rules that catch it as packets cross the wire.</p>
+<p>Your VPN must be connected and your terminal open. You should be comfortable with basic Linux command-line navigation and have a working understanding of HTTP request structure from previous labs.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Sentinel Defense Corp, a boutique cybersecurity consulting firm based in Arlington, Virginia, has detected anomalous network traffic on their DMZ (Demilitarized Zone) segment. The Network Operations Center flagged repeated connections from an unidentified source targeting multiple hosts in the 10.100.x.0/24 range. Initial triage suggests automated reconnaissance and exploitation attempts.</p>
+<p>You are a junior SOC (Security Operations Center) analyst pulling the night shift. Your supervisor, Marcus Chen (Senior Threat Hunter), left you a voicemail before signing off:</p>
+<blockquote>
+<p>"We've got active probing hitting the DMZ. The IDS sensor is online but we never deployed custom detection rules; it's running blind. I need you to analyze the traffic, write Suricata rules that catch the specific attack signatures, and pull the IOCs from the captured payloads. Also check the web portal; I think the attacker got some hits there. Extract everything you can. I'll review your findings in the morning."</p>
+</blockquote>
+<p>Your toolkit includes SSH access to the IDS sensor (running Suricata and tcpdump) and the corporate web portal (running nginx). The attack is ongoing; new malicious requests arrive every few seconds. The clock is ticking.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>The following list outlines what you need to accomplish in the lab environment. Each objective maps to one or more walkthrough steps below.</p>
+<ul>
+<li>Observe live attack traffic on the IDS sensor using packet capture tools</li>
+<li>Identify distinct attack signatures in the traffic (SQL injection, command injection)</li>
+<li>Write custom Suricata IDS rules to detect each attack vector</li>
+<li>Extract indicators of compromise (IOCs) from Suricata alert payloads</li>
+<li>Investigate the target web server's logs for additional forensic evidence</li>
+<li>Assemble the flag parts and submit the completed flag</li>
+</ul>
+<hr />
+<h2 id="background-intrusion-detection-systems-and-suricata">Background: Intrusion Detection Systems and Suricata</h2>
+<p>An IDS (Intrusion Detection System) is a network security tool that monitors traffic for suspicious patterns and generates alerts when it finds a match. An IDS differs from an IPS (Intrusion Prevention System) in one critical way: an IDS observes and alerts, while an IPS can actively block or drop malicious packets. Think of an IDS as a security camera and an IPS as a security guard; one watches, the other intervenes.</p>
+<p>Most IDS engines rely on <strong>signature-based detection</strong>, where the system compares each packet against a database of known attack patterns. Each pattern is expressed as a rule that describes what to look for; a specific string in the URL, a byte sequence in the payload, or a combination of header values. When a packet matches a rule, the engine writes an alert to its log file with details about the match.</p>
+<p><strong>Suricata</strong> is an open-source, high-performance IDS/IPS engine maintained by the Open Information Security Foundation (OISF). Suricata inspects network traffic in real time, applies rules against each packet or reassembled stream, and logs alerts in a structured JSON format called Eve (Extensible eVent Engine) JSON. Security analysts use Eve JSON logs to investigate alerts, correlate events, and extract IOCs.</p>
+<p>The following diagram illustrates how traffic flows through a Suricata IDS sensor:</p>
+<pre class="mermaid"><code>graph LR
+    A["Network Traffic&lt;br/&gt;(HTTP, DNS, etc.)"] --&gt; B["Suricata&lt;br/&gt;IDS Engine"]
+    B --&gt; C{"Rule&lt;br/&gt;Match?"}
+    C --&gt;|"Yes"| D["Alert Written&lt;br/&gt;to Eve JSON"]
+    C --&gt;|"No"| E["Traffic Passes&lt;br/&gt;Unlogged"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#e8a735,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#888,color:#fff</code></pre>
+<ul>
+<li><strong>Network Traffic</strong> arrives at the sensor's network interface</li>
+<li><strong>Suricata</strong> reassembles streams and inspects content against loaded rules</li>
+<li><strong>Rule Match</strong>: if a signature matches, an alert record is written to the Eve JSON log</li>
+<li><strong>No Match</strong>: traffic that does not trigger any rule passes without generating an alert</li>
+</ul>
+<p>The distinction between IDS and IPS matters for your work tonight. The Sentinel Defense Corp sensor is configured in IDS mode; it will detect and log, but it will not block. Your rules need to be precise enough to flag the real attacks without generating noise from normal traffic.</p>
+<h2 id="tool-primer-writing-suricata-rules">Tool Primer: Writing Suricata Rules</h2>
+<p>Suricata rules follow a structured syntax that tells the engine what traffic to inspect and what conditions trigger an alert. Understanding the rule format is essential before you write your own detection signatures.</p>
+<h3 id="rule-structure">Rule Structure</h3>
+<p>Every Suricata rule has two parts: a <strong>header</strong> and an <strong>options</strong> section. The header specifies the action, protocol, source, destination, and direction. The options section (in parentheses) contains the detection logic and metadata.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>alert http &lt;src_ip&gt; &lt;src_port&gt; -&gt; &lt;dst_ip&gt; &lt;dst_port&gt; (options;)
+</code></pre></div>
+<p>Here is a concrete example that detects the string "UNION SELECT" in an HTTP URI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>alert http any any -&gt; any any (msg:&quot;SQLi Detected&quot;; content:&quot;UNION SELECT&quot;; nocase; http_uri; sid:1000001; rev:1;)
+</code></pre></div>
+<p>Breaking down each component:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Action</strong></td>
+<td><code>alert</code></td>
+<td>Generate an alert when matched</td>
+</tr>
+<tr>
+<td><strong>Protocol</strong></td>
+<td><code>http</code></td>
+<td>Inspect HTTP traffic only</td>
+</tr>
+<tr>
+<td><strong>Source</strong></td>
+<td><code>any any</code></td>
+<td>Any source IP and port</td>
+</tr>
+<tr>
+<td><strong>Direction</strong></td>
+<td><code>-&gt;</code></td>
+<td>Traffic flowing to the destination</td>
+</tr>
+<tr>
+<td><strong>Destination</strong></td>
+<td><code>any any</code></td>
+<td>Any destination IP and port</td>
+</tr>
+<tr>
+<td><strong>msg</strong></td>
+<td><code>"SQLi Detected"</code></td>
+<td>Human-readable alert message</td>
+</tr>
+<tr>
+<td><strong>content</strong></td>
+<td><code>"UNION SELECT"</code></td>
+<td>Byte string to match</td>
+</tr>
+<tr>
+<td><strong>nocase</strong></td>
+<td>;</td>
+<td>Case-insensitive matching</td>
+</tr>
+<tr>
+<td><strong>http_uri</strong></td>
+<td>;</td>
+<td>Match only within the HTTP URI</td>
+</tr>
+<tr>
+<td><strong>sid</strong></td>
+<td><code>1000001</code></td>
+<td>Signature ID (unique per rule)</td>
+</tr>
+<tr>
+<td><strong>rev</strong></td>
+<td><code>1</code></td>
+<td>Rule revision number</td>
+</tr>
+</tbody>
+</table>
+<h3 id="key-content-modifiers">Key Content Modifiers</h3>
+<p>Suricata provides several modifiers that control <em>where</em> content matching occurs within a packet or stream:</p>
+<ul>
+<li><strong><code>http_uri</code></strong>: match within the request URI (the path and query string)</li>
+<li><strong><code>http_client_body</code></strong>: match within the POST body sent by the client</li>
+<li><strong><code>http_header</code></strong>: match within HTTP headers</li>
+<li><strong><code>nocase</code></strong>: ignore capitalization when matching the content string</li>
+</ul>
+<h3 id="eve-json-log-format">Eve JSON Log Format</h3>
+<p>When a rule fires, Suricata writes a JSON record to <code>/var/log/suricata/eve.json</code>. Each alert record contains the signature name, signature ID, source and destination IPs, and protocol-specific fields like the HTTP URL and payload.</p>
+<p>A typical alert entry looks like the following (simplified for readability):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-11-15T03:22:41.123456+0000&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;event_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alert&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;src_ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.100.5.31&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">&quot;dest_ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10.100.5.47&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">&quot;alert&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">&quot;signature&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SQLi Detected&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">&quot;signature_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000001</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">&quot;http&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/search?q=1&#39;+UNION+SELECT+...&amp;campaign=REDACTED&quot;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="parsing-eve-json-with-jq">Parsing Eve JSON with jq</h3>
+<p>The <code>jq</code> command-line tool filters and formats JSON data. You will use it to extract alert records from the Eve log and pull specific fields from matching entries.</p>
+<p>Filter only alert events from the log:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>jq<span class="w"> </span><span class="s1">&#39;select(.alert != null)&#39;</span><span class="w"> </span>/var/log/suricata/eve.json
+</code></pre></div>
+<p>Extract only the alert signature and HTTP URL from alert events:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>jq<span class="w"> </span><span class="s1">&#39;select(.alert != null) | {sig: .alert.signature, url: .http.url}&#39;</span><span class="w"> </span>/var/log/suricata/eve.json
+</code></pre></div>
+<p>Filter alerts by a specific signature ID:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>jq<span class="w"> </span><span class="s1">&#39;select(.alert != null) | select(.alert.signature_id == 1000001)&#39;</span><span class="w"> </span>/var/log/suricata/eve.json
+</code></pre></div>
+<p>These <code>jq</code> patterns will be essential for extracting IOCs from your Suricata alerts during the walkthrough.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>The lab environment provisions two servers: an IDS sensor running Suricata and a web portal running nginx. Both machines must be running before you begin your investigation.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the Week 14 lab: <strong>Sentinel Defense Corp; Live IDS Detection</strong></li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the IP addresses for both the <strong>IDS Sensor</strong> and the <strong>Web Portal</strong> displayed in the Active Lab View</li>
+</ul>
+<p>The IDS sensor sits between the attacker and the web portal on the DMZ network. Automated attack traffic is already flowing; your containers begin receiving malicious requests as soon as the lab starts.</p>
+<h3 id="step-2-ssh-to-the-ids-sensor">Step 2: SSH to the IDS Sensor</h3>
+<p>You will perform most of your work on the IDS sensor, where Suricata is running. Connect using the analyst credentials provided for the engagement.</p>
+<div class="admonition kali">
+<p class="admonition-title">SSH into the IDS sensor</p>
+<p>Open an SSH session to the Suricata IDS sensor as the <code>analyst</code> user. Replace <code>&lt;ids_sensor_ip&gt;</code> with the IDS Sensor IP shown in the Active Lab View.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ssh<span class="w"> </span>analyst@&lt;ids_sensor_ip&gt;
+</code></pre></div>
+<p>When prompted for the password, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>S3nt1n3l_S0C#
+</code></pre></div>
+<p>After logging in, you should see a standard Linux shell prompt. Confirm you are on the correct machine by checking the hostname; it should indicate the IDS sensor role.</p>
+</div>
+<h3 id="step-3-verify-suricata-is-running">Step 3: Verify Suricata Is Running</h3>
+<p>Before writing detection rules, confirm that the Suricata process is active and listening on the network interface. A stopped engine cannot detect anything, and writing rules for a dead process wastes time.</p>
+<div class="admonition target">
+<p class="admonition-title">Confirm Suricata is running</p>
+<p>On the IDS sensor, ask for the Suricata process ID. A numeric result means the engine is active.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pidof<span class="w"> </span>suricata
+</code></pre></div>
+<p>A numeric process ID in the output confirms Suricata is running. If the command returns nothing, the engine is not active; contact your lab platform support before proceeding.</p>
+<p>Note that <code>pgrep -x suricata</code> does <strong>not</strong> reliably detect a running Suricata. When Suricata runs in daemon mode, its main thread renames itself (for example, to <code>Suricata-Main</code>), so the exact-match flag (<code>-x</code>) misses it. Use <code>pidof suricata</code> or <code>pgrep -f suricata</code> instead.</p>
+</div>
+<p>You can also check the Suricata service status for more detail:</p>
+<div class="admonition target">
+<p class="admonition-title">Inspect the Suricata process line</p>
+<p>Print the full process listing and filter for suricata to see which interface and config file it loaded.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>suricata
+</code></pre></div>
+<p>Look for a process line showing <code>suricata</code> with flags indicating which interface and configuration file it is using. The presence of the process means the engine is ready to accept rules and begin generating alerts.</p>
+</div>
+<h3 id="step-4-observe-live-attack-traffic">Step 4: Observe Live Attack Traffic</h3>
+<p>Before writing rules, you need to understand what the attack looks like on the wire. Watching raw traffic with <code>tcpdump</code> reveals the attack patterns, which you will then translate into Suricata signatures.</p>
+<p>Run the following command to capture HTTP traffic on port 80 and display the ASCII content of each packet:</p>
+<div class="admonition target">
+<p class="admonition-title">Watch live HTTP traffic with tcpdump</p>
+<p>On the IDS sensor, sniff port 80 on <code>eth0</code>. The <code>-A</code> flag prints payloads in ASCII so you can read the request lines.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>sudo<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>eth0<span class="w"> </span>-A<span class="w"> </span>port<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-100
+</code></pre></div>
+<p>Watch the output for 15-20 seconds. You should see HTTP requests arriving at regular intervals. Pay close attention to two distinct patterns:</p>
+</div>
+<p><strong>Pattern 1; SQL Injection (SQLi) via GET requests:</strong></p>
+<p>Look for GET requests where the URL query string contains SQL syntax. The attacker is injecting <code>UNION SELECT</code> statements into search parameters. A typical request URI looks something like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>GET /search?q=1&#39;+UNION+SELECT+username,password+FROM+users--&amp;campaign=SOMETHING
+</code></pre></div>
+<p>The <code>UNION SELECT</code> keyword combination is a hallmark of SQL injection; the attacker is attempting to append their own database query to a legitimate search.</p>
+<p><strong>Pattern 2; Command Injection (CMDi) via POST requests:</strong></p>
+<p>Look for POST requests where the body contains operating system commands. The attacker is injecting system commands like <code>cat /etc/passwd</code> into form fields. A typical POST body looks something like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cmd=;cat /etc/passwd&amp;exfil=SOMETHING
+</code></pre></div>
+<p>The <code>cat /etc</code> pattern reveals command injection; the attacker is attempting to execute arbitrary commands on the server and read sensitive system files.</p>
+<p>Note both patterns carefully. Each one will require its own Suricata rule.</p>
+<h3 id="step-5-write-suricata-rules-for-sqli-and-cmdi-detection">Step 5: Write Suricata Rules for SQLi and CMDi Detection</h3>
+<p>Now that you have identified the two attack vectors, write Suricata rules that detect each pattern. The rules file for custom signatures on the IDS sensor is located at <code>/etc/suricata/rules/local.rules</code>.</p>
+<p>Open the file in a text editor:</p>
+<div class="admonition target">
+<p class="admonition-title">Open the local rules file</p>
+<p>On the IDS sensor, open the custom rules file with nano under sudo so you can save it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>sudo<span class="w"> </span>nano<span class="w"> </span>/etc/suricata/rules/local.rules
+</code></pre></div>
+<p>Add the two rules shown below to the file.</p>
+</div>
+<p>Add the following two rules to the file:</p>
+<p><strong>Rule 1; SQL Injection Detection:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>alert http any any -&gt; any any (msg:&quot;SQLi Attack Detected&quot;; content:&quot;UNION SELECT&quot;; nocase; http_uri; sid:1000001; rev:1;)
+</code></pre></div>
+<p>The first rule matches any HTTP traffic containing the string <code>UNION SELECT</code> (case-insensitive) in the request URI. The <code>http_uri</code> modifier restricts the match to the URL path and query string, avoiding false positives from response bodies.</p>
+<p><strong>Rule 2; Command Injection Detection:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>alert http any any -&gt; any any (msg:&quot;Command Injection Detected&quot;; content:&quot;cat /etc&quot;; nocase; http_client_body; sid:1000002; rev:1;)
+</code></pre></div>
+<p>The second rule matches HTTP traffic containing <code>cat /etc</code> in the POST body. The <code>http_client_body</code> modifier limits the search to data sent by the client (the attacker), ensuring the rule fires on inbound exploitation attempts.</p>
+<p>Save the file and exit the editor (in nano: <code>Ctrl+O</code> to write, <code>Enter</code> to confirm, <code>Ctrl+X</code> to exit).</p>
+<h3 id="step-6-reload-suricata-rules">Step 6: Reload Suricata Rules</h3>
+<p>Suricata does not automatically pick up changes to rule files. You must signal the running process to reload its rule set. The USR2 signal tells Suricata to re-read all configured rule files without restarting the engine or dropping monitored traffic.</p>
+<div class="admonition target">
+<p class="admonition-title">Signal Suricata to reload rules</p>
+<p>On the IDS sensor, send the USR2 signal to the Suricata process so it re-reads the rule files without restarting.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>sudo<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-USR2<span class="w"> </span><span class="k">$(</span>pidof<span class="w"> </span>suricata<span class="k">)</span>
+</code></pre></div>
+<p>No output from the command means the signal was delivered successfully. Suricata will parse the updated rule files in the background. Wait approximately 5 seconds for the reload to complete before proceeding.</p>
+</div>
+<p>If you instead see <code>kill</code> print its usage help (<code>kill [options] &lt;pid&gt; [...]</code>), that means the command inside <code>$(...)</code> returned no PID and <code>kill</code> had nothing to signal. The empty result comes from the same daemon-mode issue from Step 3; <code>pgrep suricata</code> misses the renamed main thread. Use <code>pidof suricata</code> (shown above), or read the PID directly from Suricata's PID file:</p>
+<div class="admonition target">
+<p class="admonition-title">Reload using the PID file</p>
+<p>If <code>pidof</code> returned nothing, read the PID straight from Suricata's PID file and signal that instead.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sudo<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-USR2<span class="w"> </span><span class="k">$(</span>sudo<span class="w"> </span>cat<span class="w"> </span>/var/run/suricata/suricata.pid<span class="k">)</span>
+</code></pre></div>
+</div>
+<h3 id="step-7-verify-alerts-are-firing-in-eve-json">Step 7: Verify Alerts Are Firing in Eve JSON</h3>
+<p>With rules loaded and attack traffic still flowing, Suricata should begin generating alerts within 15-20 seconds (the interval between attack cycles). Check the Eve JSON log for alert records.</p>
+<div class="admonition target">
+<p class="admonition-title">Read alert records from the Eve log</p>
+<p>On the IDS sensor, filter the Eve JSON log for records that contain an alert object.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>jq<span class="w"> </span><span class="s1">&#39;select(.alert != null)&#39;</span><span class="w"> </span>/var/log/suricata/eve.json
+</code></pre></div>
+<p>You should see JSON objects containing your alert signatures. If the output is empty, wait another 15 seconds and try again; the next wave of attack traffic has not yet arrived. If no alerts appear after 30 seconds, revisit Step 5 and verify your rule syntax.</p>
+</div>
+<p>To see only the signature names from your alerts:</p>
+<div class="admonition target">
+<p class="admonition-title">List unique alert signatures</p>
+<p>Extract just the signature names and deduplicate them so you can confirm both rules fired.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | .alert.signature&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u
+</code></pre></div>
+<p>Successful output shows both <code>SQLi Attack Detected</code> and <code>Command Injection Detected</code> in the list. Seeing both signatures confirms your rules are working against the live traffic.</p>
+</div>
+<h3 id="step-8-extract-the-sqli-indicator-campaign-tag">Step 8: Extract the SQLi Indicator (Campaign Tag)</h3>
+<p>The attacker's SQL injection requests contain a <code>campaign</code> parameter in the query string. Suricata captured the full URL in the Eve JSON alert record, and you can extract the campaign value using <code>jq</code> and <code>grep</code>.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract the SQLi campaign tag</p>
+<p>On the IDS sensor, pull the captured URL from the SQLi alerts (signature ID 1000001) and grep out the <code>campaign</code> parameter value.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | select(.alert.signature_id == 1000001) | .http.url&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;campaign=\K[^&amp;]+&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>Record the value returned; the campaign tag is the <strong>first part</strong> of the flag. Write it down before moving on.</p>
+</div>
+<h3 id="step-9-extract-the-cmdi-indicator-exfil-tag">Step 9: Extract the CMDi Indicator (Exfil Tag)</h3>
+<p>The attacker's command injection POST requests contain an <code>exfil</code> parameter in the request body. Suricata captured the printable payload content, and you can extract the exfil value from the alert records.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract the CMDi exfil tag</p>
+<p>On the IDS sensor, pull the printable payload from the CMDi alerts (signature ID 1000002) and grep out the <code>exfil</code> parameter value.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;select(.alert != null) | select(.alert.signature_id == 1000002) | .payload_printable&#39;</span><span class="w"> </span>/var/log/suricata/eve.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;exfil=\K[^&amp; \r\n]+&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>Record the value returned; the exfil tag is the <strong>second part</strong> of the flag.</p>
+</div>
+<h3 id="step-10-investigate-the-web-portal-access-logs">Step 10: Investigate the Web Portal Access Logs</h3>
+<p>Marcus mentioned the attacker may have hit the web portal too. SSH to the web portal server to examine the nginx access logs for additional forensic evidence.</p>
+<p>Open a new terminal window (or exit the IDS sensor session) and connect to the web portal:</p>
+<div class="admonition kali">
+<p class="admonition-title">SSH into the web portal</p>
+<p>From a fresh terminal, open an SSH session to the nginx web portal as <code>webadmin</code>. Replace <code>&lt;web_portal_ip&gt;</code> with the Web Portal IP shown in the Active Lab View.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>ssh<span class="w"> </span>webadmin@&lt;web_portal_ip&gt;
+</code></pre></div>
+<p>When prompted for the password, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Dmz_Adm1n_2024#
+</code></pre></div>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Read the nginx access log</p>
+<p>On the web portal, print the access log and scan the User-Agent strings. Normal browsers report <code>Mozilla/5.0 ...</code>; the attacker's tool stands out.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>cat<span class="w"> </span>/var/log/nginx/access.log
+</code></pre></div>
+<p>Look for a User-Agent containing <code>SentinelBreaker/</code> followed by a value.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Extract the attacker User-Agent value</p>
+<p>Grep the access log for the custom User-Agent and print only the value that follows <code>SentinelBreaker/</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;SentinelBreaker/\K[^ &quot;]+&#39;</span><span class="w"> </span>/var/log/nginx/access.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<p>Record the value returned; the User-Agent tag is the <strong>third and final part</strong> of the flag.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Use the sections below to document each piece of evidence you collected during the investigation.</p>
+<p><strong>SQLi Campaign Tag (from Step 8):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>(paste your campaign value here)
+</code></pre></div>
+<p><strong>CMDi Exfil Tag (from Step 9):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>(paste your exfil value here)
+</code></pre></div>
+<p><strong>Attacker User-Agent Value (from Step 10):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>(paste your User-Agent value here)
+</code></pre></div>
+<p><strong>Assembled Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>OCR{___________}
+</code></pre></div>
+<p><strong>Suricata Rules I Wrote:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>(paste your two rules from local.rules here)
+</code></pre></div>
+<p><strong>Alert Evidence (sample jq output):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>(paste one or two sample alert JSON records here)
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-11-interpret-the-results">Step 11: Interpret the Results</h3>
+<p>Review the three IOCs you extracted and consider what they reveal about the attacker's operation.</p>
+<p>The <strong>campaign tag</strong> embedded in the SQL injection requests is a label the attacker uses to track which exploitation campaign generated the data. Attackers often tag their payloads with internal identifiers so they can correlate stolen data back to specific targets or timeframes. Finding the tag confirms the attack is organized, not random.</p>
+<p>The <strong>exfil tag</strong> in the command injection POST requests serves a similar purpose; it labels the data exfiltration channel. The presence of both a campaign tag and an exfil tag suggests the attacker is running multiple concurrent operations and uses tagging to keep them organized.</p>
+<p>The <strong>custom User-Agent</strong> on the web portal confirms that the same attacker (or the same tool) targeted both the IDS sensor and the web portal. Automated attack tools frequently use distinctive User-Agent strings, either by accident or by design. Correlating the User-Agent across both servers links the two attack streams to a single source.</p>
+<p>Assemble the three values into the flag format: <code>OCR{________}</code>, where each part is separated by an underscore.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{&lt;sqlitoken&gt;_&lt;cmditoken&gt;_&lt;useragenttoken&gt;}</code></p>
+<p>Where <code>sqlitoken</code> is from the Suricata SQLi alert campaign payload, <code>cmditoken</code> is from the Suricata CMDi alert exfil payload, and <code>useragenttoken</code> is from the Nginx access log User-Agent string.</p>
+</div>
+<h3 id="step-12-submit-the-flag">Step 12: Submit the Flag</h3>
+<p>Navigate back to the lab platform in your browser. Paste the assembled flag in <code>OCR{...}</code> format into the <strong>Submit Flag</strong> field and click <strong>Submit</strong>. The platform will confirm whether your flag is correct. If the submission is rejected, double-check each extracted value and ensure the parts are joined with underscores in the correct order.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>The following questions ask you to think beyond the mechanics of writing rules. Consider each one before reading the answer.</p>
+<p><strong>1. Why does the <code>http_uri</code> modifier matter in the SQLi rule? What would happen if you omitted it and matched <code>content:"UNION SELECT"</code> against all traffic?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Without <code>http_uri</code>, Suricata matches the string against the entire packet payload, including response bodies. A web page that discusses SQL injection (such as a security tutorial) could contain the words "UNION SELECT" in its HTML content, triggering a false positive. The modifier constrains matching to the request URI, where the string indicates an actual injection attempt rather than benign content.</p>
+</details>
+<p><strong>2. The attacker embedded campaign and exfil tags directly in the HTTP requests. Why would a real-world attacker include metadata in their payloads, and what risk does it create for them?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Attackers tag payloads to organize multi-target campaigns; the metadata helps them sort incoming stolen data by victim, timeframe, or method. However, embedding identifiers in cleartext HTTP creates a significant operational security risk. Defenders who capture the traffic (as you did) can use those tags to link different attack streams, attribute activity to a specific campaign, and potentially track the attacker across multiple targets or incidents.</p>
+</details>
+<p><strong>3. The IDS sensor was running in detection mode, not prevention mode. If the sensor had been configured as an IPS, how would the outcome differ?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>In IPS mode, Suricata can drop or reject packets that match a rule instead of only logging them. The SQL injection and command injection requests would have been blocked before reaching the target application, preventing exploitation entirely. However, IPS mode carries risk; a poorly written rule can block legitimate traffic. Organizations often start with IDS mode to validate rules before switching to inline prevention.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Signature-based IDS detection</strong> works by matching traffic against predefined rules; the rules are only as good as the analyst who writes them, and an IDS with no custom rules is effectively blind to targeted attacks.</li>
+<li><strong>Suricata rules</strong> follow a structured format with an action, protocol, addressing, and options section; content modifiers like <code>http_uri</code> and <code>http_client_body</code> control exactly where matching occurs to reduce false positives.</li>
+<li><strong>Eve JSON logs</strong> provide structured, machine-readable alert data that analysts can parse with tools like <code>jq</code> to extract specific fields, filter by signature ID, and correlate events across time.</li>
+<li><strong>IOC extraction</strong> from captured payloads turns raw alerts into actionable intelligence; campaign tags, exfiltration labels, and custom User-Agents all serve as forensic evidence linking attack activity.</li>
+<li><strong>Correlating evidence across multiple servers</strong> (the IDS sensor and the web portal) provides a fuller picture of an attacker's operation than any single data source alone. Week 15 builds on these skills in the capstone exercise, where you will combine enumeration, exploitation, and detection techniques across a multi-host environment.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

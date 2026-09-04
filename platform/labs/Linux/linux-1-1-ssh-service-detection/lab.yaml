@@ -1,0 +1,228 @@
+name: SSH Service Detection
+description: TechStart Inc needs their Linux infrastructure assessed. Begin by detecting SSH services to understand remote access configuration on their servers.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Detect SSH service using nmap
+  - Identify SSH version information
+  - Understand basic port scanning
+  - Capture the flag
+
+scenario: |
+  You've been hired by TechStart Inc, a rapidly growing SaaS startup that runs their
+  entire infrastructure on Linux. Sarah Chen, their CTO, is concerned about remote
+  access security as they prepare for SOC 2 compliance. SSH is the primary method
+  for remote administration of their production servers.
+
+  SSH (Secure Shell) is the standard protocol for secure remote access to Linux systems.
+  Misconfigured or outdated SSH services can provide attackers with unauthorized access
+  to critical infrastructure.
+
+  Your objective: Detect SSH services on TechStart's Linux servers. Identify the SSH
+  version and configuration to assess potential security risks.
+
+flag: "OCR{ssh_d3t3ct3d}"
+
+hints:
+  - text: |
+      **SSH (Secure Shell)** is the primary protocol for secure remote access to Linux/Unix systems. It provides encrypted communication and authentication for system administration.
+
+      **Why SSH matters in security assessments:**
+      - **Remote access**: Primary entry point for Linux servers
+      - **Administrative access**: Full system control if compromised
+      - **Common target**: Always running on production servers
+      - **Version vulnerabilities**: Older versions have known exploits
+      - **Configuration issues**: Weak ciphers, root login enabled
+
+      **SSH characteristics:**
+      - Default port: TCP 22
+      - Alternative ports: Sometimes configured on non-standard ports
+      - Encryption: Various cipher suites (some weak)
+      - Authentication: Password, public key, or both
+
+      Detecting SSH is the foundation of Linux penetration testing.
+    unlock_after_minutes: 0
+
+  - text: |
+      **nmap** is the industry-standard tool for network scanning and service detection:
+
+      **nmap capabilities:**
+      - Port scanning (TCP, UDP, SCTP)
+      - Service version detection
+      - OS fingerprinting
+      - NSE (Nmap Scripting Engine) for advanced enumeration
+      - Output formats (normal, XML, grepable)
+
+      **Basic nmap scan types:**
+      - `-sS`: SYN scan (stealth, requires root)
+      - `-sT`: TCP connect scan (doesn't require root)
+      - `-sV`: Service version detection
+      - `-O`: OS detection
+      - `-A`: Aggressive scan (OS, version, scripts, traceroute)
+
+      **SSH-specific detection:**
+      - Scan port 22 specifically
+      - Use version detection to identify SSH server
+      - Gather banner information
+      - Identify potential vulnerabilities
+
+      nmap's version detection is essential for identifying SSH services.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Port scanning workflow** for SSH detection:
+
+      **Step 1: Basic port check**
+      - Verify port 22 is open
+      - Fast initial reconnaissance
+      - Confirms SSH presence
+
+      **Step 2: Service identification**
+      - Version detection confirms it's SSH
+      - Identifies specific SSH implementation (OpenSSH, Dropbear, etc.)
+      - Shows version numbers
+
+      **Step 3: Banner grabbing**
+      - Retrieves server banner
+      - May reveal OS information
+      - Can show custom messages
+
+      **What to document:**
+      - Port status (open/closed/filtered)
+      - SSH server type and version
+      - Operating system hints
+      - Banner information
+      - Potential vulnerabilities (old versions)
+
+      Systematic scanning ensures accurate service identification.
+    unlock_after_minutes: 10
+
+  - text: |
+      **nmap SSH detection syntax:**
+
+      **Basic port scan:**
+      ```bash
+      nmap -p 22 <target>
+      ```
+
+      **Service version detection:**
+      ```bash
+      nmap -p 22 -sV <target>
+      ```
+
+      **Detailed SSH enumeration:**
+      ```bash
+      nmap -p 22 -sV -sC <target>
+      ```
+
+      **Common flags:**
+      - `-p 22`: Scan SSH port specifically
+      - `-sV`: Detect service version
+      - `-sC`: Run default NSE scripts
+      - `--script ssh*`: Run all SSH-related scripts
+      - `-O`: Attempt OS detection
+
+      **Example comprehensive scan:**
+      ```bash
+      nmap -p 22 -sV --script ssh-hostkey,ssh-auth-methods <target>
+      ```
+
+      **Alternative netcat banner grab:**
+      ```bash
+      nc <target> 22
+      ```
+
+      Service version detection (`-sV`) is critical for identifying SSH.
+    unlock_after_minutes: 15
+
+  - text: |
+      To detect SSH on TechStart's Linux server:
+
+      **Quick detection:**
+      ```bash
+      nmap -p 22 <target>
+      ```
+
+      **Recommended: Version detection**
+      ```bash
+      nmap -p 22 -sV <target>
+      ```
+
+      This command:
+      - Scans port 22 specifically
+      - Detects service version
+      - Retrieves SSH banner
+      - Identifies SSH implementation
+
+      **Expected output format:**
+      ```
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH X.X
+      ```
+
+      **What to look for:**
+      - Port state (open = SSH accessible)
+      - Service name (should say "ssh")
+      - Version information (OpenSSH, version number)
+      - Additional banner details
+
+      The `-sV` flag is essential for confirming SSH and retrieving version information.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH detection output:
+
+
+      ```bash
+      $ nmap -p 22 -sV <target_ip>
+
+      Starting Nmap 7.94
+      Nmap scan report for <target_ip>
+      Host is up (0.00050s latency).
+
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu-4ubuntu0.5 (Ubuntu Linux; protocol 2.0; flag: OCR{...})
+
+      Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+      ```
+
+      **Key information:**
+      - **PORT**: 22/tcp is open
+      - **SERVICE**: Identified as SSH
+      - **VERSION**: OpenSSH 8.2p1 (specific version)
+      - **OS INFO**: Ubuntu Linux
+      - **FLAG**: Embedded in banner (OCR{...})
+
+      **What to document:**
+      1. SSH service is running (port 22 open)
+      2. SSH server type (OpenSSH)
+      3. Version number (8.2p1)
+      4. Operating system (Ubuntu)
+      5. Potential vulnerabilities (search version in exploit-db)
+
+      **Analysis checklist:**
+      - Is the version current or outdated?
+      - Are there known CVEs for this version?
+      - What authentication methods are supported?
+      - Is the banner customized (security through obscurity)?
+
+      The flag appears in the service banner when using version detection. Look carefully at the VERSION field in nmap output.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/linpt/CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Grab SSH banner"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "Detect SSH service with nmap version scan"
+      command: "nmap -Pn -n -p 22 -sV {target.target} 2>&1"
+      expect: "ssh"
+    - name: "Retrieve flag from SSH service banner"
+      command: "nmap -Pn -n -p 22 -sV {target.target} 2>&1 | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{ssh_d3t3ct3d}"

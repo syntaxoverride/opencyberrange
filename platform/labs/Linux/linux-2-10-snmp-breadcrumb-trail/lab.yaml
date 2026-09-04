@@ -1,0 +1,94 @@
+name: "Ridgeline Power Systems - SNMP Breadcrumb Trail"
+description: "An ICS gateway at Ridgeline Power Systems exposes SNMP with multiple community strings. Chain together SNMP enumeration to discover hidden credentials and gain SSH access."
+
+difficulty: intermediate
+category: enumeration
+duration_minutes: 45
+randomize_ip_offsets: true
+visibility: course
+week: 3
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/19_SNMP_Breadcrumb_Trail/"
+flag: "OCR{snmp_ch41n_l0g1n}"
+
+objectives:
+  - Enumerate SNMP using the default "public" community string
+  - Discover a non-default community string hidden in system information
+  - Use the discovered community string to extract SSH credentials
+  - Log in via SSH with the discovered credentials
+  - Capture the flag
+
+scenario: |
+  Ridgeline Power Systems operates a hydroelectric monitoring facility in
+  rural Montana. Their operations team deployed an ICS gateway to aggregate
+  sensor data from turbine controllers across the plant. The gateway exposes
+  SNMP for network management and SSH for remote administration.
+
+  During a routine security assessment, you have been asked to evaluate the
+  gateway's exposure. Mike Harlan (Plant Network Engineer) insists: "We only
+  use the standard community string for monitoring - there's nothing an
+  outsider could leverage from SNMP alone."
+
+  Prove him wrong. Start with basic SNMP enumeration and follow the
+  breadcrumb trail. The gateway may reveal more than simple monitoring data.
+
+credentials: []
+
+hints:
+  - text: |
+      SNMP runs on UDP port 161. Start with the default community string:
+      snmpwalk -v2c -c public <target_ip> system
+      Read the sysDescr field carefully - it contains more than just a version string.
+    unlock_after_minutes: 15
+  - text: |
+      The sysDescr field mentions a second community string. Try using that
+      community string to perform another SNMP walk. Check the sysContact
+      field in the new walk output - it may contain service credentials.
+    unlock_after_minutes: 25
+  - text: |
+      Once you have the credentials from the second SNMP walk, use them to
+      log in via SSH to the same target host. The flag is stored in a file
+      in the user's home directory.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "target"
+      label: "ICS Gateway"
+      type: "server"
+      ip_offset: "33"
+      ports: ["161/udp", "22/tcp"]
+      services: ["SNMPv2c", "SSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SNMP:161/UDP, SSH:22/TCP"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SNMP public walk returns sysDescr with hidden community hint"
+      command: "snmpwalk -v2c -c public -t 5 {target.target} 1.3.6.1.2.1.1.1.0 2>/dev/null | head -1"
+      expect: "internal-community: internal"
+      timeout: 15
+
+    - name: "Extract token fragment from public sysDescr"
+      command: "snmpwalk -v2c -c public -t 5 {target.target} 1.3.6.1.2.1.1.1.0 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "snmp_ch41n"
+      timeout: 15
+
+    - name: "SNMP internal walk returns sysContact with SSH credentials"
+      command: "snmpwalk -v2c -c internal -t 5 {target.target} 1.3.6.1.2.1.1.4.0 2>/dev/null | head -1"
+      expect: "ops_user"
+      timeout: 15
+
+    - name: "Extract token fragment from internal sysContact"
+      command: "snmpwalk -v2c -c internal -t 5 {target.target} 1.3.6.1.2.1.1.4.0 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "l0g1n"
+      timeout: 15
+
+    - name: "SSH login and read flag"
+      command: "sshpass -p 'R1dg3_0ps_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ops_user@{target.target} 'cat ~/flag.txt' 2>/dev/null"
+      expect: "OCR{"
+      timeout: 20

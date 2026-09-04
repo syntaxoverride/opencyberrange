@@ -1,0 +1,136 @@
+name: "Vanguard Logistics - Service Triage"
+description: "Three hosts sit on the Vanguard Logistics DMZ. Two are decoys running generic services. Scan all three, correlate version banners and content, identify the real target, and extract a three-part composite flag from its services."
+
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 40
+randomize_ip_offsets: true
+visibility: course
+week: 1
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/17_Service_Triage/"
+flag: "OCR{tr14g3_r34l_t4rg3t}"
+
+objectives:
+  - Scan multiple hosts to enumerate running services and versions
+  - Differentiate decoy hosts from real targets using banner and content analysis
+  - Interact with HTTP, FTP, and custom services to extract tokens
+  - Assemble a composite flag from three separate tokens
+
+scenario: |
+  Vanguard Logistics, a mid-size freight and warehousing company based in
+  Charlotte, North Carolina, has contracted your security team for a targeted
+  assessment of their DMZ. The engagement scope covers three hosts on the same
+  subnet.
+
+  Your point of contact, Dana Reeves (IT Security Manager), explains: "We
+  recently decommissioned several servers but left a few online as honeypots.
+  Only one of these three hosts is our real production server. We need you to
+  figure out which one it is and document every service running on it. The
+  decoys should look convincing but won't have any of our company branding or
+  real data."
+
+  Scan all three hosts, identify the genuine Vanguard Logistics server by
+  correlating service banners and page content, then interact with its services
+  to extract three security tokens. Combine them into the flag format
+  OCR{token1_token2_token3}.
+
+credentials: []
+
+hints:
+  - text: |
+      Start by scanning all three hosts with nmap -sV to compare service
+      banners. Look for which host has web content that mentions the company
+      name "Vanguard Logistics" - the decoys serve generic pages.
+    unlock_after_minutes: 15
+  - text: |
+      The real target runs three distinct services: a web server, an FTP
+      server with anonymous access, and a custom service on a high port.
+      Use curl for HTTP, anonymous FTP to retrieve files, and netcat for
+      the custom service banner.
+    unlock_after_minutes: 25
+  - text: |
+      Token 1 is embedded in the HTML source of the web page - look for
+      an HTML comment or hidden element. Token 2 is in a file accessible
+      via anonymous FTP. Token 3 is in the banner of a service on port 9999.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "target-alpha"
+      label: "DMZ Host Alpha"
+      type: "server"
+      ip_offset: "14"
+      ports: [22, 80]
+      services: ["OpenSSH", "nginx"]
+      x: 1
+      y: 1
+    - id: "target-bravo"
+      label: "DMZ Host Bravo"
+      type: "server"
+      ip_offset: "29"
+      ports: [21, 80]
+      services: ["vsftpd", "Apache"]
+      x: 2
+      y: 1
+    - id: "target-charlie"
+      label: "DMZ Host Charlie"
+      type: "server"
+      ip_offset: "43"
+      ports: [21, 80, 9999]
+      services: ["nginx", "vsftpd", "Custom Service"]
+      x: 3
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target-alpha"
+      label: "All Ports"
+      access: "direct"
+    - from: "attacker"
+      to: "target-bravo"
+      label: "All Ports"
+      access: "direct"
+    - from: "attacker"
+      to: "target-charlie"
+      label: "All Ports"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Verify target-alpha responds"
+      command: "nmap -sn {target.target-alpha} 2>/dev/null | grep -c 'Host is up'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Verify target-bravo responds"
+      command: "nmap -sn {target.target-bravo} 2>/dev/null | grep -c 'Host is up'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Verify target-charlie responds"
+      command: "nmap -sn {target.target-charlie} 2>/dev/null | grep -c 'Host is up'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Target-charlie web page contains Vanguard"
+      command: "curl -s http://{target.target-charlie}/ | grep -q 'Vanguard' && echo yes"
+      expect: "yes"
+      timeout: 15
+
+    - name: "Extract token 1 from target-charlie web page"
+      command: "curl -s http://{target.target-charlie}/ | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "tr14g3"
+      timeout: 15
+
+    - name: "Extract token 2 from target-charlie FTP"
+      command: "curl -s ftp://{target.target-charlie}/token.txt --connect-timeout 10"
+      expect: "r34l"
+      timeout: 20
+
+    - name: "Extract token 3 from target-charlie port 9999"
+      command: "timeout 3 bash -c 'cat < /dev/tcp/{target.target-charlie}/9999' 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "t4rg3t"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{tr14g3_r34l_t4rg3t}'"
+      expect: "OCR{"

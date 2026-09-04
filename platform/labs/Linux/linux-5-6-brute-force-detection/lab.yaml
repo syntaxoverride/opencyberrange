@@ -1,0 +1,167 @@
+name: "Aegis Security Corp - Brute Force Detection"
+description: "A live brute-force attack is targeting Aegis Security Corp's web services. Deploy Suricata rules on the IDS sensor to detect repeated failed login attempts, identify the campaign marker in the successful login, and correlate with the target's access logs to expose the attacker's tooling."
+
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 75
+randomize_ip_offsets: true
+visibility: course
+week: 14
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/30_Brute_Force_Detection/"
+flag: "OCR{brut3_d3t3ct_bl0ck}"
+
+objectives:
+  - Observe live brute-force HTTP POST login attempts on the IDS sensor
+  - Identify the attack pattern (repeated failed logins with different credentials)
+  - Write custom Suricata rules to detect brute-force POST requests containing password fields
+  - Write a Suricata rule to detect the successful login attempt with a campaign marker
+  - Extract indicators of compromise from Suricata alert payloads
+  - Investigate the target web server's nginx access log for attacker tool signatures
+  - Assemble the flag from three extracted tokens
+
+scenario: |
+  Aegis Security Corp, a managed security services provider headquartered in Denver,
+  Colorado, has observed a sustained brute-force attack against their client-facing
+  authentication portal. The Security Operations Center detected a high volume of
+  HTTP POST requests to the login endpoint originating from a single source, with
+  hundreds of different username/password combinations attempted over a short period.
+
+  You're an analyst on the incident response team. Your team lead, Sarah Nguyen
+  (Principal Threat Analyst), sent you this message: "We have an active credential
+  stuffing campaign hitting our auth gateway. The IDS sensor is deployed inline but
+  has no custom rules - it's not catching anything. I need you to write Suricata
+  detection rules for the brute-force POST traffic, find the campaign identifier
+  the attacker is using (they embed tracking tags in their payloads), and check the
+  web portal logs - I suspect the same actor is hitting that too with a custom tool.
+  Pull every IOC you can find. Brief me by end of shift."
+
+  Your toolkit: SSH access to the IDS sensor (Suricata + tcpdump) and the corporate
+  web portal. The brute-force attack is ongoing - new login attempts arrive every
+  few seconds. Work fast.
+
+  **Credentials**
+
+  - IDS Sensor SSH: `analyst` / `A3g1s_S0C_2024#`
+  - Web Server SSH: `webadmin` / `A3g1s_Adm1n#`
+
+credentials:
+  - username: "analyst"
+    password: "A3g1s_S0C_2024#"
+    role: "analyst"
+    description: "IDS sensor SSH credentials"
+  - username: "webadmin"
+    password: "A3g1s_Adm1n#"
+    role: "webadmin"
+    description: "Web portal SSH credentials"
+
+hints:
+  - text: |
+      Start on the IDS sensor. Use tcpdump to observe traffic on port 80 - you
+      should see HTTP POST requests arriving every few seconds targeting the /login
+      endpoint. Look at the request bodies - the attacker is sending different
+      username/password combinations. Note that most responses contain "login_failed"
+      while some contain "login_success". Identify the patterns before writing rules.
+    unlock_after_minutes: 15
+  - text: |
+      The attacker sends HTTP POST login attempts to the IDS sensor every 3 seconds.
+      Write Suricata rules in /etc/suricata/rules/local.rules on the sensor:
+      - Rule 1: Detect POST requests with "password" in the body (brute-force attempts)
+      - Rule 2: Detect POST requests with "campaign=brut3" in the body (the successful login marker)
+      After writing rules, reload Suricata with:
+      sudo kill -USR2 $(pgrep -x Suricata-Main)
+    unlock_after_minutes: 25
+  - text: |
+      Example Suricata rules:
+      alert http any any -> any any (msg:"Brute Force Login Attempt"; flow:to_server,established; content:"POST"; http_method; content:"password"; http_client_body; sid:1000001; rev:1;)
+      alert http any any -> any any (msg:"Campaign Marker Detected"; flow:to_server,established; content:"POST"; http_method; content:"campaign=brut3"; http_client_body; sid:1000002; rev:1;)
+
+      After reloading, wait 15-20 seconds for the next attack cycle. Then check:
+      jq 'select(.alert)' /var/log/suricata/eve.json
+
+      Token 1 (brut3) is in the campaign parameter of the successful login payload.
+      Token 2 (d3t3ct) is in the exfil parameter of the failed login payloads.
+      For token 3, SSH to the target web portal and examine the nginx access log -
+      the attacker's User-Agent string contains the final IOC.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "attacker"
+      label: "Unknown Attacker"
+      type: "workstation"
+      ip_offset: "35"
+      ports: []
+      services: ["Brute Force Tool"]
+      x: 1
+      y: 1
+    - id: "target"
+      label: "Web Portal"
+      type: "server"
+      ip_offset: "19"
+      ports: [80, 22]
+      services: ["nginx", "OpenSSH"]
+      x: 3
+      y: 1
+    - id: "sensor"
+      label: "IDS Sensor"
+      type: "server"
+      ip_offset: "44"
+      ports: [22, 80]
+      services: ["Suricata IDS", "OpenSSH", "nginx (honeypot)"]
+      x: 2
+      y: 2
+  edges:
+    - from: "attacker"
+      to: "sensor"
+      label: "HTTP:80 (brute-force POST)"
+      access: "direct"
+    - from: "attacker"
+      to: "target"
+      label: "HTTP:80 (recon)"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Verify analyst SSH access to IDS sensor"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'echo connected' 2>/dev/null"
+      expect: "connected"
+      timeout: 15
+
+    - name: "Verify Suricata is running on IDS sensor"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'pgrep -x Suricata-Main > /dev/null && echo suricata_running' 2>/dev/null"
+      expect: "suricata_running"
+      timeout: 15
+
+    - name: "Observe brute-force attack traffic arriving on the IDS sensor"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'sudo timeout 25 tcpdump -i eth0 -A -c 5 port 80 2>/dev/null | grep -ci post | awk \"{print (\\$1>=1)?\\\"traffic_detected\\\":\\\"none\\\"}\"' 2>/dev/null"
+      expect: "traffic_detected"
+      timeout: 40
+
+    - name: "Write Suricata rules for brute-force POST detection and campaign marker"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'printf \"alert http any any -> any any (msg:\\\"Brute Force Login Attempt\\\"; flow:to_server,established; content:\\\"POST\\\"; http_method; content:\\\"password\\\"; http_client_body; sid:1000001; rev:1;)\\nalert http any any -> any any (msg:\\\"Campaign Marker Detected\\\"; flow:to_server,established; content:\\\"POST\\\"; http_method; content:\\\"campaign=brut3\\\"; http_client_body; sid:1000002; rev:1;)\\n\" > /etc/suricata/rules/local.rules && sudo kill -USR2 $(pgrep -x Suricata-Main) && echo rules_deployed' 2>/dev/null"
+      expect: "rules_deployed"
+      timeout: 20
+
+    - name: "Wait for attack cycle and verify Suricata alerts fire"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'sleep 20 && jq -r \"select(.alert) | .alert.signature\" /var/log/suricata/eve.json 2>/dev/null | sort -u' 2>/dev/null"
+      expect: "Detected"
+      timeout: 45
+
+    - name: "Extract token 1 from campaign marker alert payload (campaign parameter)"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'jq -r \"select(.alert) | select(.alert.signature_id == 1000002) | .payload_printable\" /var/log/suricata/eve.json 2>/dev/null | grep -o \"campaign=[^& ]*\" | head -1 | cut -d= -f2' 2>/dev/null"
+      expect: "brut3"
+      timeout: 15
+
+    - name: "Extract token 2 from brute-force alert payload (exfil parameter)"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.sensor} 'jq -r \"select(.alert) | select(.alert.signature_id == 1000001) | .payload_printable\" /var/log/suricata/eve.json 2>/dev/null | grep -o \"exfil=[^& ]*\" | head -1 | cut -d= -f2' 2>/dev/null"
+      expect: "d3t3ct"
+      timeout: 15
+
+    - name: "SSH to target and extract attacker User-Agent from nginx access log"
+      command: "sshpass -p '{cred.webadmin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.webadmin.user}@{target.target} 'grep -o \"AegisCracker/[a-zA-Z0-9_]*\" /var/log/nginx/access.log | head -1 | cut -d/ -f2' 2>/dev/null"
+      expect: "bl0ck"
+      timeout: 15
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{brut3_d3t3ct_bl0ck}'"
+      expect: "OCR{"

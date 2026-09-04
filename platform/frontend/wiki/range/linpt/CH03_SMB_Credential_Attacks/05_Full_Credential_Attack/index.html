@@ -1,0 +1,1475 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 3.5: Full Credential Attack - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-35-full-credential-attack" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 3.5: Full Credential Attack
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-complete-smb-attack-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Complete SMB Attack Chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-orchestration-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Orchestration Workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-service-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Service Discovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-share-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Share Discovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-anonymous-access-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: Anonymous Access Test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-null-session-enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: Null Session Enumeration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-username-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 5: Username Extraction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-6-credential-attack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 6: Credential Attack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-7-authenticated-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 7: Authenticated Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-35-full-credential-attack">Exercise 3.5: Full Credential Attack</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 3.5 is the capstone lab for Chapters 2 and 3. Everything you have learned; port scanning, share listing, null session enumeration, manual credential testing, scripted loops, and CrackMapExec; comes together in a single end-to-end attack chain. The full chain shows how a real penetration test unfolds: methodical, multi-phase, and building on each discovery.</p>
+<h2 id="scenario">Scenario</h2>
+<p>James Mitchell wants to see the full attack chain demonstrated end-to-end. Starting from nothing but a target IP address, you will move through initial service detection, share enumeration, credential discovery, and authenticated access. The goal is to prove that you can chain every technique from the previous labs into one continuous workflow.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Execute the complete SMB credential attack chain from service discovery through data retrieval</li>
+<li>Combine all techniques from Chapters 2 and 3 into a single workflow</li>
+<li>Discover multiple valid credential pairs</li>
+<li>Capture the flag</li>
+</ul>
+<hr />
+<h2 id="background-the-complete-smb-attack-chain">Background: The Complete SMB Attack Chain</h2>
+<p>A professional SMB assessment follows a seven-phase workflow. Each phase feeds into the next; service discovery tells you SMB is running; share enumeration reveals targets; null sessions provide usernames; credentials unlock the data.</p>
+<pre class="mermaid"><code>graph LR
+    A["Phase 1&lt;br/&gt;Service Discovery"] --&gt; B["Phase 2&lt;br/&gt;Share Enumeration"]
+    B --&gt; C["Phase 3&lt;br/&gt;Anonymous Access Testing"]
+    C --&gt; D["Phase 4&lt;br/&gt;Null Session Enumeration"]
+    D --&gt; E["Phase 5&lt;br/&gt;Username Extraction"]
+    E --&gt; F["Phase 6&lt;br/&gt;Credential Attack"]
+    F --&gt; G["Phase 7&lt;br/&gt;Authenticated Access"]
+
+    style A fill=#2a6496,color:#fff
+    style B fill=#2a6496,color:#fff
+    style C fill=#2a6496,color:#fff
+    style D fill=#2a6496,color:#fff
+    style E fill=#2a6496,color:#fff
+    style F fill=#d9534f,color:#fff
+    style G fill=#6aaa64,color:#fff</code></pre>
+<ol>
+<li><strong>Service Discovery</strong>: Use Nmap to confirm SMB is running on the target</li>
+<li><strong>Share Enumeration</strong>: Use smbclient to list available shares</li>
+<li><strong>Anonymous Access Testing</strong>: Attempt to connect without credentials</li>
+<li><strong>Null Session Enumeration</strong>: Extract information using rpcclient or enum4linux</li>
+<li><strong>Username Extraction</strong>: Parse enumeration output into a clean wordlist</li>
+<li><strong>Credential Attack</strong>: Use CrackMapExec to test username/password combinations</li>
+<li><strong>Authenticated Access</strong>: Connect with valid credentials and retrieve data</li>
+</ol>
+<p>The seven-phase workflow mirrors the methodology described in PTES, OWASP, and NIST penetration testing frameworks. Each phase builds on the output of the one before it.</p>
+<h2 id="tool-primer-orchestration-workflow">Tool Primer: Orchestration Workflow</h2>
+<p>There are no new tools in this exercise. You are orchestrating everything you have already learned into a single pipeline:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>nmap → smbclient -L → smbclient -N → rpcclient/enum4linux → grep/cut → crackmapexec → smbclient -U
+</code></pre></div>
+<p>The skill here is not any individual command; it is knowing which tool to use at each phase and how to pass results from one phase to the next.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="phase-1-service-discovery">Phase 1: Service Discovery</h3>
+<p>Start with a version-detection scan on port 445 to confirm SMB is running and identify the protocol version.</p>
+<div class="admonition kali">
+<p class="admonition-title">Confirm SMB with a version scan</p>
+<p>The <code>-sV</code> flag probes the service banner so you can identify the SMB protocol version. Replace <code>&lt;target_ip&gt;</code> with the IP shown in the Active Lab View.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nmap<span class="w"> </span>-sV<span class="w"> </span>-p<span class="w"> </span><span class="m">445</span><span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>You should see port 445 open with an SMB-related service. Note the version information; this target supports SMBv2/v3 only.</p>
+</div>
+<h3 id="phase-2-share-discovery">Phase 2: Share Discovery</h3>
+<p>List the available shares using a null session.</p>
+<div class="admonition kali">
+<p class="admonition-title">List shares with a null session</p>
+<p>The <code>-L</code> flag lists shares and <code>-N</code> skips the password prompt for the anonymous null session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>//&lt;target_ip&gt;<span class="w"> </span>-N
+</code></pre></div>
+<p>Review the output. You should see a share named <strong>flag</strong> in the listing. The <strong>flag</strong> share is your target. Note any other shares that appear as well.</p>
+</div>
+<h3 id="phase-3-anonymous-access-test">Phase 3: Anonymous Access Test</h3>
+<p>Try to connect to the flag share without credentials.</p>
+<div class="admonition kali">
+<p class="admonition-title">Test anonymous access to the flag share</p>
+<p>The <code>-N</code> flag attempts the connection with no password to see whether the share permits anonymous access.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/flag<span class="w"> </span>-N
+</code></pre></div>
+<p>You should receive an <code>NT_STATUS_ACCESS_DENIED</code> error. The share exists, but it requires authentication. Anonymous access is not permitted; you need valid credentials to proceed.</p>
+</div>
+<h3 id="phase-4-null-session-enumeration">Phase 4: Null Session Enumeration</h3>
+<p>Although the share is locked down, null session enumeration may still reveal useful information.</p>
+<div class="admonition kali">
+<p class="admonition-title">Run a full null session enumeration</p>
+<p>The <code>-a</code> flag runs every enum4linux check (users, groups, shares, and policy) against the target.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>enum4linux<span class="w"> </span>-a<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+</div>
+<p>Or perform the same enumeration manually with rpcclient.</p>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate users manually with rpcclient</p>
+<p>The null session queries the domain user list directly when you want a faster, targeted result than enum4linux.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;enumdomusers&#39;</span>
+</code></pre></div>
+<p>Look through the output carefully. You should find three usernames: <strong>admin</strong>, <strong>user1</strong>, and <strong>test</strong>. These are the accounts configured on the target.</p>
+</div>
+<h3 id="phase-5-username-extraction">Phase 5: Username Extraction</h3>
+<p>Extract the usernames into a clean wordlist file. The wordlist is the bridge between enumeration and attack.</p>
+<div class="admonition kali">
+<p class="admonition-title">Extract usernames into users.txt</p>
+<p>The pipeline runs the enumeration command, filters out everything but the usernames, writes them to a file, and prints the result.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;enumdomusers&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;user:\[\K[^\]]+&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>users.txt
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>cat<span class="w"> </span>users.txt
+</code></pre></div>
+<p>Verify that users.txt contains exactly three entries:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>admin
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>user1
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>test
+</code></pre></div>
+</div>
+<h3 id="phase-6-credential-attack">Phase 6: Credential Attack</h3>
+<p>Create a password wordlist containing common weak passwords.</p>
+<div class="admonition kali">
+<p class="admonition-title">Create the password wordlist</p>
+<p>The heredoc writes seven common weak passwords to <code>passwords.txt</code>, one per line.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>passwords.txt<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="s">password</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="s">admin</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="s">admin123</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="s">test123</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="s">qwerty</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="s">123456</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="s">letmein</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="s">EOF</span>
+</code></pre></div>
+</div>
+<p>Now run CrackMapExec against the target using both wordlists.</p>
+<div class="admonition kali">
+<p class="admonition-title">Brute force all users with continue-on-success</p>
+<p>The <code>--continue-on-success</code> flag keeps testing after the first valid pair so every weak account is discovered, not just the first.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>crackmapexec<span class="w"> </span>smb<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>users.txt<span class="w"> </span>-p<span class="w"> </span>passwords.txt<span class="w"> </span>--continue-on-success
+</code></pre></div>
+<p>Look for lines marked with <code>[+]</code> in the output. You should see three successful authentications:</p>
+</div>
+<ul>
+<li><strong>admin:admin</strong></li>
+<li><strong>user1:password</strong></li>
+<li><strong>test:test123</strong></li>
+</ul>
+<p>Three different users, three different weak passwords, all discovered in a single automated pass.</p>
+<h3 id="phase-7-authenticated-access">Phase 7: Authenticated Access</h3>
+<p>Connect to the flag share using any of the valid credential pairs.</p>
+<div class="admonition kali">
+<p class="admonition-title">Authenticate to the flag share</p>
+<p>The <code>-U admin%admin</code> syntax supplies a discovered username and password inline.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/flag<span class="w"> </span>-U<span class="w"> </span>admin%admin
+</code></pre></div>
+</div>
+<p>Once connected, list the contents, download the flag, and disconnect.</p>
+<div class="admonition kali">
+<p class="admonition-title">Download the flag from the SMB session</p>
+<p>Run these at the <code>smb: \&gt;</code> prompt. The <code>ls</code> lists the share, <code>get</code> copies <code>flag.txt</code> to your Kali directory, and <code>exit</code> closes the session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>smb:<span class="w"> </span><span class="se">\&gt;</span><span class="w"> </span>ls
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>smb:<span class="w"> </span><span class="se">\&gt;</span><span class="w"> </span>get<span class="w"> </span>flag.txt
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>smb:<span class="w"> </span><span class="se">\&gt;</span><span class="w"> </span><span class="nb">exit</span>
+</code></pre></div>
+</div>
+<p>Read the flag file.</p>
+<div class="admonition kali">
+<p class="admonition-title">Read the downloaded flag</p>
+<p>The downloaded <code>flag.txt</code> now sits in your Kali working directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cat<span class="w"> </span>flag.txt
+</code></pre></div>
+<p>The flag is in <code>OCR{&lt;flag_here&gt;}</code> format.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Phase 1; Nmap output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(paste your Nmap output here)
+</code></pre></div>
+<p><strong>Phase 2; Share listing:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>(paste your smbclient -L output here)
+</code></pre></div>
+<p><strong>Phase 3; Anonymous access test:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>(paste the access denied output here)
+</code></pre></div>
+<p><strong>Phase 4; Enumeration output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>(paste your enum4linux or rpcclient output here)
+</code></pre></div>
+<p><strong>Phase 5; Extracted usernames:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>(paste the contents of users.txt here)
+</code></pre></div>
+<p><strong>Phase 6; CrackMapExec output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>(paste your CrackMapExec output here)
+</code></pre></div>
+<p><strong>Valid credentials discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Phase 7; Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>(paste your flag here)
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Take a moment to think through these questions. They reinforce the methodology behind the attack chain.</p>
+<p><strong>1. Three users had three different passwords (admin/admin, user1/password, test/test123). None of them are the same. What does this tell you about the organization's password practices?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>There is no enforced password policy or standard. Each user chose their own weak password independently. No minimum complexity requirement exists. In a real environment, this suggests decentralized account management where individual users are left to pick their own credentials without any organizational controls.</p>
+</details>
+<p><strong>2. You discovered all three credential pairs. What would you do next in a real penetration test?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Test each pair against other services running on the network; RDP, WinRM, MSSQL, and any other authenticated service. Credential reuse is extremely common, and Chapter 8 covers this technique in depth. You would also enumerate what each account can access, since different users may have different share permissions and privilege levels. Finally, check for privilege escalation opportunities using the access you have gained.</p>
+</details>
+<p><strong>3. If you had skipped Phase 4 (enumeration) and only tested "admin," you would have found admin:admin. Why is it important to test all three users?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Different users may have access to different shares and different privilege levels. In a real engagement, a service account (like svc_backup) might have more access than a regular admin account. Full credential discovery provides the most thorough assessment. Stopping at the first valid pair leaves potential access paths undiscovered.</p>
+</details>
+<p><strong>4. Map each phase of this exercise to the corresponding chapter or lab where you first learned the technique.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Phase 1 (Service Discovery): Exercise 1.3; version detection. Phase 2 (Share Discovery): Exercise 2.2; share listing. Phase 3 (Anonymous Access): Exercise 2.3; anonymous access. Phase 4 (Null Session Enumeration): Exercises 2.7-2.8; user enumeration. Phase 5 (Username Extraction): Exercise 3.4; extraction techniques. Phase 6 (Credential Attack): Exercise 3.3; CrackMapExec. Phase 7 (Authenticated Access): Exercise 3.1; authenticated access. Every skill in this capstone builds on something you have already practiced.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>The complete SMB attack chain has seven phases, each building on the previous one</li>
+<li>Multiple valid credentials are common; always use <code>--continue-on-success</code> to find them all</li>
+<li>this exercise combined techniques from Exercises 1.3, 2.2, 2.3, 2.7, 3.3, and 3.4 into one workflow</li>
+<li>In real engagements, discovered credentials should be tested against every service on the network (Chapter 8 covers this)</li>
+<li>The methodology (discover, enumerate, attack, access) applies to every protocol, not just SMB</li>
+<li>You have mastered SMB from reconnaissance through exploitation. The next chapter applies similar techniques to a completely different protocol; Remote Desktop Protocol (RDP).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

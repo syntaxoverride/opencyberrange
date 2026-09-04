@@ -1,0 +1,162 @@
+name: "Sentinel Defense Corp - Live IDS Detection"
+description: "An active cyberattack is underway against Sentinel Defense Corp's DMZ. Deploy custom Suricata rules on the IDS sensor to detect the attack vectors, capture payloads, and extract indicators of compromise."
+
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 75
+randomize_ip_offsets: true
+visibility: course
+week: 14
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/14_Live_IDS_Detection/"
+flag: "OCR{d3t3ct_rul3_wr1t3r}"
+
+objectives:
+  - Observe live attack traffic on the IDS sensor using packet capture tools
+  - Identify distinct attack signatures in the traffic (SQL injection, command injection)
+  - Write custom Suricata IDS rules to detect each attack vector
+  - Extract indicators of compromise from Suricata alert payloads
+  - Investigate the target web server's logs for additional forensic evidence
+  - Capture the flag
+
+scenario: |
+  Sentinel Defense Corp, a boutique cybersecurity consulting firm based in Arlington,
+  Virginia, has detected anomalous network traffic on their DMZ segment. The Network
+  Operations Center flagged repeated connections from an unidentified source targeting
+  multiple hosts in the 10.100.x.0/24 range. Initial triage suggests automated
+  reconnaissance and exploitation attempts.
+
+  You're a junior SOC analyst pulling the night shift. Your supervisor, Marcus Chen
+  (Senior Threat Hunter), left you a voicemail before signing off: "We've got active
+  probing hitting the DMZ. The IDS sensor is online but we never deployed custom
+  detection rules - it's running blind. I need you to analyze the traffic, write
+  Suricata rules that catch the specific attack signatures, and pull the IOCs from
+  the captured payloads. Also check the web portal - I think the attacker got some
+  hits there. Extract everything you can. I'll review your findings in the morning."
+
+  Your toolkit: SSH access to the IDS sensor (Suricata + tcpdump) and the corporate
+  web portal. The attack is ongoing - new malicious requests arrive every few seconds.
+  The clock is ticking.
+
+  **Credentials**
+
+  - IDS Sensor SSH: `analyst` / `S3nt1n3l_S0C#`
+  - Web Server SSH: `webadmin` / `Dmz_Adm1n_2024#`
+
+credentials:
+  - username: "analyst"
+    password: "S3nt1n3l_S0C#"
+    role: "analyst"
+    description: "IDS sensor SSH credentials"
+  - username: "webadmin"
+    password: "Dmz_Adm1n_2024#"
+    role: "webadmin"
+    description: "Web portal SSH credentials"
+
+hints:
+  - text: |
+      Start on the IDS sensor. Use tcpdump to observe traffic on port 80 - you
+      should see HTTP requests arriving every few seconds. Look at the request
+      methods, URIs, and bodies. The attacker is using two different attack
+      techniques. Identify the patterns before writing rules.
+    unlock_after_minutes: 10
+  - text: |
+      The attacker sends two types of HTTP attacks to the IDS sensor: GET requests
+      with SQL injection in the URL query string (look for UNION SELECT), and POST
+      requests with command injection in the body (look for system commands like
+      cat /etc). Write a separate Suricata rule for each in
+      /etc/suricata/rules/local.rules on the analyst box, then reload with:
+      sudo kill -USR2 $(pgrep -x Suricata-Main)
+    unlock_after_minutes: 20
+  - text: |
+      Example Suricata rules:
+      alert http any any -> any any (msg:"SQLi Detected"; content:"UNION SELECT"; nocase; http_uri; sid:1000001; rev:1;)
+      alert http any any -> any any (msg:"CMDi Detected"; content:"cat /etc"; nocase; http_client_body; sid:1000002; rev:1;)
+
+      After reloading, wait 15-20 seconds for the next attack cycle. Then check:
+      jq 'select(.alert)' /var/log/suricata/eve.json
+
+      The payloads contain campaign and exfil tags - those are your first two flag
+      parts. For the third part, SSH to the target web portal and examine the nginx
+      access log. The attacker's User-Agent string contains the final IOC.
+    unlock_after_minutes: 30
+
+topology:
+  nodes:
+    - id: "attacker"
+      label: "Unknown Attacker"
+      type: "workstation"
+      ip_offset: "31"
+      ports: []
+      services: ["Automated Attack Tool"]
+      x: 1
+      y: 1
+    - id: "target"
+      label: "Web Portal"
+      type: "server"
+      ip_offset: "17"
+      ports: [80, 22]
+      services: ["nginx", "OpenSSH"]
+      x: 3
+      y: 1
+    - id: "analyst"
+      label: "IDS Sensor"
+      type: "server"
+      ip_offset: "47"
+      ports: [22, 80]
+      services: ["Suricata IDS", "OpenSSH", "nginx (honeypot)"]
+      x: 2
+      y: 2
+  edges:
+    - from: "attacker"
+      to: "analyst"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "target"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Verify analyst SSH access"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'echo connected' 2>/dev/null"
+      expect: "connected"
+      timeout: 15
+
+    - name: "Verify Suricata is running on IDS sensor"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'pgrep -x Suricata-Main > /dev/null && echo suricata_running' 2>/dev/null"
+      expect: "suricata_running"
+      timeout: 15
+
+    - name: "Observe attack traffic arriving on the IDS sensor"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'sudo timeout 25 tcpdump -i eth0 -A -c 5 port 80 2>/dev/null | grep -ci http' 2>/dev/null"
+      timeout: 40
+
+    - name: "Write Suricata rules for SQLi and command injection detection"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'printf \"alert http any any -> any any (msg:\\\"SQLi Attack Detected\\\"; content:\\\"UNION SELECT\\\"; nocase; http_uri; sid:1000001; rev:1;)\\nalert http any any -> any any (msg:\\\"Command Injection Detected\\\"; content:\\\"cat /etc\\\"; nocase; http_client_body; sid:1000002; rev:1;)\\n\" > /etc/suricata/rules/local.rules && sudo kill -USR2 $(pgrep -x Suricata-Main) && echo rules_deployed' 2>/dev/null"
+      expect: "rules_deployed"
+      timeout: 20
+
+    - name: "Wait for attack cycle and verify Suricata alerts fire"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'sleep 20 && jq -r \"select(.alert) | .alert.signature\" /var/log/suricata/eve.json 2>/dev/null | sort -u' 2>/dev/null"
+      expect: "Detected"
+      timeout: 45
+
+    - name: "Extract flag part 1 from SQLi alert payload (campaign tag)"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'jq -r \"select(.alert) | select(.alert.signature_id == 1000001) | .http.url\" /var/log/suricata/eve.json 2>/dev/null | grep -o \"campaign=[^&]*\" | sed \"s/^campaign=//\" | head -1' 2>/dev/null"
+      expect: "d3t3ct"
+      timeout: 15
+
+    - name: "Extract flag part 2 from CMDi alert payload (exfil tag)"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'jq -r \"select(.alert) | select(.alert.signature_id == 1000002) | .payload_printable\" /var/log/suricata/eve.json 2>/dev/null | grep -o \"exfil=[^& ]*\" | sed \"s/^exfil=//\" | head -1' 2>/dev/null"
+      expect: "rul3"
+      timeout: 15
+
+    - name: "SSH to target and extract attacker User-Agent from access log"
+      command: "sshpass -p '{cred.webadmin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.webadmin.user}@{target.target} 'grep -o \"SentinelBreaker/[a-zA-Z0-9_]*\" /var/log/nginx/access.log | head -1 | cut -d/ -f2' 2>/dev/null"
+      expect: "wr1t3r"
+      timeout: 15
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{d3t3ct_rul3_wr1t3r}'"
+      expect: "OCR{d3t3ct_rul3_wr1t3r}"

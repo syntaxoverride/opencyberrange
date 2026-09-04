@@ -1,0 +1,149 @@
+#!/bin/bash
+# ============================================================================
+# Meridian Firewall Policy Validator (Exercise 2 - Hardening)
+# Validates a general default-deny policy (not source-specific blocks).
+# Checks:
+#   1. ACCEPT rules for ports 80 and 443 exist (general, not source-locked)
+#   2. A default DROP-all rule exists
+#   3. No broad ACCEPT-all rule defeats the policy
+#   4. Rule order is correct (ACCEPT before DROP)
+#   5. Policy applies to ANY source, not just the Apex dev server
+# ============================================================================
+
+echo "============================================="
+echo "  Meridian Firewall - Policy Validator"
+echo "  (Defense-in-Depth Assessment)"
+echo "============================================="
+echo ""
+
+# Get FORWARD rules (excluding the LOG monitoring rule)
+RULES=$(iptables -L FORWARD -n --line-numbers 2>/dev/null | grep -v "^Chain\|^num\|LOG")
+
+if [[ -z "$RULES" ]]; then
+    echo "[FAIL] No FORWARD rules found."
+    echo ""
+    echo "  You need to build a default-deny policy on the FORWARD chain."
+    echo "  Allow only HTTP (80) and HTTPS (443), then drop everything else."
+    echo ""
+    exit 1
+fi
+
+echo "Current FORWARD rules (excluding monitor):"
+echo "$RULES"
+echo ""
+
+# Check 1: ACCEPT rule for port 80 exists
+if ! echo "$RULES" | grep -q "ACCEPT.*tcp.*dpt:80"; then
+    echo "[FAIL] No ACCEPT rule for TCP port 80 (HTTP)."
+    echo "  Your policy must allow HTTP traffic."
+    exit 1
+fi
+echo "[PASS] HTTP (port 80) is allowed."
+
+# Check 2: ACCEPT rule for port 443 exists
+if ! echo "$RULES" | grep -q "ACCEPT.*tcp.*dpt:443"; then
+    echo "[FAIL] No ACCEPT rule for TCP port 443 (HTTPS)."
+    echo "  Your policy must allow HTTPS traffic."
+    exit 1
+fi
+echo "[PASS] HTTPS (port 443) is allowed."
+
+# Check 3: ACCEPT rules must be GENERAL (not source-locked)
+# A proper default-deny policy allows ports from 0.0.0.0/0 (any source)
+HTTP_RULE=$(iptables -L FORWARD -n 2>/dev/null | grep "ACCEPT.*tcp.*dpt:80" | head -1)
+HTTPS_RULE=$(iptables -L FORWARD -n 2>/dev/null | grep "ACCEPT.*tcp.*dpt:443" | head -1)
+
+HTTP_SRC=$(echo "$HTTP_RULE" | awk '{print $4}')
+HTTPS_SRC=$(echo "$HTTPS_RULE" | awk '{print $4}')
+
+if [[ "$HTTP_SRC" != "0.0.0.0/0" ]]; then
+    echo ""
+    echo "[FAIL] Your HTTP ACCEPT rule is source-locked to $HTTP_SRC."
+    echo "  A defense-in-depth policy must allow HTTP from ANY source (0.0.0.0/0)."
+    echo "  Source-specific rules only protect against known threats."
+    echo "  Rewrite without the -s flag: sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT"
+    exit 1
+fi
+
+if [[ "$HTTPS_SRC" != "0.0.0.0/0" ]]; then
+    echo ""
+    echo "[FAIL] Your HTTPS ACCEPT rule is source-locked to $HTTPS_SRC."
+    echo "  A defense-in-depth policy must allow HTTPS from ANY source (0.0.0.0/0)."
+    echo "  Rewrite without the -s flag: sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT"
+    exit 1
+fi
+echo "[PASS] ACCEPT rules apply to all sources (general policy)."
+
+# Check 4: Default DROP-all rule exists
+if ! echo "$RULES" | grep -qE "(DROP|REJECT).*0\.0\.0\.0/0.*0\.0\.0\.0/0"; then
+    echo ""
+    echo "[FAIL] No default DROP rule found."
+    echo "  Without a catch-all DROP, any traffic not matching an ACCEPT rule"
+    echo "  will be allowed through by the default ACCEPT policy."
+    echo "  Add: sudo iptables -A FORWARD -j DROP"
+    exit 1
+fi
+echo "[PASS] Default DROP rule is in place."
+
+# Check 5: No broad ACCEPT-all before DROP
+BROAD_ACCEPT_LINE=$(echo "$RULES" | grep -n "ACCEPT.*0\.0\.0\.0/0.*0\.0\.0\.0/0" | grep -v "dpt:" | head -1 | cut -d: -f1)
+DROP_ALL_LINE=$(echo "$RULES" | grep -nE "(DROP|REJECT).*0\.0\.0\.0/0.*0\.0\.0\.0/0" | head -1 | cut -d: -f1)
+
+if [[ -n "$BROAD_ACCEPT_LINE" ]] && [[ "$BROAD_ACCEPT_LINE" -lt "$DROP_ALL_LINE" ]]; then
+    echo ""
+    echo "[FAIL] A broad ACCEPT-all rule exists before your DROP rule."
+    echo "  This allows ALL traffic through, completely defeating your policy."
+    echo "  Remove it: sudo iptables -D FORWARD -j ACCEPT"
+    echo "  Only allow specific ports, never use a blanket ACCEPT."
+    exit 1
+fi
+
+# Check 6: Rule order - ACCEPT rules before DROP-all
+ACCEPT_80_LINE=$(echo "$RULES" | grep -n "ACCEPT.*tcp.*dpt:80" | head -1 | cut -d: -f1)
+ACCEPT_443_LINE=$(echo "$RULES" | grep -n "ACCEPT.*tcp.*dpt:443" | head -1 | cut -d: -f1)
+
+if [[ "$ACCEPT_80_LINE" -gt "$DROP_ALL_LINE" ]] || [[ "$ACCEPT_443_LINE" -gt "$DROP_ALL_LINE" ]]; then
+    echo ""
+    echo "[FAIL] Rule order problem detected."
+    echo ""
+    echo "  Firewalls process rules top to bottom. The FIRST matching rule wins."
+    echo "  Your DROP-all rule is above one or more ACCEPT rules, which means"
+    echo "  the DROP matches every packet before the ACCEPT rules are evaluated."
+    echo ""
+    echo "  This is the most common firewall misconfiguration in production."
+    echo ""
+    echo "  Fix: Flush and rewrite with ACCEPT rules first:"
+    echo "    sudo iptables -F FORWARD"
+    echo "    sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT"
+    echo "    sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT"
+    echo "    sudo iptables -A FORWARD -j DROP"
+    exit 1
+fi
+echo "[PASS] Rule order is correct (ACCEPT before DROP)."
+
+# Check 7: No extra ACCEPT rules for dangerous ports
+EXTRA_ACCEPTS=$(echo "$RULES" | grep "ACCEPT" | grep -v "dpt:80\|dpt:443" | grep -v "LOG")
+if [[ -n "$EXTRA_ACCEPTS" ]]; then
+    echo ""
+    echo "[WARN] Extra ACCEPT rules detected that may weaken the policy:"
+    echo "$EXTRA_ACCEPTS"
+    echo ""
+    echo "  Your policy should only allow ports 80 and 443."
+    echo "  Remove any extra ACCEPT rules that allow other ports."
+    # Warning only, not a failure - they might have leftover Phase 1 rules
+fi
+
+echo ""
+echo "============================================="
+echo "  ALL CHECKS PASSED"
+echo "============================================="
+echo ""
+echo "  Your defense-in-depth policy is correctly configured:"
+echo "  - HTTP (80) and HTTPS (443) allowed from any source"
+echo "  - All other traffic dropped regardless of source"
+echo "  - Rule order is correct (first match wins)"
+echo ""
+echo "  This policy protects against threats from ANY origin,"
+echo "  not just the known Apex dev server."
+echo ""
+cat /root/flag.txt

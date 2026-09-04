@@ -1,0 +1,1499 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4.3: LAPS in the Wild - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-43-laps-in-the-wild" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4.3: LAPS in the Wild
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#laps-architecture-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LAPS Architecture at a Glance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-vs-windows-laps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy vs Windows LAPS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-two-kinds-of-laps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Two Kinds of LAPS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Two Kinds of LAPS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-over-scoped-delegations-happen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why over-scoped delegations happen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-defenders-audit-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The defender's audit query
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#netexec-laps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        netexec --laps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#direct-ldap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct LDAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pylaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pyLAPS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-confirm-membership-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Confirm Membership Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-read-laps-via-netexec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Read LAPS via netexec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-read-laps-via-direct-ldap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Read LAPS via Direct LDAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Submit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-43-laps-in-the-wild">Exercise 4.3: LAPS in the Wild</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>LAPS (Local Administrator Password Solution) is Microsoft's mitigation for local admin password reuse across an estate. Each domain-joined machine gets a randomized local admin password, rotated on a schedule, stored on the machine's AD computer object in the <code>ms-Mcs-AdmPwd</code> attribute (legacy LAPS) or <code>msLAPS-Password</code> (Windows LAPS). The whole approach depends on <strong>read delegations being scoped tightly</strong>: only specific helpdesk groups should be able to read the LAPS attribute on specific OUs. When the delegation is too wide, any member of that group becomes effective local admin on every covered machine.</p>
+<p>Exercise 4.3 puts you on the wrong side of an over-scoped delegation. <code>WS_Admins_&lt;token&gt;</code> can read <code>ms-Mcs-AdmPwd</code> on <code>WS-ENG-&lt;token&gt;</code>. <code>j.chen</code> is a member via <code>IT_HelpDesk</code> nesting. Read the password.</p>
+<p><strong>Tools required:</strong> <code>netexec</code>, <code>pyLAPS</code>, <code>ldapsearch</code>, <code>bloodhound-python</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "LAPS is the right answer to local admin password reuse. Read access to the LAPS attribute is the wrong answer to delegation."</p>
+<p>The LAPS-stored password for <code>WS-ENG-&lt;token&gt;</code> contains your flag literally; you do not need to authenticate to the workstation, you need to read the attribute and submit the value.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Identify the LAPS-protected attribute (<code>ms-Mcs-AdmPwd</code> or <code>msLAPS-Password</code>)</li>
+<li>Confirm that <code>j.chen</code> (via inherited group) can read the attribute on <code>WS-ENG-&lt;token&gt;</code></li>
+<li>Read the value</li>
+<li>Submit it as the flag</li>
+</ul>
+<h3 id="laps-architecture-at-a-glance">LAPS Architecture at a Glance</h3>
+<p>LAPS is a small ecosystem: a CSE on each managed host writes the password into AD; reads are gated by delegations on the computer object. The diagram below maps the pieces together.</p>
+<pre class="mermaid"><code>flowchart LR
+    GPO["GPO settings:&lt;br/&gt;policy + interval"]
+    CSE["LAPS CSE&lt;br/&gt;(on every workstation)"]
+    AD["AD computer object&lt;br/&gt;ms-Mcs-AdmPwd&lt;br/&gt;(or msLAPS-Password)"]
+    HD["Helpdesk delegate group&lt;br/&gt;(read on attribute)"]
+    Atk["Attacker (j.chen)&lt;br/&gt;via nested group"]
+
+    GPO --&gt; CSE
+    CSE -- "rotate + write" --&gt; AD
+    HD -- "read" --&gt; AD
+    Atk -- "transitive memberOf" --&gt; HD</code></pre>
+<h3 id="legacy-vs-windows-laps">Legacy vs Windows LAPS</h3>
+<p>The two flavors look similar in the directory but differ on the trust boundary that protects the secret. The table below summarises which attack works against which.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Legacy LAPS</th>
+<th>Windows LAPS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Schema</td>
+<td><code>ms-Mcs-AdmPwd</code></td>
+<td><code>msLAPS-Password</code> (plain) or <code>msLAPS-EncryptedPassword</code> (DPAPI-NG)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Plaintext, ACL-gated</td>
+<td>Plaintext OR DPAPI-NG ciphertext to a named principal</td>
+</tr>
+<tr>
+<td>Read attack</td>
+<td>LDAP read with delegated group</td>
+<td>LDAP read PLUS DPAPI-NG decrypt as principal</td>
+</tr>
+<tr>
+<td>Defender's lever</td>
+<td>Tighten ACL</td>
+<td>Tighten ACL + scope decryption principal</td>
+</tr>
+<tr>
+<td><code>netexec --laps</code> outcome</td>
+<td>Plaintext if you have read</td>
+<td>Plaintext if you can decrypt; ciphertext otherwise</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-two-kinds-of-laps">Background: Two Kinds of LAPS</h2>
+<table>
+<thead>
+<tr>
+<th>Variant</th>
+<th>Schema attribute</th>
+<th>Encryption at rest</th>
+<th>Read API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Legacy LAPS (<code>AdmPwd.PS</code>)</td>
+<td><code>ms-Mcs-AdmPwd</code></td>
+<td>Plaintext (relies on AD ACLs)</td>
+<td>LDAP read</td>
+</tr>
+<tr>
+<td>Windows LAPS (Server 2019+)</td>
+<td><code>msLAPS-Password</code>, <code>msLAPS-EncryptedPassword</code></td>
+<td>Optional DPAPI-NG encryption to a designated principal</td>
+<td>LDAP read + decrypt</td>
+</tr>
+</tbody>
+</table>
+<p>Legacy LAPS is more common in environments older than ~2022. Windows LAPS is the modern default. The attack model is the same: find who can read the attribute and abuse the over-scoped delegation. The difference: Windows LAPS with encryption requires you to also be the encryption principal (or someone authorized to decrypt for them) to recover the plaintext.</p>
+<h3 id="why-over-scoped-delegations-happen">Why over-scoped delegations happen</h3>
+<p>Helpdesk teams need to recover local admin passwords for break-fix work. The administrator delegating the read permission has two choices:</p>
+<ol>
+<li><strong>Per-OU scoped</strong>: grant <code>Engineering_Helpdesk</code> read on <code>ms-Mcs-AdmPwd</code> for the Engineering OU only. Repeat per OU. Tedious but correct.</li>
+<li><strong>Domain-wide</strong>: grant <code>IT_HelpDesk</code> read on <code>ms-Mcs-AdmPwd</code> for the whole domain. One click. Wrong.</li>
+</ol>
+<p>Option 2 is the path of least resistance and exists in many production environments. The result: any compromise of any IT_HelpDesk member yields local admin on every domain-joined machine.</p>
+<h3 id="the-defenders-audit-query">The defender's audit query</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c"># Find every principal that can read ms-Mcs-AdmPwd somewhere</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">Find-AdmPwdExtendedRights</span> <span class="n">-Identity</span> <span class="s2">&quot;OU=Workstations,DC=corp,DC=nordport,DC=local&quot;</span>
+</code></pre></div>
+<p>The output should show only the per-OU helpdesk groups. If you see <code>Domain Users</code> or any unexpected principal, the delegation is wrong.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="netexec-laps">netexec --laps</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>netexec<span class="w"> </span>ldap<span class="w"> </span>corp-dc01<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>--laps
+</code></pre></div>
+<p>Outputs every machine the caller can read LAPS for, with the plaintext password (and decrypts Windows LAPS if the attacker is authorized).</p>
+<h3 id="direct-ldap">Direct LDAP</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="s2">&quot;(name=WS-ENG-&lt;TOKEN&gt;)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>ms-Mcs-AdmPwd<span class="w"> </span>ms-Mcs-AdmPwdExpirationTime
+</code></pre></div>
+<p>If you can read the attribute, the value comes back; if not, the attribute is omitted from the response.</p>
+<h3 id="pylaps">pyLAPS</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pyLAPS<span class="w"> </span>--action<span class="w"> </span>get<span class="w"> </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span>--dc-ip<span class="w"> </span>&lt;dc&gt;
+</code></pre></div>
+<p>A purpose-built tool that handles both legacy and Windows LAPS, including DPAPI-NG decryption when you have the right keys.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-confirm-membership-path">Step 1: Confirm Membership Path</h3>
+<p>Group nesting is the trap LAPS delegations fall into. j.chen is a direct member of <code>IT_HelpDesk</code>, which is itself nested into <code>WS_Admins_&lt;token&gt;</code>. The standard <code>memberof=</code> filter does not follow nesting; you need the LDAP <code>chain matching</code> extended OID <code>1.2.840.113556.1.4.1941</code> to return transitive memberships.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Verify j.chen reaches WS_Admins_<token></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(memberof:1.2.840.113556.1.4.1941:=CN=WS_Admins_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">,OU=IT,DC=corp,DC=nordport,DC=local)(sAMAccountName=j.chen))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>sAMAccountName
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>memberof:1.2.840.113556.1.4.1941:=</code></td>
+<td>LDAP_MATCHING_RULE_IN_CHAIN; matches transitive group membership.</td>
+</tr>
+<tr>
+<td><code>CN=WS_Admins_&lt;token&gt;,OU=IT,DC=...</code></td>
+<td>Full distinguished name of the target group.</td>
+</tr>
+<tr>
+<td><code>(sAMAccountName=j.chen)</code></td>
+<td>And-clause to verify j.chen specifically.</td>
+</tr>
+</tbody>
+</table>
+<p>If j.chen's name appears in the output, the transitive path is alive. Empty output means a nesting break (common after group reorgs); without the path, Step 2 returns no LAPS hits.</p>
+</div>
+<h3 id="step-2-read-laps-via-netexec">Step 2: Read LAPS via netexec</h3>
+<p><code>netexec ldap --laps</code> walks every computer object the caller can see, attempts to read the LAPS attribute on each, and prints whichever are readable. It tries both legacy (<code>ms-Mcs-AdmPwd</code>) and Windows LAPS (<code>msLAPS-Password</code>, <code>msLAPS-EncryptedPassword</code>) and decrypts the latter when the caller is authorized.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Pull every readable LAPS password</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>netexec<span class="w"> </span>ldap<span class="w"> </span>corp-dc01<span class="w"> </span>-u<span class="w"> </span>j.chen<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-d<span class="w"> </span>corp.nordport.local<span class="w"> </span>--laps
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ldap</code></td>
+<td>LDAP protocol module (vs <code>smb</code>, <code>winrm</code>, etc.).</td>
+</tr>
+<tr>
+<td><code>--laps</code></td>
+<td>Enable the LAPS-reader sub-feature.</td>
+</tr>
+</tbody>
+</table>
+<p>Output format: one line per readable computer with the plaintext after <code>LAPS Password:</code>. Look for <code>WS-ENG-&lt;token&gt;</code> (the token is uppercased in the computer name; netexec prints it as stored). Other students' machines that you can also see (because IT_HelpDesk is over-scoped on the lab too) appear in the same listing.</p>
+</div>
+<h3 id="step-3-read-laps-via-direct-ldap">Step 3: Read LAPS via Direct LDAP</h3>
+<p>For surgical extraction (one machine, one attribute) and to demonstrate the underlying primitive without netexec's wrapper, use ldapsearch directly. The <code>tr</code> command upper-cases the token because computer object names use upper-case in this lab.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - LDAP read of ms-Mcs-AdmPwd on your computer</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">TOK</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span><span class="s1">&#39;a-z&#39;</span><span class="w"> </span><span class="s1">&#39;A-Z&#39;</span><span class="k">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="s2">&quot;(name=WS-ENG-</span><span class="si">${</span><span class="nv">TOK</span><span class="si">}</span><span class="s2">)&quot;</span><span class="w"> </span>ms-Mcs-AdmPwd
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tr 'a-z' 'A-Z'</code></td>
+<td>Translate lower to upper case (token may be lowercase in env var).</td>
+</tr>
+<tr>
+<td><code>(name=WS-ENG-XXXX)</code></td>
+<td>Filter by computer name attribute.</td>
+</tr>
+<tr>
+<td><code>ms-Mcs-AdmPwd</code></td>
+<td>Trailing attribute; only this attribute returned.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>ms-Mcs-AdmPwd</code> value is the flag. If the attribute does not appear in the response (no error, just absent), the read permission is denied; recheck Step 1.</p>
+</div>
+<h3 id="step-4-submit">Step 4: Submit</h3>
+<p>The plaintext IS the flag. Submit on the platform.</p>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>Wrong token case</strong>: lab computer names are <code>WS-ENG-J001</code> (uppercase) but <code>OCR_SCOPE_TOKEN</code> is <code>j001</code> (lowercase). Always upper-case the token for computer-object lookups.</li>
+<li><strong>Windows LAPS instead of legacy</strong>: if the lab were Windows LAPS, <code>ms-Mcs-AdmPwd</code> would be empty and <code>msLAPS-Password</code> would hold the plaintext (or <code>msLAPS-EncryptedPassword</code> if encrypted). Re-query with the right attribute.</li>
+<li><strong>No transitive path</strong>: AD groups are not always transitive. <code>Domain Local</code> groups with <code>Global</code> group members work; some cross-forest scenarios do not. Step 1's chain-match query is the diagnostic.</li>
+<li><strong>netexec verbose mode</strong>: add <code>-v</code> if <code>--laps</code> returns no hits to see whether netexec saw the computer at all (scope filter problem) or saw it and could not read (ACL problem).</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>Reads of the LAPS attribute generate event 4662 with a specific access mask only when the relevant SACL is configured. Most environments are missing this, which is exactly why the attack persists.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LAPS attribute read</td>
+<td>4662 (with SACL)</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>Bulk LAPS enumeration</td>
+<td>4662 burst</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>Workstation local-admin login</td>
+<td>4624 logon type 3 / 10</td>
+<td>Workstation Security log</td>
+</tr>
+<tr>
+<td>Defender for Identity</td>
+<td>"Suspicious LDAP query (LAPS)"</td>
+<td>MDI</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What real defenders look for</p>
+<p>Set a SACL on the <code>ms-Mcs-AdmPwd</code> (or <code>msLAPS-Password</code>) attribute auditing successful reads by non-Tier-0 principals. Forward the resulting 4662 events to the SIEM. Alert on any read by a principal not on the helpdesk allow-list. The detection has very low cardinality and high signal.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>LAPS is the right control; ACL hygiene around it is what makes or breaks the deployment. The list below is the practical menu.</p>
+<div class="admonition tip">
+<p class="admonition-title">LAPS hardening</p>
+<ul>
+<li>Migrate to <strong>Windows LAPS</strong> with DPAPI-NG encryption tied to a tightly scoped principal.</li>
+<li>Scope read delegations <strong>per OU</strong> using <code>Set-AdmPwdReadPasswordPermission</code>. Never delegate at the domain root.</li>
+<li>Run <code>Find-AdmPwdExtendedRights</code> quarterly against each managed OU; alert on changes.</li>
+<li>Add a SACL auditing reads of the LAPS attribute and forward 4662 events with allow-list of legitimate readers.</li>
+<li>Disable legacy LAPS attributes once Windows LAPS is fully deployed; confirm <code>ms-Mcs-AdmPwd</code> is empty everywhere.</li>
+<li>Build a SIEM detection on <code>netexec ldap --laps</code>-shaped traffic: many distinct computer-attribute reads from one source in seconds.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Target computer:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>WS-ENG-&lt;TOKEN&gt;
+</code></pre></div>
+<p><strong>Reading group:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>WS_Admins_&lt;token&gt;
+</code></pre></div>
+<p><strong>j.chen's path to the group:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>j.chen --MemberOf--&gt; IT_HelpDesk --MemberOf--&gt; WS_Admins_&lt;token&gt;
+</code></pre></div>
+<p><strong>Recovered LAPS plaintext (= flag):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>(OCR{laps_...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Legacy LAPS stores the password in plaintext under <code>ms-Mcs-AdmPwd</code>. Why does that work, and what is Microsoft's improvement in Windows LAPS?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Legacy LAPS works because the attribute's read permission is restricted by AD ACLs to the delegated helpdesk groups. The plaintext is "encrypted" by access control rather than cryptographic encryption: only authorized principals can read it. The improvement in Windows LAPS is the introduction of DPAPI-NG-based encryption tied to a specific principal (a user, group, or computer), so even an attacker who reads the attribute as Domain Admin cannot recover the plaintext without being able to decrypt via the principal's key. The encryption narrows the trust boundary from "anyone with read on the attribute" to "the specific principal authorized to decrypt." Operationally, Windows LAPS encryption also makes it possible to grant read across a wider scope (for inventory tooling) while keeping plaintext recovery scoped tighter.</p>
+</details>
+<p><strong>2. The defender control is to scope the read delegation tightly per OU. What stops a defender from doing this in practice?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The barriers are organizational, not technical: (a) helpdesk teams want one-click access to any machine across the estate so per-OU delegation feels obstructive; (b) executive turnover reorganizes OUs faster than delegations get re-evaluated, so old wide delegations accumulate; (c) AD ACL audits are tedious manual work; few teams do them quarterly; (d) Microsoft's installation tooling defaults to wide ("apply to OU=Computers") rather than narrow. The fix is automation: scripts that periodically audit <code>Find-AdmPwdExtendedRights</code> against a baseline and alert on changes, plus a service-catalog-style helpdesk request flow where the operator clicks a button per host that grants ephemeral access for a short window.</p>
+</details>
+<p><strong>3. Once you read the LAPS password, you are local admin on the workstation. What does that get you that the AD compromise alone does not?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Local admin on a domain-joined workstation gets you: (a) every credential cached on the machine via LSASS / DPAPI dumping (<code>mimikatz sekurlsa::logonpasswords</code>, <code>lsassy</code>, <code>pypykatz</code>), (b) every browser session cookie (DPAPI-protected, but trivially decrypted as the user), (c) every saved Wi-Fi key, every saved RDP credential, every personal certificate enrolled to the user, (d) every running process's memory, including in-memory credentials for SaaS tools, and (e) the ability to install a persistence mechanism. If the workstation belongs to a higher-privileged user (an admin doing helpdesk work, or a developer with cloud credentials), the lateral pivot to higher AD privilege via that user's stored secrets is often immediate.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>LAPS attribute is <code>ms-Mcs-AdmPwd</code> (legacy) or <code>msLAPS-Password</code> (Windows LAPS).</li>
+<li>Read delegations are AD ACLs; widely-scoped delegations leak local admin on every covered machine.</li>
+<li><code>netexec ldap --laps</code> enumerates every readable LAPS password in one call.</li>
+<li>Windows LAPS adds DPAPI-NG encryption tied to specific decryption principals.</li>
+<li>Defender control: per-OU scoped delegations, periodic ACL audits, service-catalog-style ephemeral access.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover discovery and abuse for both LAPS variants. Run them in this order on any engagement.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bulk LAPS enumeration</td>
+<td><code>netexec ldap &lt;dc&gt; -u &lt;user&gt; -p '&lt;pw&gt;' -d &lt;domain&gt; --laps</code></td>
+</tr>
+<tr>
+<td>Targeted LDAP read (legacy)</td>
+<td><code>ldapsearch -x -LLL -H ldap://&lt;dc&gt; -D "&lt;DOMAIN&gt;\&lt;user&gt;" -w '&lt;pw&gt;' -b "&lt;DN&gt;" "(name=&lt;HOST&gt;)" ms-Mcs-AdmPwd</code></td>
+</tr>
+<tr>
+<td>Targeted LDAP read (Windows LAPS)</td>
+<td><code>ldapsearch ... "(name=&lt;HOST&gt;)" msLAPS-Password msLAPS-EncryptedPassword</code></td>
+</tr>
+<tr>
+<td>pyLAPS (handles DPAPI-NG decrypt)</td>
+<td><code>pyLAPS --action get -d &lt;domain&gt; -u &lt;user&gt; -p '&lt;pw&gt;' --dc-ip &lt;dc&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: LAPS Attribute Names</strong></p>
+<p>Q: What attributes hold the LAPS password in legacy LAPS vs Windows LAPS?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Legacy LAPS: <code>ms-Mcs-AdmPwd</code> (plaintext, ACL-protected). Windows LAPS: <code>msLAPS-Password</code> (plaintext when not encrypted) and <code>msLAPS-EncryptedPassword</code> (DPAPI-NG encrypted blob, requires the authorized decryption principal). The expiration time is <code>ms-Mcs-AdmPwdExpirationTime</code> for legacy, <code>msLAPS-PasswordExpirationTime</code> for Windows LAPS.</p>
+</details>
+<p><strong>Card 2: netexec --laps Discovery</strong></p>
+<p>Q: One command to enumerate every LAPS password readable by <code>j.smith / Pass#</code> on <code>corp.local</code> against DC <code>dc01</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>netexec<span class="w"> </span>ldap<span class="w"> </span>dc01<span class="w"> </span>-u<span class="w"> </span>j.smith<span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;Pass#&#39;</span><span class="w"> </span>-d<span class="w"> </span>corp.local<span class="w"> </span>--laps
+</code></pre></div>
+<p>Outputs computer name and plaintext for each readable entry. Add <code>--users &lt;user&gt;</code> to query for a specific computer rather than enumerating all.</p>
+</details>
+<p><strong>Card 3: Direct LDAP Read of ms-Mcs-AdmPwd</strong></p>
+<p>Q: Write the ldapsearch query to read <code>ms-Mcs-AdmPwd</code> from computer <code>WS-ENG-A7F3</code> in <code>corp.local</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.smith&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Pass#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="s2">&quot;(name=WS-ENG-A7F3)&quot;</span><span class="w"> </span>ms-Mcs-AdmPwd
+</code></pre></div>
+<p>If you cannot read the attribute, the response omits it (no error). If you can, the value appears as a string.</p>
+</details>
+<p><strong>Card 4: Find-AdmPwdExtendedRights</strong></p>
+<p>Q: How does a defender enumerate every principal with LAPS read on a given OU?</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">Find-AdmPwdExtendedRights</span> <span class="n">-Identity</span> <span class="s2">&quot;OU=Workstations,DC=corp,DC=local&quot;</span>
+</code></pre></div>
+<p>From the AdmPwd.PS module. Output should show only the intended helpdesk groups. Any unexpected principal (especially <code>Domain Users</code>, <code>Authenticated Users</code>, or unfamiliar admin groups) is a finding. Run quarterly; baseline the output and alert on changes.</p>
+</details>
+<p><strong>Card 5: DPAPI-NG and Windows LAPS</strong></p>
+<p>Q: Windows LAPS encryption changes the trust boundary from "anyone with attribute read" to what?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>"The specific principal authorized to decrypt." DPAPI-NG (Data Protection API: Next Generation) encrypts the password to a named principal (user, group, or computer SID); only that principal can decrypt with their key. An attacker with attribute read but without the principal's keys gets ciphertext, not plaintext. The encryption lets an organization grant attribute-read more widely (for inventory tools or backup) while keeping plaintext recovery tightly scoped. Defender check: ensure <code>msLAPS-EncryptedPassword</code> is the populated attribute, not <code>msLAPS-Password</code>.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

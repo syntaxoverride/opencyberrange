@@ -1,0 +1,519 @@
+name: LDAP User Enumeration
+description: Enumerate user accounts through FinanceCorp's LDAP service to identify potential targets for credential attacks.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - enumerate users via anonymous ldap
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your enumeration of FinanceCorp's Active Directory structure has provided base DN 
+  information. James Mitchell is particularly concerned about user enumeration, as this 
+  can aid credential attacks and social engineering attempts.
+  
+  User enumeration through LDAP provides attackers with a list of valid usernames, 
+  which is the first step in many credential-based attacks. FinanceCorp needs to 
+  understand the scope of this information disclosure.
+  
+  Your objective: Enumerate user accounts on FinanceCorp's Active Directory using 
+  anonymous LDAP access. Document all discovered usernames, as this information will 
+  be valuable for subsequent credential testing phases.
+
+flag: "OCR{ldap_us3r_3num}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding LDAP User Enumeration
+
+      ### Why User Enumeration Is Critical
+
+      User enumeration is one of the most valuable steps in a penetration
+      test. A list of valid usernames enables:
+
+      - **Password spraying** -- Try common passwords against all accounts
+      - **Brute-force attacks** -- Target specific high-value accounts
+      - **Social engineering** -- Craft phishing emails using real names
+      - **Privilege escalation** -- Identify admin and service accounts
+      - **Credential stuffing** -- Check leaked credential databases
+
+      ### How Users Are Stored in LDAP
+
+      In LDAP directories, user accounts are stored as entries with specific
+      **object classes** that define what attributes they can have:
+
+      | Object Class      | Description                              |
+      |-------------------|------------------------------------------|
+      | `person`          | Basic person entry (cn, sn, userPassword)|
+      | `organizationalPerson` | Extended person (title, phone, etc.)  |
+      | `inetOrgPerson`   | Internet-standard person (mail, uid)     |
+      | `posixAccount`    | UNIX/Linux account (uid, gidNumber, homeDirectory) |
+      | `account`         | Simple account entry                     |
+      | `user`            | Active Directory user class              |
+
+      ### LDAP Directory Structure for Users
+
+      Users are typically organized under an **Organizational Unit (OU)**:
+
+      ```
+      dc=financecorp,dc=local          (Base DN)
+        ou=Users                        (User container)
+          cn=James Mitchell             (User entry)
+          cn=Sarah Chen                 (User entry)
+          cn=admin                      (Admin account)
+        ou=ServiceAccounts              (Service accounts)
+          cn=svc_backup                 (Service account)
+          cn=svc_ldap                   (Service account)
+      ```
+
+      ### Key User Attributes to Look For
+
+      When enumerating users, pay attention to these attributes:
+
+      - **cn** (Common Name) -- Full display name
+      - **uid** -- Username / login ID
+      - **mail** -- Email address
+      - **description** -- Often contains notes (sometimes passwords!)
+      - **userPassword** -- Hashed or cleartext password
+      - **homeDirectory** -- Home directory path
+      - **loginShell** -- Login shell (e.g., `/bin/bash`)
+      - **uidNumber / gidNumber** -- UNIX UID and primary group
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tool Introduction: LDAP Filters for User Enumeration
+
+      ### LDAP Search Filter Syntax
+
+      LDAP uses a filter syntax based on **RFC 4515** to select entries.
+      Filters are enclosed in parentheses and use prefix notation:
+
+      ```
+      (attribute=value)           Equality match
+      (attribute=*value*)         Substring match
+      (attribute=*)               Presence (attribute exists)
+      (attribute>=value)          Greater than or equal
+      (attribute<=value)          Less than or equal
+      (&(filter1)(filter2))       AND -- both must match
+      (|(filter1)(filter2))       OR -- either can match
+      (!(filter))                 NOT -- negation
+      ```
+
+      ### Filters for Finding Users
+
+      To find user accounts, filter on object classes that represent people:
+
+      ```bash
+      # All person entries
+      "(objectClass=person)"
+
+      # All POSIX accounts (Linux/UNIX users)
+      "(objectClass=posixAccount)"
+
+      # All inetOrgPerson entries (most common for OpenLDAP)
+      "(objectClass=inetOrgPerson)"
+
+      # All organizational persons
+      "(objectClass=organizationalPerson)"
+
+      # Any entry that is a person OR posixAccount
+      "(|(objectClass=person)(objectClass=posixAccount))"
+
+      # Entries that are both person AND have a uid
+      "(&(objectClass=person)(uid=*))"
+      ```
+
+      ### Using Filters with ldapsearch
+
+      The filter is specified after the base DN and scope options:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" \
+        -s sub \
+        "(objectClass=person)"
+      ```
+
+      ### Requesting Specific Attributes
+
+      You can limit the attributes returned by listing them after the
+      filter:
+
+      ```bash
+      # Only return cn and uid
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" cn uid
+
+      # Only return DNs (no attributes)
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" dn
+      ```
+
+      ### The -LLL Flag for Clean Output
+
+      Use `-LLL` to remove comments, version, and type information:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" cn uid
+      ```
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical User Enumeration Techniques
+
+      ### Strategy 1: Broad Search First
+
+      Start with a broad filter to see what types of entries exist:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" objectClass
+      ```
+
+      This returns every entry with its object classes, helping you
+      understand what filter to use for users specifically.
+
+      ### Strategy 2: Multiple Object Class Filters
+
+      Different LDAP implementations use different object classes for
+      users. Try multiple filters:
+
+      ```bash
+      # OpenLDAP typically uses inetOrgPerson or posixAccount
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=inetOrgPerson)" cn uid
+
+      # POSIX accounts (Linux/UNIX users)
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixAccount)" cn uid uidNumber
+
+      # Generic person filter
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" cn
+      ```
+
+      ### Strategy 3: Search Within Specific OUs
+
+      If you know users are in a specific OU (from previous enumeration):
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "ou=Users,dc=financecorp,dc=local" \
+        "(objectClass=*)" cn uid
+      ```
+
+      ### Strategy 4: Search for Specific Attributes
+
+      Look for entries with interesting attributes:
+
+      ```bash
+      # Entries with email addresses
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(mail=*)" cn mail
+
+      # Entries with descriptions (often contain sensitive info)
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(description=*)" cn description
+
+      # Entries with passwords set
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(userPassword=*)" cn
+      ```
+
+      ### Using nmap for User Enumeration
+
+      ```bash
+      nmap -p 389 --script ldap-search \
+        --script-args 'ldap.base="dc=financecorp,dc=local"' <target>
+      ```
+
+      The `ldap-search` script performs a basic LDAP search and returns
+      discovered entries, which can include user accounts.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install Required Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils nmap
+      ```
+
+      ### Step 2: Confirm LDAP Access and Discover Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base namingContexts
+      ```
+
+      Note the Base DN (e.g., `dc=financecorp,dc=local`).
+
+      ### Step 3: Enumerate Top-Level Structure
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" -s one dn
+      ```
+
+      This shows the top-level OUs and containers. Look for OUs named
+      `Users`, `People`, `Accounts`, or similar.
+
+      ### Step 4: Enumerate Users with objectClass=person
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" cn uid description
+      ```
+
+      ### Step 5: Try posixAccount Filter
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixAccount)" cn uid uidNumber gidNumber homeDirectory
+      ```
+
+      ### Step 6: Combine Filters for Comprehensive Results
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=person)(objectClass=posixAccount))"
+      ```
+
+      ### Step 7: Look for Sensitive Information
+
+      Search for entries with descriptions or passwords:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" cn uid description userPassword
+      ```
+
+      Pay special attention to:
+
+      - **description** fields -- may contain passwords or flags
+      - **userPassword** fields -- may be readable
+      - **gecos** fields -- may contain additional info
+
+      ### Step 8: Retrieve the Flag
+
+      The flag is stored in the directory. Look through all user entries
+      and their attributes carefully for the `OCR{...}` value.
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for User Enumeration
+
+      ### Discover the Base DN First
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL namingContexts
+      ```
+
+      ### Enumerate All Users (Primary Command)
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=person)"
+      ```
+
+      ### Enumerate posixAccount Users
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixAccount)" cn uid uidNumber gidNumber homeDirectory loginShell
+      ```
+
+      ### Enumerate inetOrgPerson Users
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=inetOrgPerson)" cn uid mail description
+      ```
+
+      ### Combined User Filter
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=person)(objectClass=posixAccount)(objectClass=inetOrgPerson))" \
+        cn uid mail description
+      ```
+
+      ### Extract Just Usernames
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=posixAccount)" uid \
+        | grep "^uid:" | awk '{print $2}'
+      ```
+
+      ### Search for Flag in User Entries
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+      ### Check Description Fields
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(description=*)" dn description
+      ```
+
+      ### Using nmap as Alternative
+
+      ```bash
+      nmap -p 389 --script ldap-search \
+        --script-args 'ldap.base="dc=financecorp,dc=local"' <target>
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils
+      ```
+
+      ### Step 2: Get the Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL namingContexts
+      ```
+
+      **Expected output:**
+
+      ```
+      dn:
+      namingContexts: dc=financecorp,dc=local
+      ```
+
+      ### Step 3: List Top-Level Structure
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" -s one dn
+      ```
+
+      **Expected output:**
+
+      ```
+      dn: ou=Users,dc=financecorp,dc=local
+      dn: ou=Groups,dc=financecorp,dc=local
+      ```
+
+      ### Step 4: Enumerate All Users
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=person)(objectClass=posixAccount))"
+      ```
+
+      **Expected output shows user entries like:**
+
+      ```
+      dn: cn=James Mitchell,ou=Users,dc=financecorp,dc=local
+      objectClass: inetOrgPerson
+      objectClass: posixAccount
+      cn: James Mitchell
+      uid: jmitchell
+      uidNumber: 1001
+      gidNumber: 1001
+      homeDirectory: /home/jmitchell
+      description: Security Director
+
+      dn: cn=Sarah Chen,ou=Users,dc=financecorp,dc=local
+      objectClass: inetOrgPerson
+      objectClass: posixAccount
+      cn: Sarah Chen
+      uid: schen
+      uidNumber: 1002
+      gidNumber: 1002
+      homeDirectory: /home/schen
+      ```
+
+      ### Step 5: Look for the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+      The flag `OCR{...}` will appear in one of the directory entries,
+      likely in a description field or a custom attribute.
+
+      ### Summary of Discovered Users
+
+      | Username     | Full Name           | UID  | Role              |
+      |--------------|---------------------|------|-------------------|
+      | jmitchell    | James Mitchell      | 1001 | Security Director |
+      | schen        | Sarah Chen          | 1002 | Analyst           |
+      | admin        | LDAP Admin          | 1000 | Administrator     |
+      | ...          | (additional users)  | ...  | ...               |
+
+      ### Penetration Testing Report Note
+
+      > **Finding**: Anonymous LDAP access permits full user enumeration.
+      > All user accounts, UIDs, home directories, and descriptions are
+      > accessible without authentication. Discovered N user accounts
+      > including service and administrative accounts. **Risk**: High.
+      > **Recommendation**: Restrict anonymous read access using LDAP
+      > ACLs. At minimum, restrict access to sensitive attributes like
+      > `userPassword` and `description`. Implement authentication
+      > requirements for all LDAP queries beyond the Root DSE.
+
+workbook: "wiki/range/winpt/CH07_LDAP_Enumeration/04_LDAP_User_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify LDAP port 389 is open"
+      command: "nmap -Pn -p 389 {target.target} | grep '389/tcp'"
+      expect: "open"
+
+    - name: "Enumerate users via anonymous LDAP bind"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' '(objectClass=posixAccount)' uid 2>&1 | grep '^uid:'"
+      expect: "jmitchell"
+
+    - name: "LDAP search for flag"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{' || (sleep 3 && ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{')"
+      expect: "OCR{"

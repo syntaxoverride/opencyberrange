@@ -1,0 +1,1563 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.1: Windows Reconnaissance - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-11-windows-reconnaissance" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.1: Windows Reconnaissance
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-windows-network-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Windows Network Services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Windows Network Services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters-for-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Matters for Security
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-nmap-for-windows-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Nmap for Windows Targets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-verify-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Verify Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-syn-scan-top-1000-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SYN Scan (Top 1000 Ports)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-service-version-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Service Version Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-os-fingerprinting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: OS Fingerprinting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-netbios-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: NetBIOS Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-smb-os-discovery-find-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: SMB OS Discovery (Find the Flag)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-11-windows-reconnaissance">Exercise 1.1: Windows Reconnaissance</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 1.1 is the first exercise in Chapter F1 (Windows Forensics). You will use nmap from
+your Kali machine to scan a live Windows 10 target and identify the services it
+exposes. No credentials are needed for this exercise; everything is performed remotely
+from the network. If you have completed the enumeration chapters (CH01-CH07), the
+nmap commands will be familiar. this exercise focuses specifically on interpreting scan
+results in a Windows context.</p>
+<p>Make sure you have:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Your Kali machine connected to the lab network (VPN active or RangeBox session running)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Terminal access on your Kali machine</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> nmap installed (<code>nmap --version</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Target IP noted from the <strong>Active Lab</strong> panel; replace <code>&lt;target-ip&gt;</code> in the commands below with this address</li>
+</ul>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>Meridian Technologies has engaged your team to assess their Windows infrastructure.
+Before testing any credentials or accessing any systems, your first task is pure
+reconnaissance: identify what services the target Windows workstation exposes to
+the network. The exposed services determine your attack surface and guide the next
+phase of the assessment. A single Windows machine can expose a dozen services by
+default; your job is to find them all and understand what each one means.</p>
+<hr />
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Verify network connectivity to the Windows target</li>
+<li>Perform a SYN scan to identify open ports</li>
+<li>Run service version detection to fingerprint each service</li>
+<li>Use OS fingerprinting to confirm the target operating system</li>
+<li>Extract NetBIOS information (hostname, workgroup, MAC address)</li>
+<li>Use SMB scripts to discover OS-level details and retrieve the flag</li>
+</ul>
+<hr />
+<h2 id="background-windows-network-services">Background: Windows Network Services</h2>
+<p>A default Windows installation exposes significantly more network services than a
+typical Linux server. Understanding what each service does; and why it exists; is
+essential for both attackers and defenders.</p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Protocol</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>135</td>
+<td>RPC Endpoint Mapper</td>
+<td>MSRPC</td>
+<td>Microsoft's inter-process communication broker. Maps RPC services to dynamic high ports. Required for DCOM, WMI, and many Windows management tools.</td>
+</tr>
+<tr>
+<td>139</td>
+<td>NetBIOS Session</td>
+<td>NetBIOS/SMB</td>
+<td>Legacy Windows networking. Provides name resolution, session management, and datagram services. Predates DNS-based Windows networking.</td>
+</tr>
+<tr>
+<td>445</td>
+<td>SMB Direct</td>
+<td>SMB/CIFS</td>
+<td>File and printer sharing over TCP. The primary protocol for Windows file access, Active Directory communication, and lateral movement.</td>
+</tr>
+<tr>
+<td>3389</td>
+<td>RDP</td>
+<td>RDP</td>
+<td>Remote Desktop Protocol. Provides full graphical remote access to the Windows desktop. Frequently targeted by brute-force attacks.</td>
+</tr>
+<tr>
+<td>5985</td>
+<td>WinRM</td>
+<td>HTTP/SOAP</td>
+<td>Windows Remote Management. Allows remote PowerShell execution and system management over HTTP. The modern replacement for WMI-over-DCOM.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-this-matters-for-security">Why This Matters for Security</h3>
+<p>Windows exposes these services because enterprise environments depend on them. SMB
+enables file sharing and Group Policy distribution. RPC underpins Windows
+Management Instrumentation (WMI). RDP provides remote administration. But each open
+port is an attack vector.</p>
+<p>SMB has a particularly notorious history. The EternalBlue exploit (MS17-010),
+leaked from the NSA in 2017, targeted a vulnerability in SMBv1 and powered the
+WannaCry ransomware outbreak that crippled hospitals, shipping companies, and
+government agencies worldwide. Port 445 open on a Windows machine is the single
+most important finding in any Windows reconnaissance scan.</p>
+<p>RDP is the second most-targeted service. Attackers routinely brute-force RDP
+credentials, and once they have a valid login, they have full interactive access to
+the machine; no malware required. The BlueKeep vulnerability (CVE-2019-0708)
+demonstrated that RDP itself can be exploited for remote code execution without any
+credentials at all.</p>
+<hr />
+<h2 id="tool-primer-nmap-for-windows-targets">Tool Primer: Nmap for Windows Targets</h2>
+<p>The table below lists the nmap options you will use in this exercise. Each flag is
+explained in the context of scanning Windows systems.</p>
+<table>
+<thead>
+<tr>
+<th>Flag / Option</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-sS</code></td>
+<td>SYN scan (stealth scan). Sends SYN packets and analyzes responses without completing the TCP handshake. Fast and reliable. Requires root/sudo.</td>
+</tr>
+<tr>
+<td><code>-sV</code></td>
+<td>Service version detection. Probes open ports to determine the service name and version. Essential for identifying Windows-specific services.</td>
+</tr>
+<tr>
+<td><code>-O</code></td>
+<td>OS fingerprinting. Analyzes TCP/IP stack behavior to guess the operating system. Requires root/sudo.</td>
+</tr>
+<tr>
+<td><code>-p</code></td>
+<td>Specify ports to scan. Use <code>-p 135,139,445,3389,5985</code> to target Windows services directly.</td>
+</tr>
+<tr>
+<td><code>--script nbstat</code></td>
+<td>Runs the NetBIOS statistics script. Extracts the hostname, workgroup/domain, and MAC address from the target.</td>
+</tr>
+<tr>
+<td><code>--script smb-os-discovery</code></td>
+<td>Queries SMB to determine the OS version, computer name, domain, and workgroup. Often reveals details that <code>-O</code> alone misses.</td>
+</tr>
+<tr>
+<td><code>-Pn</code></td>
+<td>Skip host discovery (treat host as online). Useful when ICMP is blocked by Windows Firewall.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-verify-connectivity">Step 1: Verify Connectivity</h3>
+<div class="admonition kali">
+<p class="admonition-title">Confirm the target is reachable</p>
+<p>Before scanning, confirm that the target is reachable from your Kali machine. Use the target IP shown in the Active Lab panel. The <code>-c 3</code> flag sends three ICMP echo requests.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ping<span class="w"> </span>-c<span class="w"> </span><span class="m">3</span><span class="w"> </span>&lt;target-ip&gt;
+</code></pre></div>
+<p>You should receive three replies. If ICMP is blocked (request timed out), the
+target may still be accessible; Windows Firewall sometimes blocks ping while
+allowing other traffic. In that case, proceed with the scan using the <code>-Pn</code> flag.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Ping successful (yes/no): <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Round-trip time (avg): <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-2-syn-scan-top-1000-ports">Step 2: SYN Scan (Top 1000 Ports)</h3>
+<div class="admonition kali">
+<p class="admonition-title">Run a SYN scan of the top 1000 ports</p>
+<p>Run a SYN scan against the default top 1000 ports to get a broad view of the target's attack surface. The <code>-sS</code> flag performs a stealth scan that does not complete the TCP handshake and requires sudo.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sudo<span class="w"> </span>nmap<span class="w"> </span>-sS<span class="w"> </span>&lt;target-ip&gt;
+</code></pre></div>
+<p>Review the output carefully. On a Windows 10 machine, you should expect to see
+several ports open; typically 135, 139, 445, 3389, and 5985. Compare this to a
+typical Linux server, which might only show port 22 (SSH) and port 80 (HTTP).
+Windows exposes more services by default because its networking model is built
+around SMB, RPC, and remote management.</p>
+<p>Note any additional open ports beyond the five listed above. Windows machines in
+enterprise environments often run additional services; MSSQL (1433), IIS (80/443),
+or LDAP (389/636); depending on their role.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>State</th>
+<th>Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Total open ports: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Any unexpected ports? <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-3-service-version-detection">Step 3: Service Version Detection</h3>
+<div class="admonition kali">
+<p class="admonition-title">Fingerprint the service versions</p>
+<p>Now probe the open ports to identify the exact service versions running behind them. The <code>-sV</code> flag triggers version detection, and <code>-p</code> restricts the probe to the five Windows ports.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nmap<span class="w"> </span>-sV<span class="w"> </span>-p<span class="w"> </span><span class="m">135</span>,139,445,3389,5985<span class="w"> </span>&lt;target-ip&gt;
+</code></pre></div>
+<p>The output shows the service name and version for each port. For Windows services,
+you will typically see entries like:</p>
+<ul>
+<li><strong>135/tcp</strong>: <code>Microsoft Windows RPC</code></li>
+<li><strong>139/tcp</strong>: <code>Microsoft Windows netbios-ssn</code></li>
+<li><strong>445/tcp</strong>: <code>microsoft-ds</code> (Microsoft Directory Services, i.e., SMB)</li>
+<li><strong>3389/tcp</strong>: <code>ms-wbt-server</code> (Microsoft Windows-Based Terminal, i.e., RDP)</li>
+<li><strong>5985/tcp</strong>: <code>Microsoft HTTPAPI httpd 2.0</code> (WinRM running on HTTP.sys)</li>
+</ul>
+<p>The version strings confirm that this is a Windows system. The <code>microsoft-ds</code>
+label on port 445 is particularly important; it tells you SMB is available for
+enumeration, which is the focus of the next exercise.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+<th>Version String</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>135</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>139</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>445</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3389</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5985</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="step-4-os-fingerprinting">Step 4: OS Fingerprinting</h3>
+<div class="admonition kali">
+<p class="admonition-title">Fingerprint the operating system</p>
+<p>Use nmap's OS detection to confirm the exact Windows version. The <code>-O</code> flag analyzes TCP/IP stack behavior and requires sudo.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>nmap<span class="w"> </span>-O<span class="w"> </span>&lt;target-ip&gt;
+</code></pre></div>
+<p>The output includes several important fields:</p>
+<ul>
+<li><strong>OS CPE:</strong> A standardized identifier like <code>cpe:/o:microsoft:windows_10</code> that
+  uniquely identifies the operating system</li>
+<li><strong>OS guesses:</strong> One or more guesses with confidence percentages, such as
+  <code>Microsoft Windows 10 1709 - 1909 (93%)</code></li>
+<li><strong>Network Distance:</strong> The number of hops to the target</li>
+</ul>
+<p>OS fingerprinting works by analyzing subtle differences in how operating systems
+implement the TCP/IP stack; window sizes, TTL values, TCP options, and response
+patterns to unusual packets. Different Windows versions have distinct fingerprints.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>OS CPE: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Best OS guess: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Confidence: <strong><em>_</em></strong><strong><em>_</em></strong>_%</li>
+<li>Network distance: <strong><em>_</em></strong><strong><em>_</em></strong>_ hops</li>
+</ul>
+<hr />
+<h3 id="step-5-netbios-information">Step 5: NetBIOS Information</h3>
+<div class="admonition kali">
+<p class="admonition-title">Extract NetBIOS information</p>
+<p>Extract the target's NetBIOS name, workgroup, and MAC address using nmap's nbstat script. The <code>--script nbstat</code> option runs the NetBIOS statistics NSE script against the host.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>nbstat<span class="w"> </span>&lt;target-ip&gt;
+</code></pre></div>
+<p>The output reveals:</p>
+<ul>
+<li><strong>NetBIOS name:</strong> The computer's hostname as registered on the network</li>
+<li><strong>NetBIOS user:</strong> The currently logged-in user (if available)</li>
+<li><strong>Workgroup/Domain:</strong> Whether the machine belongs to a workgroup or Active Directory domain</li>
+<li><strong>MAC address:</strong> The physical network adapter address and its vendor</li>
+</ul>
+<p>The NetBIOS data is valuable for mapping the target environment. The hostname often
+reveals the machine's purpose (e.g., <code>FINANCE-WS01</code>, <code>DC01</code>, <code>FILESERVER</code>). The
+workgroup or domain name tells you about the network architecture. The MAC address
+vendor can identify the hardware manufacturer or virtualization platform.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>NetBIOS name: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Workgroup/Domain: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>MAC address: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>MAC vendor: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-6-smb-os-discovery-find-the-flag">Step 6: SMB OS Discovery (Find the Flag)</h3>
+<div class="admonition kali">
+<p class="admonition-title">Query SMB for OS details and the flag</p>
+<p>Run the SMB OS discovery script to extract detailed operating system information directly from the SMB service. The <code>--script smb-os-discovery</code> option queries SMB and often reveals more detail than OS fingerprinting alone.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>nmap<span class="w"> </span>--script<span class="w"> </span>smb-os-discovery<span class="w"> </span>&lt;target-ip&gt;
+</code></pre></div>
+<p>Examine the output carefully. The script returns:</p>
+<ul>
+<li><strong>OS:</strong> The full Windows version string</li>
+<li><strong>Computer name:</strong> The NetBIOS and DNS hostname</li>
+<li><strong>Domain/Workgroup:</strong> Active Directory domain or workgroup membership</li>
+<li><strong>System time:</strong> The target's current date and time</li>
+<li><strong>Computer description:</strong> A free-text field set by the administrator</li>
+</ul>
+<p>The <strong>computer description</strong> field contains the flag for this exercise, in the form:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>OCR{...}
+</code></pre></div>
+<p>Administrators often set computer descriptions for asset management purposes, but
+they rarely realize this field is readable by anyone who can reach port 445. In a
+real assessment, this field sometimes contains internal documentation, IP addresses
+of other systems, or administrator notes; all of which is useful for further
+reconnaissance.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>OS version: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Computer name: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Domain/Workgroup: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Computer description: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li><strong>Flag: <strong><em>_</em></strong><strong><em>_</em></strong>_</strong></li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. How does a Windows scan profile differ from a typical Linux scan profile?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A default Windows machine typically exposes 5 or more services (RPC on 135,
+NetBIOS on 139, SMB on 445, RDP on 3389, WinRM on 5985), while a hardened Linux
+server often shows only SSH (22) and the application port (80 or 443). Windows
+exposes more services because its networking model depends on RPC for management,
+SMB for file sharing and Group Policy, and RDP for remote administration. Each
+additional open port increases the attack surface. The expanded surface is why
+Windows hardening guides emphasize disabling unnecessary services and using
+host-based firewalls to restrict access to essential ports only.</p>
+</details>
+<p><strong>2. What is the security significance of port 445 (SMB)?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Port 445 is the most security-critical port on any Windows machine. SMB has been
+the target of devastating exploits, most notably EternalBlue (MS17-010), which
+was exploited by the WannaCry and NotPetya ransomware campaigns in 2017. Beyond
+remote code execution vulnerabilities, SMB also enables null session enumeration
+(listing shares, users, and groups without credentials), credential relay attacks
+(NTLM relay), and lateral movement using tools like PsExec and Impacket. If port
+445 is open and accessible, the machine is exposed to a wide range of attacks.
+Best practice is to block SMB at the perimeter firewall and restrict internal SMB
+access to only the systems that require it.</p>
+</details>
+<p><strong>3. Why does Windows expose RPC (port 135) and dynamically assigned high-numbered
+RPC ports?</strong></p>
+<blockquote>
+<p>Port 135 is the RPC Endpoint Mapper, a directory service that tells clients which
+high-numbered port a specific RPC service is listening on. When a client wants to
+use DCOM (Distributed Component Object Model) or WMI (Windows Management
+Instrumentation), it first queries port 135 to find the dynamic port assigned to
+that service, then connects to that port directly. The endpoint-mapper design means
+that blocking port 135 breaks many Windows management tools, but leaving it open
+exposes the RPC service directory to anyone on the network. Attackers use RPC
+enumeration to discover available services, identify the OS version, and find
+additional attack vectors. In segmented networks, RPC traffic should be restricted
+to management VLANs.</p>
+</blockquote>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Windows machines expose significantly more network services by default than Linux
+  systems, creating a larger attack surface that must be understood and managed</li>
+<li>The five core Windows ports (135, 139, 445, 3389, 5985) each serve a distinct
+  function in the Windows networking model, and each represents a potential attack
+  vector</li>
+<li>SMB (port 445) is the highest-priority finding in any Windows scan due to its
+  history of critical vulnerabilities and its central role in lateral movement</li>
+<li>Nmap scripts like <code>nbstat</code> and <code>smb-os-discovery</code> extract valuable metadata
+  (hostname, domain, OS version, description) without requiring any credentials</li>
+<li>OS fingerprinting, service version detection, and NSE scripts provide
+  complementary information; use all three together for the most complete picture
+  of the target</li>
+</ul>
+<hr />
+<p><em>Next: Exercise 1.2; Remote Enumeration &amp; Data Discovery</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

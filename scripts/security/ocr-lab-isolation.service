@@ -1,0 +1,34 @@
+# OCR lab-isolation firewall (S2) -- reapply the lab -> host/management drop
+# rules on every boot, after Docker has created its chains.
+#
+# Docker recreates DOCKER-USER empty when the daemon starts and iptables rules do
+# not persist across reboot, so the isolation must be reasserted. This oneshot
+# runs apply-lab-isolation.sh after docker.service is up.
+#
+# Install (adjust the path if the repo/artifact lives elsewhere):
+#   sudo cp scripts/security/ocr-lab-isolation.service /etc/systemd/system/
+#   sudo sed -i 's#/opt/opencyberrange#/actual/install/path#' \
+#       /etc/systemd/system/ocr-lab-isolation.service   # if not /opt/opencyberrange
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now ocr-lab-isolation.service
+#   sudo systemctl status ocr-lab-isolation.service
+#
+# Verify after a reboot:  scripts/security/test-lab-isolation.sh  (expect PASS)
+
+[Unit]
+Description=OpenCyberRange lab-isolation firewall rules (S2)
+After=docker.service
+Requires=docker.service
+# Bind to docker's lifecycle: a `systemctl restart docker` flushes DOCKER-USER,
+# so restart this unit with it to reassert the rules.
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Point this at wherever the security scripts are installed on the host.
+ExecStart=/opt/opencyberrange/scripts/security/apply-lab-isolation.sh apply
+ExecStop=/opt/opencyberrange/scripts/security/apply-lab-isolation.sh remove
+
+[Install]
+WantedBy=multi-user.target

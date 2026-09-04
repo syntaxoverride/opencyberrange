@@ -1,0 +1,348 @@
+name: RDP Credential Guessing
+description: Test common credential combinations against FinanceCorp's RDP service to identify weak authentication.
+difficulty: beginner
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - test multiple common credential combinations
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your RDP authentication testing for FinanceCorp has begun. James Mitchell wants to 
+  understand if common or default credentials could provide unauthorized access, as 
+  this is a frequent security issue.
+  
+  Credential guessing tests common username/password combinations that are frequently 
+  used in enterprise environments. FinanceCorp needs to know if their RDP services are 
+  vulnerable to such attacks.
+  
+  Your objective: Test multiple common credential combinations against FinanceCorp's 
+  RDP service. Document any successful authentications and identify patterns in 
+  weak credentials.
+
+flag: "OCR{rdp_cr3d_gu3ss}"
+
+hints:
+  - text: |
+      ## What is Credential Guessing?
+
+      **Credential guessing** (also called password guessing or manual credential
+      testing) is the process of manually trying common username and password
+      combinations against a service to gain unauthorized access. Unlike brute force
+      attacks, credential guessing is a **targeted, low-volume approach** that focuses
+      on the most likely combinations.
+
+      ### Why Credential Guessing is Effective
+
+      Credential guessing exploits human behavior and organizational patterns:
+
+      - **Default credentials**: Many services ship with default username/password
+        combinations that administrators forget to change (admin/admin, admin/password)
+      - **Common passwords**: Users frequently choose easily guessable passwords
+        like "password123", "admin123", "qwerty", "letmein", or "welcome1"
+      - **Predictable patterns**: Organizations often use patterns like
+        "CompanyName2024", "Season+Year", or "username+123"
+      - **Credential reuse**: Users often reuse passwords across multiple services
+
+      ### Credential Guessing vs Brute Force
+
+      | Aspect           | Credential Guessing        | Brute Force              |
+      |------------------|---------------------------|--------------------------|
+      | Volume           | Low (5-20 attempts)        | High (thousands+)        |
+      | Detection risk   | Low                        | High                     |
+      | Speed            | Slow (manual)              | Fast (automated)         |
+      | Approach         | Targeted, educated guesses | Exhaustive, systematic   |
+      | Account lockout  | Unlikely to trigger        | Likely to trigger        |
+
+      In this lab, you will test common credential combinations against the
+      FinanceCorp RDP service to identify weak authentication.
+    unlock_after_minutes: 0
+
+  - text: |
+      ## Tools for RDP Credential Guessing
+
+      For manual credential guessing against RDP, the primary tool is **xfreerdp**.
+      Each connection attempt tests one credential combination, and the result
+      tells you whether authentication succeeded or failed.
+
+      ### Installation
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Basic Connection Syntax
+
+      ```bash
+      xfreerdp /v:<target> /u:<username> /p:<password> /cert:ignore
+      ```
+
+      ### Interpreting Results
+
+      **Successful authentication:**
+      - The RDP desktop window opens
+      - You see the remote desktop environment
+      - xfreerdp does not immediately exit with an error
+
+      **Failed authentication:**
+      - xfreerdp exits with an error message
+      - Common error messages include:
+        - `ERRCONNECT_LOGON_FAILURE` - Wrong username or password
+        - `ERRCONNECT_ACCOUNT_LOCKED_OUT` - Account is locked
+        - `ERRCONNECT_PASSWORD_EXPIRED` - Password has expired
+
+      ### Common Username/Password Combinations to Try
+
+      | Username       | Passwords to Try                           |
+      |---------------|-------------------------------------------|
+      | admin         | admin, admin123, password, password123     |
+      | administrator | admin, password, Administrator, P@ssw0rd   |
+      | user          | user, user123, password, password123       |
+      | root          | root, toor, password, admin                |
+      | guest         | guest, guest123, password                  |
+    unlock_after_minutes: 5
+
+  - text: |
+      ## Practical Credential Guessing Strategy
+
+      ### Building a Target Credential List
+
+      Effective credential guessing requires an educated approach. Consider these
+      factors when building your guess list:
+
+      **1. Service-specific defaults:**
+      - xrdp commonly uses Linux system accounts
+      - Default installations may have accounts like `admin`, `user`, or `test`
+      - Some xrdp setups use the same credentials as SSH
+
+      **2. Organization context:**
+      - FinanceCorp is a financial services company
+      - Common admin patterns in enterprises include "admin" accounts
+      - IT teams often use simple passwords for service accounts
+
+      **3. Common weak passwords (Top 10 for enterprise environments):**
+      ```
+      password
+      password123
+      admin123
+      admin
+      welcome1
+      qwerty
+      letmein
+      changeme
+      123456
+      P@ssw0rd
+      ```
+
+      ### Testing Strategy for RDP
+
+      When manually guessing against RDP:
+
+      1. **Start with the most common usernames**: admin, administrator, user
+      2. **Try the most common passwords first**: admin123, password, password123
+      3. **Watch for lockout policies**: If you get locked out after 3-5 attempts,
+         wait before continuing or try a different username
+      4. **Note partial successes**: Error messages that differ from "wrong password"
+         may indicate the username exists (account locked, password expired, etc.)
+
+      ### Rate Limiting Awareness
+
+      Keep your attempts spaced apart. Rapid consecutive failed logins may:
+      - Trigger account lockout policies
+      - Generate security alerts
+      - Block your IP address temporarily
+    unlock_after_minutes: 10
+
+  - text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Verify the RDP Service
+
+      Confirm port 3389 is open:
+
+      ```bash
+      nmap -p 3389 -sV -Pn <target>
+      ```
+
+      ### Step 2: Prepare Your Credential List
+
+      Based on common enterprise patterns, prepare these combinations to test:
+
+      ```
+      admin / admin
+      admin / admin123
+      admin / password
+      admin / password123
+      admin / qwerty
+      administrator / admin
+      administrator / password
+      user / user123
+      user / password
+      ```
+
+      ### Step 3: Test Each Combination
+
+      Try each credential pair using xfreerdp:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:admin /cert:ignore
+      ```
+
+      If this fails (you see an error and the window closes), try the next:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:admin123 /cert:ignore
+      ```
+
+      Continue through your list until you find a working combination.
+
+      ### Step 4: Identify Successful Login
+
+      When you find working credentials, the XFCE desktop will appear in a
+      new window. This means authentication was successful.
+
+      ### Step 5: Retrieve the Flag
+
+      Open a terminal in the remote desktop session:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Step 6: Document All Attempts
+
+      Record which credentials worked and which failed. This information is
+      valuable for the penetration test report.
+    unlock_after_minutes: 15
+
+  - text: |
+      ## Exact Commands to Run
+
+      ### Install the RDP Client
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### Test Credential Combinations
+
+      Try these combinations in order (the correct one is included in this list):
+
+      ```bash
+      # Attempt 1: admin/admin
+      xfreerdp /v:<target> /u:admin /p:admin /cert:ignore
+
+      # Attempt 2: admin/admin123
+      xfreerdp /v:<target> /u:admin /p:admin123 /cert:ignore
+
+      # Attempt 3: admin/password
+      xfreerdp /v:<target> /u:admin /p:password /cert:ignore
+
+      # Attempt 4: admin/password123
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      ```
+
+      Watch the output of each command:
+      - **Failed**: You will see `ERRCONNECT_LOGON_FAILURE` and xfreerdp will exit
+      - **Success**: An RDP window opens showing the remote XFCE desktop
+
+      ### After Successful Connection
+
+      Once you are connected to the remote desktop:
+
+      1. Right-click the desktop and select **"Open Terminal Here"**
+      2. Run the following command:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      3. Copy the flag value (`OCR{...}`) and submit it
+
+      ### Quick Scripted Approach
+
+      You can also test credentials quickly from the command line. If xfreerdp
+      exits with return code 0, the connection was accepted:
+
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:admin123 /cert:ignore +clipboard /size:1280x720
+      ```
+    unlock_after_minutes: 20
+
+  - text: |
+      ## Complete Solution Walkthrough
+
+      ### 1. Install FreeRDP
+
+      ```bash
+      sudo apt update && sudo apt install freerdp2-x11 -y
+      ```
+
+      ### 2. Verify the RDP Service
+
+      ```bash
+      nmap -p 3389 -sV -Pn <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE        VERSION
+      3389/tcp open  ms-wbt-server  xrdp
+      ```
+
+      ### 3. Test Credentials
+
+      The working credentials for this lab are **admin:admin123**. Testing
+      systematically, you would discover this after a few attempts:
+
+      ```bash
+      # This will SUCCEED:
+      xfreerdp /v:<target> /u:admin /p:admin123 /cert:ignore +clipboard /size:1280x720
+      ```
+
+      When `admin:admin123` is used, an RDP window opens showing the XFCE desktop.
+
+      ### 4. Retrieve the Flag
+
+      In the remote desktop session, open a terminal and run:
+
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      Expected output:
+      ```
+      OCR{...}
+      ```
+
+      Copy the flag and submit it through the lab platform.
+
+      ### Key Takeaway
+
+      The credentials `admin:admin123` are extremely common and represent a
+      **Critical** severity finding because they grant full remote desktop
+      access with minimal effort.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "admin"
+    password: "admin123"
+    role: "rdp-user"
+    description: "RDP admin credentials"
+
+workbook: "wiki/range/winpt/CH04_RDP_Exploitation/04_RDP_Credential_Guessing/"
+
+test:
+  steps:
+    - name: "Verify RDP port 3389 is open"
+      command: "nmap -Pn -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "open"
+
+    - name: "Detect RDP service on port 3389"
+      command: "nmap -Pn -sV -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "ms-wbt-server"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p 'admin123' ssh -o StrictHostKeyChecking=no admin@{target.target} cat /home/admin/flag.txt"
+      expect: "OCR{"

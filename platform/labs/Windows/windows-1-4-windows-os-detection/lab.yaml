@@ -1,0 +1,156 @@
+name: Windows OS Detection
+description: Complete your FinanceCorp reconnaissance by identifying the Windows operating system version and build.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Use nmap OS detection (-O) to identify operating system
+  - Interpret OS detection results
+  - Understand OS fingerprinting concepts
+  - Capture the flag
+
+scenario: |
+  Your assessment of FinanceCorp's Windows infrastructure is progressing well. James 
+  Mitchell has requested information about the operating system version, as this 
+  affects patch management and security configuration requirements.
+  
+  Operating system detection helps identify potential vulnerabilities, misconfigurations, 
+  and security issues specific to certain Windows versions. This information is 
+  essential for a comprehensive security assessment.
+  
+  Your objective: Use OS detection techniques to identify the exact Windows operating 
+  system version and build running on FinanceCorp's server. This information will 
+  complete your initial reconnaissance phase and inform your next assessment activities.
+
+
+flag: "OCR{0s_d3t3ct10n}"
+
+hints:
+  - text: |
+      **Operating system detection** (OS fingerprinting) identifies the exact OS version running on a target system. This information helps assess vulnerability exposure and plan attack strategies.
+
+      **Why OS detection matters:**
+      - **Vulnerability research**: Different Windows versions have different vulnerabilities
+      - **Exploit compatibility**: Exploits often target specific OS versions
+      - **Patch level assessment**: Reveals if system is running outdated OS
+      - **Security posture**: Modern vs legacy OS versions
+      - **Configuration expectations**: Default settings vary by OS version
+
+      Knowing the OS version is critical for both defensive and offensive security operations.
+    unlock_after_minutes: 0
+
+  - text: |
+      **OS fingerprinting techniques** analyze network stack behavior to identify the operating system:
+
+      **nmap OS detection methods:**
+      1. **TCP/IP stack fingerprinting**: Analyzes how OS responds to various packets
+      2. **Open port patterns**: Service combinations typical of specific OS
+      3. **TTL values**: Different OS use different default TTL values
+      4. **Window sizes**: TCP window size variations between OS
+      5. **Service versions**: Version strings that reveal OS
+
+      nmap maintains a comprehensive database of OS fingerprints for accurate detection.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Windows OS versions** have distinct characteristics:
+
+      **Common Windows Server versions:**
+      - Windows Server 2008/2008 R2
+      - Windows Server 2012/2012 R2
+      - Windows Server 2016
+      - Windows Server 2019
+      - Windows Server 2022
+
+      **Detection indicators:**
+      - SMB protocol version
+      - RPC endpoints
+      - Service banners
+      - TCP/IP stack behavior
+      - Default open ports
+
+      Each Windows version has unique network signatures that nmap can identify.
+    unlock_after_minutes: 10
+
+  - text: |
+      **nmap OS detection syntax:**
+
+      ```bash
+      nmap -O <target>
+      ```
+
+      **Important requirements:**
+      - Requires root/sudo privileges: `sudo nmap -O <target>`
+      - Needs at least one open and one closed port
+      - More accurate with multiple open ports
+
+      **Useful OS detection flags:**
+      - `-O`: Enable OS detection
+      - `--osscan-guess`: Guess OS more aggressively
+      - `--osscan-limit`: Only OS detect hosts with open/closed ports
+      - `-A`: Aggressive scan (includes `-O`, `-sV`, `-sC`, traceroute)
+
+      Example: `sudo nmap -O <target>`
+    unlock_after_minutes: 15
+
+  - text: |
+      To perform OS detection on FinanceCorp's Windows server:
+
+      ```bash
+      sudo nmap -O <target>
+      ```
+
+      This command:
+      - Enables OS fingerprinting
+      - Analyzes TCP/IP stack behavior
+      - Compares results against OS database
+      - Reports most likely OS match
+
+      For comprehensive detection with version info:
+
+      ```bash
+      sudo nmap -O -sV <target>
+      ```
+
+      This combines OS detection with service version detection for maximum information.
+    unlock_after_minutes: 20
+
+  - text: |
+      nmap OS detection output includes OS guesses and confidence levels:
+
+      ```
+      OS details: Microsoft Windows Server 2016
+      Network Distance: 1 hop
+      ```
+
+      Or with more detail:
+
+      ```
+      OS CPE: cpe:/o:microsoft:windows_server_2016
+      OS details: Microsoft Windows Server 2016 build 14393
+      Network Distance: 1 hop
+      ```
+
+      **Interpreting OS detection results:**
+      - **OS details**: Primary OS guess
+      - **CPE**: Common Platform Enumeration (standardized OS identifier)
+      - **Accuracy**: Sometimes shows percentage confidence
+      - **Network Distance**: Hops between scanner and target
+
+      The flag is related to the detected operating system. Look for the Windows version in the nmap OS detection output.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH01_Enumeration/04_OS_Detection/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Detect OS information via nmap service scan"
+      command: "nmap -Pn -sV -p 445 {target.target}"
+      expect: "Samba"
+
+    - name: "Retrieve flag from SMB server string"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"

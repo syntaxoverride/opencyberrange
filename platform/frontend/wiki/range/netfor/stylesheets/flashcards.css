@@ -1,0 +1,170 @@
+/* Interactive flip-card flashcards for the Cybervance/FREEZERBURN arc.
+ * Progressive enhancement of the "## Flashcards" Q/A list produced by
+ * flashcards.js. Themed with Material's own --md-* tokens so the cards
+ * follow the cyan palette and both the slate (dark) and default (light)
+ * schemes with no per-theme rules of our own. */
+
+.fc-help {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  opacity: 0.75;
+  margin: 0.35rem 0 1rem;
+}
+
+.fc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+  margin: 0.75rem 0 1.75rem;
+}
+
+/* The card is the flip pivot and the keyboard control. A <button> gives us
+ * focus and Enter/Space for free. */
+.fc-card {
+  display: grid;               /* single implicit cell -> equal-height rows */
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  perspective: 1200px;
+}
+
+.fc-inner {
+  position: relative;
+  display: grid;               /* stack both faces in one cell */
+  min-height: 152px;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.fc-card.flipped .fc-inner {
+  transform: rotateY(180deg);
+}
+
+.fc-face {
+  grid-area: 1 / 1;            /* overlap -> container sizes to tallest face */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.95rem 1.05rem 1.05rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-code-bg-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.09);
+  transition: box-shadow 0.2s ease;
+  overflow: hidden;              /* clip to the rounded corners */
+}
+
+/* Let content shrink so a wide code block scrolls inside the card instead of
+ * stretching it (defeats the flex/grid min-width:auto default at every level). */
+.fc-card,
+.fc-inner,
+.fc-face,
+.fc-text {
+  min-width: 0;
+}
+.fc-text {
+  max-width: 100%;
+}
+
+.fc-back {
+  transform: rotateY(180deg);
+  border-color: var(--md-accent-fg-color);
+  /* faint accent wash; falls back to the plain face bg where color-mix
+   * is unsupported */
+  background: color-mix(in srgb, var(--md-accent-fg-color) 8%, var(--md-code-bg-color));
+}
+
+.fc-tag {
+  align-self: flex-start;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  padding: 0.24rem 0.46rem;
+  border-radius: 0.28rem;
+  color: #fff;
+}
+
+.fc-front .fc-tag { background: var(--md-primary-fg-color); }
+.fc-back  .fc-tag { background: var(--md-accent-fg-color); }
+
+/* Optional card title (Spaced Repetition "Card N: ..." lines). */
+.fc-eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  color: var(--md-accent-fg-color);
+}
+
+.fc-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.fc-front .fc-text { font-weight: 600; }
+
+.fc-text code {
+  font-size: 0.9em;
+  padding: 0.05em 0.32em;
+  word-break: break-word;
+}
+
+/* Code-answer cards (Spaced Repetition): keep the back readable and bounded
+ * so a long command block scrolls inside the card instead of making it huge. */
+.fc-card--code .fc-back .fc-text {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.fc-back .fc-text p { margin: 0 0 0.5rem; }
+.fc-back .fc-text p:last-child { margin-bottom: 0; }
+.fc-back .fc-text .highlight,
+.fc-back .fc-text pre {
+  margin: 0 0 0.5rem;
+  border-radius: 0.32rem;
+  overflow-x: auto;
+}
+.fc-back .fc-text pre code {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  padding: 0;
+}
+/* Code line-number anchors add no value inside a card; keep them quiet. */
+.fc-back .fc-text pre a { pointer-events: none; color: inherit; }
+
+.fc-hint {
+  margin-top: auto;
+  padding-top: 0.4rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.fc-card:hover .fc-face {
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.16);
+}
+
+.fc-card:focus-visible {
+  outline: none;
+}
+.fc-card:focus-visible .fc-face {
+  outline: 2px solid var(--md-accent-fg-color);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-inner { transition: none; }
+}

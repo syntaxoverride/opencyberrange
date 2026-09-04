@@ -1,0 +1,1363 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise OTSOC-1.3: The Scan That Must Not Happen - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-otsoc-13-the-scan-that-must-not-happen" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise OTSOC-1.3: The Scan That Must Not Happen
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-set-the-sensor-variable-and-capture-a-passive-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Set the sensor variable and capture a passive baseline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-understand-the-failure-mode-do-not-reproduce-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Understand the failure mode (do not reproduce it)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-contrast-with-one-well-formed-read-only-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Contrast with one well-formed read-only query
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-write-the-soc-standard-and-classify-the-proposed-scans" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Write the SOC standard and classify the proposed scans
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture the Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-otsoc-13-the-scan-that-must-not-happen">Exercise OTSOC-1.3: The Scan That Must Not Happen</h1>
+<h2 id="scenario">Scenario</h2>
+<p>A junior analyst at Pecan Creek Creamery wants to "just run a quick Nmap" of the OT floor. Your job in the SOC is to stop that and explain why, then to show the one narrow case where a safe active query is allowed.</p>
+<p>Aggressive active scanning is forbidden on this live plant. The ammonia PLC has faulted under an Nmap service scan before, stopped reporting, and forced a refrigeration trip. Do not point any scanner at <code>mix.pcc.local</code> or <code>ammonia.pcc.local</code> in aggressive mode. You are a defender writing a SOC standard, not an attacker.</p>
+<p>Your passive baseline comes from the sensor at <code>http://sensor.pcc.local:8000/</code>. The sensor serves Zeek logs generated from a recorded capture of the plant control network, so the hosts in those logs carry the plant's own addressing (<code>10.100.4.x</code>), not your session subnet. A captured host lines up with a live device in your Exercise Network panel by their shared last octet. The only active action allowed in this entire exercise is a single, well-formed, read-only Modbus function-code 3 query against the blend tank, to demonstrate that one careful read is tolerated. A read-only operator account (<code>operator</code> / <code>PecanCreek#2026</code>) exists for consistency across the track; no HMI is exercised here.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>In IT, a port scan is a first reflex and carries little risk. In OT, the same scan is a safety event. Many fielded PLCs run thin, single-purpose network stacks that were never hardened against unexpected packets. An aggressive service or version probe can crash the controller, hang its scan cycle, or trip safety logic, and the cost is not a missed scan result; it is a stopped line or, with ammonia refrigeration, a hazardous release.</p>
+<p>The skill being trained is restraint backed by a written standard. A good OT analyst defaults to passive, knows the exact narrow conditions under which a single active query is acceptable, and can defend that line to an auditor or a plant manager. Real incidents, refrigeration trips, batch loss, and worse, have started with a well-intentioned scan run without approval. The flag here rewards the restraint: you prove it by confirming a device with one careful read, then writing the two-paragraph SOC standard and submitting it to the Deliverable Grader, which returns the flag when your standard passes the checklist. You never earn it by brute-forcing a banner.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operator account</td>
+<td><code>operator</code></td>
+<td><code>PecanCreek#2026</code></td>
+<td>Provided for track consistency; not exercised here</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="learning-objectives">Learning Objectives</h2>
+<ul>
+<li>Capture a passive baseline of normal traffic from the sensor</li>
+<li>Articulate why aggressive scanning faults fragile OT devices</li>
+<li>Issue exactly one well-formed read-only Modbus FC3 query</li>
+<li>Write a SOC standard for passive-only versus safe-active-query</li>
+<li>Identify the forbidden scans from a proposed list</li>
+<li>Submit the standard to the Deliverable Grader to earn the flag</li>
+</ul>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-set-the-sensor-variable-and-capture-a-passive-baseline">Step 1: Set the sensor variable and capture a passive baseline</h3>
+<p>Read the sensor IP from the Exercise Network panel into a variable, then characterize normal Modbus traffic before touching any device. The point of the exercise is to prove you do not need a scanner: the sensor already saw the plant talk. Watch the responder set and the function codes in the baseline; they are what "normal" looks like.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - capture the sensor IP and read the Modbus baseline</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">SENSOR</span><span class="o">=</span>&lt;sensor<span class="w"> </span>panel<span class="w"> </span>IP,<span class="w"> </span>offset<span class="w"> </span>.11&gt;
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$SENSOR</span><span class="s2">:8000/modbus.log&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>zeek-cut<span class="w"> </span>id.orig_h<span class="w"> </span>id.resp_h<span class="w"> </span>id.resp_p<span class="w"> </span>func<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-rn<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Expected output (the capture uses the plant control network 10.100.4.0/24)</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a> 200 10.100.4.10   10.100.4.2    502  READ_HOLDING_REGISTERS
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> 101 10.100.4.10   10.100.4.4    502  READ_HOLDING_REGISTERS
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a> 100 10.100.4.10   10.100.4.4    502  READ_INPUT_REGISTERS
+</code></pre></div>
+</div>
+<p>Normal traffic is the plant master polling the PLCs with read function codes at a steady cadence: the blend tank (<code>.2</code>) answers <code>READ_HOLDING_REGISTERS</code>, the ammonia BPCS (<code>.4</code>) answers <code>READ_HOLDING_REGISTERS</code> and <code>READ_INPUT_REGISTERS</code>. Every function code is a read. No writes, no broad sweeps, no version probes. You captured the plant's healthy fingerprint without sending a single packet to it, and any future deviation from this read-only baseline is a detection opportunity.</p>
+<figure>
+<p><img alt="Zeek modbus.log baseline showing the plant master at 10.100.4.10 issuing only READ_HOLDING_REGISTERS and READ_INPUT_REGISTERS to the blend tank at 10.100.4.2 and the ammonia BPCS at 10.100.4.4, with zero write function codes" src="../img/safe_baseline_modbus.png" width="820" />
+  </p>
+<figcaption>Step 1: the passive baseline is all reads at a steady cadence. Zero write function codes and no scan bursts, the healthy fingerprint every later deviation is measured against.</figcaption>
+</figure>
+<h3 id="step-2-understand-the-failure-mode-do-not-reproduce-it">Step 2: Understand the failure mode (do not reproduce it)</h3>
+<p>An aggressive Nmap service scan (<code>-sV</code>) against the fragile ammonia PLC sends rapid, malformed, and unexpected probes that the controller's network stack was never built to absorb. On this plant, that pattern has faulted the ammonia PLC, stopped it reporting, and forced a refrigeration trip. You read about the consequence; you do not recreate it on the live device. There is no command to run in this step, and that absence is the lesson.</p>
+<div class="admonition warning">
+<p class="admonition-title">Never scan the fragile ammonia PLC</p>
+<p>Do not run <code>nmap -sV</code>, <code>nmap -sS -p-</code>, or any aggressive scan against <code>ammonia.pcc.local</code> or <code>mix.pcc.local</code>. Aggressive scanning on a live plant is a safety event, not a recon step. The forbidden patterns exist in this workbook only as text for your SOC standard.</p>
+</div>
+<h3 id="step-3-contrast-with-one-well-formed-read-only-query">Step 3: Contrast with one well-formed read-only query</h3>
+<p>Now show the narrow allowed case. A single, rate-limited, read-only Modbus function-code 3 query against the blend tank is exactly what the PLC's master sends every cycle, so the controller tolerates it. You open one connection, read the vendor ident registers, and disconnect. Watch the printed ident: a clean string means the device answered one careful read without faulting.</p>
+<p>The baseline showed the blend tank in the capture as <code>10.100.4.2</code>. Query the LIVE device: the two subnets line up by their shared last octet, so use the Exercise Network panel IP for the blend tank, the one whose last octet is <code>.2</code>.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - one well-formed FC3 read of the blend tank ident</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">MIX</span><span class="o">=</span>&lt;your<span class="w"> </span>panel<span class="w"> </span>IP<span class="w"> </span>ending<span class="w"> </span><span class="k">in</span><span class="w"> </span>.2&gt;<span class="w">   </span><span class="c1"># blend tank, from the Exercise Network panel</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="s">import os</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="s">from pymodbus.client import ModbusTcpClient</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="s">host = os.environ.get(&quot;MIX&quot;)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="s">c = ModbusTcpClient(host, port=502)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="s">c.connect()</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="s"># FC3: read-only. One request, then disconnect.</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="s">r = c.read_holding_registers(99, 4, slave=1)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="s">ident = &#39;&#39;.join(chr((x &gt;&gt; 8) &amp; 0xFF) + chr(x &amp; 0xFF) for x in r.registers).rstrip(&#39;\x00&#39;)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="s">print(&quot;blend tank ident:&quot;, ident)</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="s">c.close()</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="s">PY</span>
+</code></pre></div>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Expected output</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>blend tank ident: PCCK3000...
+</code></pre></div>
+</div>
+<p>The blend tank returned its vendor ident and stayed online. One well-formed read, function code 3, against a known register, on the device that already expects reads from its master, is the difference between safe discovery and a fault. Compare this to Step 2: same plant, opposite outcome, because of how you touched it.</p>
+<h3 id="step-4-write-the-soc-standard-and-classify-the-proposed-scans">Step 4: Write the SOC standard and classify the proposed scans</h3>
+<p>Turn what you just demonstrated into a two-paragraph SOC standard. Paragraph one: passive-by-default, the sensor is the primary discovery tool and no active traffic reaches the plant without cause. Paragraph two: the single exception, a rate-limited read-only query (function code 3 only) to confirm one device, gated behind named approval and a change window.</p>
+<p>Then classify the five proposed scans. Three are forbidden on a live plant; two are acceptable.</p>
+<blockquote>
+<p><strong>Proposed-scan classification:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Proposed action</th>
+<th>Verdict</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nmap -sV</code> aggressive version probe of the ammonia PLC</td>
+<td>forbidden</td>
+<td>Malformed probes fault fragile controllers</td>
+</tr>
+<tr>
+<td><code>nmap -sS -p-</code> SYN sweep across the control subnet</td>
+<td>forbidden</td>
+<td>Broad, noisy, can hang thin OT stacks</td>
+</tr>
+<tr>
+<td>Modbus write probe (FC 5/6/15/16) of any device</td>
+<td>forbidden</td>
+<td>Writes can change process state; never on a live plant</td>
+</tr>
+<tr>
+<td>Read the passive sensor logs over HTTP</td>
+<td>acceptable</td>
+<td>No packets reach the plant</td>
+</tr>
+<tr>
+<td>One approved rate-limited read-only FC3 query to confirm a device</td>
+<td>acceptable, with approval</td>
+<td>Matches normal master traffic; gated by change control</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>The pattern: anything that writes, sweeps broadly, or probes versions aggressively is out. The only active exception is a single read that looks identical to the plant's own normal polling, and even that needs an approval gate.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>The passive baseline is all reads at a steady cadence; that is the shape of a healthy plant and the reference any deviation is alerted against</li>
+<li>The same plant faults under an aggressive scan but tolerates one well-formed read; the variable is how you touch it, not which host</li>
+<li>Function code 3 is a read and is the only allowed active action here; function codes 5, 6, 15, and 16 are writes and are forbidden</li>
+<li>A SOC standard is a control; an analyst's good intentions are not, which is why the allowed read sits behind a named approval gate</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why can an Nmap service scan fault an OT PLC when it would never faze an IT server?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Many PLCs run minimal, single-purpose network stacks built for a known master sending well-formed requests, not for the malformed, high-rate, unexpected probes an aggressive scan generates. Where an IT server's hardened stack shrugs them off, the PLC can crash, hang its scan cycle, or trip safety logic. In OT availability is paramount, so the risk is unacceptable.</p>
+</details>
+<p><strong>2. A single read-only FC3 query and an Nmap <code>-sV</code> probe both "just read" the device. Why is one allowed and the other forbidden?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>The FC3 query is one well-formed request to a known register, identical to what the PLC's master sends every cycle, so the controller handles it as routine. An <code>-sV</code> probe fires many crafted and out-of-spec packets across ports and function codes to fingerprint services, which is exactly the malformed-input pattern fragile controllers fault on. Intent is the same; risk profile is not.</p>
+</details>
+<p><strong>3. Your standard allows the safe read only "with approval." Why add a gate to an action you already proved is safe?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>The gate enforces accountability and timing. Approval ensures operations knows a tool is on the wire, the change window avoids overlapping a sensitive batch, and the record means any coincident process upset can be cleared or attributed. Safe in isolation is not the same as safe at an arbitrary moment on a running plant.</p>
+</details>
+<hr />
+<h2 id="capture-the-flag">Capture the Flag</h2>
+<p>There is no banner to brute-force in this exercise. The flag is the reward for restraint: you confirmed the blend tank with one careful read instead of a scan, and you wrote the SOC standard that keeps the plant safe. The descriptive marker names exactly that outcome, a safe query that caused no plant fault.</p>
+<p>You earn the flag in two parts. First, complete the safe FC3 read in Step 3 so the blend tank answers and stays online. Second, write the two-paragraph SOC standard from Step 4 (passive-only baseline, the one narrow safe FC3 read, the approval gate, and the forbidden scans) and submit it to the Deliverable Grader for scoring. The grader is the rubric host shown in the Exercise Network panel, serving HTTP on port 80; it checks your standard against a fixed checklist and returns the flag only when the standard passes.</p>
+<p>Before you POST, you can pull the checklist the grader expects with <code>GET /rubric?deliverable=restraint-standard</code>, which lists the required elements without revealing the flag. When your standard covers them, submit it. Read the grader IP from the Exercise Network panel into <code>GRADER</code>, then submit.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - submit your SOC standard to the grader</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">GRADER</span><span class="o">=</span>&lt;grader-ip-from-panel&gt;<span class="w">   </span><span class="c1"># rubric host, HTTP 80</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$GRADER</span><span class="s2">/check&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;deliverable&quot;:&quot;restraint-standard&quot;,&quot;submission&quot;:&quot;&lt;your two-paragraph SOC standard: passive-only baseline, the one narrow safe FC3 read, the approval gate, and the forbidden scans&gt;&quot;}&#39;</span>
+</code></pre></div>
+</div>
+<p>The response is JSON with <code>passed</code>, <code>score</code>, and <code>total</code>. A passing standard returns <code>{"passed": true, ..., "flag": "OCR{safe_query_no_plant_...}"}</code>; a failing one returns <code>passed</code> false with no flag and a lower score, so revise against the rubric and POST again. Copy the returned flag into the OCR platform to record your completion.</p>
+<blockquote>
+<p><strong>Flag format:</strong> <code>OCR{safe_query_no_plant_...}</code></p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

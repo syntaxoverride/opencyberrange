@@ -1,0 +1,561 @@
+name: LDAP Comprehensive Enumeration
+description: Complete your FinanceCorp Active Directory assessment by performing comprehensive LDAP enumeration.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - perform complete ldap enumeration
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  You're completing the LDAP enumeration phase of your FinanceCorp penetration test. 
+  James Mitchell has requested a comprehensive enumeration report that demonstrates 
+  all information that can be gathered through LDAP access.
+  
+  This final LDAP enumeration exercise will combine all techniques: base DN discovery, 
+  user enumeration, and group enumeration. FinanceCorp needs this complete picture to 
+  understand the full scope of their Active Directory information disclosure.
+  
+  Your objective: Perform comprehensive enumeration of FinanceCorp's Active Directory 
+  through LDAP. Document all discovered users, groups, organizational units, and 
+  domain structure. This comprehensive report will conclude your LDAP assessment.
+
+flag: "OCR{ldap_c0mpl3t3_3num}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Comprehensive LDAP Enumeration
+
+      ### The Complete Enumeration Methodology
+
+      Comprehensive LDAP enumeration combines all the techniques from the
+      previous labs into a systematic, thorough assessment. The goal is to
+      extract **every piece of information** available through LDAP to build
+      a complete picture of the target's directory structure.
+
+      ### The LDAP Enumeration Checklist
+
+      A comprehensive LDAP assessment covers these areas:
+
+      1. **Service Detection** -- Identify LDAP service, version, and ports
+      2. **Authentication Testing** -- Test anonymous and null binds
+      3. **Root DSE Enumeration** -- Extract server metadata and capabilities
+      4. **Base DN Discovery** -- Identify all naming contexts
+      5. **Schema Enumeration** -- Understand object classes and attributes
+      6. **User Enumeration** -- List all user accounts and attributes
+      7. **Group Enumeration** -- Map group structure and memberships
+      8. **OU Enumeration** -- Discover organizational structure
+      9. **Computer Enumeration** -- Find domain-joined machines
+      10. **Full Directory Dump** -- Extract the entire directory tree
+
+      ### Why Comprehensive Enumeration Matters
+
+      Each piece of information compounds the value of the others:
+
+      - **Users + Groups** = Understanding of privilege hierarchies
+      - **Users + OUs** = Organizational mapping for social engineering
+      - **Groups + Computers** = Network access boundaries
+      - **Schema + All data** = Custom attributes that may contain secrets
+
+      ### Attack Paths from LDAP Data
+
+      Comprehensive LDAP enumeration enables:
+
+      - **Password spraying** with enumerated usernames
+      - **Privilege escalation** by targeting admin group members
+      - **Lateral movement** using computer account information
+      - **Social engineering** with organizational structure knowledge
+      - **Credential discovery** from description fields or custom attributes
+
+      ### This Lab's Scope
+
+      In this lab, you will combine all techniques to perform a full
+      LDAP enumeration of the FinanceCorp directory. Document everything
+      you find -- users, groups, OUs, schema details, and any sensitive
+      data exposed through the directory.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools Overview for Comprehensive Enumeration
+
+      ### Primary Tool: ldapsearch
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils
+      ```
+
+      Key ldapsearch options for comprehensive enumeration:
+
+      | Flag     | Purpose                                      |
+      |----------|----------------------------------------------|
+      | `-x`     | Simple authentication (anonymous bind)       |
+      | `-H`     | LDAP server URI                              |
+      | `-b`     | Base DN for search                           |
+      | `-s`     | Scope: base, one, sub                        |
+      | `-LLL`   | Clean output format                          |
+      | `+`      | Request operational attributes               |
+      | `*`      | Request all user attributes                  |
+      | `-E`     | Search extensions (e.g., paged results)      |
+
+      ### Secondary Tool: nmap NSE Scripts
+
+      ```bash
+      sudo apt update && sudo apt install -y nmap
+      ```
+
+      LDAP-related nmap scripts:
+
+      ```bash
+      # List all LDAP scripts
+      ls /usr/share/nmap/scripts/ldap*
+
+      # Key scripts:
+      nmap --script ldap-rootdse      # Root DSE enumeration
+      nmap --script ldap-search       # LDAP search
+      nmap --script ldap-brute        # Credential brute force
+      ```
+
+      ### Additional Tools to Consider
+
+      **ldapwhoami** -- Check your bind identity:
+
+      ```bash
+      ldapwhoami -x -H ldap://<target>
+      ```
+
+      **ldapmodify** -- Attempt to modify entries (write access test):
+
+      ```bash
+      # Test if anonymous write is possible (usually denied)
+      ldapmodify -x -H ldap://<target>
+      ```
+
+      ### Comprehensive Query Pattern
+
+      The general pattern for exhaustive enumeration:
+
+      ```bash
+      # Step 1: Root DSE (server info)
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+
+      # Step 2: Schema (directory structure definition)
+      ldapsearch -x -H ldap://<target> -b "cn=Subschema" -s base "+"
+
+      # Step 3: Full directory dump
+      ldapsearch -x -H ldap://<target> \
+        -b "dc=financecorp,dc=local" -s sub "(objectClass=*)" "*" "+"
+      ```
+
+      The last command requests **all user attributes** (`*`) and **all
+      operational attributes** (`+`) for every entry in the directory.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Advanced LDAP Enumeration Techniques
+
+      ### Schema Enumeration
+
+      The LDAP schema defines what object classes and attributes are
+      available. Querying the schema reveals the directory's structure:
+
+      ```bash
+      # Find the schema location from Root DSE
+      ldapsearch -x -H ldap://<target> -b "" -s base subschemaSubentry
+
+      # Query the schema
+      ldapsearch -x -H ldap://<target> \
+        -b "cn=Subschema" -s base \
+        objectClasses attributeTypes
+      ```
+
+      Schema enumeration reveals:
+
+      - **Custom object classes** that may store sensitive data
+      - **Custom attributes** that might contain credentials or flags
+      - **Auxiliary classes** that add unexpected attributes to entries
+
+      ### Organizational Unit (OU) Enumeration
+
+      OUs reveal the organizational structure:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=organizationalUnit)" dn ou description
+      ```
+
+      Common OU names and their significance:
+
+      | OU Name          | Likely Contents                        |
+      |------------------|----------------------------------------|
+      | Users            | User accounts                          |
+      | Groups           | Group definitions                      |
+      | Computers        | Computer accounts                      |
+      | ServiceAccounts  | Service accounts (high-value targets)  |
+      | Disabled         | Disabled accounts (may still work)     |
+      | Admins           | Administrative accounts                |
+
+      ### Enumerating All Object Classes in Use
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" objectClass \
+        | grep "objectClass:" | sort | uniq -c | sort -rn
+      ```
+
+      This shows you every object class in use and how many entries
+      use each one. This helps identify unusual or custom classes.
+
+      ### Dumping All Attributes Including Operational
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" "*" "+"
+      ```
+
+      The `+` at the end requests operational attributes like:
+
+      - `createTimestamp` -- When the entry was created
+      - `modifyTimestamp` -- When it was last modified
+      - `entryUUID` -- Unique identifier
+      - `structuralObjectClass` -- The structural class of the entry
+
+      ### Searching for Sensitive Data
+
+      ```bash
+      # Entries with descriptions (may contain passwords/flags)
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(description=*)" dn description
+
+      # Entries with userPassword attribute
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(userPassword=*)" dn cn userPassword
+      ```
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Comprehensive Enumeration Workflow
+
+      ### Phase 1: Service and Access Verification
+
+      ```bash
+      # Detect LDAP service
+      nmap -p 389 -sV <target>
+
+      # Test anonymous bind
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+      ### Phase 2: Root DSE and Base DN
+
+      ```bash
+      # Full Root DSE dump
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+
+      # Extract Base DN
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL namingContexts
+      ```
+
+      Record: namingContexts, supportedLDAPVersion, supportedSASLMechanisms.
+
+      ### Phase 3: Schema Enumeration
+
+      ```bash
+      # Get schema location
+      ldapsearch -x -H ldap://<target> -b "" -s base subschemaSubentry
+
+      # Dump object classes
+      ldapsearch -x -H ldap://<target> \
+        -b "cn=Subschema" -s base objectClasses
+
+      # Dump attribute types
+      ldapsearch -x -H ldap://<target> \
+        -b "cn=Subschema" -s base attributeTypes
+      ```
+
+      ### Phase 4: Directory Structure
+
+      ```bash
+      # Top-level entries
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" -s one dn
+
+      # All OUs
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=organizationalUnit)" dn ou description
+      ```
+
+      ### Phase 5: User Enumeration
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=person)(objectClass=posixAccount)(objectClass=inetOrgPerson))" \
+        cn uid mail description uidNumber gidNumber homeDirectory loginShell
+      ```
+
+      ### Phase 6: Group Enumeration
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames))" \
+        cn gidNumber memberUid member description
+      ```
+
+      ### Phase 7: Full Directory Dump
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" "*" "+"
+      ```
+
+      ### Phase 8: Find the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for Comprehensive Enumeration
+
+      ### Complete Enumeration Script
+
+      Run these commands in sequence for a full assessment:
+
+      ```bash
+      # 1. Root DSE
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+
+      # 2. Schema
+      ldapsearch -x -H ldap://<target> \
+        -b "cn=Subschema" -s base objectClasses attributeTypes
+
+      # 3. Directory structure (OUs)
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=organizationalUnit)" dn ou
+
+      # 4. All users
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=person)(objectClass=posixAccount))" \
+        cn uid uidNumber gidNumber description mail homeDirectory
+
+      # 5. All groups with members
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames))" \
+        cn gidNumber memberUid member description
+
+      # 6. Full directory dump (everything)
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" "*" "+"
+      ```
+
+      ### Targeted Searches for Sensitive Data
+
+      ```bash
+      # Entries with descriptions
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(description=*)" dn description
+
+      # Entries with passwords
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(userPassword=*)" dn cn
+
+      # Search for flag pattern
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+
+      # Search descriptions for flag
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(description=*OCR*)" dn description
+      ```
+
+      ### nmap Comprehensive Scan
+
+      ```bash
+      nmap -p 389 -sV --script ldap-rootdse,ldap-search <target>
+      ```
+
+      ### Save Results to File
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" "*" "+" > /tmp/ldap_full_dump.ldif
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils nmap
+      ```
+
+      ### Step 2: Service Detection
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      **Expected output:**
+
+      ```
+      PORT    STATE SERVICE VERSION
+      389/tcp open  ldap    OpenLDAP 2.2.X - 2.4.X
+      ```
+
+      ### Step 3: Root DSE and Base DN
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      **Expected output:**
+
+      ```
+      dn:
+      objectClass: top
+      objectClass: OpenLDAProotDSE
+      namingContexts: dc=financecorp,dc=local
+      supportedLDAPVersion: 3
+      subschemaSubentry: cn=Subschema
+      ```
+
+      Base DN: **dc=financecorp,dc=local**
+
+      ### Step 4: Directory Structure
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" -s one dn
+      ```
+
+      **Expected output:**
+
+      ```
+      dn: ou=Users,dc=financecorp,dc=local
+      dn: ou=Groups,dc=financecorp,dc=local
+      ```
+
+      ### Step 5: Enumerate Users
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=person)(objectClass=posixAccount))" \
+        cn uid uidNumber description
+      ```
+
+      **Expected output shows all users with their details.**
+
+      ### Step 6: Enumerate Groups
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(|(objectClass=posixGroup)(objectClass=groupOfNames))" \
+        cn gidNumber memberUid member
+      ```
+
+      **Expected output shows all groups and their members.**
+
+      ### Step 7: Full Directory Dump
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" "*" "+"
+      ```
+
+      This dumps absolutely everything in the directory including
+      operational attributes like timestamps.
+
+      ### Step 8: Find the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -LLL \
+        -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" | grep -i "OCR{"
+      ```
+
+      The flag `OCR{...}` will be found in the directory entries.
+
+      ### Comprehensive Assessment Summary
+
+      | Component          | Finding                           |
+      |--------------------|-----------------------------------|
+      | Service            | OpenLDAP on port 389              |
+      | Anonymous Bind     | Allowed                           |
+      | Base DN            | dc=financecorp,dc=local           |
+      | LDAP Version       | 3                                 |
+      | Users Discovered   | Multiple (jmitchell, schen, etc.) |
+      | Groups Discovered  | admins, developers, finance, etc. |
+      | OUs Discovered     | Users, Groups                     |
+      | Sensitive Data     | Descriptions, potential passwords |
+
+      ### Penetration Testing Report Note
+
+      > **Finding**: Comprehensive LDAP enumeration via anonymous bind
+      > exposes the complete directory structure of FinanceCorp's
+      > infrastructure. All users, groups, organizational units, and
+      > their attributes are accessible without authentication. This
+      > includes sensitive information in description fields and full
+      > group membership hierarchies. **Risk**: Critical.
+      > **Recommendation**: (1) Disable anonymous binds via
+      > `olcDisallows: bind_anon`. (2) Implement granular ACLs to
+      > restrict read access to authenticated users only. (3) Remove
+      > sensitive data from LDAP attributes. (4) Enable LDAPS (port 636)
+      > and disable cleartext LDAP (port 389). (5) Implement network
+      > segmentation to restrict LDAP access to authorized subnets.
+
+workbook: "wiki/range/winpt/CH07_LDAP_Enumeration/06_LDAP_Comprehensive_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify LDAP port 389 is open"
+      command: "nmap -Pn -p 389 {target.target} | grep '389/tcp'"
+      expect: "open"
+
+    - name: "Enumerate Base DN via Root DSE"
+      command: "ldapsearch -x -H ldap://{target.target} -b '' -s base namingContexts 2>&1 | grep namingContexts"
+      expect: "dc=financecorp,dc=local"
+
+    - name: "Enumerate users via anonymous LDAP bind"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' '(objectClass=posixAccount)' uid 2>&1 | grep '^uid:'"
+      expect: "jmitchell"
+
+    - name: "Enumerate groups via anonymous LDAP bind"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' '(objectClass=posixGroup)' cn 2>&1 | grep '^cn:'"
+      expect: "admins"
+
+    - name: "LDAP search for flag"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{' || (sleep 3 && ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{')"
+      expect: "OCR{"

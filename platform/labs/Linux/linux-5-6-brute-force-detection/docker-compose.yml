@@ -1,0 +1,40 @@
+services:
+  attacker:
+    mem_limit: 1g
+    cpus: 1.0
+    build:
+      context: ./containers/attacker
+      dockerfile: Dockerfile
+    hostname: threat-actor
+    labels:
+      ip_offset: "35"
+    restart: unless-stopped
+    depends_on:
+      - sensor
+      - target
+
+  target:
+    mem_limit: 512m
+    cpus: 0.5
+    build:
+      context: ./containers/target
+      dockerfile: Dockerfile
+    hostname: aegis-portal
+    labels:
+      ip_offset: "19"
+    restart: unless-stopped
+
+  sensor:
+    mem_limit: 512m
+    cpus: 0.5
+    build:
+      context: ./containers/sensor
+      dockerfile: Dockerfile
+    hostname: ids-sensor
+    labels:
+      ip_offset: "44"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    restart: unless-stopped

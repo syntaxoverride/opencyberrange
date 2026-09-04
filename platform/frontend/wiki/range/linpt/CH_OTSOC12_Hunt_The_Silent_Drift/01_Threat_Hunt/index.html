@@ -1,0 +1,1530 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise OTSOC-3.4: Hunt the Silent Drift - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-otsoc-34-hunt-the-silent-drift" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise OTSOC-3.4: Hunt the Silent Drift
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin-read-the-network-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin: Read the Network Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-start-from-the-trend-not-an-alert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Start From the Trend, Not an Alert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-chart-the-climb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Chart the Climb
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-decide-attack-versus-upset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Decide Attack Versus Upset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-correlate-against-the-sensor-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Correlate Against the Sensor Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-anchor-the-finding-on-the-adversary-marker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Anchor the Finding on the Adversary Marker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-triage-incident-or-ticket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Triage, Incident or Ticket
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture the Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-otsoc-34-hunt-the-silent-drift">Exercise OTSOC-3.4: Hunt the Silent Drift</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Pecan Creek Creamery (fictional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>OT SOC Analyst, Threat Hunting</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Reconstruction <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Detection Engineering <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Threat Hunting</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> Quality is complaining about soft, grainy ice cream off the continuous freezer line. No alarm has fired. No detection has tripped. There is no alert to investigate, which means you are not responding to anything; you are hunting. The freezer barrel is creeping warm in steps small enough to stay under the coarse alarm limits, and your job is to find it and decide whether it is an attack or just a bad day on the line.</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>Quality at Pecan Creek Creamery is complaining about soft product from the continuous freezer. No alarm has fired. You suspect a slow, sub-threshold manipulation of the freezer barrel setpoint, deliberately tuned to stay under the coarse alarm band, the patient version of the fast drift you have already seen run. The freezer <code>freeze.pcc.local</code> is drifting warm under the adversary's control; normal barrel is around minus 5 C, and the drift creeps toward and holds just below the alarm band so nothing trips.</p>
+<p>The adversary acts; you hunt without an alert. With no alarm to start from, you go to the trends. The historian at <code>historian.pcc.local</code> keeps roughly ten minutes of barrel samples at <code>/api/history</code> and the current value at <code>/api/latest</code>. The passive sensor at <code>sensor.pcc.local</code> serves Zeek logs from a recorded capture of the freezer control network, so the CIP setpoint traffic is complete and deterministic. Because the capture was taken on the plant control segment, every host in those logs appears with its plant control address in the <code>10.100.4.x</code> range. You chart the trend, decide whether the warm climb is a deliberate sub-threshold manipulation or a normal process upset, and triage the finding as an incident rather than a maintenance ticket.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Detection engineering catches what you already know how to describe. Threat hunting catches what slipped under your detections, and the silent sub-threshold drift is built to do exactly that. An attacker who understands your alarm limits will move the process slowly enough to stay inside them, knowing the SOC waits for alerts and the operator waits for alarms. Nobody is watching the space between normal and the alarm line, and that space is where a patient adversary lives.</p>
+<p>Hunting is also where analysts learn to triage. Not every anomaly is an attack; freezers genuinely have bad days. The skill that separates a SOC analyst from an alarm-watcher is distinguishing a deliberate, one-directional, under-the-radar climb from a process upset that wanders and self-corrects, and then making the incident-versus-ticket call with confidence. Calling a real attack a maintenance ticket loses you the plant; calling every wobble an incident burns out your team. The judgment is the deliverable.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>None</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>The historian, sensor, and adversary feed are unauthenticated HTTP</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="learning-objectives">Learning Objectives</h2>
+<ul>
+<li>Pull the freezer barrel temperature trend from the historian</li>
+<li>Detect the slow sub-threshold warm drift that fired no alarm</li>
+<li>Distinguish a deliberate manipulation from a normal process upset</li>
+<li>Correlate the drift against the sensor CIP setpoint writes</li>
+<li>Triage the finding as an incident rather than a maintenance ticket</li>
+<li>Recover the silent-drift flag</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Difficulty</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> Intermediate</td>
+</tr>
+<tr>
+<td>Estimated Time</td>
+<td>45 to 60 minutes</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>HTTP/JSON, basic time-series reasoning, OTSOC-3.1 through 3.3</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Source</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OCR{silent_drift_confirmed_&lt;masked&gt;}</code></td>
+<td>Confirmed sub-threshold drift via adversary marker</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="before-you-begin-read-the-network-panel">Before You Begin: Read the Network Panel</h2>
+<p>After the lab shows <strong>Running</strong>, read the target IPs from the <strong>Exercise Network</strong> panel into shell variables. Copy the exact values; do not hardcode subnet octets.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - set target variables from the Exercise Network panel</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Replace each value with the IP shown in the Exercise Network panel.</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">HIST</span><span class="o">=</span>&lt;historian-ip-from-panel&gt;<span class="w">   </span><span class="c1"># historian.pcc.local, HTTP 3000</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">SENSOR</span><span class="o">=</span>&lt;sensor-ip-from-panel&gt;<span class="w">    </span><span class="c1"># sensor.pcc.local, HTTP 8000</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nv">INJECT</span><span class="o">=</span>&lt;inject-ip-from-panel&gt;<span class="w">    </span><span class="c1"># inject.pcc.local, HTTP 8080</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;hist=</span><span class="nv">$HIST</span><span class="s2"> sensor=</span><span class="nv">$SENSOR</span><span class="s2"> inject=</span><span class="nv">$INJECT</span><span class="s2">&quot;</span>
+</code></pre></div>
+</div>
+<p>Confirm the historian answers, since the trend is where the hunt begins.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - confirm the historian is reachable</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nc<span class="w"> </span>-zv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HIST</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">3000</span>
+</code></pre></div>
+</div>
+<p>A <code>succeeded!</code> means the trend source is live. With no alarm and no alert to start from, the historian trend is your only lead.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-start-from-the-trend-not-an-alert">Step 1: Start From the Trend, Not an Alert</h3>
+<p>There is no alarm, so there is no alert to open. A hunt starts from a hypothesis and the data, not from a ticket, and the historian at port 3000 serves a real plantwide trends dashboard that renders the freezer barrel temperature as a live chart. Open the dashboard in your browser first and read the shape of the curve with your eyes before you touch a shell. Address the historian by the IP shown in the Exercise Network panel, never by a hard-coded lab octet.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - open the historian dashboard in the browser</p>
+<p>In your browser address bar, enter the historian IP from the Exercise Network panel on port 3000, for example <code>http://HIST_IP:3000/</code>.</p>
+</div>
+<figure>
+<p><img alt="Plantwide historian dashboard: the freezer barrel-temperature ground-truth trend climbing slowly, the silent drift" src="../img/historian-dashboard.png" width="820" />
+  </p>
+<figcaption>The Pecan Creek Creamery Plantwide Process Historian polls each controller for ground truth. The FREEZER BARREL TEMP trend climbs in a slow, one-directional slope that stays just under the alarm band, the silent drift a coarse threshold alarm would never catch.</figcaption>
+</figure>
+<p>The dashboard is titled Pecan Creek Creamery Plantwide Process Historian, and the FREEZER BARREL TEMP trend is the one that matters here. The About panel explains why the historian is the right instrument for this hunt: it polls each controller for ground truth, so a freezer that is quietly drifting warm shows its real warm trend on this chart even when the operator HMI still reads a comfortable number. Normal barrel sits near minus 5 C. What the chart shows instead is a slow, one-directional upward slope that creeps toward the alarm band and holds just below it, which is exactly why no alarm fired. A healthy freezer would hold flat around its setpoint with small jitter in both directions, so a barrel-temperature line that only climbs, and never falls back, is the silent drift you were sent to find.</p>
+<p>Reading the climb off the dashboard is the primary lead. Pulling the raw series is a legitimate optional cross-check when you want to quantify the slope or feed a detection: <code>/api/history</code> returns the same samples the chart draws, in machine form, so you can measure the rate of climb offline or hand the numbers to a rule. The optional pull below also writes <code>/tmp/freeze-trend.json</code>, which the sparkline in Step 2 reuses.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali (optional) - pull the raw series to quantify the slope</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$HIST</span><span class="s2">:3000/api/history&quot;</span><span class="w"> </span>-o<span class="w"> </span>/tmp/freeze-trend.json
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span>/tmp/freeze-trend.json<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;barrel|temp|ts&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-40
+</code></pre></div>
+</div>
+<p>The historian keeps roughly ten minutes of samples. Read them in time order and confirm the numbers match what the chart already showed you: a steady warm climb that never falls back. The raw pull is a cross-check on the dashboard read, not a replacement for it.</p>
+<h3 id="step-2-chart-the-climb">Step 2: Chart the Climb</h3>
+<p>Numbers in a JSON blob hide trends; a quick chart reveals them. Extract the barrel samples in time order and print them as a simple sparkline so the monotonic climb is obvious to the eye.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - extract and sparkline the barrel temperature</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="s">import json</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="s">data = json.load(open(&#39;/tmp/freeze-trend.json&#39;))</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="s"># /api/history returns a list of samples; the freezer barrel reading is the</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="s"># freeze_barrel_temp_c field. Adjust the key if your Step 1 pull differs.</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="s">samples = data if isinstance(data, list) else data.get(&#39;freeze&#39;, [])</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="s">temps = []</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="s">for row in samples:</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="s">    if isinstance(row, dict):</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="s">        temps.append(row.get(&#39;freeze_barrel_temp_c&#39;))</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="s">    else:</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="s">        temps.append(row)</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="s">temps = [t for t in temps if isinstance(t, (int, float))]</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="s">if temps:</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="s">    lo, hi = min(temps), max(temps)</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="s">    blocks = &#39;_.-=+*#&#39;</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="s">    rng = (hi - lo) or 1</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="s">    line = &#39;&#39;.join(blocks[int((t - lo) / rng * (len(blocks) - 1))] for t in temps)</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="s">    print(f&quot;min={lo:.2f}C max={hi:.2f}C samples={len(temps)}&quot;)</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="s">    print(line)</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="s">else:</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="s">    print(&quot;no numeric barrel samples found; re-check the key path from Step 1&quot;)</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="s">PY</span>
+</code></pre></div>
+</div>
+<p>A rising staircase from a low minimum to a higher maximum, with the line trending steadily up and never falling back, is the silent drift. Note the maximum: it climbs toward the alarm band but holds just under it, which is exactly why no alarm fired. Compare the spread; if min and max are nearly equal the freezer is healthy, and you would be looking at a process complaint, not an attack.</p>
+<h3 id="step-3-decide-attack-versus-upset">Step 3: Decide Attack Versus Upset</h3>
+<p>A warm trend alone is not proof of an attack. Real freezers drift during defrost cycles, compressor hiccups, and ambient swings. The distinguishing test is the shape of the curve over time, so reason about it explicitly.</p>
+<div class="admonition example">
+<p class="admonition-title">The attack-versus-upset decision</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Process upset:   wanders up AND down, self-corrects back toward setpoint,
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>                 spikes and recovers, correlates with a known event
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>                 (defrost, door open, compressor cycle).
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Sub-threshold    climbs in small, steady, one-directional steps; holds
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>manipulation:    just below the alarm limit; does not self-correct;
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>                 no benign event explains it.
+</code></pre></div>
+</div>
+<p>The freezer barrel here climbs monotonically toward the ceiling and stays there. A self-correcting upset would have dipped back toward minus 5 C; this one does not. A one-directional creep that parks just under the alarm band is the signature of a deliberate, sub-threshold manipulation. The patience is the tell: nobody operates a freezer this way by accident.</p>
+<h3 id="step-4-correlate-against-the-sensor-logs">Step 4: Correlate Against the Sensor Logs</h3>
+<p>A trend tells you the process moved; the sensor logs tell you what moved it. The passive sensor serves Zeek logs from a recorded capture of the freezer control network, and <code>cip.log</code> records every EtherNet/IP CIP request on that segment. Pull it and look for the setpoint writes driving the barrel warm. A trend that correlates with deliberate setpoint writes is no longer ambiguous.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - pull the recorded CIP log from the sensor</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$SENSOR</span><span class="s2">:8000/cip.log&quot;</span><span class="w"> </span>-o<span class="w"> </span>/tmp/cip.log
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>head<span class="w"> </span>-8<span class="w"> </span>/tmp/cip.log
+</code></pre></div>
+</div>
+<p>The interesting column is <code>cip_service_code</code>. On an Allen-Bradley controller a CIP Read Tag is service <code>0x4c</code> and a CIP Write Tag is service <code>0x4d</code>. A healthy freezer sees a steady trickle of Read Tag polls from the historian; it should almost never see Write Tag requests, because operators rarely retune a running line. Count the service codes and see who is writing.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - tally CIP services and find who writes the freezer</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>zeek-cut<span class="w"> </span>cip_service_code<span class="w"> </span>id.orig_h<span class="w"> </span>id.resp_h<span class="w"> </span>&lt;<span class="w"> </span>/tmp/cip.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>uniq<span class="w"> </span>-c<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-rn<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+</div>
+<p>The recorded capture uses the plant control addressing, so the freezer appears as <code>10.100.4.6</code> and the writer appears as <code>10.100.4.12</code> (the scripted adversary), while the historian polls as a reader. You should see a block of Write Tag requests aimed at the freezer that has no business being there:</p>
+<div class="admonition example">
+<p class="admonition-title">Expected: a stream of CIP Write Tag (0x4d) requests at the freezer</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>     48 0x4c 10.100.4.12 10.100.4.6
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>     17 0x4c 10.100.4.9 10.100.4.6
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>     24 0x4d 10.100.4.12 10.100.4.6
+</code></pre></div>
+</div>
+<p>Read that as three facts. The freezer at <code>10.100.4.6</code> is the target of every request. The historian at <code>10.100.4.9</code> only ever reads it (<code>0x4c</code>), which is normal ground-truth polling. A second host at <code>10.100.4.12</code> both reads and, decisively, issues repeated Write Tag (<code>0x4d</code>) requests to the freezer. Now isolate just those writes and watch them march across the capture window.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - list the Write Tag requests in time order</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>zeek-cut<span class="w"> </span>ts<span class="w"> </span>cip_service_code<span class="w"> </span>id.orig_h<span class="w"> </span>id.resp_h<span class="w"> </span>&lt;<span class="w"> </span>/tmp/cip.log<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;$2==&quot;0x4d&quot;{print $1, $2, $3&quot; -&gt; &quot;$4}&#39;</span>
+</code></pre></div>
+</div>
+<p>The timestamps step forward at a steady cadence for the whole window, each one a small nudge to the freezer setpoint. The freezer exposes one writable process tag that moves the barrel, the <code>BarrelSetpoint</code>, so a run of Write Tag requests to <code>10.100.4.6</code> that lines up in time with the historian barrel climb is the setpoint manipulation driving the drift. CIP writes aligned with the warm trend connect cause to effect: someone is moving the setpoint, the freezer is not failing.</p>
+<figure>
+<p><img alt="Sensor CIP log analysis: a dense run of CIP Write Tag service 0x4d requests from the adversary at 10.100.4.12 to the freezer at 10.100.4.6, stepping the setpoint warmer, alongside normal Read Tag 0x4c polling from the historian" src="../img/cip-write-tags.png" width="820" />
+  </p>
+<figcaption>The recorded CIP log on the passive sensor. Read Tag (0x4c) polling from the historian is normal ground truth; the repeated Write Tag (0x4d) requests from the adversary at 10.100.4.12 to the freezer at 10.100.4.6 are the sub-threshold setpoint manipulation stepping the barrel warm.</figcaption>
+</figure>
+<div class="admonition note">
+<p class="admonition-title">Capture addresses vs your live panel (shared last octet)</p>
+<p>The sensor log is a recorded capture on the plant control network, so the
+freezer shows there as <code>10.100.4.6</code>. Your live Exercise Network panel uses
+your own session subnet, so the freezer you connect to has a different
+third octet but the same last octet, <code>.6</code>. Line the captured host up with
+its panel device by that shared last octet: the writer at <code>10.100.4.12</code>
+in the log is the same scripted adversary whose live panel IP ends in
+<code>.12</code>, the one you query for the confirmation marker in the next step.</p>
+</div>
+<h3 id="step-5-anchor-the-finding-on-the-adversary-marker">Step 5: Anchor the Finding on the Adversary Marker</h3>
+<p>The drift itself is non-deterministic; its exact timing varies per session. To grade the hunt deterministically, the scripted adversary at <code>inject</code> exposes a fixed marker the instant the drift loop engages. Read it to confirm the hunt landed on a real attack and to anchor the flag.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - confirm the drift is engaged and read the signature marker</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span>seq<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">20</span><span class="k">)</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nv">out</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$INJECT</span><span class="s2">:8080/status&quot;</span><span class="k">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$out</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s1">&#39;&quot;drift_active&quot;: true&#39;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="k">break</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span>sleep<span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">done</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$out</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;drift_active|drift_signature|silent_drift&#39;</span>
+</code></pre></div>
+</div>
+<p>A <code>drift_active</code> of <code>true</code> confirms the slow-drift attack is running, and the <code>drift_signature</code> of <code>silent_drift_confirmed_attack</code> is the deterministic marker that your hunt found a deliberate manipulation, not a process upset. The marker is independent of the drift timing, so it grades cleanly.</p>
+<h3 id="step-6-triage-incident-or-ticket">Step 6: Triage, Incident or Ticket</h3>
+<p>The hunt is only finished when you make the call. Write the triage decision explicitly, because the judgment is the deliverable.</p>
+<div class="admonition example">
+<p class="admonition-title">The triage decision, written up</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Finding: freezer barrel drifting warm in steady, one-directional steps,
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  holding just under the alarm band, no benign event explains it; sensor
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  CIP logs show BarrelSetpoint writes stepping the target warmer.
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>Decision: INCIDENT, not a maintenance ticket.
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>Rationale: a deliberate, under-the-radar setpoint manipulation tuned to
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>  evade the alarm band is an adversary action with product-safety impact,
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>  not a component fault. Open an incident, preserve the historian trend
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  and CIP logs as evidence, and escalate.
+</code></pre></div>
+</div>
+<p>A deliberate sub-threshold setpoint manipulation is an incident. A maintenance ticket assumes a component is failing and a technician will fix it; this is an adversary, and treating it as routine maintenance would let the attack continue while quality keeps shipping soft product.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>No alarm does not mean no attack. The most dangerous manipulations are tuned to stay inside the alarm band, in the blind spot between normal and the alarm line.</li>
+<li>The shape of the curve is the decision. One-directional, steady, self-non-correcting, parked just under the limit, equals deliberate. Wandering, self-correcting, event-correlated equals upset.</li>
+<li>A trend plus a cause is a finding. The historian shows the barrel climbing; the sensor CIP logs show the setpoint writes driving it. Together they remove the ambiguity.</li>
+<li>Triage is the deliverable. Calling a deliberate sub-threshold manipulation a maintenance ticket lets the attack continue; calling every wobble an incident burns out the team. The judgment is the skill.</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why does a sub-threshold drift evade both the operator and the SOC, and what gap does that expose?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>The operator waits for an alarm and the SOC waits for an alert, and a sub-threshold drift produces neither because it stays inside the coarse alarm band. The gap it exposes is that alarm limits are tuned for gross faults, not for slow deliberate manipulation, and nobody is monitoring the space between the normal value and the alarm line. The fix is rate-of-change and trend monitoring (alarm on a slow monotonic drift even when the absolute value is still legal), which is a hunt finding that becomes a new detection.</p>
+</details>
+<p><strong>2. How do you tell a deliberate manipulation from a genuine process upset using only the trend?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>A process upset wanders in both directions and self-corrects back toward the setpoint, and it usually correlates with a known event like a defrost cycle, a door open, or a compressor restart. A deliberate sub-threshold manipulation climbs in small, steady, one-directional steps, does not self-correct, and holds just below the alarm limit. The combination of monotonic direction, lack of self-correction, and parking right under the alarm band is the signature no normal process produces by accident. Correlating with deliberate setpoint writes in the CIP logs confirms it.</p>
+</details>
+<p><strong>3. Why is the correct triage an incident rather than a maintenance ticket, and what changes downstream?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>A maintenance ticket routes the finding to a technician who assumes a component is failing and will repair or recalibrate it, which does nothing about an adversary actively moving the setpoint. Classifying it as an incident triggers the response process: preserve the historian trend and CIP logs as evidence, isolate the affected line, hunt for the access path the adversary used, and escalate for notification. The classification determines who responds and whether evidence is preserved, so getting it right is the difference between containing an attack and quietly letting it continue.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Hunting starts from a hypothesis and the trend data, not from an alert. The silent drift is built to never produce an alert.</li>
+<li>The shape of the curve decides attack versus upset: one-directional, steady, non-self-correcting, parked under the alarm band is deliberate.</li>
+<li>A trend plus a correlated cause in the sensor logs turns a suspicion into a finding you can defend.</li>
+<li>Triage is the deliverable. A deliberate sub-threshold setpoint manipulation is an incident, and the classification determines whether evidence is preserved and who responds.</li>
+</ul>
+<h2 id="capture-the-flag">Capture the Flag</h2>
+<p>Confirm the silent drift is a deliberate attack: a monotonic warm climb held under the alarm band, correlated CIP setpoint writes, and the adversary <code>drift_signature</code> marker. Confirming the attack releases the flag, which has the masked form below.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>OCR{silent_drift_confirmed_&lt;masked&gt;}
+</code></pre></div>
+<p>Enter the recovered flag in the OCR platform to complete the exercise.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

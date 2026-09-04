@@ -1,0 +1,1224 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 11: Credential Pivot Attack - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-11-credential-pivot-attack" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 11: Credential Pivot Attack
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-lateral-movement-through-credential-reuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Lateral Movement Through Credential Reuse
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-searching-for-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Searching for Credentials
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-connect-to-the-web-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Connect to the Web Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-explore-the-web-application-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Explore the Web Application Directory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-read-configuration-files-and-discover-database-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Read Configuration Files and Discover Database Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-find-the-assessment-token-on-the-web-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Find the Assessment Token on the Web Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-pivot-to-the-database-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Pivot to the Database Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-find-the-flag-token-on-the-database-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Find the Flag Token on the Database Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-11-credential-pivot-attack">Exercise 11: Credential Pivot Attack</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Week 10 focused on web application exploitation, where you probed a target through its exposed HTTP services. The skills you built there; reading source code, understanding application logic, and connecting to remote services; carry forward into a new domain: lateral movement. Your VPN must be connected and your terminal ready before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Crestline Financial Services, a regional investment firm based in Charlotte, North Carolina, engaged your team at Apex Red Team for an internal network penetration test. Phase 1 is complete; your team gained initial access to the company's front-end web server through a vulnerability in their customer portal.</p>
+<p>You now have SSH (Secure Shell) access to the web server as the "webdev" service account. Your objective for Phase 2 is lateral movement: find a way to reach other systems on the internal network. Crestline's IT manager, Nathan Cole, mentioned during the scoping call that the web application connects to an internal database server that "only the app can reach." He is confident the database credentials are properly secured.</p>
+<p>Prove him wrong. Find the database credentials, pivot to the internal server, and extract the assessment marker to demonstrate the risk. Document the full attack chain for the final report.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>The engagement scope covers two internal servers. Your goals for Phase 2 are well-defined and mirror a real-world penetration test report structure.</p>
+<ul>
+<li>Enumerate the compromised web server for stored credentials and configuration files</li>
+<li>Identify hardcoded database credentials in application configuration</li>
+<li>Use discovered credentials to pivot laterally to an internal server</li>
+<li>Extract evidence from the database server to complete the assessment</li>
+<li>Capture the flag</li>
+</ul>
+<hr />
+<h2 id="background-lateral-movement-through-credential-reuse">Background: Lateral Movement Through Credential Reuse</h2>
+<p>Lateral movement is the process of moving from one compromised system to another within a network. Attackers who gain access to a single machine rarely stop there; they search the filesystem for credentials, tokens, and connection strings that let them reach additional systems. A single set of reused credentials can turn a minor foothold into full network compromise.</p>
+<p>Web applications frequently store database connection details in plaintext configuration files. Developers need the application to connect to backend databases automatically, so they place hostnames, usernames, and passwords in files such as <code>.env</code>, <code>config.php</code>, <code>database.yml</code>, or files within a <code>config/</code> directory. These files often live alongside the application code under <code>/var/www/</code> or similar web root directories. The credentials stored in these files are rarely rotated and often grant broad access to the database server.</p>
+<p>The danger is compounded when administrators reuse the same credentials for SSH access, database logins, or other services. An attacker who finds a database password in a <code>.env</code> file can try that same password against SSH on the database host; and succeed far more often than organizations expect.</p>
+<p>The following diagram shows the pivot path for the Crestline engagement:</p>
+<pre class="mermaid"><code>graph LR
+    A["Attacker&lt;br/&gt;Kali / Terminal"] --&gt;|"SSH as webdev"| B["Web Server&lt;br/&gt;nginx + app files"]
+    B --&gt;|"Read .env file&lt;br/&gt;find DB creds"| C["Config Files&lt;br/&gt;.env, config/"]
+    C --&gt;|"SSH as dbadmin"| D["Database Server&lt;br/&gt;PostgreSQL"]
+    D --&gt;|"Extract flag"| E["Assessment&lt;br/&gt;Complete"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#e8a735,color:#fff
+    style C fill:#e8a735,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#6aaa64,color:#fff</code></pre>
+<h2 id="tool-primer-searching-for-credentials">Tool Primer: Searching for Credentials</h2>
+<p>Credential hunting on a Linux system relies on a small set of commands you already know: <code>find</code>, <code>grep</code>, and <code>cat</code>. The key is knowing where to look and what patterns to search for. The following commands are the most useful for locating credentials in application directories.</p>
+<p><strong>Locating configuration files with <code>find</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>find<span class="w"> </span>/var/www/<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.env&quot;</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.conf&quot;</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.cfg&quot;</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.ini&quot;</span>
+</code></pre></div>
+<p>The <code>find</code> command searches a directory tree for files matching the given name patterns. The <code>-o</code> flag means "or," so the command above looks for any file ending in <code>.env</code>, <code>.conf</code>, <code>.cfg</code>, or <code>.ini</code> under the <code>/var/www/</code> directory.</p>
+<p><strong>Searching file contents with <code>grep</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>grep<span class="w"> </span>-ri<span class="w"> </span><span class="s2">&quot;password\|pass\|secret\|key\|token&quot;</span><span class="w"> </span>/var/www/
+</code></pre></div>
+<p>The <code>-r</code> flag tells <code>grep</code> to search recursively through all files in the directory. The <code>-i</code> flag makes the search case-insensitive. The <code>\|</code> syntax separates multiple search terms so <code>grep</code> matches any of them. Sensitive keywords like "password," "secret," and "token" frequently appear near hardcoded credentials.</p>
+<p><strong>Reading a specific file with <code>cat</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cat<span class="w"> </span>/var/www/crestline-portal/.env
+</code></pre></div>
+<p>Once you identify a promising file, <code>cat</code> prints its full contents to the terminal. Environment files (<code>.env</code>) follow a <code>KEY=VALUE</code> format, making credentials visible at a glance.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. You need running containers before any connection will work.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the Week 11 lab: <strong>Credential Pivot Attack</strong></li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> for the web server displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-connect-to-the-web-server">Step 2: Connect to the Web Server</h3>
+<p>Your team obtained SSH credentials for the web server during Phase 1. Use them now to establish your initial foothold on the Crestline network.</p>
+<div class="admonition kali">
+<p class="admonition-title">SSH into the web server</p>
+<p>Open an SSH session to the compromised web server using the <code>webdev</code> service account recovered in Phase 1. Replace <code>&lt;web_server_ip&gt;</code> with the IP address shown in the Active Lab View.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ssh<span class="w"> </span>webdev@&lt;web_server_ip&gt;
+</code></pre></div>
+<p>When prompted for the password, enter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Cr3st_W3b_2024#
+</code></pre></div>
+<p>After a successful login, your prompt should change to reflect the <code>webdev</code> user on the web server.</p>
+</div>
+<h3 id="step-3-explore-the-web-application-directory">Step 3: Explore the Web Application Directory</h3>
+<p>Web applications store their files under a web root directory, typically <code>/var/www/</code>. The Crestline customer portal lives in a subdirectory there. Start by listing the contents of the application directory.</p>
+<div class="admonition target">
+<p class="admonition-title">List the web application directory</p>
+<p>Run this on the web server you just logged into. The <code>-a</code> flag reveals hidden dotfiles, and <code>-l</code> shows ownership and permissions.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>/var/www/crestline-portal/
+</code></pre></div>
+<p>Look for configuration files and directories in the output. Files named <code>.env</code> are hidden by default (the leading dot hides them from a plain <code>ls</code>), which is why the <code>-a</code> flag is important. You should also look for a <code>config/</code> directory, which applications commonly use to store connection parameters.</p>
+</div>
+<h3 id="step-4-read-configuration-files-and-discover-database-credentials">Step 4: Read Configuration Files and Discover Database Credentials</h3>
+<p>The application directory should contain both a <code>.env</code> file and a <code>config/</code> directory. Read them both to build a complete picture of the application's backend connections.</p>
+<div class="admonition target">
+<p class="admonition-title">Read the .env file</p>
+<p>Print the environment file on the web server. Environment files follow a <code>KEY=VALUE</code> format, so credentials are visible at a glance.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>cat<span class="w"> </span>/var/www/crestline-portal/.env
+</code></pre></div>
+<p>Look for lines starting with <code>DB_HOST</code>, <code>DB_USER</code>, and <code>DB_PASS</code>. These values tell you where the database server lives, what account the application uses, and the password for that account.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">List the config directory</p>
+<p>Configuration backups and API key files sometimes hold additional credentials or assessment tokens. List the directory contents first.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>/var/www/crestline-portal/config/
+</code></pre></div>
+<p>Read any files you find there.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Read a config file</p>
+<p>Replace <code>&lt;filename&gt;</code> with each file you found in the previous listing and print its contents.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cat<span class="w"> </span>/var/www/crestline-portal/config/&lt;filename&gt;
+</code></pre></div>
+<p>From the <code>.env</code> file, you should find the following connection details:</p>
+</div>
+<ul>
+<li><strong>DB_HOST</strong>: the hostname of the database server (<code>dbserver</code>)</li>
+<li><strong>DB_USER</strong>: the database account username (<code>dbadmin</code>)</li>
+<li><strong>DB_PASS</strong>: the database account password</li>
+</ul>
+<p>Record all of these values. You will use them in Step 6 to pivot to the database server.</p>
+<h3 id="step-5-find-the-assessment-token-on-the-web-server">Step 5: Find the Assessment Token on the Web Server</h3>
+<p>The config directory may contain a file with an assessment token. Look for files with names that suggest backup or key storage, and search for lines containing "assessment_token" or similar markers.</p>
+<div class="admonition target">
+<p class="admonition-title">Search config files for the assessment token</p>
+<p>Recursively grep the config directory on the web server for the marker string so you do not have to open every file by hand.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;assessment_token&quot;</span><span class="w"> </span>/var/www/crestline-portal/config/
+</code></pre></div>
+<p>Record the token value you find. The complete flag is assembled from pieces found on both servers, so you will need to combine the values from the web server and the database server.</p>
+</div>
+<h3 id="step-6-pivot-to-the-database-server">Step 6: Pivot to the Database Server</h3>
+<p>Using the credentials you discovered in Step 4, connect to the database server via SSH. The lateral movement happens here; you are using credentials harvested from the web server to access a completely separate system.</p>
+<div class="admonition target">
+<p class="admonition-title">Pivot to the database server over SSH</p>
+<p>From the web server shell, SSH onward to the internal database host using the harvested <code>dbadmin</code> credentials. The hostname <code>dbserver</code> resolves on the internal network.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ssh<span class="w"> </span>dbadmin@dbserver
+</code></pre></div>
+<p>When prompted for the password, enter the <code>DB_PASS</code> value you found in the <code>.env</code> file:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>F1n4nc3_DB_Pr0d#
+</code></pre></div>
+<p>A successful login confirms the core finding of the engagement: credentials stored in plaintext application configuration files can be used to access other systems on the network.</p>
+</div>
+<h3 id="step-7-find-the-flag-token-on-the-database-server">Step 7: Find the Flag Token on the Database Server</h3>
+<p>The database server contains the second piece of the assessment marker. Check the <code>dbadmin</code> home directory and any subdirectories for files related to the assessment.</p>
+<div class="admonition target">
+<p class="admonition-title">List the dbadmin home directory</p>
+<p>Now on the database server, list the home directory to spot maintenance folders or token files.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>/home/dbadmin/
+</code></pre></div>
+<p>Look for a <code>maintenance/</code> directory or similar location.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Read the assessment token file</p>
+<p>Print the token file from the maintenance directory on the database server.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>cat<span class="w"> </span>/home/dbadmin/maintenance/assessment_token.txt
+</code></pre></div>
+<p>Record the value you find. Combine the token from Step 5 with the token from the database server to assemble the complete flag in <code>OCR{...}</code> format.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Document the full attack chain from initial access through lateral movement. A penetration test report requires evidence at every stage.</p>
+<p><strong>Web server credentials used:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Username:
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Password:
+</code></pre></div>
+<p><strong>Database credentials discovered in .env:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DB_HOST</td>
+<td></td>
+</tr>
+<tr>
+<td>DB_USER</td>
+<td></td>
+</tr>
+<tr>
+<td>DB_PASS</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Assessment token from web server:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>(paste the token value here)
+</code></pre></div>
+<p><strong>Assessment token from database server:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>(paste the token value here)
+</code></pre></div>
+<p><strong>Assembled flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>OCR{...}
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-8-interpret-the-results">Step 8: Interpret the Results</h3>
+<p>Review the attack chain you documented. The engagement followed a clear sequence that penetration testers encounter regularly in corporate environments.</p>
+<p>You started with a low-privilege service account on the web server. That account had read access to application configuration files; a normal requirement for the web application to function. Inside those configuration files, you found plaintext database credentials. Because the database server accepted SSH connections with the same credentials, you were able to move laterally from one system to another without exploiting any software vulnerability. The entire pivot relied on credential reuse and plaintext credential storage.</p>
+<p>Nathan Cole believed the database was protected because "only the app can reach" it. The database server's PostgreSQL port (5432) may indeed be firewalled from external access, but SSH (port 22) was not restricted in the same way. Layered security; restricting both the credentials and the network access; would have made the pivot significantly harder.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{&lt;webserver_token&gt;_&lt;pivottarget_token&gt;}</code></p>
+<p>Where <code>&lt;webserver_token&gt;</code> is the value from the web config API keys backup, and <code>&lt;pivottarget_token&gt;</code> is from the pivot target assessment token on the database server.</p>
+</div>
+<h3 id="step-9-submit-the-flag">Step 9: Submit the Flag</h3>
+<p>Combine the two token values you collected into the <code>OCR{...}</code> format. Navigate to the <strong>Submit Flag</strong> form on the platform and paste the assembled flag. Click <strong>Submit</strong> to complete the exercise.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>The following questions ask you to think beyond the steps you performed and consider the broader security implications. Take a moment to reason through each one before reading the answer.</p>
+<p><strong>1. Why do developers store database credentials in plaintext configuration files, and what alternatives exist?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Applications need credentials at runtime to connect to backend databases. Developers store them in <code>.env</code> files or config directories because the approach is fast and compatible with most frameworks. Safer alternatives include environment variable injection at deploy time (so credentials never touch disk), secrets management tools like HashiCorp Vault, and cloud provider secret stores such as AWS Secrets Manager. Each approach removes the plaintext file from the server's filesystem.</p>
+</details>
+<p><strong>2. The database server accepted SSH connections with the same credentials used for the database. What security principle does credential reuse violate, and how would you fix it?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Credential reuse violates the <strong>principle of least privilege</strong>: each service should have its own unique credentials scoped to the minimum access required. The SSH account and the database account should use separate passwords. Better yet, SSH access to the database server should require key-based authentication with no password login allowed, and database access should be restricted to connections from the web server's IP address only.</p>
+</details>
+<p><strong>3. If the web server had been configured so the webdev account could not read the <code>.env</code> file, would the attack still succeed? Why or why not?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Restricting file permissions on <code>.env</code> so that only the application process (running as a different user) can read it would block the credential discovery step entirely. The webdev account would see the file in a directory listing but could not read its contents. Proper file ownership and permissions (e.g., <code>chmod 600</code> owned by the application user) are a low-cost defense that many organizations overlook.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Lateral movement</strong> is the process of moving from one compromised system to another within a network, and credential reuse in configuration files is one of the most common paths attackers exploit</li>
+<li><strong>Plaintext credentials</strong> in <code>.env</code> files and config directories are a top finding in penetration test reports; applications need database access, but storing passwords in readable files creates unnecessary risk</li>
+<li><strong>Credential reuse</strong> across services (using the same password for SSH and database access) multiplies the impact of a single credential leak</li>
+<li><strong>File permissions</strong> on configuration files are a critical but frequently neglected control; the application user should be the only account that can read sensitive configs</li>
+<li><strong>Defense in depth</strong> requires securing both the credentials (unique passwords, secrets management) and the network path (firewall rules, IP allowlists); Week 12 will explore how defenders detect and respond to lateral movement attempts</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

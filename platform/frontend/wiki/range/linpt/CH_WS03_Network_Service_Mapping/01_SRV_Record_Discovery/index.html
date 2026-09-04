@@ -1,0 +1,1488 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise WS-3.1: SRV Record Discovery - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-ws-31-srv-record-discovery" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise WS-3.1: SRV Record Discovery
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-srv-records-in-active-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SRV Records in Active Directory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-dig-for-srv-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: dig for SRV Queries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-lab-and-verify-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Lab and Verify Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-query-kerberos-srv-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Query Kerberos SRV Records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-query-ldap-srv-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Query LDAP SRV Records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-query-global-catalog-srv-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Query Global Catalog SRV Records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-compile-standard-srv-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Compile Standard SRV Records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-discover-non-standard-srv-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Discover Non-Standard SRV Records
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-follow-the-srv-record-to-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Follow the SRV Record to the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-find-and-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Find and Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-ws-31-srv-record-discovery">Exercise WS-3.1: SRV Record Discovery</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Active Directory relies on DNS more than any other service. If you completed the WS01 DNS labs, you already know how to query A records and basic zone data. Exercise WS-3.1 goes deeper by querying SRV (Service) records; the mechanism AD uses to advertise Domain Controllers, Kerberos servers, and Global Catalog endpoints.</p>
+<ul>
+<li>Confirm your VPN connection is active and you can reach dc01.</li>
+<li>No credentials are needed for DNS queries; all SRV records are publicly resolvable within the domain.</li>
+<li>You should be comfortable running <code>dig</code> commands from a Linux terminal.</li>
+</ul>
+<h2 id="scenario">Scenario</h2>
+<p>Your security team is assessing the corp.ocr-range.lab Active Directory (AD) environment. The domain controller dc01 runs Windows Server 2022 and hosts the primary DNS zone. AD-integrated DNS contains SRV (Service Location) records that domain-joined clients query to locate critical infrastructure; Kerberos Key Distribution Centers (KDCs), Lightweight Directory Access Protocol (LDAP) servers, and Global Catalog (GC) endpoints. Your task is to enumerate these standard SRV records and determine whether any non-standard SRV entries exist that might reveal undocumented services.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Query standard AD SRV records for Kerberos, LDAP, and Global Catalog services</li>
+<li>Understand the SRV record format and what each field communicates</li>
+<li>Discover non-standard SRV records that may expose hidden services</li>
+<li>Follow the chain from a non-standard SRV entry to retrieve the flag</li>
+</ul>
+<hr />
+<h2 id="background-srv-records-in-active-directory">Background: SRV Records in Active Directory</h2>
+<p>DNS SRV records define the location of servers for specific services. Unlike A records that map hostnames to IP addresses, SRV records map a service name to a host, port, priority, and weight. Every AD domain creates SRV records automatically when a Domain Controller is promoted. Without these records, domain-joined clients cannot locate the services they need to authenticate and function.</p>
+<p>The SRV record format follows a specific naming convention:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>_service._protocol.domain.  TTL  IN  SRV  priority  weight  port  target
+</code></pre></div>
+<p>Each field serves a distinct purpose. The <code>_service</code> label identifies what the record advertises (such as <code>_kerberos</code> or <code>_ldap</code>). The <code>_protocol</code> label specifies TCP or UDP. Priority and weight allow administrators to control failover and load balancing when multiple servers provide the same service. The target field contains the fully qualified domain name (FQDN) of the server hosting that service.</p>
+<p>AD creates several well-known SRV records during domain controller promotion. The three most significant categories are Kerberos authentication (<code>_kerberos._tcp</code>), LDAP directory services (<code>_ldap._tcp</code>), and Global Catalog lookups (<code>_gc._tcp</code>). Querying these records reveals every DC in the domain, including DCs in child domains or sites. Penetration testers use SRV enumeration to build a list of high-value targets without scanning a single port.</p>
+<p>Non-standard SRV records present a different opportunity. Administrators sometimes create custom SRV entries for internal applications, monitoring systems, or services that need automated discovery. These records may not appear in documentation, but they are visible to anyone who can query DNS. A non-standard SRV record is a signpost pointing to infrastructure the organization may have forgotten about.</p>
+<h2 id="tool-primer-dig-for-srv-queries">Tool Primer: dig for SRV Queries</h2>
+<p>The <code>dig</code> (Domain Information Groper) command is a DNS lookup tool that supports all standard record types. Querying SRV records requires specifying the record type explicitly.</p>
+<p><strong>Syntax for SRV queries:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>dig<span class="w"> </span>SRV<span class="w"> </span>_service._protocol.domain<span class="w"> </span>@nameserver
+</code></pre></div>
+<p><strong>Key flags and options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SRV</code></td>
+<td>Specifies the query type as SRV</td>
+</tr>
+<tr>
+<td><code>TXT</code></td>
+<td>Specifies the query type as TXT (text records)</td>
+</tr>
+<tr>
+<td><code>@nameserver</code></td>
+<td>Directs the query to a specific DNS server</td>
+</tr>
+<tr>
+<td><code>+short</code></td>
+<td>Returns only the answer, no extra sections</td>
+</tr>
+<tr>
+<td><code>+noall +answer</code></td>
+<td>Shows only the answer section with full detail</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sample SRV output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>;; ANSWER SECTION:
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>_kerberos._tcp.corp.ocr-range.lab. 600 IN SRV 0 100 88 dc01.corp.ocr-range.lab.
+</code></pre></div>
+<p>Reading left to right: the service is Kerberos over TCP in the corp.ocr-range.lab domain. The Time to Live (TTL) is 600 seconds. The priority is 0 (highest), the weight is 100, the port is 88, and the target server is dc01.corp.ocr-range.lab. Kerberos uses port 88 by default, so the SRV record confirms dc01 is the KDC for the domain.</p>
+<p><strong>Sample TXT output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>;; ANSWER SECTION:
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>example.corp.ocr-range.lab. 600 IN TXT &quot;some text value here&quot;
+</code></pre></div>
+<p>TXT records store arbitrary text strings. Administrators use them for SPF records, domain verification, and occasionally for storing metadata. In a lab context, TXT records may contain flags or clues.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-lab-and-verify-connectivity">Step 1: Launch the Lab and Verify Connectivity</h3>
+<p>Navigate to <strong>Exercises</strong>, then <strong>Windows Server</strong>, then <strong>Level 3</strong>, and launch Exercise WS-3.1. Wait for the environment status to show <strong>Running</strong> and note the target information. The target for all DNS queries is dc01 at corp.ocr-range.lab.</p>
+<div class="admonition kali">
+<p class="admonition-title">Verify DNS connectivity to dc01</p>
+<p>Verify you can reach the DNS server with a simple A record lookup. The <code>+short</code> flag trims the output to just the answer so you can confirm resolution at a glance.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>dig<span class="w"> </span>+short<span class="w"> </span>A<span class="w"> </span>dc01.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>You should receive an IP address in response. If the query times out, check your VPN connection before proceeding.</p>
+</div>
+<hr />
+<h3 id="step-2-query-kerberos-srv-records">Step 2: Query Kerberos SRV Records</h3>
+<p>Kerberos is the primary authentication protocol for AD. Every DC runs a Kerberos KDC on port 88. Querying the <code>_kerberos._tcp</code> SRV record reveals which servers handle authentication for the domain.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query Kerberos SRV records</p>
+<p>Run the following query to ask dc01 which servers advertise the Kerberos service. The <code>_kerberos._tcp</code> label is the well-known SRV name every DC registers when it is promoted.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>dig<span class="w"> </span>SRV<span class="w"> </span>_kerberos._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>Examine the ANSWER SECTION of the output. You should see one or more SRV records listing dc01 as the Kerberos server. Note the priority, weight, and port values.</p>
+<p>The port field should show 88; the standard Kerberos port. If multiple DCs existed in the domain, each would appear as a separate SRV record with its own priority and weight values, allowing clients to select the best server.</p>
+</div>
+<hr />
+<h3 id="step-3-query-ldap-srv-records">Step 3: Query LDAP SRV Records</h3>
+<p>LDAP is how domain-joined machines locate directory services. Clients query <code>_ldap._tcp</code> to find DCs that accept LDAP connections on port 389.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query LDAP SRV records</p>
+<p>Run the following query to find the DCs that accept LDAP connections. Domain-joined machines resolve this record to locate directory services on port 389.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>dig<span class="w"> </span>SRV<span class="w"> </span>_ldap._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>The output should show dc01 advertising LDAP on port 389. Compare the priority and weight values with the Kerberos SRV record from Step 2; in a single-DC environment, they are typically identical.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Query LDAPS SRV records</p>
+<p>You can also query for LDAP over Secure Sockets Layer (SSL) on port 636. The presence of an <code>_ldaps</code> record signals that the DC accepts encrypted LDAP.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>dig<span class="w"> </span>SRV<span class="w"> </span>_ldaps._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>The presence or absence of an <code>_ldaps</code> SRV record tells you whether the DC is configured for encrypted LDAP connections. Not all environments configure LDAPS.</p>
+</div>
+<hr />
+<h3 id="step-4-query-global-catalog-srv-records">Step 4: Query Global Catalog SRV Records</h3>
+<p>The Global Catalog (GC) is a read-only copy of all objects across an AD forest, served on port 3268. Multi-domain forests rely on the GC for cross-domain searches.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query Global Catalog SRV records</p>
+<p>Query the GC SRV record to find the servers that answer forest-wide searches. The Global Catalog listens on port 3268, distinct from the LDAP port.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>dig<span class="w"> </span>SRV<span class="w"> </span>_gc._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>The target should again be dc01, but the port field should show 3268 instead of 389. The GC contains a partial attribute set for every object in the forest, making it a high-value target for enumeration.</p>
+</div>
+<hr />
+<h3 id="step-5-compile-standard-srv-records">Step 5: Compile Standard SRV Records</h3>
+<p>At this point you have queried three standard AD SRV record types. Compiling the results into a single view provides a baseline map of AD infrastructure.</p>
+<div class="admonition kali">
+<p class="admonition-title">Compile all standard SRV records</p>
+<p>You can query all three at once using short output for a quick summary. The <code>+short</code> flag collapses each answer to one line so the three results read as a compact baseline.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>dig<span class="w"> </span>+short<span class="w"> </span>SRV<span class="w"> </span>_kerberos._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>dig<span class="w"> </span>+short<span class="w"> </span>SRV<span class="w"> </span>_ldap._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>dig<span class="w"> </span>+short<span class="w"> </span>SRV<span class="w"> </span>_gc._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>Record the server names, ports, and priorities. In larger environments, you would see multiple DCs here, each with different site affiliations and priority values.</p>
+</div>
+<pre class="mermaid"><code>graph TD
+    A["dc01.corp.ocr-range.lab"]
+    B["Kerberos&lt;br/&gt;Port 88"]
+    C["LDAP&lt;br/&gt;Port 389"]
+    D["Global Catalog&lt;br/&gt;Port 3268"]
+
+    A --- B
+    A --- C
+    A --- D
+
+    style A fill:#4a90d9,stroke:#333,color:#fff
+    style B fill:#6aaa64,stroke:#333,color:#fff
+    style C fill:#6aaa64,stroke:#333,color:#fff
+    style D fill:#6aaa64,stroke:#333,color:#fff</code></pre>
+<hr />
+<h3 id="step-6-discover-non-standard-srv-records">Step 6: Discover Non-Standard SRV Records</h3>
+<p>Standard SRV records reveal the expected AD infrastructure. Non-standard records reveal what administrators have added beyond the defaults. Querying for custom service names can uncover applications, monitoring systems, or test entries.</p>
+<div class="admonition kali">
+<p class="admonition-title">Probe for non-standard SRV records</p>
+<p>If the zone transfer from Step 2 succeeded, review the output for SRV records with non-standard service names; entries that do not match the well-known AD services (<code>_kerberos</code>, <code>_ldap</code>, <code>_gc</code>, etc.). If the zone transfer was denied, try querying common non-standard service names such as <code>_http</code>, <code>_sip</code>, or other short keywords that an administrator might use for custom services. Replace <code>&lt;service_name&gt;</code> with each candidate keyword.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>dig<span class="w"> </span>SRV<span class="w"> </span>_&lt;service_name&gt;._tcp.corp.ocr-range.lab<span class="w"> </span>@dc01
+</code></pre></div>
+<p>When you find a non-standard SRV record, the ANSWER SECTION will contain an entry pointing to a hostname you have not seen before. Note the target hostname; the SRV record functions as a pointer, directing you to the server that hosts that service.</p>
+</div>
+<p>Non-standard SRV records like this one would not appear in a port scan. Only DNS enumeration reveals them, which is why SRV record discovery is a required step in any AD assessment.</p>
+<hr />
+<h3 id="step-7-follow-the-srv-record-to-the-flag">Step 7: Follow the SRV Record to the Flag</h3>
+<p>The non-standard SRV record from Step 6 points to a hostname. That hostname holds additional DNS records containing the flag. SRV records often serve as the first link in a chain; the record tells you where to look, and further queries at that location reveal the data.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query the TXT record at the SRV target</p>
+<p>Query the TXT record at the hostname referenced by the SRV entry you discovered in Step 6. Replace <code>&lt;target_hostname&gt;</code> with the target from the non-standard SRV record.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>dig<span class="w"> </span>TXT<span class="w"> </span>&lt;target_hostname&gt;<span class="w"> </span>@dc01
+</code></pre></div>
+<p>The TXT record in the ANSWER SECTION contains the flag value. Read the quoted string in the response.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Target DNS Server:</strong> dc01</p>
+<table>
+<thead>
+<tr>
+<th>Query</th>
+<th>Target Host</th>
+<th>Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_kerberos._tcp</code></td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+<td>______</td>
+</tr>
+<tr>
+<td><code>_ldap._tcp</code></td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+<td>______</td>
+</tr>
+<tr>
+<td><code>_gc._tcp</code></td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+<td>______</td>
+</tr>
+<tr>
+<td><code>_secret._tcp</code></td>
+<td><strong><em>_</em></strong><strong><em>_</em></strong>_</td>
+<td>______</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Non-standard SRV target hostname:</strong> <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <code>OCR{_______________}</code></p>
+</blockquote>
+<hr />
+<h3 id="step-8-find-and-submit-the-flag">Step 8: Find and Submit the Flag</h3>
+<p>The flag for Exercise WS-3.1 is contained in the TXT record you queried in Step 7. The flag value is:</p>
+<p>The flag follows the standard <code>OCR{...}</code> format. Submit it on the platform to complete the exercise.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why does Active Directory create SRV records automatically during DC promotion?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Domain-joined clients need a way to locate DCs, Kerberos KDCs, and GC servers without hardcoding IP addresses. SRV records provide a standard DNS mechanism for service discovery. When a DC is promoted, the Netlogon service registers SRV records so clients can find the DC through standard DNS queries.</p>
+</details>
+<p><strong>2. What is the security risk of non-standard SRV records in a production AD environment?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Non-standard SRV records expose the existence and location of services that may not be documented or monitored. An attacker who discovers a custom SRV entry gains knowledge of infrastructure that might be overlooked during security reviews. The SRV record itself does not grant access, but it directs the attacker to a target they would not have found through port scanning alone.</p>
+</details>
+<p><strong>3. How do priority and weight values affect client behavior when multiple SRV records exist for the same service?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Clients prefer SRV records with lower priority values. When multiple records share the same priority, the weight value determines how traffic is distributed; higher-weight records receive more connections. Administrators use these fields to implement failover (priority) and load balancing (weight) across multiple servers.</p>
+</details>
+<p><strong>4. What other non-standard SRV record names might an attacker look for in an AD environment?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Attackers commonly query for <code>_sip._tcp</code> (Voice over IP), <code>_xmpp._tcp</code> (messaging), <code>_http._tcp</code> (internal web apps), <code>_ntp._udp</code> (time servers), and any application-specific service names. Automated tools can brute-force common service names against the DNS server to build a full list.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>SRV records map services to hosts</strong>: they provide the service name, protocol, port, priority, weight, and target server in a single DNS entry</li>
+<li><strong>Standard AD SRV records</strong> for <code>_kerberos</code>, <code>_ldap</code>, and <code>_gc</code> reveal every DC in the domain without port scanning</li>
+<li><strong>Non-standard SRV records</strong> expose custom or undocumented services that administrators may have forgotten about</li>
+<li><strong>SRV records can form chains</strong>: one record points to a hostname where additional records (TXT, A, CNAME) contain further information</li>
+<li><strong>DNS enumeration is prerequisite to network mapping</strong>: later exercises in this chapter build on the DNS data gathered here</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

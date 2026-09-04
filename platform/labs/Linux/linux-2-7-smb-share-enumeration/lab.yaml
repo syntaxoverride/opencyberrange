@@ -1,0 +1,103 @@
+name: "Blackwell & Associates - SMB Share Enumeration"
+description: "A law firm's file server has misconfigured Samba shares. Enumerate the available shares, access public files, discover credentials, and pivot to restricted shares."
+
+difficulty: beginner
+category: enumeration
+duration_minutes: 35
+randomize_ip_offsets: true
+visibility: course
+week: 2
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/02_SMB_Share_Enumeration/"
+flag: "OCR{3num_sh4r3d}"
+
+objectives:
+  - Use SMB enumeration tools to discover available network shares
+  - Access public shares and identify sensitive information
+  - Discover credentials through information disclosure
+  - Access restricted shares using discovered credentials
+  - Capture the flag
+
+scenario: |
+  Blackwell & Associates is a mid-size law firm in Richmond, Virginia. They
+  recently migrated their internal file server to a new Linux-based system
+  running Samba. The IT contractor who set it up assured the managing partner
+  that "everything is properly locked down."
+
+  Your firm has been hired to verify that claim. The scope covers the file
+  server and all exposed SMB shares. The managing partner, Victoria Blackwell,
+  wants to know: "Can someone from outside our network access our case files?
+  Our client confidentiality is everything."
+
+  Two assessment tokens have been placed in the shares - one on a public share
+  and one on a restricted share. Enumerate and retrieve both.
+
+credentials:
+  - username: "hr_svc"
+    password: "Bl4ckw3ll_HR#"
+    role: "hr"
+    description: "HR service account credentials (discovered in public share)"
+
+hints:
+  - text: |
+      Start by discovering what SMB shares are available. Use smbclient or
+      enum4linux: smbclient -L //<target_ip> -N (the -N flag means no password).
+      Look at which shares allow anonymous/guest access.
+    unlock_after_minutes: 8
+  - text: |
+      The "general" share allows anonymous access. Connect with:
+      smbclient //<target_ip>/general -N
+      Download and read all files - one contains Token 1, another leaks credentials
+      for the restricted "hr_data" share.
+    unlock_after_minutes: 16
+  - text: |
+      In the general share, read onboarding_notes.txt for the HR service account
+      credentials: hr_svc / Bl4ckw3ll_HR#. Then access the restricted share:
+      smbclient //<target_ip>/hr_data -U hr_svc%Bl4ckw3ll_HR#
+      Token 2 is in a file on that share.
+    unlock_after_minutes: 22
+
+topology:
+  nodes:
+    - id: "target"
+      label: "File Server"
+      type: "server"
+      ip_offset: "22"
+      ports: [445, 139]
+      services: ["Samba"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SMB:445"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SMB port is accessible"
+      command: "nmap -p 445 --open {target.target} 2>/dev/null | grep -c '445.*open'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Enumerate shares with anonymous access"
+      command: "smbclient -L //{target.target} -N 2>/dev/null | grep -c Disk"
+      timeout: 15
+
+    - name: "Access public share and extract token 1"
+      command: "smbclient //{target.target}/general -N -c 'get token.txt /tmp/smb_token1.txt' 2>/dev/null && cat /tmp/smb_token1.txt"
+      expect: "3num"
+      timeout: 15
+
+    - name: "Find leaked credentials in public share"
+      command: "smbclient //{target.target}/general -N -c 'get onboarding_notes.txt /tmp/smb_notes.txt' 2>/dev/null && grep -o 'Password: [^ ]*' /tmp/smb_notes.txt | awk '{print $2}'"
+      expect: "Bl4ckw3ll_HR#"
+      timeout: 15
+
+    - name: "Access restricted share with discovered credentials"
+      command: "smbclient //{target.target}/hr_data -U hr_svc%Bl4ckw3ll_HR# -c 'get assessment_token.txt /tmp/smb_token2.txt' 2>/dev/null && cat /tmp/smb_token2.txt"
+      expect: "sh4r3d"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{3num_sh4r3d}'"
+      expect: "OCR{3num_sh4r3d}"

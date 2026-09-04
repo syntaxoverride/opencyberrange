@@ -1,0 +1,341 @@
+name: SMTP Email Content Analysis
+description: Investigate a data exfiltration incident by analyzing email traffic captured from MediCare's network. Extract sensitive information sent via unencrypted SMTP.
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 60
+objectives:
+  - SSH into network analyst workstation
+  - Analyze SMTP protocol traffic in Wireshark
+  - Reconstruct email messages from packet captures
+  - Extract email attachments and content
+  - Understand email protocol security risks
+  - Capture the flag
+
+scenario: |
+  You're investigating a potential data breach at MediCare Regional Hospital. The Data Loss
+  Prevention (DLP) system flagged an outbound email containing suspicious keywords related
+  to patient data. However, the email was sent before the DLP could block it.
+
+  Marcus Thompson needs you to analyze the network capture to determine exactly what was
+  sent. The hospital's email server was still using unencrypted SMTP (port 25) for internal
+  communications, which means the entire email conversation was captured in cleartext.
+
+  Your task: Retrieve the packet capture from the analyst workstation, identify the suspicious
+  email, and extract its contents. The email may contain patient information, credentials,
+  or other sensitive data that shouldn't have left the network.
+
+  **Analyst Workstation Credentials:**
+  - Host: 10.10.{user_id}.10
+  - Username: analyst
+  - Password: MediCare2024#
+  - PCAP Location: /home/analyst/captures/email-exfiltration.pcap
+
+flag: "OCR{smtp_d4t4_3xf1ltr4t10n}"
+
+hints:
+  - text: |
+      **SMTP Protocol Fundamentals** - Email in cleartext:
+
+      **What is SMTP?**
+      - Simple Mail Transfer Protocol - sends email between servers
+      - Default port: 25 (unencrypted) or 587 (with STARTTLS)
+      - Commands sent in cleartext (like FTP)
+      - Email headers, body, and attachments all visible if unencrypted
+
+      **SMTP Command Structure:**
+      - `HELO/EHLO` - Introduce the client
+      - `MAIL FROM:` - Sender's email address
+      - `RCPT TO:` - Recipient's email address
+      - `DATA` - Start of email content
+      - Email headers (Subject, From, To, Date)
+      - Blank line
+      - Email body
+      - `.` (period on its own line) - End of message
+      - `QUIT` - Close connection
+
+      **Why unencrypted SMTP is dangerous:**
+      - Entire email readable in packet captures
+      - Sender and recipient visible
+      - Subject line exposed
+      - Email body in plaintext
+      - Attachments can be extracted
+      - Credentials if authentication used
+
+      **What defenders look for:**
+      - Unusual recipients (external domains, personal emails)
+      - Suspicious subjects (confidential, password, patient, etc.)
+      - Large emails (potential data exfiltration)
+      - Attachments with sensitive file names
+
+      Modern email should use TLS encryption (SMTPS) to protect content.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Accessing the Analyst Workstation** - Standard procedure:
+
+      **Step 1: SSH connection**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      Password: MediCare2024#
+      ```
+
+      **Step 2: Verify PCAP file**
+      ```bash
+      ls -lh /home/analyst/captures/
+      # Should see: email-exfiltration.pcap
+      ```
+
+      **Step 3: Download to Kali**
+      ```bash
+      # From your Kali terminal
+      scp analyst@10.10.{user_id}.10:/home/analyst/captures/email-exfiltration.pcap .
+      ```
+
+      **Step 4: Open in Wireshark**
+      ```bash
+      wireshark email-exfiltration.pcap
+      ```
+
+      **What you'll find:**
+      - Traffic from 3-4 hours of email server activity
+      - Multiple email conversations (legitimate and suspicious)
+      - DNS, HTTP, and other protocols as background noise
+      - One email contains suspicious content with the flag
+
+      **Analysis approach:**
+      1. Filter for SMTP traffic (port 25)
+      2. Look for DATA commands (email content starts here)
+      3. Examine email headers (Subject, From, To)
+      4. Read email body for sensitive information
+      5. Extract any embedded data or patterns
+
+      The suspicious email will stand out based on recipients or subject.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Wireshark Filters for SMTP** - Finding email traffic:
+
+      **Basic SMTP filter:**
+      ```
+      smtp
+      ```
+      Shows all SMTP protocol traffic.
+
+      **Filter for specific SMTP commands:**
+      ```
+      smtp.req.command == "DATA"
+      ```
+      Shows only the start of email content.
+
+      ```
+      smtp.req.command == "MAIL"
+      ```
+      Shows sender addresses (MAIL FROM commands).
+
+      ```
+      smtp.req.command == "RCPT"
+      ```
+      Shows recipient addresses (RCPT TO commands).
+
+      **Useful combined filters:**
+      ```
+      smtp && tcp.port == 25
+      ```
+      SMTP on the standard port.
+
+      **Analysis workflow:**
+      1. Apply `smtp` filter to see all email traffic
+      2. Look for DATA commands - these start email content
+      3. Examine packets after DATA for email headers and body
+      4. Use "Follow TCP Stream" to see complete email
+
+      **Email structure in packets:**
+      ```
+      MAIL FROM: <sender@domain.com>
+      250 OK
+      RCPT TO: <recipient@domain.com>
+      250 OK
+      DATA
+      354 Start mail input
+      From: sender@domain.com
+      To: recipient@domain.com
+      Subject: Confidential Patient Data
+
+      [Email body with flag]
+      .
+      250 OK
+      ```
+
+      The flag will be in the email body or subject of the suspicious message.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Reconstructing Emails** - Follow TCP Stream technique:
+
+      **Why TCP Stream is perfect for email:**
+      - Shows the entire SMTP conversation in order
+      - Email headers and body appear as sent
+      - Easy to read, no packet-by-packet analysis needed
+      - Can copy/paste email content
+
+      **How to use it:**
+      1. Filter for `smtp`
+      2. Find a packet with DATA command or 354 response
+      3. Right-click → Follow → TCP Stream
+      4. Wireshark shows complete email exchange
+
+      **What you'll see in TCP Stream:**
+      ```
+      220 mail.medicare.local ESMTP
+      EHLO workstation.local
+      250-mail.medicare.local
+      MAIL FROM:<user@medicare.local>
+      250 OK
+      RCPT TO:<attacker@external.com>
+      250 OK
+      DATA
+      354 Start mail input; end with <CRLF>.<CRLF>
+      From: user@medicare.local
+      To: attacker@external.com
+      Subject: Patient Database Export
+
+      Here's the data you requested:
+      Patient records: [sensitive data]
+      Flag: OCR{...}
+      .
+      250 OK
+      QUIT
+      ```
+
+      **Red flags to identify:**
+      - External recipient (personal email, suspicious domain)
+      - Sensitive keywords in subject (confidential, password, patient)
+      - Unusual sender (IT admin sending to personal email)
+      - Attachments with database dumps or CSVs
+
+      The suspicious email will have an external recipient or suspicious subject line.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Solution Walkthrough** - Complete analysis steps:
+
+      **1. Download the PCAP:**
+      ```bash
+      ssh analyst@10.10.{user_id}.10  # Password: MediCare2024#
+      # Verify file exists
+      ls /home/analyst/captures/email-exfiltration.pcap
+
+      # From Kali terminal
+      scp analyst@10.10.{user_id}.10:/home/analyst/captures/email-exfiltration.pcap .
+      ```
+
+      **2. Open in Wireshark:**
+      ```bash
+      wireshark email-exfiltration.pcap
+      ```
+
+      **3. Filter for SMTP:**
+      ```
+      smtp
+      ```
+
+      **4. Look for suspicious patterns:**
+      - Check RCPT TO commands for external domains
+      - Look for DATA commands (start of email content)
+      - Watch for sensitive keywords in visible text
+
+      **5. Follow TCP Stream:**
+      - Find a packet from the suspicious email
+      - Right-click → Follow → TCP Stream
+      - Read the complete email
+
+      **6. Identify the suspicious email:**
+      - Look for email with external recipient
+      - Subject line might mention: "data", "patient", "confidential"
+      - Sender might be an IT admin or database administrator
+
+      **7. Extract the flag:**
+      In the email body, you'll find:
+      ```
+      Subject: Database Backup
+
+      Sending you the patient records as requested.
+      Access code: OCR{...}
+      ```
+
+      The flag is: `OCR{...}`
+
+      **What happened:**
+      - An insider sent patient data to an external email
+      - Used the hospital's SMTP server (unencrypted)
+      - Entire email captured in cleartext
+      - This is a classic data exfiltration technique
+    unlock_after_minutes: 20
+
+  - text: |
+      **Quick Reference** - Commands and filters:
+
+      **SSH and File Transfer:**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      # Password: MediCare2024#
+
+      scp analyst@10.10.{user_id}.10:/home/analyst/captures/email-exfiltration.pcap .
+      ```
+
+      **Wireshark Display Filters:**
+      ```
+      # All SMTP
+      smtp
+
+      # Start of email content
+      smtp.req.command == "DATA"
+
+      # Sender addresses
+      smtp.req.command == "MAIL"
+
+      # Recipients
+      smtp.req.command == "RCPT"
+
+      # Specific port
+      tcp.port == 25
+      ```
+
+      **Analysis shortcuts:**
+      - Follow TCP Stream: Right-click packet → Follow → TCP Stream
+      - Find packet: Ctrl+F, search for "Subject:" or "OCR{"
+      - Export objects: File → Export Objects → IMF (email format)
+
+      **What to document:**
+      - Sender email address
+      - Recipient email address
+      - Subject line
+      - Timestamp
+      - Email body content
+      - Any attachments or embedded data
+
+      The flag is in the suspicious email's body text.
+    unlock_after_minutes: 25
+workbook: "wiki/range/netfor/CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/"
+
+credentials:
+  - username: "analyst"
+    password: "MediCare2024#"
+    role: "analyst"
+    description: "Analyst workstation SSH credentials"
+
+test:
+  steps:
+    - name: "SSH accessible on analyst workstation"
+      command: "nc -w 5 {target.analyst-workstation} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "PCAP file exists on analyst workstation"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'ls /home/analyst/captures/email-exfiltration.pcap'"
+      expect: "email-exfiltration.pcap"
+    - name: "Flag found in PCAP captures"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'strings /home/analyst/captures/*.pcap 2>/dev/null | grep -o \"OCR{[^}]*}\" | head -1'"
+      expect: "OCR{smtp_d4t4_3xf1ltr4t10n}"
+
+    - name: "Echo confirmed flag"
+      command: "echo 'OCR{smtp_d4t4_3xf1ltr4t10n}'"
+      expect: "OCR{smtp_d4t4_3xf1ltr4t10n}"

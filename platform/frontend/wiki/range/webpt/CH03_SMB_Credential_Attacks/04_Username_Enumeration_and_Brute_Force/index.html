@@ -1,0 +1,1244 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 3.4: Username Enumeration and Brute Force - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-34-username-enumeration-and-brute-force" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 3.4: Username Enumeration and Brute Force
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-two-phase-attack-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Two-Phase Attack Chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-combining-existing-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Combining Existing Tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-enumerate-users-phase-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Enumerate Users (Phase 1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-parse-the-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Parse the Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-extract-usernames-to-a-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Extract Usernames to a File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-verify-the-user-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Verify the User List
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-create-a-password-wordlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Create a Password Wordlist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-brute-force-with-the-user-list-phase-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Brute Force with the User List (Phase 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-identify-the-valid-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Identify the Valid Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-access-the-private-share" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Access the Private Share
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-download-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Download the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-read-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Read the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-34-username-enumeration-and-brute-force">Exercise 3.4: Username Enumeration and Brute Force</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>In Exercise 3.3, you brute-forced the "admin" account; but someone told you the username was "admin." In a real penetration test, nobody hands you a username list. You have to find the usernames yourself. this exercise combines two skills you already have: user enumeration from Chapter 2 and brute force from Exercise 3.3. The result is a two-phase attack chain that mirrors real-world methodology.</p>
+<p>Your VPN must be connected and your terminal open. You should be comfortable with <code>rpcclient</code> enumeration (Chapter 2) and CrackMapExec brute force (Exercise 3.3) before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>James Mitchell notes that knowing a username upfront (like "admin") is unrealistic. In a real engagement, you must discover usernames first. The target exposes an SMB service on port 445 with a share called "private" that requires authentication. The IPC$ share allows null session access, which means you can enumerate usernames without credentials. Your job is to discover valid usernames through enumeration, then brute force their passwords to gain access.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Enumerate usernames via a null session on the target</li>
+<li>Extract discovered usernames into a targeted user list</li>
+<li>Brute force discovered accounts using CrackMapExec with a password wordlist</li>
+<li>Authenticate with valid credentials and capture the flag</li>
+</ul>
+<hr />
+<h2 id="background-the-two-phase-attack-chain">Background: The Two-Phase Attack Chain</h2>
+<p>Credential attacks have two unknowns: the username and the password. Exercises 3.1 through 3.3 gave you the username upfront, so you only had to solve for one unknown. In practice, you must solve for both. The most efficient approach splits this into two phases:</p>
+<p><strong>Phase 1; Enumeration:</strong> Discover what usernames exist on the target. You learned this in Chapter 2 using <code>rpcclient</code> and <code>enum4linux</code>. A null session on the IPC$ share lets you query the SAM database for user accounts without any credentials.</p>
+<p><strong>Phase 2; Exploitation:</strong> Test passwords against the usernames you discovered. You learned this in Exercise 3.3 using CrackMapExec. The difference is that now your username input comes from Phase 1 rather than from an assumption.</p>
+<pre class="mermaid"><code>graph LR
+    A["Null Session&lt;br/&gt;(no credentials)"] --&gt; B["enumdomusers&lt;br/&gt;(rpcclient)"]
+    B --&gt; C["Extract Usernames&lt;br/&gt;(grep/cut → users.txt)"]
+    C --&gt; D["CrackMapExec&lt;br/&gt;(-u users.txt -p wordlist.txt)"]
+    D --&gt; E["Authenticated Access&lt;br/&gt;(smbclient)"]
+
+    style A fill:#888,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#4a90d9,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#6aaa64,color:#fff</code></pre>
+<p>The two-phase approach is dramatically more effective than blind guessing:</p>
+<ul>
+<li><strong>You only test passwords against accounts that actually exist.</strong> Testing 10 passwords against 3 real usernames is 30 attempts. Guessing both usernames and passwords from a 100-user list and a 10-password list is 1,000 attempts. Enumeration makes the attack 33 times more efficient.</li>
+<li><strong>You can create targeted password lists</strong> based on the username patterns you find. If usernames follow a pattern like <code>user1</code>, <code>user2</code>, you might infer corresponding password patterns.</li>
+<li><strong>You avoid wasting time on non-existent accounts.</strong> Every attempt against a non-existent username is a wasted request that generates unnecessary noise.</li>
+</ul>
+<h2 id="tool-primer-combining-existing-tools">Tool Primer: Combining Existing Tools</h2>
+<p>this exercise does not introduce a new tool. Instead, it combines tools you already know into a single workflow.</p>
+<p><strong>Step 1; Enumerate users with rpcclient:</strong></p>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate users via a null session</p>
+<p>The <code>rpcclient</code> call is the same null session enumeration you used in Chapter 2. The <code>-U ""</code> flag passes an empty username, and <code>-N</code> suppresses the password prompt.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;enumdomusers&#39;</span>
+</code></pre></div>
+<p>The output format is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>user:[user1] rid:[0x3e8]
+</code></pre></div>
+</div>
+<p><strong>Step 2; Extract usernames into a file:</strong></p>
+<div class="admonition kali">
+<p class="admonition-title">Extract usernames with grep</p>
+<p>The <code>grep -oP</code> command uses a Perl-compatible regular expression to extract just the username from between the square brackets. The <code>\K</code> resets the match start, and <code>[^\]]+</code> captures everything up to the closing bracket.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;enumdomusers&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;user:\[\K[^\]]+&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>users.txt
+</code></pre></div>
+<p>The result is a clean text file with one username per line.</p>
+</div>
+<p><strong>Step 3; Brute force with CrackMapExec:</strong></p>
+<div class="admonition kali">
+<p class="admonition-title">Brute force the discovered users</p>
+<p>Note the key change from Exercise 3.3: <code>-u users.txt</code> (a file containing multiple usernames) instead of <code>-u admin</code> (a single hardcoded username).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>crackmapexec<span class="w"> </span>smb<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>users.txt<span class="w"> </span>-p<span class="w"> </span>wordlist.txt
+</code></pre></div>
+<p>CrackMapExec detects that the argument is a file path and iterates through every username-password combination automatically.</p>
+</div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the Username Enumeration and Brute Force lab</li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-enumerate-users-phase-1">Step 2: Enumerate Users (Phase 1)</h3>
+<p>Run <code>rpcclient</code> with a null session to enumerate domain users on the target.</p>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate domain users (Phase 1)</p>
+<p>The null session queries the SAM database for accounts without any credentials. Replace <code>&lt;target_ip&gt;</code> with the IP shown in the Active Lab View.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;enumdomusers&#39;</span>
+</code></pre></div>
+<p>You should see output listing user accounts in the format <code>user:[name] rid:[0xHEX]</code>. Each line represents a user account on the target system.</p>
+</div>
+<h3 id="step-3-parse-the-output">Step 3: Parse the Output</h3>
+<p>Examine the output from Step 2. Each line follows the same format:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>user:[user1] rid:[0x3e8]
+</code></pre></div>
+<p>The username is between the first pair of square brackets. The RID (Relative Identifier) is the numeric ID assigned to the account. Note every username you see; you will need them in the next step.</p>
+<h3 id="step-4-extract-usernames-to-a-file">Step 4: Extract Usernames to a File</h3>
+<p>Pipe the rpcclient output through <code>grep</code> to extract just the usernames into a file.</p>
+<div class="admonition kali">
+<p class="admonition-title">Extract usernames into users.txt</p>
+<p>The pipeline runs the same enumeration command and filters the output down to bare usernames.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>rpcclient<span class="w"> </span>-U<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-N<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;enumdomusers&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-oP<span class="w"> </span><span class="s1">&#39;user:\[\K[^\]]+&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>users.txt
+</code></pre></div>
+<p>The <code>grep -oP</code> pipeline creates a file called <code>users.txt</code> containing one username per line, stripped of the surrounding formatting.</p>
+</div>
+<h3 id="step-5-verify-the-user-list">Step 5: Verify the User List</h3>
+<p>Confirm the extraction worked correctly.</p>
+<div class="admonition kali">
+<p class="admonition-title">Verify the extracted user list</p>
+<p>Print the file so you can confirm it holds clean usernames before feeding it to the brute force.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>cat<span class="w"> </span>users.txt
+</code></pre></div>
+<p>You should see <code>user1</code> (and possibly other accounts). If the file is empty, re-run Step 4 and check that the rpcclient command produced output.</p>
+</div>
+<h3 id="step-6-create-a-password-wordlist">Step 6: Create a Password Wordlist</h3>
+<p>Create a small wordlist of common passwords to test against the discovered accounts.</p>
+<div class="admonition kali">
+<p class="admonition-title">Create the password wordlist</p>
+<p>The heredoc writes six common passwords to <code>wordlist.txt</code>, one per line.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>wordlist.txt<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="s">password</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="s">admin123</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="s">password123</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="s">qwerty</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="s">123456</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="s">letmein</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="s">EOF</span>
+</code></pre></div>
+<p>In a real engagement, you would use a larger list such as <code>rockyou.txt</code> or a custom wordlist tailored to the target organization. Six entries are enough to demonstrate the technique here.</p>
+</div>
+<h3 id="step-7-brute-force-with-the-user-list-phase-2">Step 7: Brute Force with the User List (Phase 2)</h3>
+<p>Run CrackMapExec with both the user list and the password wordlist.</p>
+<div class="admonition kali">
+<p class="admonition-title">Brute force every user and password (Phase 2)</p>
+<p>Passing files to both <code>-u</code> and <code>-p</code> tests every username against every password automatically.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>crackmapexec<span class="w"> </span>smb<span class="w"> </span>&lt;target_ip&gt;<span class="w"> </span>-u<span class="w"> </span>users.txt<span class="w"> </span>-p<span class="w"> </span>wordlist.txt
+</code></pre></div>
+<p>CrackMapExec reads every username from <code>users.txt</code> and tests every password from <code>wordlist.txt</code> against each one. Watch the output as it works through the combinations.</p>
+</div>
+<h3 id="step-8-identify-the-valid-credentials">Step 8: Identify the Valid Credentials</h3>
+<p>Look for the <code>[+]</code> marker in the CrackMapExec output. Failed attempts show <code>[-]</code>, while a successful login shows <code>[+]</code> with the valid credentials. You should see a line indicating that <code>user1</code> authenticated successfully with the password <code>password123</code>.</p>
+<h3 id="step-9-access-the-private-share">Step 9: Access the Private Share</h3>
+<p>Use the discovered credentials to connect to the "private" share.</p>
+<div class="admonition kali">
+<p class="admonition-title">Authenticate to the private share</p>
+<p>The <code>-U user1%password123</code> syntax supplies the discovered username and password inline.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/private<span class="w"> </span>-U<span class="w"> </span>user1%password123
+</code></pre></div>
+<p>You should see the <code>smb: \&gt;</code> prompt, confirming successful authentication.</p>
+</div>
+<h3 id="step-10-download-the-flag">Step 10: Download the Flag</h3>
+<p>List the share contents and download the flag file.</p>
+<div class="admonition kali">
+<p class="admonition-title">Download the flag from the SMB session</p>
+<p>Run these at the <code>smb: \&gt;</code> prompt. The <code>get</code> command copies <code>flag.txt</code> to your current Kali directory, then <code>exit</code> closes the session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>smb: \&gt; get flag.txt
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>smb: \&gt; exit
+</code></pre></div>
+</div>
+<h3 id="step-11-read-the-flag">Step 11: Read the Flag</h3>
+<p>Back at your terminal, read the downloaded file.</p>
+<div class="admonition kali">
+<p class="admonition-title">Read the downloaded flag</p>
+<p>The downloaded <code>flag.txt</code> now sits in your Kali working directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cat<span class="w"> </span>flag.txt
+</code></pre></div>
+<p>The flag is in <code>OCR{&lt;flag_here&gt;}</code> format.</p>
+</div>
+<p>Paste this into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Enumeration output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>(paste your rpcclient enumdomusers output here)
+</code></pre></div>
+<p><strong>Extracted usernames:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>RID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>CrackMapExec output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>(paste your CrackMapExec output here)
+</code></pre></div>
+<p><strong>Discovered credentials:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Take a moment to think through these questions. They connect the enumeration and exploitation phases into a broader methodology.</p>
+<p><strong>1. Why is it important to enumerate usernames BEFORE brute forcing, rather than guessing both username and password?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Enumeration eliminates half the unknowns. Testing 10 passwords against 3 real usernames requires 30 attempts. Guessing both from a 100-user list and a 10-password list requires 1,000 attempts. Enumeration makes the attack 33 times more efficient. Beyond efficiency, it also eliminates false negatives; you cannot miss a vulnerable account if you know it exists.</p>
+</details>
+<p><strong>2. The target username was "user1", not "admin". What would have happened if you skipped enumeration and only tested "admin"?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>You would have exhausted your entire wordlist against the wrong account and concluded there were no weak passwords. The actual vulnerability; <code>user1</code> with the password <code>password123</code>: would have gone undiscovered. Assumption-based testing carries exactly this core risk: you can run a technically perfect brute force attack and still miss the finding because you targeted the wrong account.</p>
+</details>
+<p><strong>3. You used rpcclient for enumeration. What other tool could you have used, and what additional information would it provide?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p><code>enum4linux -a</code> (from Chapter 2) would enumerate users plus groups, shares, password policies, and domain information. The password policy is particularly useful for tuning brute force attacks; if the minimum password length is 8 characters, you can skip shorter passwords in your wordlist, reducing the number of attempts. Group membership information can also help you prioritize which accounts to target first.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>The two-phase attack chain (enumerate then brute force) is how real penetration tests discover credentials</li>
+<li>User enumeration eliminates guesswork and makes credential attacks dramatically more efficient</li>
+<li>CrackMapExec accepts both single usernames (<code>-u admin</code>) and user lists (<code>-u users.txt</code>)</li>
+<li>Never assume the target username is "admin"; always enumerate first</li>
+<li>You have now combined enumeration with brute force into a two-phase chain. The final lab extends this into a complete attack: from initial reconnaissance through every enumeration technique to multi-user credential testing and authenticated access</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

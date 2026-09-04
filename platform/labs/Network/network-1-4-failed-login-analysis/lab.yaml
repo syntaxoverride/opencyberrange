@@ -1,0 +1,271 @@
+name: Failed Login Attempt Analysis
+description: MediCare Regional Hospital's SSH server is experiencing unusual authentication failures. As a SOC analyst, investigate the SSH authentication logs to identify potential brute-force attacks and document your findings.
+difficulty: beginner
+category: network-analysis
+duration_minutes: 45
+objectives:
+  - Analyze SSH authentication logs for attack patterns
+  - Identify brute-force login attempts
+  - Count failed authentication attempts per IP address
+  - Differentiate legitimate login failures from attacks
+  - Capture the flag
+
+scenario: |
+  You're a junior analyst at MediCare Regional Hospital's Security Operations Center (SOC).
+  Marcus Thompson, the CISO, has received automated alerts about an unusual number of failed
+  SSH login attempts on one of the hospital's critical servers. SSH is commonly used by
+  administrators and IT staff to remotely manage servers, making it a frequent target for
+  attackers.
+
+  Brute-force attacks attempt to gain unauthorized access by systematically trying many
+  username/password combinations. These attacks leave distinct patterns in authentication
+  logs that security professionals can identify and block.
+
+  Your objective: Analyze the SSH authentication logs at 10.10.{user_id}.10 to identify
+  the brute-force attack. Determine the attacker's source IP address, the number of failed
+  attempts, and document the attack pattern.
+
+flag: "OCR{brut3_f0rc3_d3t3ct3d}"
+
+hints:
+  - text: |
+      **Brute-Force Attack Fundamentals** - What defenders need to know:
+
+      **Why attackers brute-force SSH:**
+      - Gain unauthorized administrative access to servers
+      - Install malware or backdoors
+      - Steal sensitive data
+      - Use compromised servers for further attacks
+      - Deploy ransomware or cryptominers
+
+      **Common brute-force patterns defenders see:**
+      - **High volume failures**: Dozens to hundreds of failed login attempts
+      - **Multiple usernames**: Trying common names (admin, root, user, test)
+      - **Single source IP**: All attempts from the same attacker address
+      - **Rapid succession**: Many attempts in short time period
+      - **Dictionary attacks**: Using common password lists
+
+      **What makes SSH attacks suspicious:**
+      - 10+ failed attempts from the same IP in a short time
+      - Failed logins for non-existent user accounts
+      - Sequential or alphabetical username attempts
+      - Failed logins outside normal business hours
+      - Foreign or unexpected IP addresses
+
+      **How to spot attacks in SSH logs:**
+      - Look for "Failed password" messages
+      - Count failures per source IP address
+      - Check for invalid/unknown usernames
+      - Examine timestamps for rapid attempts
+      - Compare against known legitimate user IPs
+
+      Brute-force attacks create obvious patterns in authentication logs that
+      trained analysts can quickly identify and respond to.
+    unlock_after_minutes: 0
+
+  - text: |
+      **SSH Authentication Log Format** - Understanding auth.log:
+
+      **Where SSH logs are stored:**
+      - Linux: `/var/log/auth.log` (Debian/Ubuntu) or `/var/log/secure` (RedHat/CentOS)
+      - Contains authentication attempts, sudo usage, and user sessions
+      - New entries appended in real-time as authentication occurs
+
+      **Common log entry types:**
+
+      **Successful login:**
+      ```
+      Jan 15 14:23:45 server sshd[12345]: Accepted password for john from 10.50.1.15 port 54321 ssh2
+      ```
+
+      **Failed password:**
+      ```
+      Jan 15 14:23:50 server sshd[12346]: Failed password for admin from 203.0.113.100 port 45678 ssh2
+      ```
+
+      **Invalid user:**
+      ```
+      Jan 15 14:23:55 server sshd[12347]: Failed password for invalid user test from 203.0.113.100 port 45679 ssh2
+      ```
+
+      **Key components to analyze:**
+      - **Timestamp**: When did the attempt occur?
+      - **Process**: sshd (SSH daemon) with process ID
+      - **Result**: "Accepted" (success) or "Failed" (failure)
+      - **Username**: Which account was targeted?
+      - **Source IP**: Where did the attempt come from?
+      - **Port**: Source port (usually high numbered for clients)
+
+      **Normal vs. Suspicious patterns:**
+      - **Normal**: Occasional typos, 1-2 failures then success, internal IPs
+      - **Suspicious**: Many consecutive failures, invalid usernames, external IPs
+
+      Understanding log format is the first step to identifying attacks.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Counting Failed Attempts** - Analyzing logs for attack patterns:
+
+      **Step 1: Access the authentication logs**
+      The SSH auth logs are available via HTTP:
+      ```bash
+      # View logs in browser
+      http://10.10.{user_id}.10/auth.log
+
+      # Or download and analyze locally
+      curl http://10.10.{user_id}.10/auth.log > auth.log
+      ```
+
+      **Step 2: Identify failed login attempts**
+      Search for failed password entries:
+      ```bash
+      # Show all failed password attempts
+      grep "Failed password" auth.log
+
+      # Count total failed attempts
+      grep "Failed password" auth.log | wc -l
+      ```
+
+      **Step 3: Count failures by source IP**
+      Identify which IPs have the most failures:
+      ```bash
+      # Extract source IPs from failed attempts and count them
+      grep "Failed password" auth.log | awk '{print $11}' | sort | uniq -c | sort -rn
+      ```
+
+      **Step 4: Analyze a suspicious IP**
+      Examine all activity from a specific IP:
+      ```bash
+      # Show all attempts from an IP
+      grep "203.0.113.x" auth.log
+
+      # Count how many different usernames they tried
+      grep "203.0.113.x" auth.log | grep "Failed password" | awk '{print $9}' | sort -u | wc -l
+      ```
+
+      **Red flags for brute-force:**
+      - 20+ failed attempts from one IP
+      - Multiple invalid/unknown usernames
+      - Attempts using common names (admin, root, user, test, guest)
+      - All failures with no successes
+      - Rapid timestamps (seconds apart)
+
+      The attacker's IP will have significantly more failures than legitimate users.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Identifying Attack Patterns** - Recognizing brute-force behavior:
+
+      **Brute-force characteristics:**
+
+      **1. High failure count:**
+      Attackers try many credentials, creating 50-100+ failures
+      ```bash
+      # Find IPs with most failures
+      grep "Failed password" auth.log | grep -oE "from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | \
+        awk '{print $2}' | sort | uniq -c | sort -rn | head
+      ```
+
+      **2. Username enumeration:**
+      Attackers try common usernames:
+      ```bash
+      # List usernames attempted by suspicious IP
+      grep "203.0.113.x" auth.log | grep "Failed password" | \
+        grep -oE "for (invalid user )?[a-z]+ " | sort -u
+      ```
+
+      **3. Rapid succession:**
+      Many attempts in minutes, not hours/days:
+      ```bash
+      # Show timestamps for attacker's attempts
+      grep "203.0.113.x" auth.log | grep "Failed password" | awk '{print $1, $2, $3}'
+      ```
+
+      **4. Invalid users:**
+      Attempts for accounts that don't exist:
+      ```bash
+      # Count invalid user attempts
+      grep "203.0.113.x" auth.log | grep "invalid user" | wc -l
+      ```
+
+      **Comparison with legitimate activity:**
+      - **Hospital staff**: 0-2 failures (typos), then success, internal IPs (10.x.x.x)
+      - **Attacker**: 50+ failures, no successes, external IP, invalid usernames
+
+      **What to document:**
+      - Attacker's source IP address
+      - Total number of failed attempts
+      - Time range of attack
+      - Usernames targeted
+      - Whether any attempts succeeded (hopefully none!)
+
+      The pattern will be unmistakable once you compare legitimate vs. malicious activity.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Solution Approach** for MediCare's SSH brute-force investigation:
+
+      **Complete analysis workflow:**
+
+      **1. Download the authentication logs:**
+      ```bash
+      curl http://10.10.{user_id}.10/auth.log -o auth.log
+      ```
+
+      **2. Find IPs with most failed login attempts:**
+      ```bash
+      grep "Failed password" auth.log | grep -oE "from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | \
+        awk '{print $2}' | sort | uniq -c | sort -rn | head -10
+      ```
+
+      Look for an IP with 50+ failed attempts (significantly higher than others).
+
+      **3. Examine the suspicious IP's activity:**
+      ```bash
+      # Replace with the actual attacker IP you found
+      grep "ATTACKER_IP" auth.log | grep "Failed password"
+      ```
+
+      **4. Count unique usernames tried:**
+      ```bash
+      grep "ATTACKER_IP" auth.log | grep "Failed password" | \
+        awk '{for(i=1;i<=NF;i++) if($i=="for") print $(i+1), $(i+2)}' | sort -u
+      ```
+
+      **5. Verify it's a brute-force attack:**
+      - ✓ High number of failures (50+)
+      - ✓ Multiple different usernames attempted
+      - ✓ All or mostly "Failed password" messages
+      - ✓ Rapid timestamps (minutes, not hours)
+      - ✓ External IP address (not internal hospital network)
+
+      **6. Find the flag:**
+      The flag is embedded in the log file. It appears in:
+      - A comment line related to the attack
+      - Near the attacker's IP address
+      - In an analysis or alert message
+
+      Look for lines containing "Flag:" or "OCR{" in the log file.
+
+      **Expected findings:**
+      - Attacker IP: One external IP with 50-70 failed attempts
+      - Usernames: Common names like admin, root, user, test, guest, etc.
+      - Time range: Attack occurs over 5-15 minutes
+      - Pattern: Clear brute-force attempt with no successful logins
+
+      This is a textbook example of an SSH brute-force attack that should be
+      blocked with fail2ban or similar tools.
+    unlock_after_minutes: 20
+workbook: "wiki/range/netfor/CH_NET01_Log_Analysis/04_Failed_Login_Analysis/"
+
+test:
+  steps:
+    - name: "HTTP server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.target}/"
+      expect: "200"
+    - name: "Auth log file accessible"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.target}/auth.log"
+      expect: "200"
+    - name: "Flag found in auth log"
+      command: "curl -s http://{target.target}/auth.log | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{brut3_f0rc3_d3t3ct3d}"

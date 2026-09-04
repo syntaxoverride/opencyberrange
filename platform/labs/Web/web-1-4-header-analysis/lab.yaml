@@ -1,0 +1,161 @@
+name: Header Analysis
+description: As part of your TechStart assessment, analyze HTTP headers for security misconfigurations and information disclosure.
+difficulty: beginner
+category: web
+duration_minutes: 120
+objectives:
+  - Understand HTTP headers and their security implications
+  - Identify security headers (CSP, HSTS, X-Frame-Options)
+  - Detect information disclosure in headers
+  - Analyze missing security headers
+  - Capture the flag
+
+scenario: |
+  Continuing your security assessment for TechStart Inc., you've been examining 
+  their web application at secure.lab. Sarah Chen mentioned that their security 
+  team recently implemented various security headers, but she wants you to verify 
+  they're configured correctly and identify any information disclosure issues.
+  
+  HTTP headers can reveal a wealth of information about the server, application 
+  framework, and security posture. Missing security headers can leave the 
+  application vulnerable to attacks, while misconfigured headers might leak 
+  sensitive information.
+  
+  Your objective: Analyze all HTTP headers from the web application. Identify 
+  which security headers are present, which are missing, and whether any headers 
+  disclose sensitive information that could aid an attacker.
+
+hostnames:
+  - ip_offset: "89"
+    hostname: "secure.lab"
+    description: "Target web application with header analysis"
+
+
+
+flag: "OCR{h34d3r_4n4lys1s_b4s1c}"
+
+hints:
+  - text: |
+      **HTTP security headers** are response headers that protect web applications from common attacks. They control browser behavior and mitigate vulnerabilities like XSS, clickjacking, and information disclosure.
+
+      **Critical security headers:**
+      - **Content-Security-Policy (CSP)**: Prevents XSS by controlling resource loading
+      - **Strict-Transport-Security (HSTS)**: Forces HTTPS connections
+      - **X-Frame-Options**: Prevents clickjacking attacks
+      - **X-Content-Type-Options**: Blocks MIME-type sniffing
+      - **X-XSS-Protection**: Enables browser XSS filters (legacy)
+
+      **Information disclosure headers to avoid:**
+      - Detailed server versions
+      - Framework/platform identifiers
+      - Internal IP addresses or hostnames
+
+      Your goal is to analyze which security headers are present, missing, or misconfigured.
+    unlock_after_minutes: 0
+
+  - text: |
+      **curl** is the standard tool for inspecting HTTP headers. The verbose mode shows both request and response headers in detail.
+
+      Basic header inspection:
+
+      ```bash
+      curl -I http://secure.lab
+      ```
+
+      For more details, use verbose mode:
+
+      ```bash
+      curl -v http://secure.lab
+      ```
+
+      The `-I` flag fetches headers only, while `-v` shows the complete HTTP exchange including all headers.
+    unlock_after_minutes: 5
+
+  - text: |
+      When analyzing headers, look for both **presence** and **absence** of security controls:
+
+      **Good security headers to find:**
+      ```
+      Strict-Transport-Security: max-age=31536000
+      X-Frame-Options: DENY
+      X-Content-Type-Options: nosniff
+      Content-Security-Policy: default-src 'self'
+      ```
+
+      **Bad information disclosure:**
+      ```
+      Server: Apache/2.4.41 (Ubuntu)
+      X-Powered-By: PHP/7.4.3
+      X-AspNet-Version: 4.0.30319
+      ```
+
+      Missing security headers indicate potential vulnerabilities.
+    unlock_after_minutes: 10
+
+  - text: |
+      Use curl to examine all headers from the target:
+
+      ```bash
+      curl -v http://secure.lab
+      ```
+
+      Analyze the response for:
+      - **Server**: Web server type and version
+      - **X-Powered-By**: Backend technology
+      - **Security headers**: CSP, HSTS, X-Frame-Options, etc.
+      - **Custom headers**: Application-specific headers that might leak info
+      - **Missing headers**: Which security headers are absent?
+
+      Look for both standard and non-standard headers.
+    unlock_after_minutes: 15
+
+  - text: |
+      **Online header analysis tools** can help identify security issues:
+
+      - **SecurityHeaders.com**: Grades security header implementation
+      - **Mozilla Observatory**: Comprehensive security assessment
+
+      However, for this lab, use curl to manually inspect headers:
+
+      ```bash
+      # Get all headers
+      curl -v http://secure.lab 2>&1 | grep -i "^<"
+
+      # Check for specific security headers
+      curl -I http://secure.lab | grep -i "x-frame-options"
+      curl -I http://secure.lab | grep -i "content-security"
+      ```
+
+      The `2>&1` redirects stderr to stdout, capturing verbose output.
+    unlock_after_minutes: 20
+
+  - text: |
+      Run a comprehensive header analysis:
+
+      ```bash
+      curl -v http://secure.lab
+      ```
+
+      **What to document:**
+      1. **Server identification**: Server and X-Powered-By headers
+      2. **Security headers present**: HSTS, CSP, X-Frame-Options, etc.
+      3. **Security headers missing**: Which protections are absent?
+      4. **Information disclosure**: Version numbers, internal paths, etc.
+      5. **Custom headers**: Any application-specific headers?
+
+      The flag is related to the security header configuration. Examine all headers carefully, including both standard and custom ones that might reveal sensitive information.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/webpt/CH_WEB01_Web_Reconnaissance/04_Header_Analysis/"
+
+test:
+  steps:
+    - name: "Web server responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+    - name: "Information disclosure headers present"
+      command: "curl -sI http://{target.webserver}/ | grep -i 'X-Debug-Mode'"
+      expect: "enabled"
+    - name: "Flag in X-Secret-Key header on headers endpoint"
+      command: "curl -sI http://{target.webserver}/headers.php | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{h34d3r_4n4lys1s_b4s1c}"

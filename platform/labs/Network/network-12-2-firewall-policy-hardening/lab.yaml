@@ -1,0 +1,180 @@
+name: "Firewall Policy Hardening - Defense in Depth"
+description: "The Apex contractor situation has escalated. Write source-specific blocks, then build a comprehensive default-deny firewall policy that protects the web server from any source, not just the known bad actor. Learn why rule order determines whether your policy actually works."
+
+difficulty: intermediate
+category: network
+duration_minutes: 75
+visibility: course
+week: 12
+workbook: "wiki/range/netfor/CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/"
+
+flag: "OCR{d3f4ult_d3ny_m4st3r}"
+
+objectives:
+  - Write source-specific iptables rules to block traffic from a known hostile IP
+  - Explain why source-specific blocking alone is insufficient (defense in depth)
+  - Build a general default-deny FORWARD policy that protects against any source
+  - Demonstrate understanding of first-match-wins rule processing order
+  - Diagnose and fix a misconfigured ruleset where rule order defeats the intended policy
+  - Capture the flag
+
+scenario: |
+  Two weeks after you locked down the Meridian Health Partners firewall to block
+  unauthorized traffic from Apex Digital Solutions, the situation has escalated.
+  James Whitfield (Network Security Lead) called an emergency meeting this morning.
+
+  "Good work blocking the Apex traffic last time. But here is the problem: we
+  only blocked their dev server. If another contractor, a visitor on guest Wi-Fi,
+  or a compromised internal host starts sending the same kind of traffic, we have
+  no protection. We wrote rules targeting one IP address. That is reactive, not
+  proactive."
+
+  "I need you back on the firewall. This time, I want a proper security policy:
+
+  Phase 1: Block the Apex dev server specifically. Same as before, but I want
+  you to use source-based rules so you understand how they work.
+
+  Phase 2: Build a general default-deny policy. Only HTTP and HTTPS should be
+  allowed through the firewall from ANY source. Everything else gets dropped.
+  No exceptions.
+
+  One more thing: pay close attention to the ORDER of your rules. I have seen
+  junior admins write a perfect set of rules and then wonder why traffic still
+  gets through because they put a broad allow above their blocks. First match
+  wins. If you get the order wrong, the monitor will show it."
+
+  Credentials for the firewall:
+  Username: analyst
+  Password: M3r1d14n_Fw#
+
+credentials:
+  - role: "analyst"
+    username: "analyst"
+    password: "M3r1d14n_Fw#"
+    description: "SSH access to the Meridian firewall appliance"
+
+hints:
+  - text: |
+      Start by SSHing into the firewall and running the monitor to observe
+      the current traffic. Just like last time, the Apex dev server is sending
+      a mix of legitimate and suspicious traffic.
+
+      ssh analyst@<firewall_ip>
+      sudo monitor
+    unlock_after_minutes: 0
+
+  - text: |
+      Phase 1: Write source-specific rules to block the Apex dev server.
+      First, find the dev server's IP (it is on your subnet at offset .23).
+
+      Block all traffic from that specific source:
+      sudo iptables -A FORWARD -s <apex_dev_ip> -j DROP
+
+      Or be more surgical and only block specific ports from that source:
+      sudo iptables -A FORWARD -s <apex_dev_ip> -p tcp --dport 22 -j DROP
+      sudo iptables -A FORWARD -s <apex_dev_ip> -p tcp --dport 3306 -j DROP
+      sudo iptables -A FORWARD -s <apex_dev_ip> -p tcp --dport 4444 -j DROP
+      sudo iptables -A FORWARD -s <apex_dev_ip> -p tcp --dport 8080 -j DROP
+    unlock_after_minutes: 8
+
+  - text: |
+      Phase 2: Source-specific rules only protect against known threats. Build
+      a general policy that protects the web server regardless of source.
+
+      Flush your Phase 1 rules first:
+      sudo iptables -F FORWARD
+
+      Now write a default-deny policy:
+      sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT
+      sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT
+      sudo iptables -A FORWARD -j DROP
+    unlock_after_minutes: 15
+
+  - text: |
+      Common mistake: if you add rules in the wrong order, the policy breaks.
+
+      Example of WRONG order:
+      sudo iptables -A FORWARD -j DROP          (this matches everything)
+      sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT  (never reached)
+
+      Firewalls evaluate rules top to bottom. The first matching rule wins.
+      If DROP-all is rule 1, your ACCEPT rules on lines 2 and 3 never fire.
+
+      Check your rule order:
+      sudo iptables -L FORWARD -n -v --line-numbers
+    unlock_after_minutes: 20
+
+  - text: |
+      Your final ruleset should look like this (in this exact order):
+
+      1. ACCEPT tcp dpt:80    (allow HTTP from any source)
+      2. ACCEPT tcp dpt:443   (allow HTTPS from any source)
+      3. DROP   all           (deny everything else from any source)
+
+      Verify with the monitor that only HTTP/HTTPS gets through.
+      Then run: sudo check-rules
+
+      The validator checks both your policy AND rule order.
+    unlock_after_minutes: 25
+
+topology:
+  nodes:
+    - id: "firewall"
+      label: "Meridian Firewall"
+      type: "firewall"
+      ip_offset: "10"
+      ports: [22]
+      services: ["OpenSSH", "iptables"]
+      x: 2
+      y: 1
+    - id: "devserver"
+      label: "Apex Dev Server"
+      type: "workstation"
+      ip_offset: "23"
+      ports: [22]
+      services: ["Traffic Generator"]
+      x: 1
+      y: 2
+    - id: "webserver"
+      label: "Meridian Web Server"
+      type: "server"
+      ip_offset: "47"
+      ports: [80, 443]
+      services: ["Apache", "HTTPS"]
+      x: 3
+      y: 2
+  edges:
+    - from: "attacker"
+      to: "firewall"
+      label: "SSH:22"
+      access: "direct"
+    - from: "devserver"
+      to: "firewall"
+      label: "Mixed Traffic"
+      access: "internal"
+    - from: "firewall"
+      to: "webserver"
+      label: "Filtered Traffic"
+      access: "internal"
+
+test:
+  steps:
+    - name: "SSH to firewall"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'echo connected' 2>/dev/null"
+      expect: "connected"
+      timeout: 15
+
+    - name: "Traffic generator is active"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'sudo monitor --count 5 2>/dev/null | head -10' 2>/dev/null"
+      expect: "ALLOW"
+      timeout: 30
+
+    - name: "Web server responds on HTTP"
+      command: "curl -s -o /dev/null -w '%{http_code}' --connect-timeout 5 http://{target.webserver}/"
+      expect: "200"
+      timeout: 10
+
+    - name: "Apply default-deny policy and validate"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.firewall} 'sudo iptables -F FORWARD && sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT && sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT && sudo iptables -A FORWARD -j DROP && sleep 3 && sudo check-rules' 2>/dev/null"
+      expect: "OCR{d3f4ult_d3ny_m4st3r}"
+      timeout: 30

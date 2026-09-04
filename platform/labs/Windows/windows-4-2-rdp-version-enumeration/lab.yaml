@@ -1,0 +1,313 @@
+name: RDP Version Enumeration
+description: Enumerate RDP version and capabilities on FinanceCorp's infrastructure to assess security posture.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - identify rdp version and capabilities
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your detection of FinanceCorp's RDP services has confirmed their presence. James 
+  Mitchell wants detailed information about the RDP version and capabilities, as 
+  different versions have different security characteristics and known vulnerabilities.
+  
+  RDP version enumeration helps identify potential security issues and misconfigurations. 
+  FinanceCorp needs to understand if their RDP implementation is using secure 
+  protocols and configurations.
+  
+  Your objective: Enumerate the RDP version and capabilities on FinanceCorp's systems. 
+  Document the protocol version, supported features, and any security-relevant 
+  configuration details.
+
+flag: "OCR{rdp_v3rs10n}"
+
+hints:
+  - text: |
+      ## What is RDP Version Enumeration?
+
+      **RDP Version Enumeration** goes beyond simple service detection. While detection
+      confirms that an RDP service exists, enumeration extracts **detailed information**
+      about the protocol version, encryption capabilities, authentication methods, and
+      system configuration.
+
+      ### Why Version Enumeration Matters
+
+      Different RDP versions and configurations have different security implications:
+
+      - **Encryption levels**: RDP supports multiple encryption levels (40-bit, 56-bit,
+        128-bit, and FIPS). Weak encryption can be exploited for man-in-the-middle attacks.
+      - **Protocol versions**: Older protocol versions may lack NLA (Network Level
+        Authentication), making them vulnerable to pre-authentication attacks.
+      - **Known vulnerabilities**: Specific versions are associated with critical CVEs:
+        - **BlueKeep (CVE-2019-0708)**: Remote code execution in older RDP versions
+        - **DejaBlue (CVE-2019-1181/1182)**: Affects newer Windows versions
+      - **NTLM information disclosure**: RDP can leak domain names, NetBIOS names,
+        DNS names, and OS version information through NTLM authentication.
+
+      Understanding the exact version and capabilities of an RDP service allows you
+      to identify specific attack vectors and misconfigurations.
+    unlock_after_minutes: 0
+
+  - text: |
+      ## Tools for RDP Enumeration: Nmap NSE Scripts
+
+      Nmap includes specialized **NSE (Nmap Scripting Engine)** scripts designed
+      specifically for RDP enumeration. These scripts extract detailed protocol
+      and configuration information.
+
+      ### Key RDP Enumeration Scripts
+
+      | Script                  | Purpose                                          |
+      |------------------------|--------------------------------------------------|
+      | `rdp-enum-encryption`  | Enumerates supported encryption protocols/levels  |
+      | `rdp-ntlm-info`        | Extracts system info via NTLM authentication      |
+      | `ssl-cert`             | Examines the SSL/TLS certificate details          |
+      | `ssl-enum-ciphers`     | Lists supported SSL/TLS cipher suites             |
+
+      ### Basic NSE Script Syntax
+
+      ```bash
+      nmap --script <script_name> -p <port> <target>
+      ```
+
+      You can run multiple scripts at once by separating them with commas:
+
+      ```bash
+      nmap --script script1,script2 -p <port> <target>
+      ```
+
+      ### Installation
+
+      Nmap and its scripts are typically pre-installed. If not:
+
+      ```bash
+      sudo apt update && sudo apt install nmap -y
+      ```
+
+      The NSE scripts are located in `/usr/share/nmap/scripts/` and you can list
+      available RDP scripts with:
+
+      ```bash
+      ls /usr/share/nmap/scripts/rdp*
+      ```
+    unlock_after_minutes: 5
+
+  - text: |
+      ## Understanding RDP Encryption and NTLM Enumeration
+
+      ### rdp-enum-encryption Script
+
+      This script probes the RDP service to determine which encryption protocols and
+      levels are supported. It tests for:
+
+      - **Standard RDP Security**: The original RDP encryption (RC4-based)
+        - 40-bit encryption (weak, exportable)
+        - 56-bit encryption (weak)
+        - 128-bit encryption (standard)
+        - FIPS 140-1 compliant encryption
+      - **TLS Security (CredSSP/NLA)**: Modern encryption using TLS
+      - **SSL Security**: Certificate-based encryption
+
+      A service supporting only weak encryption levels (40-bit or 56-bit) is a
+      significant finding in a penetration test.
+
+      ### rdp-ntlm-info Script
+
+      When NLA (Network Level Authentication) is enabled, the RDP server responds
+      with NTLM authentication data that can reveal:
+
+      - **Target_Name**: The domain or workgroup name
+      - **NetBIOS_Domain_Name**: The NetBIOS domain name
+      - **NetBIOS_Computer_Name**: The server's NetBIOS name
+      - **DNS_Domain_Name**: The fully qualified domain name
+      - **DNS_Computer_Name**: The server's FQDN
+      - **Product_Version**: The exact OS version number
+
+      This information is invaluable for mapping the network and identifying the
+      target operating system without needing credentials.
+
+      ### What xrdp Reveals
+
+      Since the target runs **xrdp** (an open-source RDP implementation), the
+      enumeration results may differ from native Windows RDP. xrdp typically
+      supports TLS encryption and may expose different NTLM information compared
+      to Microsoft's implementation.
+    unlock_after_minutes: 10
+
+  - text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Basic Service Version Check
+
+      Start by confirming the RDP service and getting baseline version info:
+
+      ```bash
+      nmap -sV -p 3389 -Pn <target>
+      ```
+
+      Note the service name and version in the output.
+
+      ### Step 2: Run RDP Encryption Enumeration
+
+      Use the `rdp-enum-encryption` script to identify supported encryption:
+
+      ```bash
+      nmap --script rdp-enum-encryption -p 3389 -Pn <target>
+      ```
+
+      Review the output for:
+      - Which encryption protocols are supported
+      - Whether weak encryption levels are available
+      - The security level classification
+
+      ### Step 3: Run NTLM Information Extraction
+
+      Use the `rdp-ntlm-info` script to extract system information:
+
+      ```bash
+      nmap --script rdp-ntlm-info -p 3389 -Pn <target>
+      ```
+
+      Review the output for system name, domain, and version details.
+
+      ### Step 4: Combine All Enumeration Scripts
+
+      Run all relevant scripts together for comprehensive results:
+
+      ```bash
+      nmap --script rdp-enum-encryption,rdp-ntlm-info -sV -p 3389 -Pn <target>
+      ```
+
+      ### Step 5: Document and Retrieve the Flag
+
+      After completing the enumeration, connect to retrieve the flag using the
+      provided credentials to confirm your findings.
+    unlock_after_minutes: 15
+
+  - text: |
+      ## Exact Commands to Run
+
+      ### Comprehensive RDP Enumeration Scan
+
+      ```bash
+      nmap -sV -sC --script rdp-enum-encryption,rdp-ntlm-info -p 3389 -Pn <target>
+      ```
+
+      This single command:
+      - `-sV` : Detects the service version
+      - `-sC` : Runs default scripts alongside specified ones
+      - `--script rdp-enum-encryption,rdp-ntlm-info` : Runs both RDP-specific scripts
+      - `-p 3389` : Targets the RDP port
+      - `-Pn` : Skips ping host discovery
+
+      ### Retrieve the Flag After Enumeration
+
+      Once you have enumerated the RDP version and capabilities, connect to the
+      target to retrieve the flag:
+
+      ```bash
+      sudo apt install freerdp2-x11 -y
+      xfreerdp /v:<target> /u:rdpuser /p:password123 /cert:ignore
+      ```
+
+      After connecting, read the flag:
+
+      ```bash
+      cat /home/rdpuser/flag.txt
+      ```
+
+      Note: This target does not have a full desktop environment. If the
+      graphical connection fails, look for alternative access methods or try
+      running xfreerdp with the `/exec` or command-line options.
+    unlock_after_minutes: 20
+
+  - text: |
+      ## Complete Solution Walkthrough
+
+      ### 1. Run the Full Enumeration Scan
+
+      ```bash
+      nmap -sV -sC --script rdp-enum-encryption,rdp-ntlm-info -p 3389 -Pn <target>
+      ```
+
+      ### 2. Expected Output
+
+      You should see output similar to:
+
+      ```
+      Starting Nmap 7.94 ( https://nmap.org )
+      Nmap scan report for <target>
+      Host is up (0.001s latency).
+
+      PORT     STATE SERVICE        VERSION
+      3389/tcp open  ms-wbt-server  xrdp
+      | rdp-enum-encryption:
+      |   Security layer
+      |     CredSSP (NLA): SUCCESS
+      |     CredSSP with Early User Auth: SUCCESS
+      |     Native RDP: SUCCESS
+      |     RDSTLS: SUCCESS
+      |     SSL: SUCCESS
+      |   RDP Encryption level: Client Compatible
+      |     40-bit RC4: SUCCESS
+      |     56-bit RC4: SUCCESS
+      |     128-bit RC4: SUCCESS
+      |     FIPS 140-1: SUCCESS
+      |_  RDP Protocol Version: Unknown
+      | rdp-ntlm-info:
+      |   Target_Name: ...
+      |   NetBIOS_Computer_Name: ...
+      |   Product_Version: ...
+      |_  System_Time: ...
+      ```
+
+      ### 3. Key Findings to Document
+
+      From this output, note:
+      - The RDP implementation is **xrdp**
+      - Supported encryption levels and protocols
+      - Any NTLM information leaked (domain, computer name, version)
+
+      ### 4. Retrieve the Flag
+
+      ```bash
+      sudo apt install freerdp2-x11 -y
+      xfreerdp /v:<target> /u:rdpuser /p:password123 /cert:ignore +clipboard
+      ```
+
+      Once connected (or through alternative access), read the flag:
+
+      ```bash
+      cat /home/rdpuser/flag.txt
+      ```
+
+      Submit the `OCR{...}` flag to complete the lab.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "rdpuser"
+    password: "password123"
+    role: "rdp-user"
+    description: "RDP user credentials"
+
+workbook: "wiki/range/winpt/CH04_RDP_Exploitation/02_RDP_Version_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify RDP port 3389 is open"
+      command: "nmap -Pn -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "open"
+
+    - name: "Detect RDP service version on port 3389"
+      command: "nmap -Pn -sV -p 3389 {target.target} | grep '3389/tcp'"
+      expect: "ms-wbt-server"
+
+    - name: "Enumerate RDP encryption capabilities"
+      command: "nmap -Pn --script rdp-enum-encryption -p 3389 {target.target} 2>&1"
+      expect: "RDP"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p 'password123' ssh -o StrictHostKeyChecking=no rdpuser@{target.target} cat /home/rdpuser/flag.txt"
+      expect: "OCR{"

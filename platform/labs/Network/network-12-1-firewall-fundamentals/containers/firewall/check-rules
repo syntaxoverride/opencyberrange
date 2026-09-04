@@ -1,0 +1,97 @@
+#!/bin/bash
+# ============================================================================
+# Meridian Firewall Rule Validator
+# Checks that the student's iptables FORWARD rules correctly:
+#   1. Allow TCP port 80 (HTTP)
+#   2. Allow TCP port 443 (HTTPS)
+#   3. Drop all other forwarded traffic
+# ============================================================================
+
+echo "============================================="
+echo "  Meridian Firewall - Rule Validator"
+echo "============================================="
+echo ""
+
+# Get FORWARD rules (excluding the LOG monitoring rule)
+RULES=$(iptables -L FORWARD -n --line-numbers 2>/dev/null | grep -v "^Chain\|^num\|LOG")
+
+if [[ -z "$RULES" ]]; then
+    echo "[FAIL] No FORWARD rules found."
+    echo ""
+    echo "  You need to write iptables rules on the FORWARD chain."
+    echo "  Example: sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT"
+    echo ""
+    exit 1
+fi
+
+echo "Current FORWARD rules (excluding monitor):"
+echo "$RULES"
+echo ""
+
+# Check 1: Is there an ACCEPT rule for port 80?
+if ! echo "$RULES" | grep -q "ACCEPT.*tcp.*dpt:80"; then
+    echo "[FAIL] No ACCEPT rule for TCP port 80 (HTTP)."
+    echo "  Legitimate web traffic will be blocked."
+    exit 1
+fi
+echo "[PASS] HTTP (port 80) is allowed."
+
+# Check 2: Is there an ACCEPT rule for port 443?
+if ! echo "$RULES" | grep -q "ACCEPT.*tcp.*dpt:443"; then
+    echo "[FAIL] No ACCEPT rule for TCP port 443 (HTTPS)."
+    echo "  Secure web traffic will be blocked."
+    exit 1
+fi
+echo "[PASS] HTTPS (port 443) is allowed."
+
+# Check 3: Is there a DROP/REJECT all rule?
+if ! echo "$RULES" | grep -qE "(DROP|REJECT).*0\.0\.0\.0/0.*0\.0\.0\.0/0"; then
+    echo "[FAIL] No default DROP rule found."
+    echo "  Without a catch-all DROP rule, unauthorized traffic still gets through."
+    echo "  Add: sudo iptables -A FORWARD -j DROP"
+    exit 1
+fi
+echo "[PASS] Default DROP rule is in place."
+
+# Check 4: Rule order - ACCEPT rules must come BEFORE the DROP-all rule
+# Find line numbers (from the filtered rules, re-number them)
+ACCEPT_80_LINE=$(echo "$RULES" | grep -n "ACCEPT.*tcp.*dpt:80" | head -1 | cut -d: -f1)
+ACCEPT_443_LINE=$(echo "$RULES" | grep -n "ACCEPT.*tcp.*dpt:443" | head -1 | cut -d: -f1)
+DROP_ALL_LINE=$(echo "$RULES" | grep -nE "(DROP|REJECT).*0\.0\.0\.0/0.*0\.0\.0\.0/0" | head -1 | cut -d: -f1)
+
+if [[ "$ACCEPT_80_LINE" -gt "$DROP_ALL_LINE" ]] || [[ "$ACCEPT_443_LINE" -gt "$DROP_ALL_LINE" ]]; then
+    echo ""
+    echo "[FAIL] Rule order problem detected."
+    echo "  Your DROP-all rule comes before one or more ACCEPT rules."
+    echo "  Firewalls process rules top to bottom (first match wins)."
+    echo "  The DROP-all matches everything, so your ACCEPT rules never fire."
+    echo ""
+    echo "  Fix: Flush and rewrite with ACCEPT rules first, DROP last:"
+    echo "    sudo iptables -F FORWARD"
+    echo "    sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT"
+    echo "    sudo iptables -A FORWARD -p tcp --dport 443 -j ACCEPT"
+    echo "    sudo iptables -A FORWARD -j DROP"
+    exit 1
+fi
+echo "[PASS] Rule order is correct (ACCEPT before DROP)."
+
+# Check 5: Make sure no broad ACCEPT-all exists before the DROP
+BROAD_ACCEPT=$(echo "$RULES" | grep -n "ACCEPT.*0\.0\.0\.0/0.*0\.0\.0\.0/0" | grep -v "dpt:" | head -1 | cut -d: -f1)
+if [[ -n "$BROAD_ACCEPT" ]] && [[ "$BROAD_ACCEPT" -lt "$DROP_ALL_LINE" ]]; then
+    echo ""
+    echo "[FAIL] A broad ACCEPT-all rule exists before your DROP rule."
+    echo "  This allows ALL traffic through, making your DROP rule useless."
+    echo "  Remove the broad ACCEPT and only allow specific ports."
+    exit 1
+fi
+
+echo ""
+echo "============================================="
+echo "  ALL CHECKS PASSED"
+echo "============================================="
+echo ""
+echo "  Your firewall rules are correctly configured."
+echo "  HTTP and HTTPS traffic is allowed."
+echo "  All other traffic is blocked."
+echo ""
+cat /root/flag.txt

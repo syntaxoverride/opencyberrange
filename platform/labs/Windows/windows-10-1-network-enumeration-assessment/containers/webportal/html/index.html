@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinanceCorp Intranet</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      color: #e2e8f0; line-height: 1.6; overflow-x: hidden; min-height: 100vh;
+      background: #060E1A;
+    }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #060E1A; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #D4A843, #8C6D1F); border-radius: 3px; }
+
+    /* ── Animated background ─────────────────────────────── */
+    .page-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(212,168,67,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(59,130,246,0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 50% 50%, rgba(212,168,67,0.03) 0%, transparent 60%);
+    }
+    .page-bg::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(212,168,67,0.08) 1px, transparent 1px);
+      background-size: 48px 48px;
+      -webkit-mask: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.15) 100%);
+      mask: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.15) 100%);
+    }
+    .page-bg::after {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(212,168,67,0.02) 60deg, transparent 120deg, rgba(59,130,246,0.015) 240deg, transparent 360deg);
+      animation: bgSpin 60s linear infinite;
+    }
+    @keyframes bgSpin { to { transform: rotate(360deg); } }
+
+    /* ── Ticker ──────────────────────────────────────────── */
+    .ticker {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 60; height: 32px;
+      display: flex; align-items: center; overflow: hidden; white-space: nowrap;
+      background: rgba(6,14,26,0.95); border-bottom: 1px solid rgba(212,168,67,0.1);
+    }
+    .ticker-scroll { display: inline-block; animation: tickScroll 45s linear infinite; }
+    @keyframes tickScroll { to { transform: translateX(-50%); } }
+    .ticker .s { color: #64748b; font-size: 11px; font-weight: 600; margin: 0 8px 0 28px; }
+    .ticker .sh { color: #F0C75E; font-size: 11px; font-weight: 700; margin: 0 8px 0 28px; }
+    .ticker .up { color: #4ade80; font-size: 11px; }
+    .ticker .dn { color: #f87171; font-size: 11px; }
+    .ticker .n { color: #94a3b8; font-size: 11px; }
+    .ticker .sep { color: #1e293b; margin: 0 12px; font-size: 11px; }
+
+    /* ── Navbar ──────────────────────────────────────────── */
+    .nav {
+      position: fixed; top: 32px; left: 0; right: 0; z-index: 50; height: 64px;
+      display: flex; align-items: center; padding: 0 40px;
+      transition: background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
+    }
+    .nav.scrolled {
+      background: rgba(6,14,26,0.95);
+      box-shadow: 0 1px 0 rgba(212,168,67,0.12), 0 8px 32px rgba(0,0,0,0.4);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    .nav-inner { max-width: 1280px; width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .nav-logo {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, rgba(212,168,67,0.15), rgba(212,168,67,0.05));
+      border: 1.5px solid rgba(212,168,67,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px; color: #D4A843;
+      box-shadow: 0 0 20px rgba(212,168,67,0.1);
+    }
+    .nav-name { font-size: 20px; font-weight: 700; }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a { font-size: 14px; font-weight: 500; color: #94a3b8; transition: color 0.2s, text-shadow 0.2s; }
+    .nav-links a:hover, .nav-links a.on { color: #F0C75E; text-shadow: 0 0 16px rgba(212,168,67,0.3); }
+    .nav-user { font-size: 12px; color: #475569; display: flex; align-items: center; gap: 8px; }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: #D4A843; box-shadow: 0 0 10px rgba(212,168,67,0.5); }
+
+    /* ── Gold text ───────────────────────────────────────── */
+    .gold {
+      background: linear-gradient(90deg, #8C6D1F, #D4A843 15%, #F5DFA0 35%, #F0C75E 50%, #D4A843 65%, #F5DFA0 85%, #8C6D1F);
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: goldMove 3s linear infinite;
+    }
+    @keyframes goldMove { to { background-position: 200% center; } }
+
+    /* ── Glass card ──────────────────────────────────────── */
+    .card {
+      background: rgba(10,22,40,0.6);
+      border: 1px solid rgba(212,168,67,0.07);
+      border-radius: 20px; overflow: hidden;
+      transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
+      margin-bottom: 24px;
+    }
+    .card:hover {
+      border-color: rgba(212,168,67,0.22);
+      box-shadow: 0 16px 48px rgba(212,168,67,0.08), inset 0 1px 0 rgba(255,255,255,0.02);
+      transform: translateY(-3px);
+    }
+    .card-body { padding: 32px; }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .hero { position: relative; z-index: 10; padding: 140px 40px 72px; }
+    .hero-card {
+      max-width: 1280px; margin: 0 auto; border-radius: 28px; padding: 60px 64px;
+      background:
+        linear-gradient(135deg, rgba(10,22,40,0.7), rgba(10,22,40,0.5)),
+        linear-gradient(135deg, rgba(212,168,67,0.05) 0%, transparent 50%);
+      border: 1px solid rgba(212,168,67,0.1);
+      position: relative; overflow: hidden;
+    }
+    .hero-card::before {
+      content: ''; position: absolute; inset: -1px; border-radius: 28px; padding: 1px; z-index: 0;
+      background: linear-gradient(135deg, rgba(240,199,94,0.4), transparent 30%, transparent 70%, rgba(240,199,94,0.2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+    }
+    .hero-card::after {
+      content: ''; position: absolute; top: -100px; right: -100px; width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(212,168,67,0.1) 0%, transparent 70%);
+      border-radius: 50%; filter: blur(40px); animation: heroPulse 6s ease-in-out infinite;
+    }
+    @keyframes heroPulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+
+    .hero-inner { position: relative; z-index: 2; }
+    .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+    .badge {
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700;
+      padding: 6px 16px; border-radius: 100px;
+    }
+    .badge-gold { color: #F0C75E; background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.25); box-shadow: 0 0 20px rgba(212,168,67,0.08); }
+    .badge-muted { color: #94a3b8; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+    .badge-green { color: #4ade80; background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.15); }
+
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(36px, 5vw, 64px); font-weight: 800; line-height: 1.1; margin-bottom: 20px;
+      text-shadow: 0 0 60px rgba(212,168,67,0.12);
+    }
+    .hero-desc { font-size: 18px; color: #94a3b8; max-width: 620px; line-height: 1.7; margin-bottom: 32px; }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 14px;
+      font-size: 14px; font-weight: 700; color: #060E1A; border: none; cursor: pointer;
+      background: linear-gradient(135deg, #F0C75E, #D4A843);
+      box-shadow: 0 4px 24px rgba(212,168,67,0.3); transition: all 0.3s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(212,168,67,0.45); background: linear-gradient(135deg, #F5DFA0, #F0C75E); }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 14px;
+      font-size: 14px; font-weight: 700; color: #F0C75E; cursor: pointer;
+      background: transparent; border: 1px solid rgba(212,168,67,0.3); transition: all 0.3s;
+    }
+    .btn-outline:hover { background: rgba(212,168,67,0.08); border-color: rgba(212,168,67,0.5); }
+
+    /* ── Stats ───────────────────────────────────────────── */
+    .stats { position: relative; z-index: 10; padding: 0 40px 40px; margin-top: -20px; }
+    .stats-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .stat-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .stat-icon {
+      width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+      background: linear-gradient(135deg, rgba(212,168,67,0.12), rgba(212,168,67,0.03));
+      border: 1px solid rgba(212,168,67,0.15);
+      box-shadow: 0 0 24px rgba(212,168,67,0.06);
+    }
+    .stat-val { font-size: 34px; font-weight: 800; line-height: 1; }
+    .stat-lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; margin-top: 2px; }
+    .bar { height: 4px; border-radius: 4px; background: rgba(255,255,255,0.04); margin-top: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #8C6D1F, #F0C75E); }
+    .bar-green .bar-fill { background: linear-gradient(90deg, #059669, #4ade80); }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .main { position: relative; z-index: 10; padding: 0 40px 64px; }
+    .grid { max-width: 1280px; margin: 0 auto; display: flex; gap: 24px; }
+    .col-left { flex: 1; min-width: 0; }
+    .col-right { width: 320px; flex-shrink: 0; }
+
+    /* ── Section header ──────────────────────────────────── */
+    .sh { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .sh-icon {
+      width: 34px; height: 34px; border-radius: 10px; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(212,168,67,0.08); border: 1px solid rgba(212,168,67,0.15);
+    }
+    .sh-icon-g { background: rgba(74,222,128,0.06); border-color: rgba(74,222,128,0.15); }
+    .sh-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #D4A843; }
+
+    /* ── News ────────────────────────────────────────────── */
+    .ni { padding: 20px 16px; border-radius: 12px; transition: background 0.3s; }
+    .ni:hover { background: rgba(212,168,67,0.02); }
+    .ni + .ni { border-top: 1px solid rgba(255,255,255,0.03); }
+    .ni-date {
+      font-size: 10px; color: rgba(212,168,67,0.65); text-transform: uppercase;
+      letter-spacing: 0.15em; font-weight: 700; margin-bottom: 5px;
+      padding-left: 14px; position: relative;
+    }
+    .ni-date::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      border-radius: 2px; background: linear-gradient(180deg, #F0C75E, #8C6D1F);
+      box-shadow: 0 0 10px rgba(212,168,67,0.3);
+    }
+    .ni-title { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+    .ni-body { font-size: 13px; color: #94a3b8; line-height: 1.7; }
+    .ni-hl { color: #D4A843; font-weight: 600; }
+    .ni-b { color: #cbd5e1; font-weight: 600; }
+
+    /* ── Quick links ─────────────────────────────────────── */
+    .ql { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; font-size: 14px; color: #cbd5e1; transition: all 0.2s; }
+    .ql:hover { background: rgba(212,168,67,0.04); color: #F0C75E; }
+    .ql-arr { margin-left: auto; color: #1e293b; font-size: 12px; transition: color 0.2s; }
+    .ql:hover .ql-arr { color: #D4A843; }
+
+    /* ── Status ──────────────────────────────────────────── */
+    .sr { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,0.015); font-size: 14px; }
+    .sr + .sr { margin-top: 8px; }
+    .sr-l { display: flex; align-items: center; gap: 10px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-g { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); animation: pG 2.5s ease infinite; }
+    .dot-y { background: #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.5); animation: pY 2.5s ease infinite; }
+    @keyframes pG { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.5)} 50%{box-shadow:0 0 0 8px rgba(74,222,128,0)} }
+    @keyframes pY { 0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,0.5)} 50%{box-shadow:0 0 0 8px rgba(250,204,21,0)} }
+    .sr-name { color: #cbd5e1; font-weight: 500; }
+    .sr-vg { color: #4ade80; font-size: 11px; font-weight: 700; }
+    .sr-vy { color: #facc15; font-size: 11px; font-weight: 700; }
+    .live { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #4ade80; background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.15); padding: 3px 10px; border-radius: 100px; margin-left: auto; }
+    .meta { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.03); font-size: 10px; color: #1e293b; font-family: 'Courier New', monospace; }
+
+    /* ── Market ──────────────────────────────────────────── */
+    .mkts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mc { background: rgba(255,255,255,0.015); border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.03); }
+    .mc-l { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 4px; }
+    .mc-v { font-size: 20px; font-weight: 800; color: #f1f5f9; }
+    .mc-s { font-size: 12px; font-weight: 600; margin-top: 2px; }
+    .mc-sg { color: #4ade80; } .mc-sm { color: #475569; }
+
+    /* ── IT / Clock ──────────────────────────────────────── */
+    .it-p { font-size: 13px; color: #475569; margin-bottom: 12px; }
+    .it-box { background: rgba(255,255,255,0.015); border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+    .it-r + .it-r { margin-top: 6px; }
+    .it-l { color: #475569; } .it-v { color: #cbd5e1; }
+    .clk { text-align: center; }
+    .clk-l { font-size: 10px; color: #1e293b; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; margin-bottom: 8px; }
+    .clk-t { font-size: 28px; font-weight: 800; font-family: 'Courier New', monospace; letter-spacing: 0.05em; }
+    .clk-d { font-size: 11px; color: #475569; margin-top: 4px; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    .foot { position: relative; z-index: 10; border-top: 1px solid rgba(255,255,255,0.03); background: rgba(6,14,26,0.5); }
+    .foot-inner { max-width: 1280px; margin: 0 auto; padding: 36px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .foot-txt { font-size: 12px; color: #334155; }
+    .foot-sub { font-size: 10px; color: #1e293b; }
+    .foot-build { font-size: 10px; color: #1e293b; font-family: 'Courier New', monospace; }
+
+    /* ── Animations ──────────────────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.vis { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1024px) {
+      .grid { flex-direction: column; }
+      .col-right { width: 100%; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 768px) {
+      .hero { padding: 120px 20px 48px; }
+      .hero-card { padding: 32px 24px; border-radius: 20px; }
+      .stats, .main { padding-left: 20px; padding-right: 20px; }
+      .nav { padding: 0 20px; }
+      .foot-inner { flex-direction: column; text-align: center; padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-bg"></div>
+
+<!-- Ticker -->
+<div class="ticker"><div class="ticker-scroll">
+  <span class="sh">FNCP</span><span class="up">$187.42 &#9650;2.34%</span><span class="sep">|</span>
+  <span class="s">S&amp;P 500</span><span class="up">5,842.19 &#9650;0.67%</span><span class="sep">|</span>
+  <span class="s">DOW</span><span class="up">43,128.05 &#9650;0.41%</span><span class="sep">|</span>
+  <span class="s">NASDAQ</span><span class="dn">18,247.31 &#9660;0.12%</span><span class="sep">|</span>
+  <span class="s">10Y Treasury</span><span class="n">4.28%</span><span class="sep">|</span>
+  <span class="s">Gold</span><span class="up">$2,847.60 &#9650;1.15%</span><span class="sep">|</span>
+  <span class="s">BTC</span><span class="up">$94,271 &#9650;3.82%</span><span class="sep">|</span>
+  <span class="sh">FNCP</span><span class="up">$187.42 &#9650;2.34%</span><span class="sep">|</span>
+  <span class="s">S&amp;P 500</span><span class="up">5,842.19 &#9650;0.67%</span><span class="sep">|</span>
+  <span class="s">DOW</span><span class="up">43,128.05 &#9650;0.41%</span><span class="sep">|</span>
+  <span class="s">NASDAQ</span><span class="dn">18,247.31 &#9660;0.12%</span><span class="sep">|</span>
+  <span class="s">10Y Treasury</span><span class="n">4.28%</span><span class="sep">|</span>
+  <span class="s">Gold</span><span class="up">$2,847.60 &#9650;1.15%</span><span class="sep">|</span>
+  <span class="s">BTC</span><span class="up">$94,271 &#9650;3.82%</span><span class="sep">|</span>
+</div></div>
+
+<!-- Nav -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <div class="nav-logo">F</div>
+      <span class="nav-name"><span class="gold">FinanceCorp</span></span>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="on">Home</a>
+      <a href="/internal/">Resources</a>
+      <a href="#">Treasury</a>
+      <a href="#">Compliance</a>
+      <a href="#">IT Support</a>
+    </div>
+    <div class="nav-user"><span class="nav-dot"></span>Guest &mdash; Intranet Portal</div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-card">
+    <div class="hero-inner">
+      <div class="badges">
+        <span class="badge badge-gold">Est. 1987</span>
+        <span class="badge badge-muted">NYSE: FNCP</span>
+        <span class="badge badge-muted">S&amp;P 500</span>
+        <span class="badge badge-green">&#9650; 2.34% Today</span>
+      </div>
+      <h1><span class="gold">Welcome to the<br>FinanceCorp Intranet</span></h1>
+      <p class="hero-desc">Your central hub for company resources, financial tools, and departmental updates. Use the navigation above or the Quick Links panel to get started.</p>
+      <div class="hero-btns">
+        <a href="/internal/" class="btn-primary">Browse Resources &#8594;</a>
+        <a href="#" class="btn-outline">Treasury Portal</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="stats-grid">
+    <div class="card reveal"><div class="card-body">
+      <div class="stat-top">
+        <div class="stat-icon">&#128176;</div>
+        <div><div class="stat-val gold" data-c="2.4" data-p="$" data-s="B" data-d="1">$0</div><div class="stat-lbl">Assets Under Management</div></div>
+      </div>
+      <div class="bar"><div class="bar-fill" style="width:78%"></div></div>
+    </div></div>
+    <div class="card reveal"><div class="card-body">
+      <div class="stat-top">
+        <div class="stat-icon">&#128101;</div>
+        <div><div class="stat-val gold" data-c="1247" data-p="" data-s="" data-d="0">0</div><div class="stat-lbl">Active Client Accounts</div></div>
+      </div>
+      <div class="bar"><div class="bar-fill" style="width:62%"></div></div>
+    </div></div>
+    <div class="card reveal"><div class="card-body">
+      <div class="stat-top">
+        <div class="stat-icon">&#128737;</div>
+        <div><div class="stat-val gold" data-c="99.97" data-p="" data-s="%" data-d="2">0%</div><div class="stat-lbl">Platform Uptime (Q4)</div></div>
+      </div>
+      <div class="bar bar-green"><div class="bar-fill" style="width:99.97%"></div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- Content -->
+<section class="main">
+  <div class="grid">
+    <div class="col-left">
+
+      <!-- Announcements -->
+      <div class="card reveal"><div class="card-body">
+        <div class="sh"><div class="sh-icon">&#128240;</div><span class="sh-title">Company Announcements</span></div>
+        <div class="ni">
+          <div class="ni-date">Feb 28, 2026</div>
+          <div class="ni-title">Q4 Earnings Report Published</div>
+          <div class="ni-body">Revenue increased 12% year-over-year driven by strong performance in the institutional advisory segment. Full report available on the Treasury portal.</div>
+        </div>
+        <div class="ni">
+          <div class="ni-date">Feb 20, 2026</div>
+          <div class="ni-title">IT Infrastructure Migration &mdash; Phase 2</div>
+          <div class="ni-body">The file server migration to the new subnet is complete as part of <span class="ni-hl">Project M1DT3RM</span> &mdash; the mid-term infrastructure refresh initiative. All departments should verify access to shared drives. Contact IT Support if you experience connectivity issues.</div>
+        </div>
+        <div class="ni">
+          <div class="ni-date">Feb 14, 2026</div>
+          <div class="ni-title">Security Awareness Training Due March 15</div>
+          <div class="ni-body">All employees must complete the annual cybersecurity awareness training by end of Q1. Access the training portal through HR Resources.</div>
+        </div>
+        <div class="ni">
+          <div class="ni-date">Feb 5, 2026</div>
+          <div class="ni-title">New Employee Onboarding Portal</div>
+          <div class="ni-body">HR has launched a redesigned onboarding portal for new hires. Managers can now track onboarding progress and provision system access through the dashboard.<br><br><span class="ni-b">Note for new hires:</span> Until your individual account is provisioned, you can access the Document Server&rsquo;s archived case files via FTP using the <span class="ni-b">anonymous</span> login (no password required). This provides read-only access to archived cases, onboarding templates, and departmental handoff materials while IT sets up your credentials.</div>
+        </div>
+      </div></div>
+
+      <!-- Events -->
+      <div class="card reveal"><div class="card-body">
+        <div class="sh"><div class="sh-icon">&#128197;</div><span class="sh-title">Upcoming Events</span></div>
+        <div class="ni">
+          <div class="ni-date">Mar 10, 2026</div>
+          <div class="ni-title">All-Hands Meeting: 2026 Strategic Roadmap</div>
+          <div class="ni-body">Join the leadership team for a review of 2025 performance and the strategic plan for the year ahead. Virtual attendance available.</div>
+        </div>
+        <div class="ni">
+          <div class="ni-date">Mar 22, 2026</div>
+          <div class="ni-title">Compliance Audit Preparation Workshop</div>
+          <div class="ni-body">Mandatory for all department leads. Review updated SOX compliance procedures and documentation requirements for the upcoming external audit.</div>
+        </div>
+      </div></div>
+
+      <!-- Market -->
+      <div class="card reveal"><div class="card-body">
+        <div class="sh"><div class="sh-icon sh-icon-g">&#128200;</div><span class="sh-title">Market Summary</span><span style="margin-left:auto;font-size:9px;color:#1e293b;font-family:monospace;">As of market close</span></div>
+        <div class="mkts">
+          <div class="mc"><div class="mc-l">FNCP</div><div class="mc-v">$187.42</div><div class="mc-s mc-sg">&#9650; $4.28 (2.34%)</div></div>
+          <div class="mc"><div class="mc-l">52W High</div><div class="mc-v">$203.18</div><div class="mc-s mc-sm">Set Dec 12, 2025</div></div>
+          <div class="mc"><div class="mc-l">Div Yield</div><div class="mc-v">2.18%</div><div class="mc-s mc-sm">Quarterly</div></div>
+          <div class="mc"><div class="mc-l">Market Cap</div><div class="mc-v">$48.7B</div><div class="mc-s mc-sg">Large Cap</div></div>
+        </div>
+      </div></div>
+
+    </div>
+    <div class="col-right">
+
+      <!-- Quick Links -->
+      <div class="card reveal"><div class="card-body">
+        <div class="sh"><div class="sh-icon">&#128279;</div><span class="sh-title">Quick Links</span></div>
+        <ul>
+          <li><a href="/internal/" class="ql">&#128193; Internal Documentation <span class="ql-arr">&#10095;</span></a></li>
+          <li><a href="#" class="ql">&#128202; Financial Dashboards <span class="ql-arr">&#10095;</span></a></li>
+          <li><a href="#" class="ql">&#128273; Password Reset <span class="ql-arr">&#10095;</span></a></li>
+          <li><a href="#" class="ql">&#128203; Expense Reporting <span class="ql-arr">&#10095;</span></a></li>
+          <li><a href="#" class="ql">&#128172; IT Help Desk <span class="ql-arr">&#10095;</span></a></li>
+          <li><a href="#" class="ql">&#128197; Room Reservations <span class="ql-arr">&#10095;</span></a></li>
+        </ul>
+      </div></div>
+
+      <!-- Status -->
+      <div class="card reveal"><div class="card-body">
+        <div class="sh"><div class="sh-icon sh-icon-g">&#9889;</div><span class="sh-title">System Status</span><span class="live">Live</span></div>
+        <div class="sr"><span class="sr-l"><span class="dot dot-g"></span><span class="sr-name">Web Portal</span></span><span class="sr-vg">Operational</span></div>
+        <div class="sr"><span class="sr-l"><span class="dot dot-g"></span><span class="sr-name">File Server</span></span><span class="sr-vg">Operational</span></div>
+        <div class="sr"><span class="sr-l"><span class="dot dot-g"></span><span class="sr-name">Domain Controller</span></span><span class="sr-vg">Operational</span></div>
+        <div class="sr"><span class="sr-l"><span class="dot dot-y"></span><span class="sr-name">VPN Gateway</span></span><span class="sr-vy">Degraded</span></div>
+        <div class="meta">Instance: m1dt3rm-prod-01</div>
+      </div></div>
+
+      <!-- IT -->
+      <div class="card reveal"><div class="card-body">
+        <div class="sh"><div class="sh-icon">&#127911;</div><span class="sh-title">IT Department</span></div>
+        <p class="it-p">For technical issues or access requests, contact the IT Help Desk.</p>
+        <div class="it-box">
+          <div class="it-r"><span class="it-l">Email: </span><span class="it-v">it-support@financecorp.local</span></div>
+          <div class="it-r"><span class="it-l">Ext: </span><span class="it-v">x4500</span></div>
+          <div class="it-r"><span class="it-l">Hours: </span><span class="it-v">Mon&ndash;Fri, 7 AM &ndash; 7 PM EST</span></div>
+        </div>
+      </div></div>
+
+      <!-- Clock -->
+      <div class="card reveal"><div class="card-body clk">
+        <div class="clk-l">Local Time</div>
+        <div id="clk" class="clk-t gold">--:--:--</div>
+        <div id="dt" class="clk-d"></div>
+      </div></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="foot">
+  <div class="foot-inner">
+    <div>
+      <div class="foot-txt">&copy; 2026 FinanceCorp, Inc. &mdash; Internal Use Only.</div>
+      <div class="foot-sub">Unauthorized access is prohibited and subject to federal prosecution under 18 U.S.C. &sect; 1030.</div>
+    </div>
+    <div class="foot-build">Portal Build: FC-2026-M1DT3RM-R4</div>
+  </div>
+</footer>
+
+<!-- Internal documentation: other hosts on this subnet. Enumerate all live hosts to find the file server (FTP, SMB, SSH) and the domain controller (LDAP, RDP, SMB). -->
+
+<script>
+(function(){
+  // Navbar scroll
+  var n=document.getElementById('nav');
+  window.addEventListener('scroll',function(){n.classList.toggle('scrolled',window.scrollY>80)});
+
+  // Reveal on scroll
+  var o=new IntersectionObserver(function(e){e.forEach(function(i){if(i.isIntersecting){i.target.classList.add('vis');o.unobserve(i.target)}})},{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(function(el){o.observe(el)});
+
+  // Counters
+  function go(el){
+    var t=parseFloat(el.dataset.c),p=el.dataset.p||'',s=el.dataset.s||'',d=parseInt(el.dataset.d)||0,dur=2000,st=performance.now();
+    function f(now){var r=Math.min((now-st)/dur,1),e=1-Math.pow(1-r,4),v=t*e;
+      el.textContent=p+(d>0?v.toFixed(d):Math.round(v).toLocaleString())+s;
+      if(r<1)requestAnimationFrame(f);else el.textContent=p+(d>0?t.toFixed(d):t.toLocaleString())+s;}
+    requestAnimationFrame(f);
+  }
+  var c=new IntersectionObserver(function(e){e.forEach(function(i){if(i.isIntersecting){go(i.target);c.unobserve(i.target)}})},{threshold:0.4});
+  document.querySelectorAll('[data-c]').forEach(function(el){c.observe(el)});
+
+  // Clock
+  function tk(){var d=new Date(),h=d.getHours(),m=d.getMinutes(),s=d.getSeconds();
+    document.getElementById('clk').textContent=(h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    document.getElementById('dt').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
+  tk();setInterval(tk,1000);
+})();
+</script>
+</body>
+</html>

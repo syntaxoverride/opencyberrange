@@ -1,0 +1,32 @@
+Meridian Financial Group. Database Migration Notes
+====================================================
+Date: December 12, 2025
+Engineer: Michael Torres
+
+Migration Summary:
+- Source: legacy-db-01 (Dell PowerEdge R640, Ubuntu 20.04, MySQL 5.7)
+- Target: meridian-db (Docker container, Ubuntu 22.04, MySQL 8.0)
+- Databases migrated: meridian_compliance, meridian_hr, meridian_finance
+
+Pre-Migration Steps:
+1. Full mysqldump exported to meridian_dump.sql (02:00 UTC, Dec 10)
+2. Dump verified with md5sum: a4f2e8b1c3d7f9a0e5b2c8d4f6a1e3b7
+3. Application service account (meridian_app) recreated with mysql_native_password
+4. All schema structures verified post-import
+
+Post-Migration Verification:
+- [x] meridian_compliance: 3 tables, all data intact
+- [x] meridian_hr: 1 table (structure only, PII requires separate secure transfer)
+- [x] meridian_finance: 2 tables (structure only, financial data imported separately)
+- [x] Application connectivity verified from intranet server
+- [x] Backup schedule configured: daily at 02:00 UTC via NetBackup
+
+Outstanding Items:
+- Legacy dump file moved to intranet archive (/backups/legacy/) per retention policy
+- TODO: Confirm archive directory access is restricted (James to handle)
+- TODO: Schedule purge for May 19, 2026 (90-day retention window)
+
+Notes:
+- The meridian_app service account has SELECT-only access to meridian_compliance
+- HR and finance databases require elevated credentials (not in this dump)
+- Old plaintext GRANT statement left in dump file. should be removed before purge

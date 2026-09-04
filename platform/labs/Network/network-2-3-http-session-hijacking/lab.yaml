@@ -1,0 +1,256 @@
+name: "HTTP Session Cookie Extraction"
+description: |
+  Analyze HTTP traffic to extract session cookies showing unauthorized access.
+  Learn how session hijacking works and why HTTPS is critical.
+
+scenario: |
+  You're a network security analyst at MediCare Regional Hospital's Security Operations Center.
+  Marcus Thompson, the CISO, has escalated a potential session hijacking incident to your team.
+  A patient reported seeing their medical records being accessed from an unfamiliar location,
+  suggesting someone may have stolen and reused a valid session cookie to impersonate them.
+
+  A junior analyst captured network traffic from the patient portal server during the incident,
+  but they need your expertise to analyze it. The PCAP file contains several hours of network
+  traffic, and you need to identify how the attacker gained unauthorized access.
+
+  Your task: SSH into the network analyst workstation and analyze the packet capture file
+  directly on the server using command-line tools like tshark. Identify the session hijacking
+  attack by finding the stolen session cookie and determining how the attacker used it to gain
+  unauthorized access.
+
+  **Analyst Workstation Credentials:**
+  - Host: 10.10.{user_id}.10
+  - Username: analyst
+  - Password: MediCare2024#
+  - PCAP Location: /home/analyst/captures/session-hijack.pcap
+
+objectives:
+  - SSH into network analyst workstation
+  - Analyze packet capture files directly on the server using tshark
+  - Filter HTTP traffic using tshark display filters
+  - Identify session cookie establishment (Set-Cookie headers)
+  - Detect session hijacking by finding reused cookies from different IP addresses
+  - Extract the stolen session cookie value using command-line tools
+  - Understand the security risks of unencrypted HTTP session management
+  - Capture the flag
+
+flag: "OCR{s3ss10n_c00k13_st0l3n}"
+
+hints:
+  - text: |
+      **HTTP Cookies and Session Management** - Understanding the fundamentals:
+
+      **What are HTTP cookies?**
+      - HTTP cookies are used to maintain session state between client and server
+      - When you log into a web application, the server sends a Set-Cookie header to establish your session
+      - Your browser then sends this cookie with every subsequent request using the Cookie header
+      - Cookies allow the server to identify you without requiring login on every request
+
+      **Why cookies matter for security:**
+      - Session cookies authenticate users after initial login
+      - If stolen, an attacker can impersonate the legitimate user
+      - Unencrypted HTTP makes cookies visible to anyone monitoring the network
+      - Look for these headers in the HTTP traffic to understand session flow
+
+      **What to look for in the PCAP:**
+      - `Set-Cookie` headers in HTTP responses (server establishing session)
+      - `Cookie` headers in HTTP requests (client sending session token)
+      - Same cookie value used across multiple requests
+      
+      **Command-line analysis tools:**
+      - `tshark` - Command-line version of Wireshark for packet analysis
+      - `strings` - Extract readable text from binary files
+      - `grep` - Search for patterns in text output
+    unlock_after_minutes: 0
+
+  - text: |
+      **tshark Command-Line Analysis** - Finding the session data:
+
+      **Basic tshark commands for HTTP cookies:**
+      ```bash
+      # Find all Set-Cookie headers (session establishment)
+      tshark -r captures/session-hijack.pcap -Y "http.set_cookie" -T fields -e http.set_cookie
+      
+      # Find all Cookie headers (client sending cookies)
+      tshark -r captures/session-hijack.pcap -Y "http.cookie" -T fields -e http.cookie
+      
+      # Show all HTTP traffic
+      tshark -r captures/session-hijack.pcap -Y "http"
+      ```
+
+      **Alternative: Extract readable strings from PCAP:**
+      ```bash
+      # Search for password-related strings
+      strings captures/session-hijack.pcap | grep -i "password"
+      
+      # Search for cookie-related strings
+      strings captures/session-hijack.pcap | grep -i "cookie"
+      ```
+
+      **Analysis workflow:**
+      1. Use `tshark -Y "http.set_cookie"` to find when sessions are established
+      2. Note the cookie name and value (e.g., SESSIONID=abc123)
+      3. Use `tshark -Y "http.cookie"` to see when cookies are sent
+      4. Look for the same cookie value from different source IP addresses
+
+      **Pro tip:** Look for the same cookie value being used from different source IP addresses. This indicates session hijacking.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Session Hijacking Detection** - Understanding the attack:
+
+      **How session hijacking works:**
+      - Attacker intercepts or steals a valid session cookie
+      - Attacker reuses the cookie to impersonate the legitimate user
+      - Server can't distinguish between legitimate user and attacker
+      - Attacker gains access without knowing the password
+
+      **What to look for in the PCAP:**
+      - Legitimate user receives Set-Cookie header (session established)
+      - Same cookie value later sent from a different source IP
+      - Attacker's requests may access sensitive data or perform unauthorized actions
+      - Timeline: Legitimate user first, then attacker reuses the cookie
+
+      **Key indicators:**
+      - Same cookie value
+      - Different source IP addresses
+      - Different user agents (optional, but common)
+      - Unusual access patterns or sensitive data requests
+
+      Focus on finding where the cookie is first established, then track its reuse.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Focusing on the SESSIONID Cookie** - Narrowing your search:
+
+      **Target cookie:** SESSIONID for the MediCare patient portal
+
+      **Step-by-step analysis with tshark:**
+      ```bash
+      # 1. Find Set-Cookie headers containing SESSIONID
+      tshark -r captures/session-hijack.pcap -Y 'http.set_cookie contains "SESSIONID"'
+      
+      # 2. Extract just the cookie values
+      tshark -r captures/session-hijack.pcap -Y 'http.set_cookie contains "SESSIONID"' -T fields -e http.set_cookie
+      
+      # 3. Find Cookie headers with SESSIONID
+      tshark -r captures/session-hijack.pcap -Y 'http.cookie contains "SESSIONID"'
+      
+      # 4. Show source IP and cookie value together
+      tshark -r captures/session-hijack.pcap -Y 'http.cookie contains "SESSIONID"' -T fields -e ip.src -e http.cookie
+      ```
+
+      **Alternative: Use strings to search for the flag:**
+      ```bash
+      strings captures/session-hijack.pcap | grep -i "OCR"
+      ```
+
+      **What the attacker did:**
+      - Stole the session cookie (via network sniffing, XSS, or other method)
+      - Reused it to access the patient portal
+      - May have accessed sensitive medical records
+      - The flag is embedded in the cookie value or can be found in the traffic
+    unlock_after_minutes: 15
+
+  - text: |
+      **Complete Solution Walkthrough** - Step-by-step analysis:
+
+      **1. SSH to the analyst workstation:**
+      ```bash
+      ssh analyst@10.10.{user_id}.10
+      Password: MediCare2024#
+      ```
+
+      **2. Navigate to the captures directory:**
+      ```bash
+      cd ~/captures
+      ls -lh session-hijack.pcap
+      ```
+
+      **3. Find Set-Cookie headers (session establishment):**
+      ```bash
+      tshark -r session-hijack.pcap -Y 'http.set_cookie contains "SESSIONID"' -T fields -e ip.src -e ip.dst -e http.set_cookie
+      ```
+      This shows when sessions were established. Note the first occurrence and the cookie value.
+
+      **4. Find Cookie headers (session usage):**
+      ```bash
+      tshark -r session-hijack.pcap -Y 'http.cookie contains "SESSIONID"' -T fields -e ip.src -e http.cookie
+      ```
+      Look for the same SESSIONID value being sent from different source IPs.
+
+      **5. Alternative: Search for the flag directly:**
+      ```bash
+      strings session-hijack.pcap | grep -i "OCR"
+      ```
+      Or search for password-related strings:
+      ```bash
+      strings session-hijack.pcap | grep -i "password"
+      ```
+
+      **6. Extract the flag:**
+      The flag is: `OCR{...}`
+      
+      It can be found in the cookie values or by searching for "OCR" in the packet data.
+
+      **Prevention measures:**
+      - Use HTTPS with Secure and HttpOnly cookie flags
+      - Implement proper session timeout
+      - Consider binding sessions to IP addresses or user agents
+      - Use strong, random session tokens
+      - Implement CSRF protection
+    unlock_after_minutes: 20
+
+difficulty: intermediate
+category: network-analysis
+duration_minutes: 60
+
+connection:
+  type: ssh
+  credentials:
+    username: analyst
+    password: "MediCare2024#"
+  port: 22
+
+files:
+  - path: /home/analyst/captures/session-hijack.pcap
+    description: Network capture from MediCare patient portal server
+
+learning_objectives:
+  - Understand HTTP cookie-based session management
+  - Identify session hijacking attacks in network traffic
+  - Extract and analyze session cookies from HTTP headers
+  - Recognize the security risks of unencrypted HTTP traffic
+  - Learn security best practices for session management
+
+tags:
+  - http
+  - cookies
+  - session-hijacking
+  - tshark
+  - command-line
+  - web-security
+  - authentication
+workbook: "wiki/range/netfor/CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/"
+
+credentials:
+  - username: "analyst"
+    password: "MediCare2024#"
+    role: "analyst"
+    description: "Analyst workstation SSH credentials"
+
+test:
+  steps:
+    - name: "SSH accessible on analyst workstation"
+      command: "nc -w 5 {target.analyst-workstation} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "PCAP file exists on analyst workstation"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'ls /home/analyst/captures/session-hijack.pcap'"
+      expect: "session-hijack.pcap"
+    - name: "Flag found in PCAP captures"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst-workstation} 'strings /home/analyst/captures/*.pcap 2>/dev/null | grep -o \"OCR{[^}]*}\" | head -1'"
+      expect: "OCR{s3ss10n_c00k13_st0l3n}"
+
+    - name: "Echo confirmed flag"
+      command: "echo 'OCR{s3ss10n_c00k13_st0l3n}'"
+      expect: "OCR{s3ss10n_c00k13_st0l3n}"

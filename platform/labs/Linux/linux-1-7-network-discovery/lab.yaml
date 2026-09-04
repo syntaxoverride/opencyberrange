@@ -1,0 +1,92 @@
+name: "Orion TechWorks - Network Discovery"
+description: "Orion TechWorks has a server on the network with multiple running services. Perform a comprehensive port scan to discover all services and extract intelligence from each one."
+
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 30
+randomize_ip_offsets: true
+visibility: course
+week: 1
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/01_Network_Discovery/"
+flag: "OCR{sc4nn3d_4n0n_h1dd3n}"
+
+objectives:
+  - Use nmap to perform TCP port scanning against a target host
+  - Identify all running services and their version information
+  - Interact with discovered services to extract information
+  - Discover services running on non-standard ports
+  - Capture the flag
+
+scenario: |
+  Orion TechWorks, a small IT managed services provider in Boise, Idaho, has
+  hired your firm to perform an external network assessment of one of their
+  servers. The engagement is limited to a single host on their DMZ.
+
+  Your point of contact, Jake Morrison (Network Administrator), provided the
+  IP address and a simple directive: "We want to know exactly what's exposed.
+  Scan it, identify every service, and tell us what an attacker could learn from
+  each one. We think we've only got SSH and a web server running, but honestly,
+  I haven't audited the box in a while."
+
+  This is your first engagement of the semester. Start with a comprehensive
+  port scan and work through each discovered service systematically. Three
+  security tokens have been placed across the services for you to find.
+
+credentials: []
+
+hints:
+  - text: |
+      Start with a comprehensive nmap scan. Use -sV for version detection and
+      scan a wide port range. The default 1000 ports may miss services on
+      non-standard ports. Try: nmap -sV -p 1-10000 <target_ip>
+    unlock_after_minutes: 5
+  - text: |
+      You should discover at least four services. For each one, interact with
+      it directly: curl for HTTP, ftp for FTP (try anonymous login), and
+      netcat (nc) for unknown services. Check page source for HTTP, download
+      files from FTP, and read banners on other ports.
+    unlock_after_minutes: 12
+  - text: |
+      Token 1 is in the HTML source of the web page (port 80) - view source.
+      Token 2 is in a file on the FTP server (port 21) - login as anonymous.
+      Token 3 is in the banner of a service on port 8888 - use: nc <ip> 8888
+    unlock_after_minutes: 18
+
+topology:
+  nodes:
+    - id: "target"
+      label: "Orion Server"
+      type: "server"
+      ip_offset: "15"
+      ports: [22, 80, 21, 8888]
+      services: ["OpenSSH", "nginx", "vsftpd", "Custom Service"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "All Ports"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Port scan discovers multiple services"
+      command: "nmap -sV -p 21,22,80,8888 {target.target} 2>/dev/null | grep -c open"
+      expect: "4"
+      timeout: 30
+
+    - name: "Extract token 1 from web page source"
+      command: "curl -s http://{target.target}/ | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "sc4nn3d"
+
+    - name: "Extract token 2 from FTP anonymous access"
+      command: "curl -s --ftp-port - ftp://{target.target}/token.txt --connect-timeout 10 || curl -s ftp://{target.target}/token.txt --connect-timeout 10"
+      expect: "4n0n"
+
+    - name: "Extract token 3 from service banner on port 8888"
+      command: "timeout 3 bash -c 'cat < /dev/tcp/{target.target}/8888' 2>/dev/null | grep -o 'Token: [a-z0-9_]*' | awk '{print $2}'"
+      expect: "h1dd3n"
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{sc4nn3d_4n0n_h1dd3n}'"
+      expect: "OCR{sc4nn3d_4n0n_h1dd3n}"

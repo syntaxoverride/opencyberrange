@@ -1,0 +1,166 @@
+name: Comprehensive Windows Enumeration
+description: Finalize your FinanceCorp reconnaissance by combining all enumeration techniques into a complete assessment.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Perform comprehensive enumeration combining port scan, version detection, and OS detection
+  - Identify all Windows services (SMB, RDP, WinRM, MS-SQL, LDAP)
+  - Apply complete enumeration workflow
+  - Capture the flag
+
+scenario: |
+  You're completing the reconnaissance phase of your penetration test for FinanceCorp. 
+  James Mitchell has requested a comprehensive enumeration report that combines all 
+  the techniques you've been using: port scanning, service version detection, and OS 
+  fingerprinting.
+  
+  This final enumeration exercise will demonstrate your ability to systematically assess 
+  a Windows server's attack surface. FinanceCorp needs this information to understand 
+  their security posture and prioritize remediation efforts.
+  
+  Your objective: Perform a complete enumeration assessment, combining all techniques 
+  to identify ports, services, versions, and operating system information. Document 
+  your findings systematically. This comprehensive report will form the foundation for 
+  the next phase of your engagement, where you'll begin testing individual services.
+
+
+flag: "OCR{c0mpr3h3ns1v3_3num}"
+
+hints:
+  - text: |
+      **Comprehensive enumeration** combines multiple reconnaissance techniques into a single, thorough assessment. This approach provides a complete picture of the target's attack surface.
+
+      **Complete Windows enumeration includes:**
+      1. **Port scanning**: Identify all open ports
+      2. **Service version detection**: Determine software versions
+      3. **OS fingerprinting**: Identify operating system
+      4. **Script scanning**: Run additional enumeration scripts
+      5. **Banner grabbing**: Collect service banners
+
+      Your goal is to systematically assess the FinanceCorp Windows server using all available techniques to create a comprehensive reconnaissance report.
+    unlock_after_minutes: 0
+
+  - text: |
+      **nmap aggressive scan** (`-A`) combines multiple enumeration techniques:
+
+      ```bash
+      nmap -A <target>
+      ```
+
+      **The -A flag enables:**
+      - `-O`: OS detection
+      - `-sV`: Version detection
+      - `-sC`: Default script scan
+      - `--traceroute`: Trace network path
+
+      This single flag provides comprehensive enumeration but is more intrusive and slower than basic scans. Use it when you need maximum information.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Build your own comprehensive scan** by combining flags:
+
+      ```bash
+      sudo nmap -sS -sV -O -p- <target>
+      ```
+
+      **Breaking down the components:**
+      - `-sS`: SYN stealth scan
+      - `-sV`: Service version detection
+      - `-O`: OS detection
+      - `-p-`: Scan all 65535 ports
+
+      **Additional useful flags:**
+      - `-sC`: Run default NSE scripts
+      - `-T4`: Faster timing template
+      - `-v`: Verbose output
+      - `--reason`: Show reason for port state
+
+      Example: `sudo nmap -sS -sV -O -sC -p 1-10000 -T4 <target>`
+    unlock_after_minutes: 10
+
+  - text: |
+      **NSE (Nmap Scripting Engine)** scripts provide additional enumeration capabilities:
+
+      ```bash
+      nmap --script <script-name> <target>
+      ```
+
+      **Useful Windows enumeration scripts:**
+      - `smb-os-discovery`: SMB OS information
+      - `smb-security-mode`: SMB security settings
+      - `rdp-enum-encryption`: RDP encryption info
+      - `ms-sql-info`: MS-SQL server information
+      - `http-enum`: HTTP service enumeration
+
+      Run default scripts with: `nmap -sC <target>`
+
+      Or run all safe scripts: `nmap --script safe <target>`
+    unlock_after_minutes: 15
+
+  - text: |
+      For comprehensive FinanceCorp Windows enumeration:
+
+      **Option 1: Aggressive scan (quick)**
+      ```bash
+      sudo nmap -A <target>
+      ```
+
+      **Option 2: Comprehensive manual scan (thorough)**
+      ```bash
+      sudo nmap -sS -sV -O -sC -p 1-10000 <target>
+      ```
+
+      **Option 3: Full port scan with scripts**
+      ```bash
+      sudo nmap -p- -sV -O --script smb-os-discovery,smb-security-mode <target>
+      ```
+
+      Choose based on time available. For beginners, `-A` provides good results quickly.
+    unlock_after_minutes: 20
+
+  - text: |
+      Comprehensive nmap output includes all gathered information:
+
+      ```
+      PORT     STATE SERVICE       VERSION
+      80/tcp   open  http          Microsoft IIS httpd 10.0
+      135/tcp  open  msrpc         Microsoft Windows RPC
+      445/tcp  open  microsoft-ds  Microsoft Windows Server 2016
+      3389/tcp open  ms-wbt-server Microsoft Terminal Services
+
+      OS details: Microsoft Windows Server 2016 build 14393
+
+      Host script results:
+      |_smb-os-discovery: Windows Server 2016
+      |_smb-security-mode: Authentication required
+      ```
+
+      **Create a comprehensive report documenting:**
+      1. All open ports and services
+      2. Service versions for each port
+      3. Operating system version and build
+      4. Any additional information from scripts
+      5. Potential vulnerabilities or misconfigurations
+
+      The flag relates to completing a full enumeration. Look for all collected information in the output.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH01_Enumeration/05_Comprehensive_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Verify multiple services are running (445, 3389, 389)"
+      command: "nmap -Pn -p 445,3389,389 {target.target} | grep 'open'"
+      expect: "open"
+
+    - name: "Detect service versions"
+      command: "nmap -Pn -sV -p 445,3389,389 {target.target}"
+      expect: "Samba"
+
+    - name: "Retrieve flag from SMB server string via share listing"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"

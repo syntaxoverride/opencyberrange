@@ -1,0 +1,1390 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 4: Directory Traversal - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-4-directory-traversal" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 4: Directory Traversal
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-path-traversal-attacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Path Traversal Attacks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-curl-for-web-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: curl for Web Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-browse-the-application-and-identify-the-download-feature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Browse the Application and Identify the Download Feature
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-examine-the-url-structure-of-the-download-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Examine the URL Structure of the Download Endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-test-basic-traversal-with-etcpasswd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Test Basic Traversal with /etc/passwd
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-extract-token-from-configtokenconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Extract Token from config/token.conf
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-extract-flag-from-rootflagtxt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Extract Flag from /root/flag.txt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-4-directory-traversal">Exercise 4: Directory Traversal</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Weeks 1 through 3 focused on network-level enumeration; scanning ports, identifying services, and probing protocols like SMB (Server Message Block). Week 4 shifts focus from the network layer to the application layer, where vulnerabilities live inside the logic of web applications rather than in open ports. Your VPN must be connected and your terminal open before continuing.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Pinnacle Cloud Services runs a customer documentation portal where clients can download product guides, API references, and release notes. The portal was built quickly by a junior developer and went live without a security review.</p>
+<p>Marcus Reed (Engineering Manager) authorized the assessment: "The portal is simple; serves static files. I cannot imagine there is much risk there. But our compliance team wants a sign-off before the SOC 2 audit."</p>
+<p>Your job is to test whether the file download feature can be abused to read files outside the intended directory. Two assessment tokens have been placed on the server; one in the application directory and one that requires full filesystem traversal to reach.</p>
+<figure>
+<p><img alt="Pinnacle Cloud documentation portal home page listing downloadable product guides" src="../img/cw-04-portal.png" width="820" />
+  </p>
+<figcaption>The Pinnacle Cloud documentation portal in normal use. Each document links to a `/download?file=` endpoint, the exact feature you will test for path traversal.</figcaption>
+</figure>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>The documentation portal presents a specific attack surface worth investigating. Your goals for the assessment are listed below.</p>
+<ul>
+<li>Identify a file download feature vulnerable to path traversal</li>
+<li>Craft directory traversal payloads using <code>../</code> sequences</li>
+<li>Read system files outside the web application root</li>
+<li>Extract two assessment tokens from the server</li>
+<li>Assemble and submit the flag in <code>OCR{...}</code> format</li>
+</ul>
+<hr />
+<h2 id="background-path-traversal-attacks">Background: Path Traversal Attacks</h2>
+<p>Web applications often serve files by taking a filename from the URL (Uniform Resource Locator) and reading that file from a directory on the server. A download endpoint might receive a request like <code>/download?file=guide.pdf</code> and return the contents of <code>/var/www/app/docs/guide.pdf</code>. The application concatenates a base directory path with the user-supplied filename to locate the file on disk.</p>
+<p>Path traversal; also called directory traversal; exploits the way operating systems interpret the <code>../</code> sequence. Each <code>../</code> moves one directory level upward in the filesystem hierarchy. When a web application fails to validate user input, an attacker can replace the expected filename with a chain of <code>../</code> sequences to escape the intended directory and read arbitrary files. For example, requesting <code>/download?file=../../../etc/passwd</code> tells the server to go up three directories from the docs folder and then into <code>/etc/passwd</code>.</p>
+<p>Input validation is the primary defense against path traversal. A secure application strips or rejects <code>../</code> sequences, uses an allowlist of permitted filenames, or resolves the full path and confirms the result stays within the expected directory. Without these checks, any file readable by the web server process is exposed to the attacker.</p>
+<pre class="mermaid"><code>graph TD
+    A["Browser requests&lt;br/&gt;guide.pdf"] --&gt;|"Normal request"| B["Server reads&lt;br/&gt;/var/www/app/docs/&lt;br/&gt;guide.pdf"]
+    B --&gt; C["Returns PDF&lt;br/&gt;to browser"]
+    D["Browser requests&lt;br/&gt;../../../etc/passwd"] --&gt;|"Traversal attack"| E["Server reads&lt;br/&gt;/etc/passwd"]
+    E --&gt; F["Returns system&lt;br/&gt;file to attacker"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#6aaa64,color:#fff
+    style C fill:#6aaa64,color:#fff
+    style D fill:#d9534f,color:#fff
+    style E fill:#d9534f,color:#fff
+    style F fill:#d9534f,color:#fff</code></pre>
+<p>The diagram above contrasts a normal file download with a traversal attack. The normal path stays within the application's document root, while the traversal path escapes upward through the filesystem to reach sensitive system files.</p>
+<h2 id="tool-primer-curl-for-web-testing">Tool Primer: curl for Web Testing</h2>
+<p><code>curl</code> is a command-line tool for transferring data over HTTP (Hypertext Transfer Protocol) and other protocols. Penetration testers use <code>curl</code> to send precise requests to web applications and inspect the raw responses without a browser getting in the way. The tool comes pre-installed on most Linux systems.</p>
+<div class="admonition kali">
+<p class="admonition-title">Basic GET request with curl</p>
+<p>The command below fetches the page at the given URL and prints the HTML (Hypertext Markup Language) response body to the terminal.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>http://&lt;target&gt;/
+</code></pre></div>
+</div>
+<p><strong>Useful flags for web testing:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-s</code></td>
+<td>Silent mode; hides the progress bar</td>
+</tr>
+<tr>
+<td><code>-o /dev/null</code></td>
+<td>Discards the response body (useful with <code>-w</code>)</td>
+</tr>
+<tr>
+<td><code>-w '%{http_code}'</code></td>
+<td>Prints the HTTP status code (200, 404, 500, etc.)</td>
+</tr>
+<tr>
+<td><code>-v</code></td>
+<td>Verbose mode; shows request and response headers</td>
+</tr>
+<tr>
+<td><code>-L</code></td>
+<td>Follows HTTP redirects automatically</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition kali">
+<p class="admonition-title">Check whether a page exists</p>
+<p>The command below requests a file but prints only the HTTP status code, a fast way to probe for valid paths.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;%{http_code}&#39;</span><span class="w"> </span>http://&lt;target&gt;/download?file<span class="o">=</span>guide.pdf
+</code></pre></div>
+<p>A <code>200</code> status code means the server found and returned the file. A <code>404</code> means the file was not found. A <code>500</code> may indicate a server error triggered by unexpected input; which can itself be informative during testing.</p>
+</div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. You need a running lab before any web requests will reach the target.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and locate the <strong>Week 4</strong> challenge</li>
+<li>Click <strong>Launch</strong> on "Directory Traversal"</li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-browse-the-application-and-identify-the-download-feature">Step 2: Browse the Application and Identify the Download Feature</h3>
+<div class="admonition kali">
+<p class="admonition-title">Fetch the portal home page</p>
+<p>Before testing for vulnerabilities, explore the application as a normal user would. Retrieve the documentation portal to understand what features are available.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;target&gt;/
+</code></pre></div>
+<p>Replace <code>&lt;target&gt;</code> with the IP address shown in the Active Lab View. Read through the HTML output and look for links to downloadable files. The portal should list documents such as product guides and API references, each with a download link.</p>
+</div>
+<h3 id="step-3-examine-the-url-structure-of-the-download-endpoint">Step 3: Examine the URL Structure of the Download Endpoint</h3>
+<p>Click one of the download links (or inspect the HTML source) and observe how the application passes the filename to the server. Pay attention to the URL in the address bar or in the <code>href</code> attribute of the download links.</p>
+<p>You should see a pattern like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>http://&lt;target&gt;/download?file=guide.pdf
+</code></pre></div>
+<p>The <code>file</code> parameter tells the server which document to retrieve. The server likely appends the value of <code>file</code> to a base directory path and reads that location from disk. The question is whether the server validates the input before using it.</p>
+<h3 id="step-4-test-basic-traversal-with-etcpasswd">Step 4: Test Basic Traversal with /etc/passwd</h3>
+<div class="admonition kali">
+<p class="admonition-title">Test traversal against /etc/passwd</p>
+<p>The <code>/etc/passwd</code> file exists on every Linux system and is world-readable by default, making it the standard first target when testing for path traversal. A successful read confirms the vulnerability exists.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s1">&#39;http://&lt;target&gt;/download?file=../../../etc/passwd&#39;</span>
+</code></pre></div>
+<p>If the application is vulnerable, the response will contain lines resembling:</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>root:x:0:0:root:/root:/bin/bash
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>...
+</code></pre></div>
+<p>Seeing <code>/etc/passwd</code> content confirms that the <code>file</code> parameter is vulnerable to directory traversal. The <code>../../../</code> sequence moved up three levels from the application's document directory and into the system root.</p>
+<figure>
+<p><img alt="Browser rendering the contents of /etc/passwd returned through the vulnerable download endpoint" src="../img/cw-04-traversal.png" width="820" />
+  </p>
+<figcaption>The `/download` endpoint returns `/etc/passwd` when fed a `../../../` payload, proof the document root provides no boundary. Every line of the system password file is readable by the web server process.</figcaption>
+</figure>
+<h3 id="step-5-extract-token-from-configtokenconf">Step 5: Extract Token from config/token.conf</h3>
+<div class="admonition kali">
+<p class="admonition-title">Read the config token via traversal</p>
+<p>The first assessment token is stored in a configuration file one level above the document directory. Retrieve the token by traversing up a single level into the <code>config</code> directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s1">&#39;http://&lt;target&gt;/download?file=../config/token.conf&#39;</span>
+</code></pre></div>
+<p>The response should contain a line in the format <code>token=&lt;value&gt;</code>. Record the value after the equals sign; you will need it to assemble the final flag.</p>
+</div>
+<h3 id="step-6-extract-flag-from-rootflagtxt">Step 6: Extract Flag from /root/flag.txt</h3>
+<div class="admonition kali">
+<p class="admonition-title">Read the root flag via deep traversal</p>
+<p>The second assessment token requires full filesystem traversal to reach the <code>/root</code> directory. Use a longer <code>../</code> chain to traverse from the document directory all the way to the filesystem root.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s1">&#39;http://&lt;target&gt;/download?file=../../../root/flag.txt&#39;</span>
+</code></pre></div>
+<p>Record the value returned. Combined with the token from Step 5, you now have both components needed to assemble the flag.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p>Record the output from each step below. Documenting your payloads and responses builds evidence for the assessment report.</p>
+<p><strong>curl output for /etc/passwd test:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>(paste your output here)
+</code></pre></div>
+<p><strong>Token from config/token.conf:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>../config/token.conf</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token from /root/flag.txt:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>../../../root/flag.txt</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Assembled flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>OCR{...}
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-7-interpret-the-results">Step 7: Interpret the Results</h3>
+<p>Review what you discovered during the assessment. Three findings emerged from the testing.</p>
+<ul>
+<li><strong>Path traversal confirmed</strong>: The <code>/download</code> endpoint accepts <code>../</code> sequences without sanitization, allowing access to files outside the document root. Any file readable by the web server process is exposed.</li>
+<li><strong>System file disclosure</strong>: The <code>/etc/passwd</code> file was retrieved, confirming full filesystem traversal. While <code>/etc/passwd</code> itself does not contain passwords on modern Linux systems, its contents reveal usernames, home directories, and shell assignments that aid further attacks.</li>
+<li><strong>Sensitive data extracted</strong>: Both assessment tokens were retrieved from locations outside the intended document directory. In a real engagement, these could be configuration files containing database credentials, API keys, or encryption secrets.</li>
+</ul>
+<p>The root cause is missing input validation on the <code>file</code> parameter. The application blindly concatenates user input with a base path and reads the resulting file from disk.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{&lt;config_token&gt;_&lt;root_token&gt;}</code></p>
+<p>Where <code>&lt;config_token&gt;</code> is the value you extracted from the config directory traversal (Step 5), and <code>&lt;root_token&gt;</code> is the value from the /root filesystem traversal (Step 6).</p>
+</div>
+<h3 id="step-8-submit-the-flag">Step 8: Submit the Flag</h3>
+<p>Assemble the two tokens you extracted into the <code>OCR{...}</code> flag format. Navigate to the <strong>Submit Flag</strong> form on the platform, paste your assembled flag, and click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>Consider these questions to deepen your understanding of path traversal and web application security. Each answer appears directly below its question.</p>
+<p><strong>1. Why is /etc/passwd typically the first file testers request when checking for path traversal?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The <code>/etc/passwd</code> file exists on every Linux system and is readable by all users by default. A successful read confirms the vulnerability without requiring elevated privileges. The file also contains useful reconnaissance data such as usernames and home directory paths.</p>
+</details>
+<p><strong>2. An application strips all occurrences of <code>../</code> from the input before using it. Can an attacker still achieve path traversal? How?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A single-pass strip can be bypassed with a payload like <code>....//</code>. When the application removes the inner <code>../</code>, the remaining characters reassemble into <code>../</code>. Effective defenses resolve the full canonical path after processing and verify the result falls within the allowed directory, rather than relying on string replacement alone.</p>
+</details>
+<p><strong>3. What specific code-level fix would prevent the vulnerability you exploited in the documentation portal?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The application should resolve the user-supplied filename to an absolute path (using a function like Python's <code>os.path.realpath()</code>), then check that the resolved path starts with the expected base directory. Requests that resolve outside the base directory should be rejected. An allowlist of permitted filenames provides an even stronger defense.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Path traversal</strong> exploits the <code>../</code> directory sequence to escape a web application's intended file-serving directory and read arbitrary files on the server</li>
+<li><strong>Input validation</strong> is the primary defense; applications must verify that resolved file paths stay within the expected directory before reading from disk</li>
+<li><strong>System files</strong> like <code>/etc/passwd</code> serve as a reliable proof-of-concept for traversal vulnerabilities, confirming the flaw exists before searching for higher-value targets</li>
+<li><strong>Configuration files</strong> often contain credentials, tokens, and secrets that escalate the impact of a traversal vulnerability far beyond reading public system files</li>
+<li><strong>Week 5</strong> builds on web application testing by introducing more complex attack vectors; the enumeration and traversal skills from the first four weeks form the foundation for those challenges</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

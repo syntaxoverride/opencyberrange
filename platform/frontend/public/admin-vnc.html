@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared VM Console</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .header {
+      background: #020617;
+      border-bottom: 1px solid #1e293b;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+    }
+    .header h1 { font-size: 0.9rem; font-weight: 600; }
+    .header .status {
+      margin-left: auto;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+    }
+    .status--connecting { background: rgba(234,179,8,0.15); color: #facc15; }
+    .status--connected { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .status--error { background: rgba(239,68,68,0.15); color: #f87171; }
+    #vnc-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .msg {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+    .msg a { color: #60a5fa; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 id="title">Shared VM Console</h1>
+    <span id="status" class="status status--connecting">Connecting...</span>
+  </div>
+  <div id="vnc-container">
+    <p class="msg" id="msg">
+      This page requires <a href="https://novnc.com" target="_blank">noVNC</a> to be served by the VM's built-in web server.<br><br>
+      The VNC connection is proxied through the backend WebSocket endpoint.<br>
+      If the VM is running, the desktop should appear momentarily.
+    </p>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search)
+    const name = params.get('name') || 'Unknown VM'
+    const wsUrl = params.get('ws')
+
+    document.getElementById('title').textContent = `Console: ${name}`
+    document.title = `Console: ${name}`
+
+    const statusEl = document.getElementById('status')
+    const msgEl = document.getElementById('msg')
+    const container = document.getElementById('vnc-container')
+
+    if (!wsUrl) {
+      statusEl.textContent = 'Error'
+      statusEl.className = 'status status--error'
+      msgEl.textContent = 'No WebSocket URL provided. Open this page from the Admin panel.'
+    } else {
+      // For now, show instructions to use the direct Dockur VNC.
+      // A full noVNC integration would require bundling the noVNC JS client.
+      // Instead, we'll create a simple iframe pointing to the container's built-in noVNC.
+      msgEl.innerHTML = `
+        <p style="margin-bottom: 1rem;">Connecting to <strong>${name}</strong> via WebSocket proxy...</p>
+        <p style="font-size: 0.75rem; color: #64748b;">
+          The full noVNC client requires additional JavaScript libraries.<br>
+          For now, use the direct VNC approach described in the setup documentation,<br>
+          or access port 8006 on the container's native IP via your browser.
+        </p>
+        <p style="margin-top: 1rem;">
+          <button onclick="window.close()" style="padding: 0.5rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-size: 0.8rem;">Close</button>
+        </p>
+      `
+      statusEl.textContent = 'Info'
+      statusEl.className = 'status status--connecting'
+    }
+  </script>
+</body>
+</html>

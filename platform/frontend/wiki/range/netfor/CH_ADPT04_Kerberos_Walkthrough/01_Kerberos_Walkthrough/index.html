@@ -1,0 +1,1943 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.4: Kerberos Walkthrough - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-14-kerberos-walkthrough" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.4: Kerberos Walkthrough
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-four-messages-of-kerberos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Four Messages of Kerberos
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: The Four Messages of Kerberos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ticket-lifecycle-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ticket Lifecycle at a Glance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#as-req-as-rep-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AS-REQ / AS-REP: identity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tgs-req-tgs-rep-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TGS-REQ / TGS-REP: authorization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-four-message-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four-message map
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-attack-touches-which-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Attack Touches Which Message
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tshark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wireshark-kerberos-display-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wireshark Kerberos display filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kinit-manual-tgt-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kinit (manual TGT request)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smbclient-tgs-triggering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        smbclient (TGS triggering)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-configure-your-kerberos-realm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Configure Your Kerberos Realm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-start-the-capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Start the Capture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-trigger-the-as-exchange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Trigger the AS Exchange
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-trigger-the-tgs-exchange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Trigger the TGS Exchange
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-analyze-as-req-for-fragment-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Analyze AS-REQ for Fragment 1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-analyze-as-rep-for-fragment-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Analyze AS-REP for Fragment 2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-analyze-tgs-req-for-fragment-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Analyze TGS-REQ for Fragment 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-assemble-and-submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Assemble and Submit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-14-kerberos-walkthrough">Exercise 1.4: Kerberos Walkthrough</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Kerberos is the protocol behind nearly every offensive Active Directory attack worth knowing. ASREPRoast attacks the AS-REP message. Kerberoast attacks the TGS-REP message. Golden ticket forges a TGT inside an AS-REP. Silver ticket forges a TGS-REP. None of these attacks make sense until you can name the four messages of the Kerberos exchange and point at which fields they manipulate.</p>
+<p>Exercise 1.4 puts the protocol in front of you on the wire. You will run <code>tshark</code> while triggering authentications, decode the AS-REQ, AS-REP, TGS-REQ, and TGS-REP messages, and pull a flag fragment out of three different message fields.</p>
+<p><strong>Tools required:</strong> <code>tshark</code>, <code>wireshark</code>, <code>smbclient</code>, <code>kinit</code>. All are pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "Every Kerberos attack worth knowing exploits one specific message in the exchange. You cannot abuse what you do not understand. Capture the protocol, read it, name the parts. Three fragments of the flag are split across three Kerberos message fields. Find them all, concatenate them in the order AS-REQ + AS-REP + TGS-REQ, and submit."</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code>
+<strong>Domain controller:</strong> <code>corp-dc01</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Capture Kerberos AS-REQ and AS-REP exchanges between your Kali and the DC</li>
+<li>Capture a TGS-REQ and TGS-REP triggered by an SMB connection to a member service</li>
+<li>Identify the encrypted-timestamp field in the AS-REQ</li>
+<li>Locate the TGT inside the AS-REP</li>
+<li>Read the <code>sname</code> field in a TGS-REQ to identify the service requested</li>
+<li>Concatenate three fragments and submit the assembled flag</li>
+</ul>
+<hr />
+<h2 id="background-the-four-messages-of-kerberos">Background: The Four Messages of Kerberos</h2>
+<p>Kerberos answers two questions: "who are you?" and "what may you talk to?" It separates the two by issuing <strong>two different kinds of tickets</strong>.</p>
+<h3 id="ticket-lifecycle-at-a-glance">Ticket Lifecycle at a Glance</h3>
+<p>The diagram below collapses an entire authentication-to-service-access flow into one picture. Hold this in your head for the rest of the track; every Kerberos attack twists exactly one arrow on this diagram.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant C as Client (Kali / j.chen)
+    participant K as KDC (corp-dc01)
+    participant S as Service (cifs/file01)
+
+    Note over C,K: Step 1 -- Authentication (AS exchange)
+    C-&gt;&gt;K: AS-REQ&lt;br/&gt;cname=j.chen, padata=ENC-TIMESTAMP(user_key)
+    K--&gt;&gt;C: AS-REP&lt;br/&gt;TGT enc with krbtgt_key + session_key enc with user_key
+
+    Note over C,K: Step 2 -- Authorization (TGS exchange)
+    C-&gt;&gt;K: TGS-REQ&lt;br/&gt;TGT in padata, sname=cifs/file01
+    K--&gt;&gt;C: TGS-REP&lt;br/&gt;service ticket enc with service_key
+
+    Note over C,S: Step 3 -- Service access (AP exchange)
+    C-&gt;&gt;S: AP-REQ&lt;br/&gt;service ticket presented over SMB
+    S--&gt;&gt;C: AP-REP / SMB session established</code></pre>
+<h3 id="as-req-as-rep-identity">AS-REQ / AS-REP: identity</h3>
+<p>The Authentication Service exchange proves who you are and gives you a <strong>Ticket Granting Ticket (TGT)</strong>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Client                                                    KDC (DC)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  |                                                          |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  |  AS-REQ  (cname=j.chen, realm=CORP.NORDPORT.LOCAL,       |
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  |          padata: pA-ENC-TIMESTAMP encrypted with         |
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  |          the user&#39;s password-derived key)                |
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  |---------------------------------------------------------&gt;|
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  |                                                          |
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  |                                          [KDC verifies   |
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  |                                           timestamp can  |
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  |                                           be decrypted   |
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  |                                           with user key] |
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  |                                                          |
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  |  AS-REP  (TGT encrypted with krbtgt&#39;s key,               |
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  |          enc-part with session key encrypted to user)    |
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  |&lt;---------------------------------------------------------|
+</code></pre></div>
+<p>The pre-authentication padata is the security boundary that ASREPRoast attacks. If pre-auth is disabled (<code>DONT_REQ_PREAUTH</code> flag), the KDC sends an AS-REP without checking the timestamp first. The encrypted enc-part is then crackable offline because it is encrypted with a derivation of the user's password.</p>
+<h3 id="tgs-req-tgs-rep-authorization">TGS-REQ / TGS-REP: authorization</h3>
+<p>Once you have a TGT you ask the KDC for <strong>service tickets</strong>, one per service you want to talk to.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Client                                                    KDC
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  |                                                          |
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  |  TGS-REQ (TGT in padata, sname=cifs/file01, ...)         |
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  |---------------------------------------------------------&gt;|
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  |                                                          |
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  |                                          [KDC validates  |
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  |                                           TGT, checks    |
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  |                                           that user can  |
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  |                                           access target] |
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  |                                                          |
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  |  TGS-REP (service ticket encrypted with the              |
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  |          target service account&#39;s key)                   |
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  |&lt;---------------------------------------------------------|
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  |                                                          |
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  |                                                       Service
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  |  AP-REQ  (service ticket presented to the service)       |
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>  |---------------------------------------------------------&gt;|
+</code></pre></div>
+<p>The service ticket is encrypted with the <strong>service account's</strong> password-derived key, not the user's. That is the boundary Kerberoast attacks. If the service account password is weak, the encrypted blob can be cracked offline. The TGS-REQ itself is observable on the wire to anyone watching the KDC; that is how SOC tools detect mass enumeration.</p>
+<h3 id="the-four-message-map">The four-message map</h3>
+<table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Purpose</th>
+<th>Encrypted with</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AS-REQ</td>
+<td>Request a TGT, prove identity</td>
+<td>User's key (in pA-ENC-TIMESTAMP)</td>
+</tr>
+<tr>
+<td>AS-REP</td>
+<td>TGT issued</td>
+<td>TGT body: krbtgt key. Enc-part: user key.</td>
+</tr>
+<tr>
+<td>TGS-REQ</td>
+<td>Request a service ticket</td>
+<td>TGT presented as proof</td>
+</tr>
+<tr>
+<td>TGS-REP</td>
+<td>Service ticket issued</td>
+<td>Ticket body: service account key. Enc-part: TGT session key.</td>
+</tr>
+</tbody>
+</table>
+<p>Memorize this table. It is the framework every Kerberos attack maps to.</p>
+<h3 id="which-attack-touches-which-message">Which Attack Touches Which Message</h3>
+<p>Each major Kerberos attack hijacks exactly one of the four messages. The map below tells you where on the wire each technique lives. Refer back here when you reach Levels 3 through 5 of the track.</p>
+<pre class="mermaid"><code>flowchart TD
+    AS_REQ["AS-REQ&lt;br/&gt;(client to KDC)"]
+    AS_REP["AS-REP&lt;br/&gt;(KDC to client)"]
+    TGS_REQ["TGS-REQ&lt;br/&gt;(client to KDC)"]
+    TGS_REP["TGS-REP&lt;br/&gt;(KDC to client)"]
+
+    AS_REP -- "no preauth -&gt; crackable" --&gt; ASREP["ASREPRoast&lt;br/&gt;(Hashcat 18200)"]
+    TGS_REP -- "weak service pw -&gt; crackable" --&gt; KROAST["Kerberoast&lt;br/&gt;(Hashcat 13100)"]
+    AS_REP -- "forge TGT body w/ krbtgt key" --&gt; GOLD["Golden Ticket"]
+    TGS_REP -- "forge service ticket w/ service key" --&gt; SILV["Silver Ticket"]
+    TGS_REQ -- "S4U2self + S4U2proxy" --&gt; DEL["Delegation abuse&lt;br/&gt;(constrained / RBCD)"]</code></pre>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="tshark">tshark</h3>
+<p>The CLI version of Wireshark. Lighter than the GUI, scriptable, and handles all the same dissectors.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sudo<span class="w"> </span>tshark<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;host &lt;dc_ip&gt; and port 88&quot;</span><span class="w"> </span>-w<span class="w"> </span>kerb.pcap
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-i any</code></td>
+<td>capture on any interface</td>
+</tr>
+<tr>
+<td><code>-f "..."</code></td>
+<td>BPF filter to keep the capture small (port 88 is Kerberos)</td>
+</tr>
+<tr>
+<td><code>-w kerb.pcap</code></td>
+<td>write to a file you can open in Wireshark later</td>
+</tr>
+</tbody>
+</table>
+<p>To analyze a capture file from the CLI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 10&quot;</span><span class="w">   </span><span class="c1"># AS-REQ</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>tshark<span class="w"> </span>-r<span class="w"> </span>kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 11&quot;</span><span class="w">   </span><span class="c1"># AS-REP</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>tshark<span class="w"> </span>-r<span class="w"> </span>kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 12&quot;</span><span class="w">   </span><span class="c1"># TGS-REQ</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>tshark<span class="w"> </span>-r<span class="w"> </span>kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 13&quot;</span><span class="w">   </span><span class="c1"># TGS-REP</span>
+</code></pre></div>
+<p>Kerberos message types are integers; remember <code>10/11/12/13</code>.</p>
+<h3 id="wireshark-kerberos-display-filters">Wireshark Kerberos display filters</h3>
+<table>
+<thead>
+<tr>
+<th>Filter</th>
+<th>Matches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kerberos</code></td>
+<td>All Kerberos packets</td>
+</tr>
+<tr>
+<td><code>kerberos.msg_type == 10</code></td>
+<td>AS-REQ</td>
+</tr>
+<tr>
+<td><code>kerberos.msg_type == 11</code></td>
+<td>AS-REP</td>
+</tr>
+<tr>
+<td><code>kerberos.msg_type == 12</code></td>
+<td>TGS-REQ</td>
+</tr>
+<tr>
+<td><code>kerberos.msg_type == 13</code></td>
+<td>TGS-REP</td>
+</tr>
+<tr>
+<td><code>kerberos.CNameString == "j.chen"</code></td>
+<td>Packets where the cname is j.chen</td>
+</tr>
+<tr>
+<td><code>kerberos.SNameString == "cifs"</code></td>
+<td>Service tickets for cifs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="kinit-manual-tgt-request">kinit (manual TGT request)</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kinit<span class="w"> </span>j.chen@CORP.NORDPORT.LOCAL
+</code></pre></div>
+<p><code>kinit</code> performs a clean AS-REQ/AS-REP cycle and stores the resulting TGT in your local credential cache (<code>klist</code> to view). Useful for triggering an isolated AS exchange without the side effects of a full SMB connect.</p>
+<h3 id="smbclient-tgs-triggering">smbclient (TGS triggering)</h3>
+<p>Once you have a TGT in cache, an SMB connect to a domain-joined host triggers a TGS-REQ for <code>cifs/&lt;host&gt;</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>smbclient<span class="w"> </span>//corp-dc01/Public<span class="w"> </span>-k
+</code></pre></div>
+<p>The <code>-k</code> flag tells smbclient to use the cached Kerberos credential rather than prompting for a password.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Launch <strong>Kerberos Walkthrough</strong> from the AD Penetration Track. Note the DC IP from the Active Lab View.</p>
+<h3 id="step-2-configure-your-kerberos-realm">Step 2: Configure Your Kerberos Realm</h3>
+<p>Linux Kerberos clients (<code>kinit</code>, <code>klist</code>, <code>kdestroy</code>, anything that speaks GSSAPI) read <code>/etc/krb5.conf</code> to find out which KDC serves which realm and how to talk to it. Without this file every Kerberos call defaults to either no realm at all or whatever Kerberos picks up from DNS SRV records, which is fragile.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Configure /etc/krb5.conf</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/krb5.conf<span class="w"> </span>&gt;/dev/null<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="s">[libdefaults]</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="s">    default_realm = CORP.NORDPORT.LOCAL</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="s">    dns_lookup_kdc = true</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="s">    dns_lookup_realm = false</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="s">[realms]</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="s">    CORP.NORDPORT.LOCAL = {</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="s">        kdc = &lt;dc_ip&gt;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="s">        admin_server = &lt;dc_ip&gt;</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="s">    }</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="s">[domain_realm]</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="s">    .corp.nordport.local = CORP.NORDPORT.LOCAL</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="s">    corp.nordport.local = CORP.NORDPORT.LOCAL</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="s">EOF</span>
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>sudo tee /etc/krb5.conf &gt;/dev/null</code> write standard input to the file as root, redirecting tee's stdout to /dev/null so the heredoc doesn't echo back.</li>
+<li><code>&lt;&lt;EOF ... EOF</code> heredoc; the lines between are sent to tee as input.</li>
+<li><code>[libdefaults] default_realm = CORP.NORDPORT.LOCAL</code> the realm to assume when one is not specified. Kerberos realm names are conventionally the uppercase form of the domain FQDN.</li>
+<li><code>dns_lookup_kdc = true</code> if a realm is not in the <code>[realms]</code> block, ask DNS for <code>_kerberos._tcp.&lt;realm&gt;</code> SRV records. AD publishes these by default.</li>
+<li><code>dns_lookup_realm = false</code> do NOT trust DNS to map a hostname to a realm; use the explicit <code>[domain_realm]</code> mapping below. Disabling this avoids spoofing risk in untrusted networks.</li>
+<li><code>[realms]</code> block: maps each realm name to a list of KDCs. <code>kdc = &lt;dc_ip&gt;</code> says "this IP is a KDC for CORP.NORDPORT.LOCAL". <code>admin_server</code> is the host that handles password changes via <code>kpasswd</code> (port 464); same IP for AD.</li>
+<li><code>[domain_realm]</code> maps DNS-style hostnames to Kerberos realms. The leading dot form (<code>.corp.nordport.local</code>) matches all subdomains; the bare form matches the realm itself.</li>
+</ul>
+<p>Replace <code>&lt;dc_ip&gt;</code> with the IP shown in the lab dashboard. Verify with <code>cat /etc/krb5.conf</code> after writing.</p>
+</div>
+<h3 id="step-3-start-the-capture">Step 3: Start the Capture</h3>
+<p>Open two terminals: one for <code>tshark</code> to capture packets, one to drive the auth flow. Capturing is read-only; nothing depends on the order between the two terminals other than starting tshark BEFORE the auth so you do not miss the first packets.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Start tshark capturing all Kerberos traffic</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>tshark<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;host &lt;dc_ip&gt; and (port 88 or port 445)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-w<span class="w"> </span>/tmp/kerb.pcap
+</code></pre></div>
+<p>What each option does:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sudo</code></td>
+<td>Required: only root can put an interface in promiscuous mode and read raw packets.</td>
+</tr>
+<tr>
+<td><code>-i any</code></td>
+<td>Capture on every available interface. tshark merges packets from all NICs into one stream. Use <code>-i eth0</code> to limit to one interface.</td>
+</tr>
+<tr>
+<td><code>-f "host &lt;dc_ip&gt; and (port 88 or port 445)"</code></td>
+<td>BPF (Berkeley Packet Filter) capture filter. Applied at kernel level, drops non-matching packets before tshark sees them. Drastically reduces capture file size.</td>
+</tr>
+<tr>
+<td><code>-w /tmp/kerb.pcap</code></td>
+<td>Write captured packets to a file in pcap format. Without <code>-w</code>, tshark prints to stdout (one line per packet).</td>
+</tr>
+</tbody>
+</table>
+<p>The BPF filter explained:</p>
+<ul>
+<li><code>host &lt;dc_ip&gt;</code> packets where source OR destination matches the DC IP.</li>
+<li><code>port 88 or port 445</code> Kerberos (88) OR SMB (445). Kerberos rides over both UDP and TCP/88; SMB carries the AP-REQ tickets we want to inspect.</li>
+<li>The combination: capture every packet to or from the DC on those two ports.</li>
+</ul>
+<p>Leave tshark running in this terminal. The pcap grows until you Ctrl-C the process. Open a SECOND terminal for the next steps.</p>
+</div>
+<h3 id="step-4-trigger-the-as-exchange">Step 4: Trigger the AS Exchange</h3>
+<p><code>kinit</code> performs a clean AS-REQ/AS-REP cycle and stores the resulting TGT in the local credential cache. Useful for triggering an isolated AS exchange without the side effects of a full SMB connect.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Request a TGT for j.chen</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>kinit<span class="w"> </span>j.chen@CORP.NORDPORT.LOCAL
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>klist
+</code></pre></div>
+<p>What each piece does:</p>
+<ul>
+<li><code>echo 'Welcome2026#' | kinit ...</code> pipe the password into kinit's stdin. By default kinit prompts interactively; piping skips the prompt.</li>
+<li><code>kinit j.chen@CORP.NORDPORT.LOCAL</code> request a TGT for the principal <code>j.chen</code> in the realm <code>CORP.NORDPORT.LOCAL</code>. The realm form is <code>user@REALM</code> (always uppercase realm).</li>
+<li><code>klist</code> list cached tickets. After a successful <code>kinit</code> you see one TGT (<code>krbtgt/CORP.NORDPORT.LOCAL@CORP.NORDPORT.LOCAL</code>) with a 10-hour default lifetime.</li>
+</ul>
+<p>Common errors:</p>
+<ul>
+<li><code>kinit: Clock skew too great while getting initial credentials</code>: your Kali clock differs from the DC's by more than 5 minutes. Fix: <code>sudo ntpdate -u &lt;dc_ip&gt;</code> (uses the DC's clock as the reference) or <code>sudo timedatectl set-ntp true</code> if your network has working NTP.</li>
+<li><code>kinit: Pre-authentication failed while getting initial credentials</code>: wrong password.</li>
+<li><code>kinit: Cannot find KDC for realm</code>: <code>/etc/krb5.conf</code> is missing or the realm name is wrong.</li>
+</ul>
+</div>
+<h3 id="step-5-trigger-the-tgs-exchange">Step 5: Trigger the TGS Exchange</h3>
+<p>Once you have a TGT cached, the next step in normal Kerberos flow is requesting a service ticket (TGS) for some service. Connecting to SMB on the DC triggers a TGS-REQ for <code>cifs/&lt;host&gt;</code>.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Trigger a TGS-REQ for cifs/corp-dc01</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>smbclient<span class="w"> </span>//corp-dc01/Public<span class="w"> </span>-k<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;ls&quot;</span>
+</code></pre></div>
+<p>What each option does:</p>
+<ul>
+<li><code>//corp-dc01/Public</code> UNC path: SMB connect to the <code>Public</code> share on <code>corp-dc01</code>. Use the FQDN or short name; <code>smbclient</code> resolves it via <code>/etc/hosts</code>, then DNS, then NetBIOS.</li>
+<li><code>-k</code> use Kerberos authentication: present the cached TGT to the KDC and exchange it for a TGS for <code>cifs/&lt;host&gt;</code>. WITHOUT <code>-k</code>, smbclient falls back to NTLM and uses the password from <code>-U</code> (no Kerberos exchange happens at all).</li>
+<li><code>-c "ls"</code> non-interactive: run <code>ls</code> then exit.</li>
+</ul>
+<p>What happens on the wire (visible in the pcap):</p>
+<ol>
+<li>Client sends TGS-REQ to KDC, padata contains the TGT-wrapped AP-REQ.</li>
+<li>KDC returns TGS-REP with a service ticket encrypted with <code>corp-dc01$</code>'s machine key.</li>
+<li>Client opens TCP/445 to corp-dc01 and presents the service ticket inside an AP-REQ.</li>
+<li>corp-dc01 decrypts and accepts; SMB session established; share lists.</li>
+</ol>
+<p>Once the share lists, stop the capture in the first terminal with Ctrl-C.</p>
+</div>
+<h3 id="step-6-analyze-as-req-for-fragment-1">Step 6: Analyze AS-REQ for Fragment 1</h3>
+<p>Open the captured pcap and filter to the AS-REQ packets only. tshark in read mode (no <code>-i</code>, just <code>-r</code>) is the same dissector as Wireshark with no GUI overhead.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read the AS-REQ packet</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>/tmp/kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 10&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>less
+</code></pre></div>
+<p>What each option does:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-r /tmp/kerb.pcap</code></td>
+<td>Read mode: parse this pcap file instead of capturing live.</td>
+</tr>
+<tr>
+<td><code>-V</code></td>
+<td>Verbose: print the FULL dissector tree (every protocol layer, every field). Without <code>-V</code>, tshark prints a one-line summary per packet.</td>
+</tr>
+<tr>
+<td><code>-Y "kerberos.msg_type == 10"</code></td>
+<td>Display filter (different from BPF capture filter). Applied AFTER dissection; can reference parsed fields like <code>kerberos.msg_type</code>. The integer <code>10</code> is the AS-REQ Kerberos message type.</td>
+</tr>
+<tr>
+<td><code>\| less</code></td>
+<td>Page the output (verbose dissector trees are tens of lines per packet). Use space/b for next/previous page, q to quit.</td>
+</tr>
+</tbody>
+</table>
+<p>Kerberos message types worth memorizing: AS-REQ=10, AS-REP=11, TGS-REQ=12, TGS-REP=13. Every Kerberos attack maps to one of these.</p>
+<p>Inside the AS-REQ you will see:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Kerberos
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    Pvno: 5
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    MSG Type: AS-REQ (10)
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    padata: 1 item
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>        PA-DATA pA-ENC-TIMESTAMP
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>            padata-type: pA-ENC-TIMESTAMP (2)
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>            padata-value: &lt;encrypted bytes&gt;
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    req-body
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>        cname: j.chen
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>        realm: CORP.NORDPORT.LOCAL
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>        sname: krbtgt/CORP.NORDPORT.LOCAL
+</code></pre></div>
+<p>The <code>pA-ENC-TIMESTAMP</code> value is the encrypted-timestamp field. Its presence is the proof of pre-authentication; an account with <code>DONT_REQ_PREAUTH</code> would have no such field. <strong>Fragment 1</strong> is the literal string <code>kdc</code>; the answer to the question "what acronym is the KDC role?". The hint that this is the right fragment lives in <code>priya.ramanathan</code>'s <code>description</code> attribute (your config script seeded it there).</p>
+</div>
+<p>Confirm the hint:</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Confirm Fragment 1 from priya.ramanathan's description</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;dc_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="s2">&quot;(sAMAccountName=priya.ramanathan)&quot;</span><span class="w"> </span>description
+</code></pre></div>
+<p>The description ends with <code>Kerberos protocol fragment hint: kdc</code>. Fragment 1 = <code>kdc</code>.</p>
+</div>
+<h3 id="step-7-analyze-as-rep-for-fragment-2">Step 7: Analyze AS-REP for Fragment 2</h3>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read the AS-REP packet</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>/tmp/kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 11&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>less
+</code></pre></div>
+<p>Inside the AS-REP:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Kerberos
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    Pvno: 5
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    MSG Type: AS-REP (11)
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    crealm: CORP.NORDPORT.LOCAL
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    cname: j.chen
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    ticket
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>        tkt-vno: 5
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>        realm: CORP.NORDPORT.LOCAL
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>        sname: krbtgt/CORP.NORDPORT.LOCAL
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        enc-part: &lt;encrypted with krbtgt key&gt;
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    enc-part: &lt;encrypted with user key, contains session key&gt;
+</code></pre></div>
+<p>The TGT body lives in the <code>ticket</code> field. The service name (<code>sname</code>) of a TGT is always <code>krbtgt/&lt;REALM&gt;</code>. <strong>Fragment 2</strong> is the literal string <code>speaks</code>; the verb that describes what the KDC is doing in the AS-REP (it speaks the TGT into existence).</p>
+</div>
+<h3 id="step-8-analyze-tgs-req-for-fragment-3">Step 8: Analyze TGS-REQ for Fragment 3</h3>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Read the TGS-REQ packet</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>/tmp/kerb.pcap<span class="w"> </span>-V<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;kerberos.msg_type == 12&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>less
+</code></pre></div>
+<p>Inside the TGS-REQ:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Kerberos
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    Pvno: 5
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    MSG Type: TGS-REQ (12)
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    padata: 1 item
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>        PA-DATA pA-TGS-REQ
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>            &lt;AP-REQ wrapping the TGT&gt;
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    req-body
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>        sname:
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>            name-type: kRB5-NT-SRV-INST (2)
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>            sname-string: cifs
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>            sname-string: corp-dc01.corp.nordport.local
+</code></pre></div>
+<p>The <code>sname.name-string</code> array tells the KDC which service the client is requesting. The first element is the service class (<code>cifs</code>). The second is the host. <strong>Fragment 3</strong> is the literal string <code>4_messages</code>; the count that completes the workbook's main lesson, "the KDC speaks 4 messages."</p>
+</div>
+<h3 id="step-9-assemble-and-submit">Step 9: Assemble and Submit</h3>
+<p>Concatenate Fragment 1 + Fragment 2 + Fragment 3, wrap in <code>OCR{...}</code> joined with underscores per the protocol field naming.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Assemble the flag</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nv">F1</span><span class="o">=</span><span class="s1">&#39;kdc&#39;</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nv">F2</span><span class="o">=</span><span class="s1">&#39;speaks&#39;</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nv">F3</span><span class="o">=</span><span class="s1">&#39;4_messages&#39;</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;OCR{</span><span class="si">${</span><span class="nv">F1</span><span class="si">}</span><span class="s2">_</span><span class="si">${</span><span class="nv">F2</span><span class="si">}</span><span class="s2">_</span><span class="si">${</span><span class="nv">F3</span><span class="si">}</span><span class="s2">}&quot;</span>
+</code></pre></div>
+<p>The output is your assembled flag in the form <code>OCR{&lt;F1&gt;_&lt;F2&gt;_&lt;F3&gt;}</code>. Submit it on the platform.</p>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>Every Kerberos exchange leaves a security event on the DC. The four events below cover almost every detection a SOC writes for the protocol; learn what they look like clean so you recognize the abuse cases in later exercises.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AS-REQ -&gt; AS-REP success</td>
+<td>4768 (TGT issued)</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>AS-REQ pre-auth failure</td>
+<td>4771 (Pre-authentication failed)</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>TGS-REQ -&gt; TGS-REP success</td>
+<td>4769 (Service ticket requested)</td>
+<td>DC Security log</td>
+</tr>
+<tr>
+<td>TGS-REQ failure</td>
+<td>4773</td>
+<td>DC Security log</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What attacks look like in 4768/4769</p>
+<p>A normal user's daily activity produces one or two 4768 events (one TGT in the morning, maybe one after a renewal) and a steady trickle of 4769 events (one per distinct service contacted). ASREPRoast looks like a 4768 with <code>Pre-Authentication Type: 0</code>; the giveaway. Kerberoast shows up as a burst of 4769 events from a single user requesting many SPNs in seconds, often with <code>Ticket Encryption Type: 0x17</code> (RC4) when the attacker forces a downgrade to make cracking faster.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>Kerberos is fundamentally trust-on-key. You harden it by raising the cost of forging or cracking those keys.</p>
+<div class="admonition tip">
+<p class="admonition-title">Practical Kerberos hardening</p>
+<ul>
+<li>Rotate the <code>krbtgt</code> account password <strong>twice</strong> every 6-12 months. The double rotation invalidates lingering golden tickets without breaking active sessions.</li>
+<li>Disable <strong>RC4</strong> Kerberos encryption forest-wide. Force AES-128/256 via <code>msDS-SupportedEncryptionTypes</code> so kerberoast cracking takes orders of magnitude longer.</li>
+<li>Move all service accounts to <strong>gMSAs</strong> (Group Managed Service Accounts). The KDC manages and rotates the password automatically; the resulting hash is far too long to crack offline.</li>
+<li>Audit and clear the <code>DONT_REQ_PREAUTH</code> UAC bit on every account quarterly.</li>
+<li>Forward 4768/4769/4771 to a SIEM with detection rules for: pre-auth = 0, encryption type = 0x17 on a service ticket, multiple SPNs requested by the same user inside one minute.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>AS-REQ msg_type:</strong> <code>10</code>
+<strong>AS-REP msg_type:</strong> <code>11</code>
+<strong>TGS-REQ msg_type:</strong> <code>12</code>
+<strong>TGS-REP msg_type:</strong> <code>13</code></p>
+<p><strong>Fragment 1 (AS-REQ):</strong> <code>kdc</code>
+<strong>Fragment 2 (AS-REP):</strong> <code>speaks</code>
+<strong>Fragment 3 (TGS-REQ):</strong> <code>4_messages</code></p>
+<p><strong>Assembled flag:</strong> <code>OCR{________}</code> (join your three fragments with underscores)</p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. ASREPRoast targets the AS-REP message. What specifically about pre-authentication makes the AS-REP attackable, and why is <code>DONT_REQ_PREAUTH</code> so rare in modern environments?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Pre-authentication means the AS-REQ includes a timestamp encrypted with the user's password-derived key. The KDC verifies that timestamp before issuing an AS-REP. If verification fails the KDC returns an error rather than an encrypted blob, so an attacker cannot get a crackable ciphertext from a guess. With <code>DONT_REQ_PREAUTH</code> set on a user, the KDC skips the timestamp check and returns an AS-REP whose enc-part is encrypted with the user's key. That blob is then crackable offline. <code>DONT_REQ_PREAUTH</code> is rare today because Microsoft turns pre-auth on by default, modern provisioning rarely disables it, and detection tools flag the AUC bit. It typically survives only on legacy service accounts where pre-auth was disabled to support an old protocol that did not implement it (often early 2000s integrations) and was never re-enabled.</p>
+</details>
+<p><strong>2. Kerberoast targets the TGS-REP. Which key encrypts the service ticket, and why is the strength of that key the entire game?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The service ticket inside a TGS-REP is encrypted with the <strong>service account's</strong> password-derived key (not the user's, not the KDC's). When you request a TGS-REP for an SPN that resolves to a domain user account (typical for service accounts that auto-register an SPN like <code>MSSQLSvc/...</code>), the encrypted blob you get back is essentially a hash of the service account's password under your chosen ticket. If the service account's password is weak, you can crack the blob offline with hashcat mode 13100. The TGS-REP looks like normal traffic: any authenticated user is allowed to request a TGS for any SPN, and the KDC has no way to know whether the requester intends to actually use the ticket. The defense is strong service account passwords (managed service accounts, gMSAs); not blocking the request itself.</p>
+</details>
+<p><strong>3. The TGS-REQ presents the TGT as proof of identity inside its padata. If you forge a TGT (golden ticket), every TGS-REQ you make will be accepted. Why does a forged TGT survive password rotation of normal users but not rotation of a special account?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A golden ticket is a TGT forged with the <code>krbtgt</code> account's NTLM hash. The KDC validates incoming TGTs by decrypting them with <code>krbtgt</code>'s key. Since you encrypted the forged TGT with the same key, the KDC accepts it as authentic. Rotating the password of any normal user does not change <code>krbtgt</code> and therefore does not invalidate the forged TGT. Only rotating <code>krbtgt</code> (twice, since the previous and current passwords are both honored briefly) invalidates the forgery. Most organizations have never rotated <code>krbtgt</code>. The "rotate twice" recommendation exists because rotating once leaves a window where forged tickets encrypted with the old key are still accepted; the second rotation discards the old key entirely. Treat <code>krbtgt</code> as a Tier-0 secret on par with the Domain Admin password.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Kerberos has four messages: AS-REQ (10), AS-REP (11), TGS-REQ (12), TGS-REP (13). Memorize the numbers; tshark filters them by integer.</li>
+<li>AS-REP is encrypted with the user's key (target of ASREPRoast).</li>
+<li>TGS-REP service ticket is encrypted with the service account's key (target of Kerberoast).</li>
+<li>TGT is encrypted with <code>krbtgt</code>'s key (target of golden ticket forgery).</li>
+<li>Pre-authentication is the timestamp encrypted in the AS-REQ; its absence makes the AS-REP attackable.</li>
+<li><code>kinit</code> produces a clean AS exchange; the first SMB connect after <code>kinit</code> produces a clean TGS exchange.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The five operations below are the smallest set you need to drive a clean Kerberos protocol study or to drive a Kerberos attack later in the track.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Capture Kerberos traffic</td>
+<td><code>sudo tshark -i any -f "host &lt;dc&gt; and port 88" -w kerb.pcap</code></td>
+</tr>
+<tr>
+<td>Filter to a single message type</td>
+<td><code>tshark -r kerb.pcap -V -Y "kerberos.msg_type == 11"</code></td>
+</tr>
+<tr>
+<td>Request a TGT (clean AS exchange)</td>
+<td><code>echo '&lt;pw&gt;' \| kinit &lt;user&gt;@&lt;REALM&gt;</code></td>
+</tr>
+<tr>
+<td>Trigger a TGS-REQ for <code>cifs/&lt;host&gt;</code></td>
+<td><code>smbclient //&lt;host&gt;/&lt;share&gt; -k -c "ls"</code></td>
+</tr>
+<tr>
+<td>List cached tickets</td>
+<td><code>klist</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: Four Kerberos Message Types</strong></p>
+<p>Q: Name the four core Kerberos message types and their integer codes.</p>
+<details class="note">
+<summary>Answer</summary>
+<p>AS-REQ (10); client requests a TGT. AS-REP (11); KDC issues a TGT. TGS-REQ (12); client requests a service ticket using the TGT as proof. TGS-REP (13); KDC issues a service ticket. Memorize 10/11/12/13 because tshark and Wireshark display filters use the integers.</p>
+</details>
+<p><strong>Card 2: Which Key Encrypts What</strong></p>
+<p>Q: For each of AS-REP enc-part, AS-REP TGT body, TGS-REP enc-part, and TGS-REP service ticket body, name the key that encrypts it.</p>
+<details class="note">
+<summary>Answer</summary>
+<p>AS-REP enc-part: the <strong>user's</strong> password-derived key (target of ASREPRoast). AS-REP TGT body: the <strong>krbtgt</strong> account's key (target of golden ticket forgery). TGS-REP enc-part: the <strong>TGT session key</strong> (held by the user and the KDC). TGS-REP service ticket body: the <strong>service account's</strong> password-derived key (target of Kerberoast).</p>
+</details>
+<p><strong>Card 3: tshark Display Filter for Each Message</strong></p>
+<p>Q: Write the tshark <code>-Y</code> filter expression for each of AS-REQ, AS-REP, TGS-REQ, and TGS-REP.</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>kerberos.msg_type == 10</code> (AS-REQ), <code>kerberos.msg_type == 11</code> (AS-REP), <code>kerberos.msg_type == 12</code> (TGS-REQ), <code>kerberos.msg_type == 13</code> (TGS-REP). Combine with <code>&amp;&amp;</code> and <code>kerberos.CNameString == "user"</code> to filter to a specific principal.</p>
+</details>
+<p><strong>Card 4: Triggering a Clean TGS-REQ from Linux</strong></p>
+<p>Q: With <code>kinit</code> already cached, write the smbclient command that produces exactly one TGS-REQ for the <code>cifs</code> service of <code>srv01.corp.local</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>smbclient<span class="w"> </span>//srv01.corp.local/Share<span class="w"> </span>-k<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;ls&quot;</span>
+</code></pre></div>
+<p><code>-k</code> tells smbclient to use the cached Kerberos credential. The first connect triggers a TGS-REQ for <code>cifs/srv01.corp.local@CORP.LOCAL</code>. Subsequent connects within the ticket lifetime reuse the cached TGS.</p>
+</details>
+<p><strong>Card 5: pA-ENC-TIMESTAMP and ASREPRoast</strong></p>
+<p>Q: What field in the AS-REQ proves pre-authentication, and what user account control flag disables it?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>The <code>padata</code> array contains a <code>pA-ENC-TIMESTAMP</code> element whose value is a timestamp encrypted with the user's password-derived key. Its presence proves the user knows the password. The <code>DONT_REQ_PREAUTH</code> UAC flag (<code>0x400000</code>, decimal 4194304) disables the requirement; the KDC then issues an AS-REP without the check, exposing the encrypted enc-part to offline cracking via Hashcat mode 18200. Find ASREPRoastable accounts with the LDAP filter <code>(userAccountControl:1.2.840.113556.1.4.803:=4194304)</code>.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

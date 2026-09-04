@@ -1,0 +1,1449 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise OTSOC-3.2: Write the Detection - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-otsoc-32-write-the-detection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise OTSOC-3.2: Write the Detection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin-read-the-network-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin: Read the Network Panel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-confirm-the-adversary-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Confirm the Adversary Is Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-establish-the-benign-baseline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Establish the Benign Baseline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-isolate-the-malicious-write-in-the-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Isolate the Malicious Write in the Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-write-a-zeek-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Write a Zeek Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-write-a-suricata-alternative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Write a Suricata Alternative
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-prove-the-write-landed-on-the-plc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Prove the Write Landed on the PLC
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capture-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture the Flag
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-otsoc-32-write-the-detection">Exercise OTSOC-3.2: Write the Detection</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Pecan Creek Creamery (fictional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Role</td>
+<td>OT SOC Analyst, Detection Engineering</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg></span> Reconstruction <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Detection Engineering</strong> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> Threat Hunting</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> You mapped the blend tank intrusion to ATT&amp;CK in the last exercise. The same unauthorized write is now recurring on the line. Mapping a past attack is worth nothing if it does not produce a detection that catches the next one. The deliverable here is a working rule that fires on the attack and stays quiet on the benign baseline.</p>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>The intrusion you reconstructed is running again on the Pecan Creek Creamery blend tank. A scripted adversary on the OT segment, the <code>inject</code> host, runs a Modbus function code 3 read sweep against the blend tank <code>mix.pcc.local</code>, then issues function code 6 writes to the agitator setpoint (register <code>40002</code>) and the recipe id (register <code>40030</code>). The adversary acts on its own; your job is to detect it.</p>
+<p>You write a Suricata or Zeek detection that fires on the unauthorized write and stays silent on the legitimate maintenance-window traffic. Your data source is the passive sensor at <code>sensor.pcc.local</code>, which serves Zeek logs from a recorded capture of the plant control network. Hosts appear in that capture with the plant control addressing (<code>10.100.4.x</code>), and the capture holds both the benign read-only FC3 polling baseline and the adversary's FC6 writes, so the <code>modbus.log</code> you tune against carries the signal and the noise together. To prove the attack actually landed on the PLC, the blend tank exposes a deterministic tamper marker: a holding-register block at <code>40801</code> that reads <code>CLEAN_BLEND_NO_WRITES</code> on a pristine tank and flips to <code>DIRTY_WRITES_DETECTED</code> after any wire write, plus an input register at <code>30004</code> (<code>write_event_count</code>) that increments on every dangerous write. Reading the DIRTY marker and a nonzero counter is your deterministic proof: you write up your rule plus that confirmation and submit the writeup to the Deliverable Grader, which returns the flag when the writeup passes.</p>
+<h3 id="why-this-matters">Why this matters</h3>
+<p>Detection engineering is where threat intelligence stops being a slide and becomes a control. A rule that fires on every Modbus write would technically catch the attack, but it would also scream during every sanctioned maintenance change until the SOC mutes it, and a muted rule catches nothing. The hard part of this exercise is not writing a signature; it is tuning it so it fires on the adversary and stays silent on the benign baseline. Alert fatigue kills more detections than evasion does.</p>
+<p>The blend tank is a good teacher because the write is binary and observable. The DIRTY marker gives you ground truth that the FC6 write reached the PLC, so you can reason about what your rule should have caught without guessing. In a real plant you rarely get that confirmation; you get a rule, a baseline, and the discipline to test both before you trust either.</p>
+<table>
+<thead>
+<tr>
+<th>Credentials in scope</th>
+<th>Username</th>
+<th>Password</th>
+<th>Where it is used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>None</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>The sensor, adversary control, and PLC marker are unauthenticated</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="learning-objectives">Learning Objectives</h2>
+<ul>
+<li>Confirm the adversary run and identify the unauthorized FC6 write to the blend tank</li>
+<li>Write a Suricata or Zeek detection that fires on the unauthorized Modbus write</li>
+<li>Tune the detection to stay silent on the benign maintenance-window baseline</li>
+<li>Read the blend tank DIRTY marker at register <code>40801</code> to confirm the write landed</li>
+<li>Confirm <code>write_event_count</code> at input register <code>30004</code> is nonzero</li>
+<li>Submit your detection writeup to the Deliverable Grader to earn the flag</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Detail</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Difficulty</td>
+<td><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.45 4.73L5.82 21z"/></svg></span> <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12 15.39-3.76 2.27.99-4.28-3.32-2.88 4.38-.37L12 6.09l1.71 4.04 4.38.37-3.32 2.88.99 4.28M22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.45 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03z"/></svg></span> Intermediate</td>
+</tr>
+<tr>
+<td>Estimated Time</td>
+<td>45 to 60 minutes</td>
+</tr>
+<tr>
+<td>Prerequisites</td>
+<td>Modbus function codes, Suricata or Zeek rule basics, OTSOC-3.1</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Source</th>
+<th>Found?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OCR{unauthorized_write_detected_&lt;masked&gt;}</code></td>
+<td>Returned by the grader when your detection writeup passes</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="before-you-begin-read-the-network-panel">Before You Begin: Read the Network Panel</h2>
+<p>After the lab shows <strong>Running</strong>, read the four target IPs from the <strong>Exercise Network</strong> panel and store them in shell variables. Avoid hardcoding subnet octets; copy the exact values the panel shows.</p>
+<div class="admonition note">
+<p class="admonition-title">Two subnets: the capture versus your live panel</p>
+<p>The sensor serves a recorded capture in which hosts appear on the plant control network as <code>10.100.4.x</code>. Your live Exercise Network panel uses your own session subnet, so a captured host and its live panel device line up by their shared last octet. The blend tank is <code>10.100.4.2</code> in the capture, so when you read the live blend tank later you connect to the panel IP whose last octet is <code>.2</code>. The <code>MIX</code> variable below already holds that panel IP.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - set target variables from the Exercise Network panel</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Replace each value with the IP shown in the Exercise Network panel.</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">MIX</span><span class="o">=</span>&lt;mix-ip-from-panel&gt;<span class="w">        </span><span class="c1"># mix.pcc.local, Modbus/TCP 502</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nv">SENSOR</span><span class="o">=</span>&lt;sensor-ip-from-panel&gt;<span class="w">  </span><span class="c1"># sensor.pcc.local, HTTP 8000</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nv">INJECT</span><span class="o">=</span>&lt;inject-ip-from-panel&gt;<span class="w">  </span><span class="c1"># inject.pcc.local, HTTP 8080</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nv">GRADER</span><span class="o">=</span>&lt;grader-ip-from-panel&gt;<span class="w">  </span><span class="c1"># rubric.pcc.local (Deliverable Grader), HTTP 80</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;mix=</span><span class="nv">$MIX</span><span class="s2"> sensor=</span><span class="nv">$SENSOR</span><span class="s2"> inject=</span><span class="nv">$INJECT</span><span class="s2"> grader=</span><span class="nv">$GRADER</span><span class="s2">&quot;</span>
+</code></pre></div>
+</div>
+<p>Confirm each host answers on its service port before continuing. Three <code>succeeded!</code> lines mean the lab is wired and Running.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - confirm the three targets are reachable</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nc<span class="w"> </span>-zv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$MIX</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">502</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>nc<span class="w"> </span>-zv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SENSOR</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">8000</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>nc<span class="w"> </span>-zv<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$INJECT</span><span class="s2">&quot;</span><span class="w"> </span><span class="m">8080</span>
+</code></pre></div>
+</div>
+<p>If the Modbus probe hangs, the blend tank PLC has not finished booting yet; give it a minute and retry.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-confirm-the-adversary-is-running">Step 1: Confirm the Adversary Is Running</h3>
+<p>The <code>inject</code> host is the scripted adversary. Its status endpoint tells you which attack is active. Confirm the <code>mix-unauth-write</code> attack is running before you tune any rule, so you are detecting a real run and not chasing a quiet network.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - read the adversary status</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$INJECT</span><span class="s2">:8080/status&quot;</span>
+</code></pre></div>
+</div>
+<p>Look for <code>mix-unauth-write</code> in the response. That attack runs the FC3 read sweep across the holding-register bands, then issues the FC6 writes to <code>40002</code> and <code>40030</code>. If the status shows the adversary idle, the clean baseline is running and no write is occurring yet; the attack engages shortly after the lab starts.</p>
+<h3 id="step-2-establish-the-benign-baseline">Step 2: Establish the Benign Baseline</h3>
+<p>Before you can tune a rule to stay silent on benign traffic, you have to know what benign looks like. The sensor serves passive Zeek logs over HTTP. Pull the Modbus log and look at the normal read-only polling that the legitimate poller generates.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - pull the sensor Modbus log and inspect the baseline</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$SENSOR</span><span class="s2">:8000/modbus.log&quot;</span><span class="w"> </span>-o<span class="w"> </span>/tmp/modbus.log
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;read|func&#39;</span><span class="w"> </span>/tmp/modbus.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-20
+</code></pre></div>
+</div>
+<p>The benign baseline is dominated by <code>READ_HOLDING_REGISTERS</code> from the legitimate poller at <code>10.100.4.30</code> hitting the blend tank <code>10.100.4.2</code>. Expect log lines like these (columns are timestamp, uid, source, source port, destination, dest port, transaction id, unit, function):</p>
+<div class="admonition example">
+<p class="admonition-title">Expected: read-only FC3 baseline in modbus.log</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1784715846.785841  CMJ4CGG7iAA5w0AWc  10.100.4.30  55868  10.100.4.2  502  1  1  READ_HOLDING_REGISTERS  REQ  -
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>1784715846.863814  CMJ4CGG7iAA5w0AWc  10.100.4.30  55868  10.100.4.2  502  1  1  READ_HOLDING_REGISTERS  RESP -
+</code></pre></div>
+</div>
+<p>Note that operator and historian polling is read-only: function code 3, repeated on a steady cadence, never a write. That read-only cadence is the traffic your rule must learn to ignore.</p>
+<h3 id="step-3-isolate-the-malicious-write-in-the-logs">Step 3: Isolate the Malicious Write in the Logs</h3>
+<p>Now find the signal you want to catch. Filter the same log for write operations. On a properly behaved blend tank there should be none; any write is the adversary.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - isolate the write operations from the read baseline</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;write|func.*6&#39;</span><span class="w"> </span>/tmp/modbus.log
+</code></pre></div>
+</div>
+<figure>
+<p><img alt="Zeek modbus.log with the benign READ_HOLDING_REGISTERS baseline from 10.100.4.30 alongside the adversary WRITE_SINGLE_REGISTER function-code-6 lines from 10.100.4.12, the write lines highlighted as the detection signal" src="../img/detection_writes.png" width="820" />
+  </p>
+<figcaption>Step 3: the recorded capture holds both the benign FC3 reads from `10.100.4.30` and the adversary's FC6 writes from `10.100.4.12` to the blend tank `10.100.4.2`. The write lines are the signal your rule must catch.</figcaption>
+</figure>
+<p>Write lines (function code 6, <code>write_single_register</code>) trace back to the adversary host <code>10.100.4.12</code>, not the legitimate poller. Expect lines like these:</p>
+<div class="admonition example">
+<p class="admonition-title">Expected: FC6 unauthorized writes in modbus.log</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>1784715853.412130  CNs0oDfqIKugIIhec  10.100.4.12  41192  10.100.4.2  502  6  1  WRITE_SINGLE_REGISTER  REQ  -
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>1784715854.732629  CNs0oDfqIKugIIhec  10.100.4.12  41192  10.100.4.2  502  7  1  WRITE_SINGLE_REGISTER  RESP -
+</code></pre></div>
+</div>
+<p>If your sensor also serves <code>modbus_detailed.log</code>, the same writes show the target register address and value: address <code>1</code> (holding register <code>40002</code>, the agitator setpoint) driven to <code>140</code>, and address <code>29</code> (holding register <code>40030</code>, the recipe id) driven to <code>23</code>. The distinguishing features are the function code and the source: a write from any host that is not the engineering workstation is your detection trigger. The benign baseline never writes, so keying on writes is already most of the way to a clean rule.</p>
+<h3 id="step-4-write-a-zeek-detection">Step 4: Write a Zeek Detection</h3>
+<p>A Zeek detection keys on the Modbus function in <code>modbus.log</code>. The cleanest approach watches for write functions and alerts when the source is not an allowlisted engineering host. Write the policy to a file so you can load it against the log. Build it in one focused script that allowlists the legitimate poller and flags every other writer.</p>
+<div class="admonition example">
+<p class="admonition-title">Zeek detection policy: alert on writes from a non-engineering source</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c"># detect-mix-write.zeek</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c"># Alert on any Modbus write to the blend tank from a host that is not</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c"># the allowlisted engineering workstation. Tune ENG_HOSTS to your</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c"># maintenance host so the benign baseline stays silent.</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kn">module</span><span class="w"> </span><span class="nn">MixWriteDetect</span><span class="p">;</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="kd">const</span><span class="w"> </span><span class="n">ENG_HOSTS</span><span class="p">:</span><span class="w"> </span><span class="kt">set</span><span class="p">[</span><span class="kt">addr</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="c"># Add the legitimate engineering/maintenance host here so its</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="c"># sanctioned writes do not trip the rule.</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="p">}</span><span class="w"> </span><span class="kp">&amp;redef</span><span class="p">;</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="kt">event</span><span class="w"> </span><span class="nf">modbus_message</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="w"> </span><span class="n">connection</span><span class="p">,</span><span class="w"> </span><span class="n">headers</span><span class="p">:</span><span class="w"> </span><span class="n">ModbusHeaders</span><span class="p">,</span><span class="w"> </span><span class="n">is_orig</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="o">!</span><span class="w"> </span><span class="n">is_orig</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="kd">local</span><span class="w"> </span><span class="n">fc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">headers</span><span class="o">$</span><span class="n">function_code</span><span class="p">;</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="c"># 6 = write single register, 16 = write multiple registers</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">fc</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mf">6</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">fc</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mf">16</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">c</span><span class="o">$</span><span class="n">id</span><span class="o">$</span><span class="n">orig_h</span><span class="w"> </span><span class="o">!</span><span class="ow">in</span><span class="w"> </span><span class="n">ENG_HOSTS</span><span class="w"> </span><span class="p">)</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">            </span><span class="k">print</span><span class="w"> </span><span class="nf">fmt</span><span class="p">(</span><span class="s">&quot;ALERT unauthorized modbus write fc=</span><span class="se">%d</span><span class="s"> from </span><span class="se">%s</span><span class="s"> to </span><span class="se">%s</span><span class="s">&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">                      </span><span class="n">fc</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="o">$</span><span class="n">id</span><span class="o">$</span><span class="n">orig_h</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="o">$</span><span class="n">id</span><span class="o">$</span><span class="n">resp_h</span><span class="p">);</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="p">}</span>
+</code></pre></div>
+</div>
+<p>The rule fires on function code 6 or 16 from any source outside <code>ENG_HOSTS</code>. Tuning is the allowlist: add the sanctioned maintenance host to <code>ENG_HOSTS</code> and the benign baseline, which only ever reads, never trips it anyway. Run the policy against your captured log to see it fire only on the adversary.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - run the Zeek policy against the captured log</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># If you have the raw pcap, run: zeek -C -r &lt;capture&gt;.pcap detect-mix-write.zeek</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># Against the served modbus.log, review the write lines you isolated in Step 3</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># and confirm every one comes from the non-allowlisted adversary source.</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>grep<span class="w"> </span>-iE<span class="w"> </span><span class="s1">&#39;write&#39;</span><span class="w"> </span>/tmp/modbus.log
+</code></pre></div>
+</div>
+<p>A correctly tuned rule produces zero alerts on the read-only baseline and one alert per adversary write. If a maintenance host legitimately writes during a window, its address belongs in <code>ENG_HOSTS</code>.</p>
+<h3 id="step-5-write-a-suricata-alternative">Step 5: Write a Suricata Alternative</h3>
+<p>If your sensor runs Suricata instead of Zeek, the equivalent rule matches the Modbus function code byte in the PDU. Suricata ships a <code>modbus</code> keyword for exactly this. Write a rule that alerts on the write function reaching the blend tank.</p>
+<div class="admonition example">
+<p class="admonition-title">Suricata rule: alert on a Modbus write to the blend tank</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>alert modbus any any -&gt; $MIX_PLC 502 ( \
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  msg:&quot;OTSOC unauthorized Modbus write to blend tank&quot;; \
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  modbus: function 6; \
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  sid:9000001; rev:1; )
+</code></pre></div>
+</div>
+<p>The <code>modbus: function 6</code> keyword matches write-single-register. To stay silent on the baseline, scope the source: define <code>$MIX_PLC</code> as the blend tank and add a <code>$ENG_HOSTS</code> allowlist as a pass rule with a lower SID, or constrain the source address in the rule so sanctioned maintenance writes are excluded. The read-only polling never matches function 6, so it never alerts.</p>
+<h3 id="step-6-prove-the-write-landed-on-the-plc">Step 6: Prove the Write Landed on the PLC</h3>
+<p>A rule is only half the job. Confirm the attack actually reached the blend tank by reading the tamper marker straight off the live PLC with a Modbus client. Step 6 is the one step where you connect to a live device rather than read the recorded capture: the blend tank shows as <code>10.100.4.2</code> in the capture, so you connect to the panel IP whose last octet is <code>.2</code>, which is exactly the <code>MIX</code> variable you set from the panel. The <code>40801</code> block flips to <code>DIRTY_WRITES_DETECTED</code> after any wire write, and <code>30004</code> counts the writes. Use <code>pymodbus</code> from your Kali. Note the address arithmetic: a <code>4xxxx</code> holding register maps to a zero-based protocol address, so <code>40801</code> is offset <code>800</code>, and <code>30004</code> is input-register offset <code>3</code>.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - read the DIRTY marker off the blend tank</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="s">from pymodbus.client import ModbusTcpClient as C</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="s">import os</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="s">c = C(os.environ[&#39;MIX&#39;], port=502, timeout=5)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="s">c.connect()</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="s">rr = c.read_holding_registers(800, count=16, slave=1)</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="s">marker = &#39;&#39; if rr.isError() else &#39;&#39;.join(</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="s">    chr((r &gt;&gt; 8) &amp; 0xFF) + chr(r &amp; 0xFF) for r in rr.registers)</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="s">print(&quot;marker:&quot;, marker.strip(&#39;\x00&#39;))</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="s">c.close()</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="s">PY</span>
+</code></pre></div>
+</div>
+<p>A <code>CLEAN_BLEND_NO_WRITES</code> marker means the adversary has not written yet; wait for the attack to engage and re-read. A <code>DIRTY_WRITES_DETECTED</code> marker proves the unauthorized FC6 write reached the PLC. Next, read the write counter to corroborate.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - read the write-event counter</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="s">from pymodbus.client import ModbusTcpClient as C</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="s">import os</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="s">c = C(os.environ[&#39;MIX&#39;], port=502, timeout=5)</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="s">c.connect()</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="s">rr = c.read_input_registers(3, count=1, slave=1)</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="s">print(&quot;write_event_count:&quot;, &#39;error&#39; if rr.isError() else rr.registers[0])</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="s">c.close()</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="s">PY</span>
+</code></pre></div>
+</div>
+<p>A nonzero <code>write_event_count</code> confirms how many dangerous writes the PLC saw. Together, the DIRTY marker and a nonzero counter are deterministic proof that your detection target really happened, and they are the confirmation you then submit to the grader.</p>
+<hr />
+<h2 id="output-interpretation">Output Interpretation</h2>
+<ul>
+<li>The benign baseline is pure function code 3 reads on a steady cadence. Any function code 6 or 16 write is, by itself, the anomaly your rule should catch.</li>
+<li>Tuning is an allowlist problem, not a threshold problem. Name the one sanctioned maintenance host and every other writer is suspicious; the read-only baseline never matters because it never writes.</li>
+<li>The DIRTY marker is ground truth that the write reached the PLC. In a real plant you rarely get that confirmation, which is exactly why you test rules against a known-attack capture before trusting them in production.</li>
+<li>A rule that fires on the baseline gets muted, and a muted rule detects nothing. Silent-on-benign is not a nice-to-have; it is the difference between a live detection and dead config.</li>
+</ul>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is allowlisting the engineering host a better tuning strategy than setting a write-rate threshold?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>A rate threshold assumes the attack is noisy and the baseline is quiet, but the blend tank baseline has zero writes, so any threshold above zero misses single-write attacks and any threshold at zero is just "alert on all writes" with extra steps. Allowlisting the sanctioned maintenance host captures the real intent: writes are fine from one known host inside a window, and suspicious from everywhere else. It also degrades safely; an attacker who spoofs the engineering host is a much harder, more detectable move than simply writing slowly.</p>
+</details>
+<p><strong>2. The Docker bridge does not mirror unicast traffic to the passive sensor in this lab. How does that change how you validate the rule, and why does the DIRTY marker exist?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Because a Docker bridge does not mirror adversary-to-PLC unicast to a live promiscuous sniffer, the sensor serves a recorded capture of the plant control network instead of live-sniffing. That recorded capture is deterministic and complete: it already holds the FC6 writes alongside the benign FC3 baseline, so you author and tune your rule against <code>modbus.log</code> evidence that really contains the attack. Separately, you confirm the attack landed using the PLC-side DIRTY marker and write counter as deterministic ground truth. The marker decouples "did the attack happen" from "did the sensor capture it," which is a realistic split: process-side detection and network-side detection are independent layers.</p>
+</details>
+<p><strong>3. Your Zeek rule alerts on function codes 6 and 16. Why include 16 when the observed attack only used 6?</strong></p>
+<details class="note">
+<summary>Reveal answer</summary>
+<p>Function code 6 writes a single register; function code 16 writes multiple registers in one request. An adversary who learns that your rule only watches code 6 can switch to code 16 to change the same setpoints in a single multi-register write and evade you. Detection engineering covers the technique, not just the one variant you observed. Both write functions modify parameters, so both belong in the rule.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>A detection is not done when it fires on the attack; it is done when it also stays silent on the benign baseline.</li>
+<li>On an OT network where legitimate traffic is read-only polling, a write is the anomaly. Key on the write function and allowlist the sanctioned source.</li>
+<li>Cover the technique, not the sample. Watch both single-register (FC6) and multi-register (FC16) writes so a trivial variant cannot slip past.</li>
+<li>Process-side ground truth (the DIRTY marker and write counter) is independent of network-side detection and is the deterministic proof the attack reached the PLC.</li>
+</ul>
+<h2 id="capture-the-flag">Capture the Flag</h2>
+<p>Confirm the blend tank marker reads DIRTY and the write counter is nonzero, which proves the unauthorized write your detection targets actually reached the PLC. That confirmation is your proof, not the flag itself.</p>
+<p>The flag is returned by the Deliverable Grader, the rubric host shown in the Exercise Network panel on HTTP port 80. Write up your detection (the Suricata or Zeek rule, plus the DIRTY marker at register <code>40801</code> and the nonzero <code>write_event_count</code> at register <code>30004</code> as confirmation) and POST it to the grader. If you want the checklist the grader scores against first, fetch it with <code>GET /rubric?deliverable=detection-confirm</code>, which lists the criteria and returns no flag. When you are ready, submit your writeup with the request below, using the <code>$GRADER</code> variable you set earlier.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - submit your detection writeup to the grader</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://</span><span class="nv">$GRADER</span><span class="s2">/check&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;deliverable&quot;:&quot;detection-confirm&quot;,&quot;submission&quot;:&quot;&lt;your rule plus the DIRTY marker and nonzero write_event_count confirmation, keyed on Modbus function code 6 from an unexpected source and tuned silent on the benign baseline&gt;&quot;}&#39;</span>
+</code></pre></div>
+</div>
+<p>A passing writeup returns JSON with <code>"passed": true</code> alongside <code>"score"</code>, <code>"total"</code>, and the flag, for example <code>{"passed": true, ..., "flag": "OCR{unauthorized_write_detected_mix...}"}</code>. A failing submission returns <code>"passed": false</code> with the score so far and no flag; read the rubric, tighten your writeup, and resubmit. Copy the returned flag, which has the masked form below, into the OCR platform to complete the exercise.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>OCR{unauthorized_write_detected_&lt;masked&gt;}
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

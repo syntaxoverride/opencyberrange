@@ -1,0 +1,1170 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.3: HTTP Session Hijacking - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-23-http-session-hijacking" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.3: HTTP Session Hijacking
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-http-session-management-and-hijacking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: HTTP Session Management and Hijacking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-connect-to-the-analysis-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Connect to the Analysis Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-get-a-protocol-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Get a Protocol Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-find-set-cookie-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Find Set-Cookie Headers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-track-all-cookie-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Track All Cookie Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-identify-the-hijacking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Identify the Hijacking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-examine-what-the-attacker-accessed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Examine What the Attacker Accessed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-follow-the-attackers-tcp-stream" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Follow the Attacker's TCP Stream
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-23-http-session-hijacking">Exercise 2.3: HTTP Session Hijacking</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercises 2.1 and 2.2 focused on credential theft from cleartext protocols; FTP and
+Telnet transmit passwords in plaintext, and an attacker with a packet capture can
+read them directly. this exercise introduces a different attack vector: <strong>session
+hijacking</strong>. Instead of stealing a password, the attacker steals an active session
+token and uses it to impersonate an already-authenticated user.</p>
+<p>All analysis in this exercise is performed with <code>tshark</code> over an SSH connection. You
+SSH into the analyst workstation at <code>&lt;target_ip&gt;</code>, the address shown on the launch page.</p>
+<h2 id="scenario">Scenario</h2>
+<p>A patient has reported suspicious activity on MediCare's patient portal; their
+medical records were accessed from an unfamiliar location. Marcus Thompson, the
+lead security analyst, suspects session hijacking: someone intercepted and reused
+a valid session cookie to impersonate the authenticated user. Network monitoring
+captured the relevant traffic during the incident window. Your task is to analyze
+the captured traffic, confirm the attack, identify the attacker, and determine
+what data was accessed.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>SSH into the analysis container</li>
+<li>Identify when session cookies are issued by the server</li>
+<li>Track cookie usage across different source IPs</li>
+<li>Detect the session hijacking; the same cookie used from a different IP</li>
+<li>Determine what the attacker accessed</li>
+<li>Find and submit the flag</li>
+</ul>
+<h2 id="background-http-session-management-and-hijacking">Background: HTTP Session Management and Hijacking</h2>
+<p>Web applications use <strong>cookies</strong> to track logged-in users. The typical flow works
+as follows: a user submits their credentials via a login form, and the server
+validates them. If authentication succeeds, the server responds with a
+<code>Set-Cookie</code> header containing a <strong>session ID</strong>: a unique token that identifies
+that user's session. The browser stores this cookie and includes it automatically
+in every subsequent request to the same site. The server checks the cookie on
+each request and, if valid, grants access without requiring the user to log in
+again.</p>
+<p><strong>Session hijacking</strong> occurs when an attacker obtains a valid session cookie and
+replays it from their own machine. The attacker does not need the user's password.
+The server receives the cookie, validates it, and grants access as though the
+request came from the legitimate user. There are several ways an attacker can
+obtain the cookie:</p>
+<ul>
+<li><strong>Network sniffing</strong>: if the application uses HTTP instead of HTTPS, cookies
+  travel in cleartext and can be captured by anyone monitoring the network</li>
+<li><strong>Cross-site scripting (XSS)</strong>: malicious JavaScript injected into the page
+  can read cookies and exfiltrate them to the attacker</li>
+<li><strong>Malware</strong>: software on the victim's machine can extract cookies from the
+  browser's storage</li>
+</ul>
+<p>The primary detection indicator is straightforward: the <strong>same session cookie
+appearing from two different source IPs</strong>. A legitimate user does not typically
+change IP addresses mid-session.</p>
+<p>Prevention relies on several layers. <strong>HTTPS</strong> encrypts all traffic, including
+cookies, so network sniffing yields nothing usable. The <strong>Secure</strong> cookie flag
+tells the browser to only send the cookie over HTTPS connections. The
+<strong>HttpOnly</strong> flag prevents JavaScript from reading the cookie, blocking XSS-based
+theft. <strong>IP binding</strong> on the server side rejects a cookie if the source IP
+changes from the one that originally authenticated.</p>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Start the lab environment from the launcher. Wait for the container to initialize
+before proceeding.</p>
+<h3 id="step-2-connect-to-the-analysis-container">Step 2: Connect to the Analysis Container</h3>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the analysis container</p>
+<p>Run this from your Kali terminal. Replace <code>&lt;target_ip&gt;</code> with the address shown on the launch page. The SSH session lands you on the staged analyst host.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ssh<span class="w"> </span>analyst@&lt;target_ip&gt;
+</code></pre></div>
+<p>Enter the password <code>MediCare2024#</code> when prompted.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Confirm the capture file is present</p>
+<p>Run this on the analysis container after the SSH session connects. The listing verifies the PCAP is staged before you start.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ls<span class="w"> </span>captures/
+</code></pre></div>
+<p>You should see <code>session-hijack.pcap</code>.</p>
+</div>
+<h3 id="step-3-get-a-protocol-overview">Step 3: Get a Protocol Overview</h3>
+<div class="admonition target">
+<p class="admonition-title">Get a protocol hierarchy overview</p>
+<p>Run this on the analysis container. The <code>-z io,phs</code> option displays a protocol hierarchy with packet counts so you can see which protocols carry the session activity.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+<p>You should see HTTP traffic on port 80, which is where the session activity takes place. Note the absence of TLS; all traffic is unencrypted.</p>
+</div>
+<h3 id="step-4-find-set-cookie-headers">Step 4: Find Set-Cookie Headers</h3>
+<div class="admonition target">
+<p class="admonition-title">Find Set-Cookie headers</p>
+<p>Run this on the analysis container. The <code>http.set_cookie</code> filter shows every response where the server issued a session cookie.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http.set_cookie&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>http.set_cookie
+</code></pre></div>
+<p>Note which client IPs received cookies and what the cookie values are.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Which IP addresses received <code>Set-Cookie</code> headers from the server?</li>
+<li>What is the session cookie name and value?</li>
+<li>In which frame number was the cookie first issued?</li>
+</ul>
+<hr />
+<h3 id="step-5-track-all-cookie-usage">Step 5: Track All Cookie Usage</h3>
+<div class="admonition target">
+<p class="admonition-title">List every request carrying a cookie</p>
+<p>Run this on the analysis container. The <code>http.cookie</code> filter reveals every HTTP request where a client presented a session cookie.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http.cookie&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>http.request.uri<span class="w"> </span>-e<span class="w"> </span>http.cookie
+</code></pre></div>
+<p>Look at the source IPs; if only the legitimate user is browsing, you should see a single IP. If a second IP appears using the same cookie, that is your hijacking indicator.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Locate the original login request</p>
+<p>Run this on the analysis container. The filter finds the POST to the login endpoint, confirming which IP actually authenticated.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s2">&quot;http.request.method == POST and http.request.uri contains login&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>http.request.uri
+</code></pre></div>
+<p>The source IP of this POST is the legitimate user who logged in.</p>
+</div>
+<h3 id="step-6-identify-the-hijacking">Step 6: Identify the Hijacking</h3>
+<div class="admonition target">
+<p class="admonition-title">Isolate the IPs sharing one cookie</p>
+<p>Run this on the analysis container. The filter pins one specific session cookie and lists the unique source IPs that presented it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s1">&#39;http.cookie contains &quot;SESSIONID=abc123def456&quot;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u
+</code></pre></div>
+<p>If two different IPs appear, the session was hijacked. The IP that performed the login is the legitimate user; the other is the attacker.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Legitimate user IP: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Attacker IP: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Shared session cookie value: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Approximate time gap between the legitimate session and the attacker's first request: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-7-examine-what-the-attacker-accessed">Step 7: Examine What the Attacker Accessed</h3>
+<div class="admonition target">
+<p class="admonition-title">Examine the attacker's activity</p>
+<p>Run this on the analysis container. The filter scopes the capture to the attacker's IP so you can read every URI they requested.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-Y<span class="w"> </span><span class="s2">&quot;ip.src == 10.0.1.87 and http&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.number<span class="w"> </span>-e<span class="w"> </span>http.request.method<span class="w"> </span>-e<span class="w"> </span>http.request.uri<span class="w"> </span>-e<span class="w"> </span>http.cookie
+</code></pre></div>
+<p>Review the URIs the attacker requested. You should see requests to endpoints such as <code>/api/medical-records</code>: the attacker used the hijacked session to access sensitive patient data. Note that the attacker never visited <code>/login</code> and never performed a POST to authenticate. They went straight to protected resources using the stolen cookie.</p>
+</div>
+<h3 id="step-8-follow-the-attackers-tcp-stream">Step 8: Follow the Attacker's TCP Stream</h3>
+<p>To see the full request and response content, follow one of the attacker's TCP
+streams. First, identify the TCP stream number from one of the attacker's
+packets.</p>
+<div class="admonition target">
+<p class="admonition-title">Follow the attacker's TCP stream</p>
+<p>Run this on the analysis container. Replace <code>&lt;stream_number&gt;</code> with the stream index you identified to reassemble the full request and response content.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/session-hijack.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>follow,tcp,ascii,&lt;stream_number&gt;
+</code></pre></div>
+<p>In the stream output, examine the cookie value closely:</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>SESSIONID=abc123def456OCR{&lt;flag_here&gt;}xyz789
+</code></pre></div>
+<p>The flag is embedded in the session cookie value itself in <code>OCR{&lt;flag_here&gt;}</code> format.</p>
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. How did you determine which IP was the legitimate user and which was the
+attacker?</strong></p>
+<blockquote>
+<p>The legitimate user (10.0.1.15) performed the login POST request and received
+the Set-Cookie header from the server. The attacker (10.0.1.87) never logged
+in; they appeared approximately seven minutes later using the same cookie
+without any prior authentication. The lack of a login sequence from the
+attacker's IP is the key indicator.</p>
+</blockquote>
+<p><strong>2. The attack happened over HTTP (port 80). How would HTTPS have prevented
+it?</strong></p>
+<blockquote>
+<p>HTTPS encrypts all traffic including cookies. An attacker sniffing the network
+would see only encrypted data and could not extract the session cookie.
+Combined with the Secure cookie flag, which prevents the browser from sending
+the cookie over HTTP, HTTPS eliminates network-based session hijacking.</p>
+</blockquote>
+<p><strong>3. What cookie attributes would make session hijacking harder even without
+HTTPS?</strong></p>
+<blockquote>
+<p>HttpOnly prevents JavaScript from reading the cookie, which blocks XSS-based
+theft. SameSite=Strict prevents the cookie from being sent in cross-site
+requests, which blocks CSRF. Short session timeouts reduce the window of
+opportunity for an attacker to reuse a stolen cookie. IP binding on the server
+side rejects the cookie if the source IP changes from the one that originally
+authenticated. None of these fully replace HTTPS, but they add defense in
+depth.</p>
+</blockquote>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Session hijacking steals access without stealing credentials; the attacker
+  replays a valid session cookie to impersonate an authenticated user</li>
+<li>The telltale sign is the same session cookie appearing from two different
+  source IPs</li>
+<li>tshark can track cookie issuance (<code>Set-Cookie</code> response headers) and cookie
+  usage (<code>Cookie</code> request headers) across the entire capture</li>
+<li>HTTP transmits cookies in cleartext, making network-based session theft trivial</li>
+<li>HTTPS with Secure and HttpOnly cookie flags is the primary defense against
+  session hijacking</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1613 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2: SMB Share Enumeration - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-2-smb-share-enumeration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2: SMB Share Enumeration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-smb-and-samba" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: SMB and Samba
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-smbclient-and-enum4linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: smbclient and enum4linux
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer: smbclient and enum4linux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#smbclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        smbclient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enum4linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enum4linux
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-verify-smb-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Verify SMB Is Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-enumerate-shares" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Enumerate Shares
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-access-the-public-share-and-find-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Access the Public Share and Find Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-confirm-the-discovered-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Confirm the Discovered Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-access-the-restricted-share" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Access the Restricted Share
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-extract-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Extract the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-interpret-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Interpret the Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-2-smb-share-enumeration">Exercise 2: SMB Share Enumeration</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>In Week 1, you learned how to connect to the lab environment, run basic scans, and navigate the platform interface. Those foundational skills; launching a lab, reading an IP address from the Active Lab View, and using the terminal; carry directly into every lab going forward. Make sure your VPN connection is active and that you can reach the lab network before proceeding.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Blackwell &amp; Associates is a mid-size law firm in Richmond, Virginia. The firm recently migrated its internal file server to a new Linux-based system running Samba, and the IT contractor who configured the server assured the managing partner that "everything is properly locked down."</p>
+<p>Your firm has been hired to verify that claim. Victoria Blackwell, the managing partner, wants to know whether someone from outside the network can access confidential case files. Client confidentiality is the foundation of her practice, and any exposure would be a serious finding.</p>
+<p>The scope of your assessment covers the file server and all exposed SMB (Server Message Block) shares. Two assessment tokens have been placed on the server; one on a public share and one on a restricted share. Your job is to enumerate the shares, discover any exposed information, and retrieve both tokens.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<p>The following list outlines what you need to accomplish during the assessment. Each objective maps to one or more steps in the walkthrough below.</p>
+<ul>
+<li>Use SMB enumeration tools to discover available network shares</li>
+<li>Access a public share and identify sensitive information</li>
+<li>Discover credentials through information disclosure on the public share</li>
+<li>Use the discovered credentials to access a restricted share</li>
+<li>Retrieve the flag from the restricted share and submit it</li>
+</ul>
+<hr />
+<h2 id="background-smb-and-samba">Background: SMB and Samba</h2>
+<p>SMB (Server Message Block) is a network protocol that allows computers to share files, printers, and other resources over a network. Windows systems have used SMB natively for decades. On Linux systems, a software package called <strong>Samba</strong> implements the SMB protocol, allowing Linux servers to act as file servers for Windows clients; or for anyone who speaks the SMB protocol.</p>
+<p>An SMB server organizes files into <strong>shares</strong>. Each share is a named folder that the server exposes to the network. Some shares allow <strong>anonymous access</strong>, meaning anyone can connect without providing a username or password. Other shares require <strong>authenticated access</strong>, meaning the server checks a username and password before granting entry. Misconfigured servers sometimes expose shares anonymously when they should require credentials, or they leave sensitive data on public shares that was never intended for outside eyes.</p>
+<p>Enumeration is the process of discovering what shares exist, which ones allow anonymous access, and what files live on each share. A penetration tester starts by listing all available shares, connects to any that allow anonymous access, reviews the files for sensitive information (such as credentials or internal documents), and then uses any discovered credentials to access restricted shares. The diagram below illustrates that workflow.</p>
+<pre class="mermaid"><code>graph TD
+    A["Scan for SMB&lt;br/&gt;port 445"] --&gt; B["List available&lt;br/&gt;shares"]
+    B --&gt; C{"Anonymous&lt;br/&gt;access?"}
+    C --&gt;|"Yes"| D["Browse public&lt;br/&gt;share files"]
+    C --&gt;|"No"| E["Credentials&lt;br/&gt;required"]
+    D --&gt; F["Find credentials&lt;br/&gt;in files"]
+    F --&gt; G["Authenticate to&lt;br/&gt;restricted share"]
+    E --&gt; G
+    G --&gt; H["Retrieve flag"]
+
+    style A fill:#4a90d9,color:#fff
+    style B fill:#4a90d9,color:#fff
+    style C fill:#e8a735,color:#fff
+    style D fill:#6aaa64,color:#fff
+    style E fill:#d9534f,color:#fff
+    style F fill:#6aaa64,color:#fff
+    style G fill:#4a90d9,color:#fff
+    style H fill:#6aaa64,color:#fff</code></pre>
+<h2 id="tool-primer-smbclient-and-enum4linux">Tool Primer: smbclient and enum4linux</h2>
+<p>Two tools handle the majority of SMB enumeration work on Linux. You will use both in the walkthrough, so take a moment to understand their syntax and purpose before diving in.</p>
+<h3 id="smbclient">smbclient</h3>
+<p>The <code>smbclient</code> tool works like an FTP client for SMB shares. You can list available shares on a server, connect to a specific share, browse directories, and download files.</p>
+<div class="admonition kali">
+<p class="admonition-title">List all shares on a server (anonymous)</p>
+<p>The command below queries the server for every share it exposes, without supplying credentials. You will run the live version in the walkthrough.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>//&lt;target_ip&gt;<span class="w"> </span>-N
+</code></pre></div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-L</code></td>
+<td>List mode; show all shares on the target server</td>
+</tr>
+<tr>
+<td><code>//&lt;target_ip&gt;</code></td>
+<td>The IP address of the SMB server, prefixed with <code>//</code></td>
+</tr>
+<tr>
+<td><code>-N</code></td>
+<td>No password; connect anonymously without a password prompt</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sample output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Sharename       Type      Comment
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>---------       ----      -------
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>general         Disk      General company information
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>hr_data         Disk      HR department files
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>IPC$            IPC       IPC Service
+</code></pre></div>
+<p>Each row shows a share name, its type (Disk means a file share, IPC means inter-process communication), and an optional comment describing the share.</p>
+<div class="admonition kali">
+<p class="admonition-title">Connect to a specific share (anonymous)</p>
+<p>The command below opens an interactive session against a named share without credentials.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/general<span class="w"> </span>-N
+</code></pre></div>
+<p>Once connected, the prompt changes to <code>smb: \&gt;</code>. From there, use <code>ls</code> to list files, <code>get &lt;filename&gt;</code> to download a file, and <code>exit</code> to disconnect.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Connect to a share with credentials</p>
+<p>Supply a username and password in <code>user%password</code> format to open a share that requires authentication.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/hr_data<span class="w"> </span>-U<span class="w"> </span>hr_svc%Bl4ckw3ll_HR#
+</code></pre></div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-U</code></td>
+<td>Specify a username and password in <code>user%password</code> format</td>
+</tr>
+</tbody>
+</table>
+<h3 id="enum4linux">enum4linux</h3>
+<p>The <code>enum4linux</code> tool automates several SMB enumeration tasks at once. Running a single command can reveal share names, usernames, group memberships, and password policies; all without needing to authenticate.</p>
+<div class="admonition kali">
+<p class="admonition-title">Basic share enumeration with enum4linux</p>
+<p>The command below automates share discovery and reports the anonymous access level for each share in one pass.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>enum4linux<span class="w"> </span>-S<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+</div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-S</code></td>
+<td>Enumerate shares on the target</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sample output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a> =============================
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>|    Share Enumeration on &lt;target_ip&gt;    |
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a> =============================
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        Sharename       Type      Comment
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        ---------       ----      -------
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        general         Disk      General company information
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        hr_data         Disk      HR department files
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>        IPC$            IPC       IPC Service
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>[+] Mapping: general - Mapping: OK, Listing: OK
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>[+] Mapping: hr_data - Mapping: DENIED, Listing: DENIED
+</code></pre></div>
+<p>The "Mapping" and "Listing" lines at the bottom reveal access permissions. "OK" means anonymous access is allowed. "DENIED" means credentials are required. The <code>enum4linux</code> tool saves you the step of testing each share individually; it reports which shares are open and which are locked.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment. The lab takes about one minute to fully initialize.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> and select the <strong>Weekly Challenges</strong> track</li>
+<li>Click <strong>Launch</strong> on "SMB Share Enumeration"</li>
+<li>Wait for the status indicator to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View; you will use it in every command below</li>
+</ul>
+<h3 id="step-2-verify-smb-is-running">Step 2: Verify SMB Is Running</h3>
+<div class="admonition kali">
+<p class="admonition-title">Confirm the SMB port is open</p>
+<p>Before attempting any enumeration, confirm that the target server is listening on the SMB port. Port 445 is the standard port for SMB traffic on modern systems.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>nmap<span class="w"> </span>-p<span class="w"> </span><span class="m">445</span><span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+</div>
+<p>You should see output similar to:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>PORT    STATE SERVICE
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>445/tcp open  microsoft-ds
+</code></pre></div>
+<p>The <strong>open</strong> state confirms that the Samba service is running and accepting connections. If the port shows as <strong>closed</strong> or <strong>filtered</strong>, wait 30 seconds for the lab environment to finish starting and run the scan again.</p>
+<h3 id="step-3-enumerate-shares">Step 3: Enumerate Shares</h3>
+<p>Now that you know SMB is running, discover what shares the server exposes. Run both tools to see how each presents the information.</p>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate shares with smbclient</p>
+<p>List every share the server exposes, anonymously.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>//&lt;target_ip&gt;<span class="w"> </span>-N
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate shares with enum4linux</p>
+<p>Run the automated enumerator to also see which shares allow anonymous access.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>enum4linux<span class="w"> </span>-S<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+</div>
+<p>Both commands should reveal at least two file shares: <strong>general</strong> and <strong>hr_data</strong>. The <code>enum4linux</code> output goes a step further by testing whether each share allows anonymous access. Look for "Mapping: OK" next to the general share and "Mapping: DENIED" next to hr_data. The general share is your starting point.</p>
+<h3 id="step-4-access-the-public-share-and-find-credentials">Step 4: Access the Public Share and Find Credentials</h3>
+<div class="admonition kali">
+<p class="admonition-title">Browse the public share and download the notes</p>
+<p>The general share allows anonymous access, so connect to it without providing a password. Browsing public shares for sensitive information is a core enumeration technique.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/general<span class="w"> </span>-N
+</code></pre></div>
+<p>Once you see the <code>smb: \&gt;</code> prompt, list the files:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>smb: \&gt; ls
+</code></pre></div>
+<p>You should see a file called <code>onboarding_notes.txt</code> in the listing. Download it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>smb: \&gt; get onboarding_notes.txt
+</code></pre></div>
+<p>Exit the SMB session:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>smb: \&gt; exit
+</code></pre></div>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Read the downloaded notes</p>
+<p>Now read the file on your local machine.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>cat<span class="w"> </span>onboarding_notes.txt
+</code></pre></div>
+<p>Look through the contents carefully. The onboarding notes contain a service account username and password intended for the HR department. The credentials are:</p>
+</div>
+<ul>
+<li><strong>Username:</strong> <code>hr_svc</code></li>
+<li><strong>Password:</strong> <code>Bl4ckw3ll_HR#</code></li>
+</ul>
+<p>These credentials were left in a file on a publicly accessible share; a classic example of information disclosure. Anyone who connects to the general share can read them.</p>
+<h3 id="step-5-confirm-the-discovered-credentials">Step 5: Confirm the Discovered Credentials</h3>
+<div class="admonition kali">
+<p class="admonition-title">Validate the discovered credentials</p>
+<p>Before trying to access the restricted share, verify that the credentials you found are valid. Testing against a known share reduces confusion if something goes wrong later.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/IPC$<span class="w"> </span>-U<span class="w"> </span>hr_svc%Bl4ckw3ll_HR#<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;exit&#39;</span>
+</code></pre></div>
+<p>The <code>-c 'exit'</code> flag tells smbclient to connect, run the <code>exit</code> command, and disconnect immediately. If the command completes without an error, the credentials are valid. If you see <code>NT_STATUS_LOGON_FAILURE</code>, double-check the username and password for typos.</p>
+</div>
+<h3 id="step-6-access-the-restricted-share">Step 6: Access the Restricted Share</h3>
+<div class="admonition kali">
+<p class="admonition-title">Access the restricted share and download the token</p>
+<p>With confirmed credentials, connect to the hr_data share that was previously denied to anonymous users.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>smbclient<span class="w"> </span>//&lt;target_ip&gt;/hr_data<span class="w"> </span>-U<span class="w"> </span>hr_svc%Bl4ckw3ll_HR#
+</code></pre></div>
+<p>You should see the <code>smb: \&gt;</code> prompt, confirming authenticated access. List the files:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>smb: \&gt; ls
+</code></pre></div>
+<p>Look for a file that contains the assessment token. Download it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>smb: \&gt; get assessment_token.txt
+</code></pre></div>
+<p>Exit the session:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>smb: \&gt; exit
+</code></pre></div>
+</div>
+<h3 id="step-7-extract-the-flag">Step 7: Extract the Flag</h3>
+<div class="admonition kali">
+<p class="admonition-title">Read the downloaded token file</p>
+<p>Read the downloaded token file on your local machine to retrieve the flag.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>cat<span class="w"> </span>assessment_token.txt
+</code></pre></div>
+<p>The flag is in <code>OCR{...}</code> format. Copy the entire flag string, including the <code>OCR{</code> prefix and the closing <code>}</code>.</p>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Nmap scan output (port 445):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>(paste your nmap output here)
+</code></pre></div>
+<p><strong>Shares discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Share Name</th>
+<th>Anonymous Access?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Contents of onboarding_notes.txt:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>(paste the relevant section here)
+</code></pre></div>
+<p><strong>Credentials found:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>(paste the flag here)
+</code></pre></div>
+</blockquote>
+<hr />
+<h3 id="step-8-interpret-the-results">Step 8: Interpret the Results</h3>
+<p>Take a moment to review what you accomplished and what each finding means for the client.</p>
+<p>The general share allowed anonymous access. Anyone on the network; or anyone who can reach port 445; can connect and browse its contents without any credentials. On its own, a public share is not always a vulnerability. Some organizations intentionally share non-sensitive documents. The problem here is that the general share contained credentials for a privileged account.</p>
+<p>The onboarding_notes.txt file disclosed the hr_svc service account credentials in plain text. Storing passwords in shared files is a common misconfiguration, especially when IT teams create "quick reference" documents during server setup and forget to remove them afterward.</p>
+<p>The hr_data share required authentication, which means the server was partially configured correctly. However, the credentials on the public share completely undermined that protection. An attacker who enumerated the general share would gain access to hr_data within minutes; exactly as you did.</p>
+<div class="admonition tip">
+<p class="admonition-title">Flag Format</p>
+<p>Assemble the flag using the tokens in the order you discovered them:</p>
+<p><code>OCR{________}</code></p>
+<p>Where <code>public</code> is the token from the public share (Step 4), and <code>restricted</code> is the token from the restricted share (Step 6).</p>
+</div>
+<h3 id="step-9-submit-the-flag">Step 9: Submit the Flag</h3>
+<p>Navigate to the lab page on the platform. Paste the <code>OCR{...}</code> flag value into the <strong>Submit Flag</strong> field and click <strong>Submit</strong>. The platform will confirm whether the flag is correct.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p>These questions reinforce the concepts from the walkthrough. Think through each one before reading the answer.</p>
+<p><strong>1. The hr_data share required authentication, but you still accessed it. What was the root cause of the exposure; the share permissions or the information disclosure?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The root cause was the information disclosure. The hr_data share permissions were configured correctly; anonymous users could not access it. The breakdown occurred because valid credentials were stored in plain text on a share that allowed anonymous access. Fixing the share permissions on hr_data alone would not have solved the problem. The credentials needed to be removed from the general share (or the general share needed authentication as well).</p>
+</details>
+<p><strong>2. Why is enum4linux useful even though smbclient can also list shares?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The <code>enum4linux</code> tool tests each share for anonymous access automatically. With <code>smbclient -L</code>, you get a list of share names, but you do not know which ones allow anonymous connections until you try each one manually. The <code>enum4linux</code> tool saves time by reporting the access level for every share in a single command. On a server with dozens of shares, that difference matters.</p>
+</details>
+<p><strong>3. The credentials used the format hr_svc / Bl4ckw3ll_HR#; a service account with a company-themed password. Why are service account credentials particularly dangerous when exposed?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Service accounts often have broader access than individual user accounts because they are designed to run automated processes across multiple systems. They also tend to have passwords that rarely change, since changing them could break the services that depend on them. An attacker with service account credentials may be able to access multiple shares, databases, or systems; not a single user's files. The combination of broad access and infrequent password rotation makes service account exposure a high-severity finding.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>SMB enumeration</strong> starts with discovering shares (<code>smbclient -L</code> or <code>enum4linux -S</code>) and identifying which ones allow anonymous access; always check before attempting authentication</li>
+<li><strong>Information disclosure</strong> on public shares is one of the most common ways attackers discover credentials in real assessments; files like onboarding guides, setup notes, and configuration backups frequently contain passwords</li>
+<li><strong>Service accounts</strong> with static, company-themed passwords represent a high-risk finding because they typically have broad access and rarely rotate credentials</li>
+<li><strong>Layered access controls</strong> only work if every layer holds; a locked share is meaningless when the key is sitting on a public share next door</li>
+<li>Week 3 builds on these skills by introducing <strong>credential brute-forcing</strong>, where you will test multiple username and password combinations automatically instead of relying on manually discovered credentials</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

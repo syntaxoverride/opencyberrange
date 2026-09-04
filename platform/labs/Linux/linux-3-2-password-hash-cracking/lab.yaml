@@ -1,0 +1,103 @@
+name: "Ironforge Systems - Password Hash Cracking"
+description: "A misconfigured backup on an Ironforge Systems server exposes password hashes. Crack the weak passwords using john or hashcat, then escalate access to retrieve the assessment flag."
+
+difficulty: intermediate
+category: privilege-escalation
+duration_minutes: 45
+randomize_ip_offsets: true
+visibility: course
+week: 8
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/08_Password_Hash_Cracking/"
+flag: "OCR{cr4ck3d_h4sh3s}"
+
+objectives:
+  - Discover exposed password hash files through filesystem enumeration
+  - Identify hash types and select appropriate cracking tools
+  - Use john the ripper or hashcat to crack weak password hashes
+  - Escalate privileges using cracked credentials
+  - Capture the flag
+
+scenario: |
+  Ironforge Systems, a managed hosting provider in Denver, has a server that
+  recently underwent a system backup. The backup process, configured by a
+  former sysadmin, copies sensitive files to a world-readable directory.
+
+  You've been given low-privilege SSH access as the "technician" account
+  during an internal security assessment. Your objective is to find exposed
+  password hashes, crack them, and demonstrate the risk of privilege
+  escalation through password reuse.
+
+  Rachel Kim (Security Manager) is watching: "Our sysadmin left last month.
+  I know his backup scripts were sloppy, but I want to see exactly how bad
+  it is. Show me the worst case."
+
+  **Credentials**
+
+  - Target SSH: `technician` / `Ir0nf0rg3_T3ch#`
+
+credentials:
+  - username: "technician"
+    password: "Ir0nf0rg3_T3ch#"
+    role: "technician"
+    description: "Low-privilege technician account"
+
+hints:
+  - text: |
+      Start by exploring the filesystem for backup files. Common backup
+      locations include /opt, /var/backups, /tmp, and home directories.
+      Look for files named shadow, passwd, or anything with .bak extension.
+    unlock_after_minutes: 8
+  - text: |
+      There's a backup of /etc/shadow at /opt/ironforge/backups/shadow.bak.
+      It's world-readable (the vulnerability). Copy the hashes and crack
+      them with john: john --wordlist=/usr/share/wordlists/rockyou.txt shadow.bak
+      Focus on the sysadmin user - their password is weak.
+    unlock_after_minutes: 18
+  - text: |
+      Crack the shadow.bak file with john. The sysadmin password is "dragon".
+      Switch to the sysadmin account: su sysadmin (password: dragon).
+      Then read /home/sysadmin/flag.txt for the second flag part.
+      The first part is in the backup directory alongside the shadow file.
+    unlock_after_minutes: 26
+
+topology:
+  nodes:
+    - id: "target"
+      label: "Hosting Server"
+      type: "server"
+      ip_offset: "25"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SSH:22"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SSH as technician"
+      command: "sshpass -p '{cred.technician.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.technician.user}@{target.target} 'whoami' 2>/dev/null"
+      expect: "technician"
+      timeout: 15
+
+    - name: "Discover exposed shadow backup"
+      command: "sshpass -p '{cred.technician.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.technician.user}@{target.target} 'cat /opt/ironforge/backups/shadow.bak | grep sysadmin | cut -d: -f1' 2>/dev/null"
+      expect: "sysadmin"
+      timeout: 15
+
+    - name: "Find token 1 in backup directory"
+      command: "sshpass -p '{cred.technician.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.technician.user}@{target.target} 'cat /opt/ironforge/backups/assessment_token.txt' 2>/dev/null"
+      expect: "cr4ck3d"
+      timeout: 15
+
+    - name: "Switch to sysadmin with cracked password and read flag"
+      command: "sshpass -p 'dragon' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null sysadmin@{target.target} 'cat /home/sysadmin/flag.txt' 2>/dev/null"
+      expect: "h4sh3s"
+      timeout: 15
+
+    - name: "Verify complete flag"
+      command: "echo 'OCR{cr4ck3d_h4sh3s}'"
+      expect: "OCR{cr4ck3d_h4sh3s}"

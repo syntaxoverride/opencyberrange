@@ -1,0 +1,649 @@
+name: SSH Basic Login
+description: FinanceCorp requires testing SSH authentication. Successfully authenticate to the Linux server and observe the login welcome message.
+difficulty: beginner
+category: authentication
+duration_minutes: 120
+objectives:
+  - Understand SSH authentication basics
+  - Successfully authenticate to SSH service
+  - Read and analyze MOTD (Message of the Day)
+  - Understand post-authentication information disclosure
+  - Capture the flag
+
+scenario: |
+  Your FinanceCorp penetration test has identified SSH services running on Linux
+  servers. James Mitchell has provided test credentials for authentication testing,
+  as weak password policies are a concern for the organization.
+
+  SSH (Secure Shell) is the primary method for remote Linux administration. While
+  the protocol itself is secure, weak passwords, default credentials, or poor
+  configuration can lead to unauthorized access.
+
+  When a user successfully authenticates to an SSH server, they typically see:
+  - **Pre-login banner**: Before authentication (warnings, legal notices)
+  - **MOTD (Message of the Day)**: After successful authentication
+  - **Shell prompt**: Interactive command line
+
+  The MOTD often contains system information, administrative messages, or custom
+  welcome text. Sometimes, administrators inadvertently include sensitive
+  information in MOTD messages.
+
+  Your objective: Use the provided credentials to authenticate to FinanceCorp's
+  SSH server. Read the complete MOTD and any post-login messages to gather
+  information about the system.
+
+  **Test Credentials:**
+  - Username: `financecorp`
+  - Password: `Welcome2024#`
+
+flag: "OCR{m0td_1nf0}"
+
+hints:
+  - text: |
+      **SSH Authentication** is the gateway to Linux system access:
+
+      **Authentication methods:**
+      - **Password**: Traditional username/password
+      - **Public key**: Cryptographic key pairs (more secure)
+      - **Keyboard-interactive**: Challenge-response
+      - **GSSAPI**: Kerberos-based authentication
+      - **Certificate**: SSH certificates
+
+      **Why password authentication testing matters:**
+      - **Weak passwords**: Common passwords are easily guessed
+      - **Default credentials**: Vendors ship with default accounts
+      - **Password reuse**: Same password across multiple systems
+      - **Brute force**: Automated password guessing
+      - **Credential stuffing**: Using leaked password databases
+
+      **SSH connection process:**
+      1. **Connection**: Client connects to server port 22
+      2. **Key exchange**: Secure channel established
+      3. **Server authentication**: Host key verification
+      4. **User authentication**: Username/password or key
+      5. **Session establishment**: Shell access granted
+      6. **MOTD display**: Welcome message shown
+      7. **Shell prompt**: Interactive access
+
+      **Pre-authentication vs post-authentication:**
+
+      **Pre-authentication (before login):**
+      - Warning banners
+      - Legal notices
+      - No sensitive information should be here
+      - Visible to anyone connecting
+
+      **Post-authentication (after login):**
+      - MOTD (Message of the Day)
+      - System information
+      - Administrative notices
+      - Last login information
+      - Only visible to authenticated users
+
+      **Information disclosure through MOTD:**
+      - System version and patch level
+      - Administrative contacts
+      - Maintenance schedules
+      - Network topology information
+      - Custom messages from administrators
+      - Sometimes: Passwords, keys, or sensitive data (misconfiguration)
+
+      **Security considerations:**
+      - Strong passwords reduce brute force success
+      - Public key auth eliminates password attacks
+      - Failed login attempts should be logged
+      - Account lockout policies prevent brute force
+      - MOTD should not contain sensitive information
+
+      **Penetration testing value:**
+      - Tests password strength policies
+      - Identifies default credentials
+      - Discovers information disclosure
+      - Assesses authentication security
+      - Establishes system access for further testing
+
+      Successful SSH authentication provides system access and post-login information.
+    unlock_after_minutes: 0
+
+  - text: |
+      **SSH client usage** for authentication testing:
+
+      **Basic SSH connection syntax:**
+      ```bash
+      ssh username@hostname
+      ```
+      or
+      ```bash
+      ssh username@IP_address
+      ```
+
+      **SSH with explicit port:**
+      ```bash
+      ssh -p 22 username@hostname
+      ```
+      (Port 22 is default, -p flag used for non-standard ports)
+
+      **Authentication process:**
+      ```bash
+      $ ssh financecorp@<target_ip>
+
+      The authenticity of host '<target_ip>' can't be established.
+      ECDSA key fingerprint is SHA256:abc123...
+      Are you sure you want to continue connecting (yes/no)? yes
+
+      Warning: Permanently added '<target_ip>' (ECDSA) to known hosts.
+      financecorp@<target_ip>'s password: [enter password]
+
+      [MOTD appears here after successful authentication]
+
+      financecorp@server:~$
+      ```
+
+      **First-time connection:**
+      - SSH shows host key fingerprint
+      - Asks for confirmation (type "yes")
+      - Adds host to `~/.ssh/known_hosts`
+      - Prevents MITM attacks on future connections
+
+      **Password entry:**
+      - Prompt: `username@host's password:`
+      - Type password (no visual feedback)
+      - Press Enter
+      - Authentication succeeds or fails
+
+      **Failed authentication:**
+      ```
+      Permission denied, please try again.
+      ```
+      - Wrong username or password
+      - Account locked
+      - Authentication method not allowed
+
+      **Successful authentication:**
+      - MOTD displays (if configured)
+      - Last login information shown
+      - Shell prompt appears
+      - Can execute commands
+
+      **Reading MOTD:**
+      - Displayed automatically after login
+      - Scrolls past quickly on long messages
+      - Read carefully for information
+      - May contain administrative notes
+
+      **SSH client options:**
+      - `-v`: Verbose (debugging connection issues)
+      - `-p <port>`: Specify port (for non-standard ports)
+      - `-i <keyfile>`: Use specific private key
+      - `-l <username>`: Alternative username specification
+
+      **Alternative syntax:**
+      ```bash
+      ssh -l financecorp <target_ip>
+      ```
+      Equivalent to:
+      ```bash
+      ssh financecorp@<target_ip>
+      ```
+
+      **After connection:**
+      - You have interactive shell access
+      - Can execute commands
+      - Navigate file system
+      - Type `exit` or `logout` to disconnect
+
+      SSH authentication provides access to the remote system and displays post-login messages.
+    unlock_after_minutes: 5
+
+  - text: |
+      **MOTD (Message of the Day)** analysis:
+
+      **What is MOTD:**
+      - Text displayed after successful SSH login
+      - Configured by system administrators
+      - Can be static file or dynamically generated
+      - Provides information to authenticated users
+
+      **MOTD file locations:**
+      - **Static MOTD**: `/etc/motd`
+      - **Dynamic MOTD**: Scripts in `/etc/update-motd.d/`
+      - **Pre-login banner**: `/etc/issue.net` (before authentication)
+
+      **Common MOTD content:**
+      - Welcome message
+      - System information (hostname, OS, kernel)
+      - Last login details
+      - Administrative announcements
+      - Maintenance schedules
+      - Support contact information
+      - Security warnings
+
+      **Example MOTD:**
+      ```
+      Welcome to FinanceCorp Production Server
+      ========================================
+
+      Hostname: fin-prod-01
+      OS: Ubuntu 20.04.3 LTS
+      Kernel: 5.4.0-96-generic
+
+      For support, contact: it@financecorp.local
+
+      NOTICE: All activity is monitored and logged.
+      Unauthorized access is prohibited.
+      ```
+
+      **Information disclosure risks:**
+
+      **Beneficial information for attackers:**
+      - **OS version**: Identifies kernel exploits
+      - **Hostname**: Network topology understanding
+      - **Kernel version**: Local privilege escalation research
+      - **Software versions**: Vulnerability identification
+      - **Network information**: IP addresses, subnets, gateways
+      - **Administrative contacts**: Social engineering targets
+      - **Maintenance windows**: Optimal attack timing
+
+      **Sensitive data sometimes found:**
+      - Default passwords in "temporary" notices
+      - Internal IP addresses and network ranges
+      - Detailed system configurations
+      - Application versions and paths
+      - Backup schedules and locations
+      - Development/staging server information
+
+      **Security best practices for MOTD:**
+      - Generic welcome message only
+      - No system version information
+      - No network topology details
+      - Legal notice/warning only
+      - Remove default/sample MOTDs
+
+      **Penetration testing value:**
+      - Confirms successful authentication
+      - Gathers system information
+      - Identifies OS and kernel versions
+      - Discovers administrative procedures
+      - May reveal sensitive information
+      - Informs privilege escalation strategy
+
+      **After reading MOTD:**
+      - Document all information
+      - Note system versions for vulnerability research
+      - Look for administrative notes
+      - Check for sensitive data
+      - Use information for next steps
+
+      **Exiting SSH session:**
+      ```bash
+      exit
+      ```
+      or
+      ```bash
+      logout
+      ```
+      or press `Ctrl+D`
+
+      MOTD provides valuable post-authentication intelligence about the target system.
+    unlock_after_minutes: 10
+
+  - text: |
+      **SSH authentication workflow** for FinanceCorp:
+
+      **Step 1: Identify SSH service**
+      From previous enumeration:
+      - SSH running on port 22
+      - Service: OpenSSH
+      - Authentication methods available
+
+      **Step 2: Prepare credentials**
+      Test credentials provided:
+      - **Username**: `financecorp`
+      - **Password**: `Welcome2024#`
+
+      **Step 3: Initiate SSH connection**
+      ```bash
+      ssh financecorp@<target>
+      ```
+
+      **Step 4: Accept host key (first connection)**
+      ```
+      The authenticity of host '<target>' can't be established.
+      ECDSA key fingerprint is SHA256:...
+      Are you sure you want to continue connecting (yes/no)? yes
+      ```
+      Type: `yes` and press Enter
+
+      **Step 5: Enter password**
+      ```
+      financecorp@<target>'s password:
+      ```
+      Type: `Welcome2024#` and press Enter
+      (No visual feedback while typing password)
+
+      **Step 6: Successful authentication**
+      - MOTD displays
+      - System information shown
+      - Shell prompt appears
+
+      **Step 7: Read MOTD completely**
+      - Scroll back if message is long
+      - Note all information
+      - Look for administrative messages
+      - Document system details
+
+      **Step 8: Document findings**
+      - Authentication successful (confirms credentials work)
+      - System information from MOTD
+      - Any sensitive data disclosed
+      - Administrative contacts or procedures
+
+      **Common issues and solutions:**
+
+      **Issue: Connection refused**
+      ```
+      ssh: connect to host X.X.X.X port 22: Connection refused
+      ```
+      - SSH not running
+      - Firewall blocking
+      - Wrong IP address
+
+      **Issue: Permission denied**
+      ```
+      Permission denied, please try again.
+      ```
+      - Wrong password
+      - Wrong username
+      - Account disabled
+
+      **Issue: Host key verification failed**
+      ```
+      WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
+      ```
+      - Server key changed (security risk or legitimate change)
+      - Remove old key: `ssh-keygen -R <hostname>`
+
+      **Successful connection workflow:**
+      ```bash
+      $ ssh financecorp@<target_ip>
+      [host key verification]
+      yes
+      [password prompt]
+      Welcome2024#
+      [MOTD displays with system information and flag]
+      financecorp@server:~$
+      ```
+
+      Use the provided credentials to authenticate and read the complete MOTD.
+    unlock_after_minutes: 15
+
+  - text: |
+      To authenticate to FinanceCorp's SSH server:
+
+      **Command:**
+      ```bash
+      ssh financecorp@<target>
+      ```
+
+      **Credentials:**
+      - **Username**: `financecorp`
+      - **Password**: `Welcome2024#`
+
+      **Expected interaction:**
+
+      **1. Connection initiation:**
+      ```bash
+      $ ssh financecorp@<target_IP>
+      ```
+
+      **2. Host key verification (first connection):**
+      ```
+      The authenticity of host '<target_IP>' can't be established.
+      ECDSA key fingerprint is SHA256:...
+      Are you sure you want to continue connecting (yes/no/[fingerprint])?
+      ```
+      **Type**: `yes` and press Enter
+
+      **3. Password prompt:**
+      ```
+      Warning: Permanently added '<target_IP>' (ECDSA) to the list of known hosts.
+      financecorp@<target_IP>'s password:
+      ```
+      **Type**: `Welcome2024#` and press Enter
+      (Characters won't appear on screen)
+
+      **4. MOTD displays:**
+      After successful authentication, you'll see:
+      - Welcome message
+      - System information
+      - Administrative notices
+      - **The flag** in the MOTD content
+
+      **5. Shell prompt appears:**
+      ```
+      financecorp@server:~$
+      ```
+
+      **What to look for:**
+      - Read the **complete** MOTD message
+      - Flag is in the post-login welcome message
+      - Appears after successful authentication
+      - Before the shell prompt
+
+      **Important notes:**
+      - The flag is NOT in pre-authentication banner
+      - Must successfully log in to see MOTD
+      - MOTD is displayed automatically after authentication
+      - Read all lines of the MOTD carefully
+
+      **To exit after finding the flag:**
+      ```bash
+      exit
+      ```
+      or press `Ctrl+D`
+
+      **Troubleshooting:**
+      - If password fails: Verify you're typing `Welcome2024#` exactly (case-sensitive)
+      - If connection fails: Verify target IP and that SSH is running
+      - If no MOTD: It displayed but scrolled past-it's already shown
+
+      The flag appears in the MOTD (Message of the Day) after successful SSH authentication.
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH authentication and MOTD analysis:
+
+      ```bash
+      $ ssh financecorp@<target_ip>
+
+      The authenticity of host '<target_ip> (<target_ip>)' can't be established.
+      ECDSA key fingerprint is SHA256:xK3fG7hN2mP9qR4sT5vW6xY7zA1bC2dE3fG4hI5jK6l.
+      Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+
+      Warning: Permanently added '<target_ip>' (ECDSA) to the list of known hosts.
+      financecorp@<target_ip>'s password: [Welcome2024#]
+
+      ================================================================================
+                          Welcome to FinanceCorp Linux Server
+      ================================================================================
+
+      System Information:
+        Hostname:        fin-prod-web-01
+        Operating System: Ubuntu 20.04.3 LTS
+        Kernel:          5.4.0-96-generic
+        Uptime:          47 days, 13:22:15
+
+      Administrative Contact:
+        IT Support: it@financecorp.local
+        Security: security@financecorp.local
+
+      NOTICE: All activity on this system is monitored and logged.
+              Unauthorized access is strictly prohibited.
+
+      Flag: OCR{...}
+
+      Last login: Fri Jan 3 14:23:11 2025 from 10.10.14.5
+
+      ================================================================================
+
+      financecorp@fin-prod-web-01:~$
+      ```
+
+      **Flag location: MOTD**
+      - **Appears**: After successful authentication
+      - **Location**: In the Message of the Day
+      - **Flag**: `OCR{...}`
+      - **Context**: Displayed among system information
+
+      **MOTD analysis:**
+
+      **System information gathered:**
+      - **Hostname**: `fin-prod-web-01`
+      - **OS**: Ubuntu 20.04.3 LTS
+      - **Kernel**: 5.4.0-96-generic
+      - **Uptime**: 47 days (system stability indicator)
+
+      **Administrative contacts:**
+      - IT Support: it@financecorp.local
+      - Security: security@financecorp.local
+      (Useful for social engineering or reporting findings)
+
+      **Security notice:**
+      - Activity monitored and logged
+      - Standard warning for users
+      - Indicates logging may be active
+
+      **Last login information:**
+      - Previous login: Fri Jan 3 14:23:11 2025
+      - Source IP: 10.10.14.5
+      - Helps detect unauthorized access
+
+      **Critical lessons:**
+
+      **1. Post-authentication information disclosure:**
+      - MOTD only visible after successful login
+      - Contains system details not in pre-auth banner
+      - Provides intelligence for privilege escalation
+
+      **2. Information value for attackers:**
+
+      **OS and kernel version (Ubuntu 20.04.3, kernel 5.4.0-96):**
+      - Research: `searchsploit linux kernel 5.4`
+      - Privilege escalation vulnerabilities
+      - Local exploits for this specific version
+
+      **Hostname (fin-prod-web-01):**
+      - Indicates production web server
+      - Naming convention reveals network structure
+      - Suggests other servers: fin-prod-web-02, fin-prod-db-01, etc.
+
+      **Uptime (47 days):**
+      - System hasn't been recently patched/rebooted
+      - May be missing security updates
+      - Stable target for exploitation
+
+      **3. Credential validation:**
+      - Test credentials work: `financecorp:Welcome2024#`
+      - Weak password pattern (Welcome + Year + #)
+      - Suggests password policy may be predictable
+      - Could try variations: Welcome2025#, Welcome2023#
+
+      **4. Next steps after authentication:**
+      With valid SSH access, penetration tester would:
+      - Enumerate user privileges: `id`, `sudo -l`
+      - Search for sensitive files
+      - Check for SUID binaries
+      - Attempt privilege escalation
+      - Lateral movement to other systems
+
+      **Real-world MOTD examples:**
+
+      **Good MOTD (minimal information):**
+      ```
+      Welcome to Production Server
+      Unauthorized access is prohibited.
+      All activity is logged.
+      ```
+
+      **Bad MOTD (too much information):**
+      ```
+      Welcome to Database Server (db-prod-01)
+      Ubuntu 18.04 (kernel 4.15.0-old-vulnerable)
+      Backup server: 10.internal.corp/backups
+      Admin password temporarily: Admin123# (change after first login)
+      ```
+
+      **5. Professional penetration testing practice:**
+
+      **Documentation:**
+      ```
+      Service: SSH (OpenSSH)
+      Port: 22/TCP
+      Credentials: financecorp:Welcome2024#
+      Access Level: User shell access
+      Hostname: fin-prod-web-01
+      OS: Ubuntu 20.04.3 LTS
+      Kernel: 5.4.0-96-generic
+
+      Findings:
+      - Weak password policy (predictable pattern)
+      - Information disclosure via MOTD
+      - Kernel version suggests privilege escalation potential
+      - Hostname reveals network architecture
+
+      Recommendations:
+      - Implement strong password policy
+      - Minimize information in MOTD
+      - Keep kernel updated
+      - Use public key authentication
+      - Implement MFA for SSH access
+      ```
+
+      **6. SSH authentication security:**
+
+      **Current state (weak):**
+      - Password authentication enabled
+      - Weak password pattern
+      - No MFA
+      - Verbose MOTD
+
+      **Secure configuration:**
+      - Public key authentication only
+      - No password authentication
+      - MFA required
+      - Minimal MOTD information
+      - Failed login attempt monitoring
+      - Account lockout policies
+
+      **7. Command to exit:**
+      ```bash
+      financecorp@fin-prod-web-01:~$ exit
+      logout
+      Connection to <target_ip> closed.
+      ```
+
+      The flag demonstrates successful SSH authentication and highlights the
+      intelligence-gathering value of post-login MOTD messages. In real penetration
+      testing, this system information guides privilege escalation and further
+      exploitation strategies.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "financecorp"
+    password: "Welcome2024#"
+    role: "ssh-user"
+    description: "SSH login credentials for FinanceCorp server"
+
+workbook: "wiki/range/linpt/CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "SSH banner check"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "SSH login and retrieve MOTD flag"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'cat /etc/motd 2>/dev/null; echo; cat /home/*/flag.txt 2>/dev/null; grep -r OCR /etc/motd /home/ 2>/dev/null' 2>/dev/null"
+      expect: "OCR{m0td_1nf0}"

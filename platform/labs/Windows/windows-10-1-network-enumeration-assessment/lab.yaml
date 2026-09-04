@@ -1,0 +1,69 @@
+name: FinanceCorp Network Enumeration Assessment
+description: Midterm assessment covering passive and active scanning across a multi-host network. Discover all targets on your subnet and collect three flag parts to form the complete flag.
+difficulty: intermediate
+category: assessment
+duration_minutes: 120
+randomize_ip_offsets: true
+visibility: course
+
+objectives:
+  - Discover all live hosts on your assigned subnet using discovery scanning
+  - Identify each machine by its running services (web portal, file server, domain controller)
+  - Apply passive and active enumeration techniques to extract information from each host
+  - Collect all three flag parts from the three machines and assemble the complete flag
+  - Capture the flag
+
+scenario: |
+  FinanceCorp, a mid-size financial services company, has engaged your security
+  consulting firm for a network security assessment. The company recently completed
+  an infrastructure expansion and wants to verify that their internal systems are
+  properly secured before an upcoming compliance audit.
+
+  Your point of contact, the IT department, has provided access to a segment of their
+  internal network containing multiple servers: a corporate web portal, a file server,
+  and a domain controller.
+
+  Targets are somewhere on your assigned /24 subnet. You must scan your subnet to find
+  all live hosts, then enumerate each one to identify its role by the services it runs.
+  The flag has been split across all three machines. Collect all three parts and combine
+  them as OCR{part1_part2_part3} to complete the assessment.
+
+flag: "OCR{m1dt3rm_n3tw0rk_3num}"
+
+hints:
+  - text: |
+      The flag is split across multiple machines on your subnet. Not all services run
+      on standard ports - make sure you are scanning the full port range. Pay attention
+      to what each service allows you to access without credentials.
+    unlock_after_minutes: 0
+    point_cost: 5
+
+  - text: |
+      Web servers often reveal more than what is linked on the front page. Check for
+      files that tell crawlers where not to look. On other hosts, common file-sharing
+      protocols may allow anonymous or guest access - enumerate shares and directory
+      listings. For the final piece, service banners and server strings can contain
+      more than just version numbers.
+    unlock_after_minutes: 0
+    point_cost: 5
+
+test:
+  steps:
+    - name: "Verify web portal HTTP service is running"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webportal}/"
+      expect: "200"
+
+    - name: "Retrieve flag part 1 from web portal internal directory"
+      command: "curl -s http://{target.webportal}/internal/patch-notes.txt 2>&1"
+      expect: "m1dt3rm"
+
+    - name: "Retrieve flag part 2 from fileserver SMB public share"
+      command: "smbclient //{target.fileserver}/public -N -c 'get welcome-packet.txt -' 2>&1"
+      expect: "n3tw0rk"
+
+    - name: "Retrieve flag part 3 from domain controller SMB server string"
+      command: "smbclient -L //{target.dc} -N 2>&1"
+      expect: "3num"
+    - name: "Combine flag parts into final flag"
+      command: "echo 'OCR{m1dt3rm_n3tw0rk_3num}'"
+      expect: "OCR{m1dt3rm_n3tw0rk_3num}"

@@ -1,0 +1,1544 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Lab W1.1: Basic Directory Enumeration - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lab-w11-basic-directory-enumeration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lab W1.1: Basic Directory Enumeration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-what-is-directory-enumeration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: What Is Directory Enumeration?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-gobuster-directory-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Gobuster Directory Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Lab
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-verify-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Verify Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-run-a-directory-scan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Run a Directory Scan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-read-the-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Read the Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-investigate-discovered-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Investigate Discovered Directories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-look-inside-directories-for-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Look Inside Directories for Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-scan-with-file-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Scan with File Extensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-record-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Record the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-clean-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Clean Up
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="lab-w11-basic-directory-enumeration">Lab W1.1: Basic Directory Enumeration</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<ul>
+<li>Confirm your VPN connection is active and you can reach the lab network.</li>
+<li>No credentials are needed: you will discover publicly accessible directories.</li>
+<li>You should be comfortable running commands in a Linux terminal.</li>
+</ul>
+<h2 id="scenario">Scenario</h2>
+<p>TechStart Inc, a rapidly growing tech startup, has hired your security team to assess their web application before its public launch. Your contact, <strong>Sarah Chen</strong> (CTO), has heard rumours from the development team about exposed directories and wants to understand what information is publicly accessible beyond the main page.</p>
+<p>Your initial briefing indicates the application is hosted at <code>recon.lab</code>. TechStart wants a comprehensive security assessment, starting with reconnaissance. Your first task is to discover hidden directories, exposed files, and any information that could aid an attacker.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Launch the lab environment and note the target hostname</li>
+<li>Use gobuster to discover hidden directories on the web server</li>
+<li>Identify common web directories (admin panels, backups, configuration files)</li>
+<li>Investigate discovered directories for sensitive information and files</li>
+<li>Record your findings and submit the flag</li>
+</ul>
+<hr />
+<h2 id="background-what-is-directory-enumeration">Background: What Is Directory Enumeration?</h2>
+<p>Web applications serve content from directories on the server's file system. The main page is just the front door; behind it, the server may host administrative panels, backup files, configuration directories, and development resources that are not linked from any visible page. Directory enumeration systematically tests for these hidden paths.</p>
+<pre class="mermaid"><code>graph TD
+    A["http://recon.lab/"]
+    A --&gt; B["/admin"]
+    A --&gt; C["/backup"]
+    A --&gt; D["/config"]
+    B --&gt; E["Admin panel\nMay contain sensitive files"]
+    C --&gt; F["Backup data\nDatabase dumps, old files"]
+    D --&gt; G["Configuration files\nCredentials, settings"]</code></pre>
+<p>The technique works by sending HTTP requests for directory names drawn from a wordlist. If the server returns a successful response (200 OK) or a redirect (301/302), the directory exists. A 404 Not Found means it does not. A 403 Forbidden means the directory exists but access is denied, which is still valuable information.</p>
+<p>Common findings during directory enumeration include:</p>
+<table>
+<thead>
+<tr>
+<th>Discovery Type</th>
+<th>Examples</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admin panels</td>
+<td><code>/admin</code>, <code>/administrator</code></td>
+<td>Unauthorized management access</td>
+</tr>
+<tr>
+<td>Backup files</td>
+<td><code>/backup</code>, <code>/old</code>, <code>.bak</code> files</td>
+<td>Source code or database exposure</td>
+</tr>
+<tr>
+<td>Configuration files</td>
+<td><code>/config</code>, <code>.env</code>, <code>web.config</code></td>
+<td>Credentials, API keys</td>
+</tr>
+<tr>
+<td>Development paths</td>
+<td><code>/dev</code>, <code>/test</code>, <code>/staging</code></td>
+<td>Debug information, test accounts</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tool-primer-gobuster-directory-mode">Tool Primer: Gobuster Directory Mode</h2>
+<p>Gobuster's <code>dir</code> mode tests directory and file names from a wordlist against a target URL. It is fast, multi-threaded, and reports HTTP status codes for each match.</p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>gobuster<span class="w"> </span>dir<span class="w"> </span>-u<span class="w"> </span>&lt;url&gt;<span class="w"> </span>-w<span class="w"> </span>&lt;wordlist&gt;
+</code></pre></div>
+<p><strong>Key flags:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-u &lt;url&gt;</code></td>
+<td>Target URL (required)</td>
+</tr>
+<tr>
+<td><code>-w &lt;wordlist&gt;</code></td>
+<td>Path to wordlist file (required)</td>
+</tr>
+<tr>
+<td><code>-t &lt;threads&gt;</code></td>
+<td>Number of concurrent threads (default: 10)</td>
+</tr>
+<tr>
+<td><code>-x &lt;ext&gt;</code></td>
+<td>File extensions to search (e.g., <code>-x php,txt</code>)</td>
+</tr>
+<tr>
+<td><code>-o &lt;file&gt;</code></td>
+<td>Save output to a file</td>
+</tr>
+<tr>
+<td><code>-s &lt;codes&gt;</code></td>
+<td>Show only specific status codes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Common wordlists on Kali Linux:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Wordlist</th>
+<th>Size</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/usr/share/wordlists/dirb/common.txt</code></td>
+<td>~4,600</td>
+<td>Quick general scan</td>
+</tr>
+<tr>
+<td><code>/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt</code></td>
+<td>~220,000</td>
+<td>Thorough scan</td>
+</tr>
+<tr>
+<td><code>/usr/share/seclists/Discovery/Web-Content/common.txt</code></td>
+<td>~4,700</td>
+<td>General purpose</td>
+</tr>
+</tbody>
+</table>
+<p>For beginner labs, the smaller <code>common.txt</code> wordlist is sufficient and much faster than the medium list.</p>
+<p><strong>Sample output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>===============================================================
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Gobuster v3.6
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>===============================================================
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>[+] Url:            http://recon.lab
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>[+] Wordlist:       /usr/share/wordlists/dirb/common.txt
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>[+] Threads:        10
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>===============================================================
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>/admin                (Status: 200) [Size: 1234]
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>/backup               (Status: 301) [Size: 312] [--&gt; http://recon.lab/backup/]
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>/config               (Status: 301) [Size: 312] [--&gt; http://recon.lab/config/]
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>===============================================================
+</code></pre></div>
+<p>Each line shows a discovered path, its HTTP status code, and the response size. Status 200 means the content is directly accessible. Status 301 means the server redirected to the directory with a trailing slash.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-lab">Step 1: Launch the Lab</h3>
+<p>Navigate to <strong>Learning Paths</strong> then <strong>Web</strong> then <strong>Level 1</strong>, click <strong>Launch</strong>, wait for <strong>Running</strong>, note the <strong>target hostname</strong> (<code>recon.lab</code>).</p>
+<p>Write down the hostname. You will use it in every command that follows.</p>
+<h3 id="step-2-verify-connectivity">Step 2: Verify Connectivity</h3>
+<p>Before scanning, confirm you can reach the target.</p>
+<div class="admonition kali">
+<p class="admonition-title">Check that the target web server responds</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}&quot;</span><span class="w"> </span>http://recon.lab
+</code></pre></div>
+</div>
+<p>You should see <code>200</code>, indicating the web server is responding. If you get no response, check your VPN connection.</p>
+<p>Open <code>http://recon.lab</code> in a web browser. You should see a welcome page for recon.lab, a basic web server set up for directory enumeration practice. The main page does not link to any other directories. Everything beyond this page must be discovered through enumeration.</p>
+<h3 id="step-3-run-a-directory-scan">Step 3: Run a Directory Scan</h3>
+<p>Open your terminal and run gobuster in directory mode.</p>
+<div class="admonition kali">
+<p class="admonition-title">Run a gobuster directory scan against the target</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>gobuster<span class="w"> </span>dir<span class="w"> </span>-u<span class="w"> </span>http://recon.lab<span class="w"> </span>-w<span class="w"> </span>/usr/share/wordlists/dirb/common.txt
+</code></pre></div>
+</div>
+<p>Gobuster will test each entry from the wordlist against the target. The scan may take one to two minutes depending on thread count and network speed.</p>
+<h3 id="step-4-read-the-output">Step 4: Read the Output</h3>
+<p>Your output should show several discovered directories with status codes 200, 301, 302, or 403. You are looking for directories like <code>/admin</code>, <code>/backup</code>, and <code>/config</code>, exactly the kind of paths that should not be publicly accessible on a production server.</p>
+<p>Record every result, noting the status code for each:</p>
+<p><strong>Understanding status codes:</strong></p>
+<ul>
+<li><strong>200</strong>: the page exists and is directly accessible</li>
+<li><strong>301/302</strong>: the directory exists and the server redirected (usually adding a trailing slash)</li>
+<li><strong>403</strong>: the directory exists but the server denied access (still confirms existence)</li>
+<li><strong>404</strong>: not found (gobuster does not show these by default)</li>
+</ul>
+<h3 id="step-5-investigate-discovered-directories">Step 5: Investigate Discovered Directories</h3>
+<p>Visit each discovered directory in your browser or with curl. Start with the most interesting: an admin directory on a web server is always a high-priority finding.</p>
+<div class="admonition kali">
+<p class="admonition-title">Fetch each discovered directory with curl</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>http://recon.lab/admin
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>http://recon.lab/backup
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>curl<span class="w"> </span>http://recon.lab/config
+</code></pre></div>
+</div>
+<p>Browse the contents carefully. Some directories may display a file listing. Look at every file available. If you see a directory index, check each file it contains.</p>
+<h3 id="step-6-look-inside-directories-for-files">Step 6: Look Inside Directories for Files</h3>
+<p>When you find an interesting directory, look deeper. Directories often contain files that are not listed on the page itself. Try common file names inside discovered directories.</p>
+<div class="admonition kali">
+<p class="admonition-title">Request a common file name inside the admin directory</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>http://recon.lab/admin/flag.txt
+</code></pre></div>
+</div>
+<p>The <code>/admin</code> directory is the most sensitive path you discovered. An admin panel that is publicly accessible without authentication is a critical finding. Examine its contents thoroughly: check for any text files, configuration files, or data that has been left exposed.</p>
+<h3 id="step-7-scan-with-file-extensions">Step 7: Scan with File Extensions</h3>
+<p>Some sensitive files have specific extensions. Run a second scan targeting common file types.</p>
+<div class="admonition kali">
+<p class="admonition-title">Rescan with common file extensions appended</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>gobuster<span class="w"> </span>dir<span class="w"> </span>-u<span class="w"> </span>http://recon.lab<span class="w"> </span>-w<span class="w"> </span>/usr/share/wordlists/dirb/common.txt<span class="w"> </span>-x<span class="w"> </span>txt,php,html,bak
+</code></pre></div>
+</div>
+<p>The <code>-x</code> flag appends each extension to every wordlist entry, testing paths like <code>/admin/flag.txt</code>, <code>/config.bak</code>, and <code>/backup.sql</code> in addition to the base directory names. The extension scan confirms files within the directories you already found.</p>
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Target Hostname:</strong> <strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Status Code</th>
+<th>Contents / Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/admin</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>/backup</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>/config</code></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Files found inside directories:</strong></p>
+<table>
+<thead>
+<tr>
+<th>File Path</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <code>OCR{_______________}</code></p>
+</blockquote>
+<h3 id="step-8-record-the-flag">Step 8: Record the Flag</h3>
+<p>The flag is located in a text file within one of the discovered directories. Enter the flag in the format <code>OCR{________}</code> on the lab submission page.</p>
+<h3 id="step-9-clean-up">Step 9: Clean Up</h3>
+<p>Close any browser tabs open to the target. You have completed the directory enumeration phase.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why do web applications have directories that are not linked from the main page?</strong></p>
+<blockquote>
+<p>Web applications accumulate directories over time: admin panels for management, backup directories from maintenance, development paths from testing, and configuration directories from deployment. Developers and administrators create these for operational reasons. Without a deliberate cleanup process, they persist on production servers even when they are no longer needed.</p>
+</blockquote>
+<p><strong>2. What is the difference between a 403 and a 404 response during directory enumeration?</strong></p>
+<blockquote>
+<p>A 403 Forbidden response confirms the directory exists but access is denied. A 404 Not Found response means the path does not exist on the server. From an attacker's perspective, 403 is more valuable: it confirms a target that may be accessible through other means (credential discovery, parameter manipulation, or misconfiguration exploitation).</p>
+</blockquote>
+<p><strong>3. Why should you scan with file extensions in addition to directory names?</strong></p>
+<blockquote>
+<p>Directory scans alone miss files within discovered directories. A file like <code>flag.txt</code> inside <code>/admin/</code> will not appear in a directory-only scan. Adding extensions with <code>-x</code> tests for files at every path level, catching sensitive documents that directory enumeration alone overlooks.</p>
+</blockquote>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><strong>Directory enumeration</strong> reveals paths that are invisible from the main page</li>
+<li><strong>Gobuster</strong> tests wordlist entries against a target and reports valid responses</li>
+<li><strong>Status codes</strong> tell you whether a path exists (200, 301) or is blocked (403)</li>
+<li><strong>Wordlist selection</strong> balances speed against coverage: start small, escalate if needed</li>
+<li><strong>File extension scanning</strong> catches individual files (like <code>.txt</code> or <code>.bak</code>) within discovered directories</li>
+<li><strong>Admin directories</strong> are high-priority findings: always investigate their contents thoroughly</li>
+<li><strong>Every discovered path</strong> is a potential entry point that requires further investigation</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

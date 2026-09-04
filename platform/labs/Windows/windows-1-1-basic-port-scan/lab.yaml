@@ -1,0 +1,128 @@
+name: Basic Windows Port Scan
+description: You're conducting an external penetration test for FinanceCorp. Your initial scan has identified a Windows server on their network. Begin reconnaissance to map the attack surface.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Perform basic nmap port scan on target
+  - Identify SMB service on port 445
+  - Understand basic nmap syntax for Windows scanning
+  - Capture the flag
+
+scenario: |
+  You're conducting an external penetration test for FinanceCorp, a mid-sized financial 
+  services company. Your initial network scan has identified a Windows server on their 
+  perimeter network. FinanceCorp's security team, led by Director of Security James 
+  Mitchell, wants to understand what services are exposed and assess the security 
+  posture of their Windows infrastructure.
+  
+  Your objective: Perform initial reconnaissance on the Windows server to identify 
+  open ports and services. Start with a basic port scan to map the attack surface. 
+  This foundational reconnaissance will guide your subsequent assessment activities.
+  
+  Note: This is the first phase of your FinanceCorp engagement. Information gathered 
+  here will be crucial for identifying potential entry points and attack vectors.
+
+flag: "OCR{b4s1c_p0rt_sc4n}"
+
+hints:
+  - text: |
+      Port scanning is the foundational reconnaissance technique in penetration testing. It identifies which **network ports** are open on a target system and what **services** are listening on those ports.
+
+      For Windows systems, certain ports are commonly associated with specific services:
+      - Port 445: SMB (Server Message Block)
+      - Port 3389: RDP (Remote Desktop Protocol)
+      - Port 135: RPC (Remote Procedure Call)
+
+      Your goal is to discover which ports are open on the FinanceCorp Windows server.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Nmap** (Network Mapper) is the industry-standard tool for network discovery and port scanning.
+
+      Basic nmap workflow:
+      1. Identify the target IP or hostname
+      2. Choose which ports to scan
+      3. Optionally detect service versions
+      4. Analyze the results
+
+      You can install nmap with: `sudo apt install nmap`
+    unlock_after_minutes: 5
+
+  - text: |
+      Windows servers typically expose several standard ports. For initial reconnaissance, focus on the **most common Windows service ports**:
+
+      - **SMB** (Port 445): File sharing and remote administration
+      - **RPC** (Port 135): Remote procedure calls
+      - **NetBIOS** (Ports 137-139): Legacy Windows networking
+      - **RDP** (Port 3389): Remote desktop access
+      - **WinRM** (Ports 5985-5986): Windows Remote Management
+
+      For this lab, you need to identify the SMB service running on the target.
+    unlock_after_minutes: 10
+
+  - text: |
+      Basic nmap syntax follows this pattern:
+
+      ```bash
+      nmap [scan_type] [options] <target>
+      ```
+
+      Useful flags for Windows scanning:
+      - `-p <ports>`: Specify which ports to scan (e.g., `-p 445` or `-p 1-1000`)
+      - `-sV`: Detect service versions
+      - `-sC`: Run default NSE scripts
+      - `-Pn`: Skip host discovery (treat host as online)
+
+      Example: `nmap -p 80,443 -sV example.com`
+    unlock_after_minutes: 15
+
+  - text: |
+      To scan the FinanceCorp Windows server for SMB, run:
+
+      ```bash
+      nmap -p 445 -sV <target>
+      ```
+
+      Replace `<target>` with the server's IP address or hostname from your lab environment.
+
+      This command:
+      - Scans port 445 specifically
+      - Detects the service version running on that port
+      - Returns information about the SMB service
+    unlock_after_minutes: 20
+
+  - text: |
+      After running the nmap scan, look for output similar to:
+
+      ```
+      PORT    STATE SERVICE     VERSION
+      445/tcp open  microsoft-ds
+      ```
+
+      This confirms that:
+      - Port 445 is **open** (accepting connections)
+      - The service is **microsoft-ds** (SMB/CIFS)
+
+      Once you've successfully identified the SMB service on port 445, submit the flag shown in the lab description.
+    unlock_after_minutes: 25
+
+workbook: "wiki/range/winpt/CH01_Enumeration/01_Basic_Port_Scan/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "Detect SMB service version on port 445"
+      command: "nmap -Pn -sV -p 445 {target.target} | grep '445/tcp'"
+      expect: "445/tcp"
+
+    - name: "List SMB shares anonymously"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "public"
+
+    - name: "Retrieve flag from SMB public share"
+      command: "smbclient //{target.target}/public -N -c 'get flag.txt -' 2>/dev/null"
+      expect: "OCR{"

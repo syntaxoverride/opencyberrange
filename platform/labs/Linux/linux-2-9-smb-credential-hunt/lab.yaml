@@ -1,0 +1,108 @@
+name: "Hargrove Medical Group - SMB Credential Hunt"
+description: "A medical group's Samba server has multiple shares with varying access levels. Enumerate shares, discover credentials through information disclosure, and pivot to restricted clinical data."
+
+difficulty: intermediate
+category: enumeration
+duration_minutes: 40
+randomize_ip_offsets: true
+visibility: course
+week: 2
+workbook: "wiki/course/pentest/CH_COURSE01_Weekly_Challenges/18_SMB_Credential_Hunt/"
+flag: "OCR{smb_hunt_cr3ds}"
+
+objectives:
+  - Enumerate SMB shares available on the target using anonymous access
+  - Access public shares and identify embedded assessment tokens
+  - Discover service account credentials through misconfigured file shares
+  - Authenticate to a restricted share using discovered credentials
+  - Assemble the complete flag from tokens found across multiple shares
+
+scenario: |
+  Hargrove Medical Group is a multi-location healthcare practice based in
+  Nashville, Tennessee. After a recent infrastructure upgrade, their IT
+  department deployed a new Linux-based file server running Samba to
+  centralize document sharing across their three clinic locations.
+
+  Your security consultancy has been engaged to assess the file server's
+  share permissions. The practice manager, Dr. Ellen Hargrove, is concerned
+  that sensitive clinical data may be accessible to unauthorized users.
+
+  "We store patient assessment forms and internal audit documents on that
+  server. Our IT contractor said guest access is limited to the welcome
+  materials, but I want proof."
+
+  Two assessment tokens have been placed across the shares. Enumerate all
+  shares, discover any leaked credentials, and retrieve both tokens.
+
+credentials:
+  - username: "medsvc"
+    password: "H4rgr0v3_M3d#"
+    role: "clinical"
+    description: "Medical service account credentials (discovered in records share)"
+
+hints:
+  - text: |
+      Begin by discovering what SMB shares the server exposes. Use smbclient
+      to list shares with anonymous access: smbclient -L //<target_ip> -N
+      The -N flag sends a null (no password) authentication. Look for shares
+      that are marked as Disk type.
+    unlock_after_minutes: 15
+  - text: |
+      There are multiple shares allowing guest access. Connect to each one
+      and download all files. One share contains a notes file with an
+      embedded audit token. Another share has a configuration file that leaks
+      service account credentials for a restricted share.
+    unlock_after_minutes: 25
+  - text: |
+      The "records" share contains a backup_config.ini with credentials for
+      the medsvc account. Use those credentials to access the "clinical"
+      share: smbclient //<target_ip>/clinical -U medsvc%<password>
+      The second token is in a file on that share.
+    unlock_after_minutes: 35
+
+topology:
+  nodes:
+    - id: "target"
+      label: "File Server"
+      type: "server"
+      ip_offset: "27"
+      ports: [445, 139]
+      services: ["Samba"]
+      x: 2
+      y: 1
+  edges:
+    - from: "attacker"
+      to: "target"
+      label: "SMB:445"
+      access: "direct"
+
+test:
+  steps:
+    - name: "SMB port is accessible"
+      command: "nmap -p 445 --open {target.target} 2>/dev/null | grep -c '445.*open'"
+      expect: "1"
+      timeout: 15
+
+    - name: "List SMB shares anonymously"
+      command: "smbclient -L //{target.target} -N 2>/dev/null | grep -c Disk"
+      expect: "3"
+      timeout: 15
+
+    - name: "Access public share and extract token 1"
+      command: "smbclient //{target.target}/public -N -c 'get it_notes.txt /tmp/smb_itnotes.txt' 2>/dev/null && grep -o 'audit_token=[^ ]*' /tmp/smb_itnotes.txt | cut -d= -f2"
+      expect: "smb_hunt"
+      timeout: 15
+
+    - name: "Access records share and find credentials"
+      command: "smbclient //{target.target}/records -N -c 'get backup_config.ini /tmp/smb_config.txt' 2>/dev/null && grep 'password' /tmp/smb_config.txt | sed 's/.*= *//' | head -1"
+      expect: "H4rgr0v3_M3d#"
+      timeout: 15
+
+    - name: "Use credentials to access clinical share and get token 2"
+      command: "smbclient //{target.target}/clinical -U medsvc%H4rgr0v3_M3d# -c 'get assessment_marker.txt /tmp/smb_marker.txt' 2>/dev/null && cat /tmp/smb_marker.txt"
+      expect: "cr3ds"
+      timeout: 15
+
+    - name: "Verify assembled flag"
+      command: "echo 'OCR{smb_hunt_cr3ds}'"
+      expect: "OCR{"

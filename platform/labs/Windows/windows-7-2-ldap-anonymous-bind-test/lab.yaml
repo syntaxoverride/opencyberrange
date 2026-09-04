@@ -1,0 +1,493 @@
+name: LDAP Anonymous Bind Test
+description: Test anonymous LDAP bind access to FinanceCorp's Active Directory to identify information disclosure risks.
+difficulty: intermediate
+category: enumeration
+duration_minutes: 120
+objectives:
+  - test anonymous ldap bind
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  Your detection of FinanceCorp's LDAP services has confirmed their presence. James 
+  Mitchell wants to test if anonymous LDAP access is permitted, as this could expose 
+  significant information about their Active Directory structure.
+  
+  Anonymous LDAP bind allows connection to directory services without authentication, 
+  potentially enabling enumeration of users, groups, and domain structure. FinanceCorp 
+  needs to understand if their LDAP configuration allows such access.
+  
+  Your objective: Test anonymous LDAP bind access to FinanceCorp's Active Directory. 
+  If anonymous access is permitted, this will open enumeration vectors for your 
+  assessment.
+
+flag: "OCR{ldap_4n0n_b1nd}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    text: |
+      ## Understanding Anonymous LDAP Binds
+
+      In LDAP terminology, a **bind** is the authentication step that occurs
+      when a client connects to an LDAP server. There are several types of
+      binds:
+
+      ### Types of LDAP Binds
+
+      1. **Anonymous Bind** -- No credentials provided; the client connects
+         without authenticating. The server grants limited (or full) read
+         access depending on its Access Control Lists (ACLs).
+
+      2. **Simple Bind** -- Username (Distinguished Name) and password are
+         sent in cleartext. This is the most basic authenticated bind.
+
+      3. **SASL Bind** -- Uses the Simple Authentication and Security Layer
+         framework for more advanced authentication mechanisms (Kerberos,
+         DIGEST-MD5, EXTERNAL, etc.).
+
+      ### Why Anonymous Binds Are Dangerous
+
+      Anonymous binds allow **unauthenticated access** to directory data.
+      This is a significant security risk because:
+
+      - Attackers can enumerate **all users** in the directory
+      - **Group memberships** reveal privilege hierarchies
+      - **Email addresses** enable phishing campaigns
+      - **Password policies** reveal lockout thresholds
+      - **Organizational structure** aids social engineering
+      - **Service accounts** often have weak passwords
+
+      ### The Security Misconfiguration
+
+      Many LDAP servers ship with anonymous binds **enabled by default**.
+      OpenLDAP, in particular, allows anonymous read access unless explicitly
+      configured otherwise. This is a common finding in penetration tests.
+
+      In this lab, your task is to **test whether anonymous binds are
+      permitted** on the target LDAP server. If they are, you can access
+      directory information without any credentials.
+
+      ### Real-World Impact
+
+      In real penetration tests, anonymous LDAP access has led to:
+
+      - Complete user enumeration of Fortune 500 companies
+      - Discovery of service account credentials in description fields
+      - Mapping of entire Active Directory forests
+      - Identification of accounts with "Password Never Expires" set
+
+  - id: 2
+    unlock_after_minutes: 5
+    text: |
+      ## Tool Introduction: ldapsearch
+
+      **ldapsearch** is the primary command-line tool for querying LDAP
+      directories. It is part of the `ldap-utils` package (also called
+      `openldap-clients` on some distributions).
+
+      ### Installing ldapsearch
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils
+      ```
+
+      ### Basic Syntax
+
+      ```
+      ldapsearch [options] [filter] [attributes]
+      ```
+
+      ### Key Flags for Anonymous Binding
+
+      | Flag       | Purpose                                      |
+      |------------|----------------------------------------------|
+      | `-x`       | Use simple authentication (not SASL)         |
+      | `-H`       | LDAP URI (e.g., `ldap://target:389`)         |
+      | `-b`       | Base DN -- where to start searching          |
+      | `-s`       | Scope: `base`, `one`, or `sub`               |
+      | `-D`       | Bind DN (username) -- omit for anonymous     |
+      | `-w`       | Bind password -- omit for anonymous          |
+      | `-W`       | Prompt for password interactively            |
+      | `-LLL`     | Clean output (no comments, no version)       |
+
+      ### Anonymous Bind = No -D and No -w
+
+      The critical concept: for an **anonymous bind**, you use the `-x` flag
+      for simple authentication but you **do not provide** `-D` (bind DN) or
+      `-w` (password). The absence of credentials signals an anonymous bind.
+
+      ```bash
+      # Anonymous bind (no credentials)
+      ldapsearch -x -H ldap://<target>
+
+      # Authenticated bind (with credentials)
+      ldapsearch -x -H ldap://<target> -D "cn=admin,dc=example,dc=com" -w "password"
+      ```
+
+      ### Search Scopes
+
+      - **base** -- Only the entry specified by `-b` (Root DSE if `-b ""`)
+      - **one** -- One level below the base DN
+      - **sub** -- Entire subtree below the base DN (most comprehensive)
+
+      ### Root DSE Query (The Simplest Test)
+
+      The Root DSE (empty base DN with base scope) is the standard way to
+      test if an LDAP server responds to anonymous queries:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+  - id: 3
+    unlock_after_minutes: 10
+    text: |
+      ## Practical Anonymous Bind Testing
+
+      ### What Happens During an Anonymous Bind
+
+      When you connect to an LDAP server without credentials, the server
+      decides how to handle the request based on its ACL configuration:
+
+      1. **Accept** -- The bind succeeds with `result: 0 Success`
+      2. **Reject** -- The bind fails with `result: 48 Inappropriate Authentication`
+         or `result: 50 Insufficient Access`
+      3. **Accept but restrict** -- The bind succeeds but returns no data
+
+      ### Reading ldapsearch Output
+
+      A successful anonymous bind looks like this:
+
+      ```
+      # extended LDIF
+      #
+      # LDAPv3
+      # base <> with scope baseObject
+      # filter: (objectclass=*)
+      # requesting: ALL
+      #
+
+      #
+      dn:
+      objectClass: top
+      objectClass: OpenLDAProotDSE
+
+      # search result
+      search: 2
+      result: 0 Success
+
+      # numResponses: 2
+      # numEntries: 1
+      ```
+
+      The key indicator is `result: 0 Success` -- this means the anonymous
+      bind was accepted and the server returned data.
+
+      ### A Failed Anonymous Bind
+
+      If anonymous binds are disabled, you might see:
+
+      ```
+      ldap_bind: Inappropriate authentication (48)
+          additional info: anonymous bind disallowed
+      ```
+
+      Or the bind might succeed but return no entries:
+
+      ```
+      # search result
+      search: 2
+      result: 32 No such object
+      # numResponses: 1
+      ```
+
+      ### Testing Different Query Types
+
+      After confirming anonymous bind works with a Root DSE query, try
+      progressively deeper queries:
+
+      ```bash
+      # Root DSE (always works if anonymous bind is allowed)
+      ldapsearch -x -H ldap://<target> -b "" -s base
+
+      # Search from a known base DN
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" -s sub
+
+      # Search for specific object classes
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        "(objectClass=person)"
+      ```
+
+      ### Using nmap for Anonymous Bind Testing
+
+      You can also test anonymous binds with nmap:
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      nmap -p 389 --script ldap-search <target>
+      ```
+
+      If these scripts return data, anonymous binds are working.
+
+  - id: 4
+    unlock_after_minutes: 15
+    text: |
+      ## Step-by-Step Workflow for This Lab
+
+      ### Step 1: Install Required Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils nmap
+      ```
+
+      ### Step 2: Confirm LDAP Service Is Running
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      Verify port 389 is open and running OpenLDAP.
+
+      ### Step 3: Test Anonymous Bind with Root DSE Query
+
+      This is the core test. Query the Root DSE without credentials:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+      **What to look for:**
+
+      - `result: 0 Success` -- anonymous bind worked
+      - `objectClass: OpenLDAProotDSE` -- server identity confirmed
+      - `namingContexts` -- reveals the base DN for further queries
+
+      ### Step 4: Verify with a Subtree Search
+
+      If the Root DSE query succeeds, try a broader search:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" -s sub
+      ```
+
+      This attempts to dump the entire directory tree anonymously.
+
+      ### Step 5: Test with Clean Output
+
+      Use `-LLL` for cleaner output without comments:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base -LLL
+      ```
+
+      ### Step 6: Document Your Findings
+
+      Note the following:
+
+      - Did the anonymous bind succeed? (`result: 0 Success`)
+      - What information was returned? (namingContexts, supported versions)
+      - Can you query beyond the Root DSE?
+      - What object classes and entries are accessible?
+
+      ### Step 7: Retrieve the Flag
+
+      Explore the LDAP directory to locate the flag. It may be embedded
+      within directory entries. Search through the results of your
+      subtree queries for the flag value.
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        "(objectClass=*)" -LLL
+      ```
+
+      Look for the `OCR{...}` pattern in the output.
+
+  - id: 5
+    unlock_after_minutes: 20
+    text: |
+      ## Exact Commands for Anonymous Bind Testing
+
+      ### The Core Anonymous Bind Test
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+      Breakdown:
+
+      - `-x` -- Use simple authentication (required)
+      - `-H ldap://<target>` -- Connect to target on port 389
+      - `-b ""` -- Search from the Root DSE (empty base DN)
+      - `-s base` -- Only return the Root DSE entry itself
+
+      No `-D` or `-w` flags = **anonymous bind**.
+
+      ### Query with All Operational Attributes
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+" "*"
+      ```
+
+      The `+` requests operational attributes, `*` requests user attributes.
+
+      ### Requesting Specific Attributes
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base namingContexts
+      ldapsearch -x -H ldap://<target> -b "" -s base supportedLDAPVersion
+      ldapsearch -x -H ldap://<target> -b "" -s base supportedSASLMechanisms
+      ```
+
+      ### Full Directory Dump (After Base DN Discovery)
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        -s sub "(objectClass=*)" -LLL
+      ```
+
+      ### Search for Flag in Directory Entries
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        -s sub "(objectClass=*)" -LLL | grep -i "OCR{"
+      ```
+
+      Or search description fields specifically:
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        "(description=*OCR*)" -LLL
+      ```
+
+      ### Alternative: nmap Verification
+
+      ```bash
+      nmap -p 389 --script ldap-rootdse <target>
+      ```
+
+  - id: 6
+    unlock_after_minutes: 25
+    text: |
+      ## Complete Solution Walkthrough
+
+      ### Step 1: Install Tools
+
+      ```bash
+      sudo apt update && sudo apt install -y ldap-utils nmap
+      ```
+
+      ### Step 2: Confirm LDAP Is Running
+
+      ```bash
+      nmap -p 389 -sV <target>
+      ```
+
+      **Expected output:**
+
+      ```
+      PORT    STATE SERVICE VERSION
+      389/tcp open  ldap    OpenLDAP 2.2.X - 2.4.X
+      ```
+
+      ### Step 3: Perform the Anonymous Bind Test
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base
+      ```
+
+      **Expected output:**
+
+      ```
+      # extended LDIF
+      #
+      # LDAPv3
+      # base <> with scope baseObject
+      # filter: (objectclass=*)
+      # requesting: ALL
+      #
+
+      #
+      dn:
+      objectClass: top
+      objectClass: OpenLDAProotDSE
+
+      # search result
+      search: 2
+      result: 0 Success
+
+      # numResponses: 2
+      # numEntries: 1
+      ```
+
+      The `result: 0 Success` confirms anonymous bind is allowed.
+
+      ### Step 4: Query Operational Attributes
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "" -s base "+"
+      ```
+
+      **Expected output includes:**
+
+      ```
+      dn:
+      namingContexts: dc=financecorp,dc=local
+      supportedLDAPVersion: 3
+      subschemaSubentry: cn=Subschema
+      ```
+
+      ### Step 5: Dump the Directory
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        -s sub "(objectClass=*)" -LLL
+      ```
+
+      This dumps all entries accessible via anonymous bind. Browse through
+      the output carefully for entries containing the flag.
+
+      ### Step 6: Find the Flag
+
+      ```bash
+      ldapsearch -x -H ldap://<target> -b "dc=financecorp,dc=local" \
+        -s sub "(objectClass=*)" -LLL | grep -i "OCR{"
+      ```
+
+      The flag `OCR{...}` will appear in the LDAP directory data,
+      typically in a description or custom attribute of an entry.
+
+      ### Summary
+
+      | Test                    | Result                        |
+      |-------------------------|-------------------------------|
+      | Port 389 Open           | Yes                           |
+      | Anonymous Bind          | Allowed (result: 0 Success)   |
+      | Root DSE Accessible     | Yes                           |
+      | Directory Enumerable    | Yes                           |
+      | Base DN                 | dc=financecorp,dc=local       |
+
+      ### Penetration Testing Report Note
+
+      > **Finding**: Anonymous LDAP bind is permitted on port 389.
+      > Unauthenticated users can query the Root DSE and enumerate the
+      > directory tree without any credentials. **Risk**: High.
+      > **Recommendation**: Disable anonymous binds by configuring
+      > `olcDisallows: bind_anon` in the OpenLDAP configuration, or
+      > set appropriate ACLs to restrict anonymous read access.
+
+workbook: "wiki/range/winpt/CH07_LDAP_Enumeration/02_LDAP_Anonymous_Bind_Test/"
+
+test:
+  steps:
+    - name: "Verify LDAP port 389 is open"
+      command: "nmap -Pn -p 389 {target.target} | grep '389/tcp'"
+      expect: "open"
+
+    - name: "Test anonymous bind via Root DSE query"
+      command: "ldapsearch -x -H ldap://{target.target} -b '' -s base 2>&1 | grep 'result:'"
+      expect: "0 Success"
+
+    - name: "LDAP search for flag"
+      command: "ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{' || (sleep 3 && ldapsearch -x -H ldap://{target.target} -b 'dc=financecorp,dc=local' description 2>&1 | grep 'OCR{')"
+      expect: "OCR{"

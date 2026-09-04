@@ -1,0 +1,458 @@
+name: WinRM File Retrieval
+description: Complete your FinanceCorp WinRM assessment by retrieving files to demonstrate information disclosure risks.
+difficulty: intermediate
+category: exploitation
+duration_minutes: 120
+objectives:
+  - retrieve flag file via winrm
+  - Understand Windows penetration testing techniques
+  - Capture the flag
+
+scenario: |
+  You're completing the WinRM assessment phase of your FinanceCorp penetration test. 
+  James Mitchell has requested a demonstration of file retrieval capabilities through 
+  WinRM to understand the full security impact.
+  
+  File retrieval through WinRM demonstrates information disclosure risks and shows 
+  how compromised WinRM access could lead to data exfiltration. FinanceCorp needs to 
+  see concrete evidence of these risks.
+  
+  Your objective: Successfully access FinanceCorp's systems via WinRM and retrieve 
+  files to demonstrate information disclosure risks. Document the security impact of 
+  compromised WinRM access.
+
+flag: "OCR{w1nrm_f1l3_r3tr13v3}"
+
+hints:
+  - id: 1
+    unlock_after_minutes: 0
+    title: "Understanding File Retrieval Through Remote Access"
+    text: |
+      ## File Retrieval via WinRM
+
+      **File retrieval** through remote management services demonstrates
+      one of the most critical security risks: **data exfiltration**. When
+      an attacker gains remote access, they can search for and retrieve
+      sensitive files from the target system.
+
+      ### Why File Retrieval Matters
+
+      In a penetration test, retrieving files proves that an attacker could:
+
+      - **Steal confidential documents** (financial records, PII, trade secrets)
+      - **Harvest credentials** (configuration files, password databases)
+      - **Access intellectual property** (source code, designs, research)
+      - **Gather intelligence** for further attacks (network diagrams, policies)
+
+      ### File Retrieval in WinRM vs SSH
+
+      | WinRM (Evil-WinRM) | SSH/SCP | Purpose |
+      |-------------------|---------|---------|
+      | `download C:\file.txt` | `scp admin@host:/file.txt .` | Download files |
+      | `upload local.txt C:\` | `scp local.txt admin@host:/` | Upload files |
+      | `Get-Content C:\file.txt` | `cat /path/to/file` | Read file contents |
+      | `Get-ChildItem C:\` | `ls -la /` | List directory |
+
+      ### The Challenge: Finding the File
+
+      In real penetration tests, sensitive files are not always in
+      obvious locations. You may need to:
+
+      1. **Search the filesystem** using find/search commands
+      2. **Check common locations** (/tmp, /var, /opt, home directories)
+      3. **Look for file patterns** (*.txt, *.conf, *.bak, *.log)
+      4. **Check environment variables** and configuration files
+
+      ### This Lab's Challenge
+
+      In this lab, the flag file is **NOT** in the home directory.
+      You will need to search the filesystem to locate it. Think
+      about common locations where files might be stored outside
+      of user home directories.
+
+  - id: 2
+    unlock_after_minutes: 5
+    title: "File Search and Retrieval Tools"
+    text: |
+      ## Tools for Finding and Retrieving Files
+
+      ### The find Command
+
+      `find` is the most powerful file search tool on Linux systems:
+
+      ```bash
+      # Find files by name
+      find / -name "flag.txt" 2>/dev/null
+
+      # Find files by name pattern
+      find / -name "flag*" 2>/dev/null
+      find / -name "*.txt" 2>/dev/null
+
+      # Find files modified recently
+      find / -mtime -1 2>/dev/null
+
+      # Find files by size
+      find / -size +1M 2>/dev/null
+      ```
+
+      The `2>/dev/null` redirects error messages (permission denied)
+      to keep output clean.
+
+      ### The locate Command
+
+      If available, `locate` provides faster file searching:
+
+      ```bash
+      locate flag.txt
+      locate "*.txt"
+      ```
+
+      ### Common File Locations to Check
+
+      Always check these directories when searching for files:
+
+      | Directory | Description |
+      |-----------|-------------|
+      | `/home/<user>/` | User home directories |
+      | `/root/` | Root user home |
+      | `/tmp/` | Temporary files |
+      | `/var/tmp/` | Persistent temporary files |
+      | `/opt/` | Optional software |
+      | `/var/www/` | Web server files |
+      | `/etc/` | Configuration files |
+      | `/var/log/` | Log files |
+
+      ### File Transfer with SCP
+
+      To download files from the remote system:
+
+      ```bash
+      # Download a file
+      scp admin@<target>:/path/to/file ./local_copy
+
+      # Download with sshpass
+      sshpass -p 'password123' scp -o StrictHostKeyChecking=no \
+        admin@<target>:/path/to/file ./local_copy
+      ```
+
+      ### Reading Files Remotely
+
+      You can read files without downloading them:
+      ```bash
+      ssh admin@<target> 'cat /path/to/file'
+      ```
+
+  - id: 3
+    unlock_after_minutes: 10
+    title: "Filesystem Enumeration Strategies"
+    text: |
+      ## Strategies for Finding Hidden Files
+
+      ### Systematic Search Approach
+
+      When the flag is not in an obvious location, use a systematic
+      approach to search the entire filesystem:
+
+      #### 1. Search by Filename
+
+      ```bash
+      # Exact name search
+      find / -name "flag.txt" 2>/dev/null
+
+      # Wildcard search for any flag file
+      find / -name "flag*" 2>/dev/null
+
+      # Case-insensitive search
+      find / -iname "flag*" 2>/dev/null
+      ```
+
+      #### 2. Search by Content
+
+      ```bash
+      # Search for files containing "OCR"
+      grep -r "OCR{" / 2>/dev/null
+
+      # Search specific directories
+      grep -r "OCR{" /tmp/ /var/ /opt/ 2>/dev/null
+      ```
+
+      #### 3. Check Common Non-Home Locations
+
+      ```bash
+      ls -la /tmp/
+      ls -la /var/tmp/
+      ls -la /opt/
+      ls -la /root/          # May require elevated privileges
+      ```
+
+      ### The /tmp Directory
+
+      The `/tmp` directory is a common location for:
+      - Temporary files created by applications
+      - Files placed by system administrators
+      - Artifacts left by other users or processes
+      - **In CTFs and labs: hidden flag files**
+
+      Key properties of `/tmp`:
+      - **World-readable** by default (anyone can read files)
+      - **World-writable** (anyone can create files)
+      - Often **cleaned on reboot** (but not always)
+      - Common hiding spot for sensitive data
+
+      ### Hint for This Lab
+
+      The flag in this lab is stored in a temporary directory,
+      not in the admin user's home directory. After authenticating,
+      you should check `/tmp/` for the flag file.
+
+  - id: 4
+    unlock_after_minutes: 15
+    title: "Step-by-Step Workflow for This Lab"
+    text: |
+      ## Lab Workflow
+
+      ### Step 1: Verify Target Access
+
+      Scan the target to confirm SSH is running:
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### Step 2: Authenticate to the Target
+
+      Connect using SSH:
+      ```bash
+      ssh admin@<target>
+      ```
+      Password: `password123`
+
+      ### Step 3: Check the Home Directory First
+
+      Always check the obvious location first:
+      ```bash
+      ls -la /home/admin/
+      ```
+
+      You will notice the flag is **NOT** here.
+
+      ### Step 4: Search for the Flag File
+
+      Use `find` to locate the flag:
+      ```bash
+      find / -name "flag.txt" 2>/dev/null
+      ```
+
+      This will reveal the flag is at `/tmp/flag.txt`.
+
+      ### Step 5: Read the Flag
+
+      ```bash
+      cat /tmp/flag.txt
+      ```
+
+      ### Step 6: Verify with Alternative Methods
+
+      You can also use grep to search for flag content:
+      ```bash
+      grep -r "OCR{" /tmp/ 2>/dev/null
+      ```
+
+      ### Step 7: Document and Exit
+
+      Record the file location and contents, then exit:
+      ```bash
+      exit
+      ```
+
+      ### Key Takeaways
+
+      - Files are not always in expected locations
+      - The `/tmp` directory is a common hiding spot
+      - Use `find` and `grep` to search the entire filesystem
+      - In real assessments, sensitive data can be anywhere
+      - Always check world-readable directories like `/tmp`
+
+  - id: 5
+    unlock_after_minutes: 20
+    title: "Exact Commands for This Lab"
+    text: |
+      ## Commands to Complete This Lab
+
+      ### 1. Scan the Target
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      ### 2. Connect via SSH
+
+      ```bash
+      ssh admin@<target>
+      ```
+      Accept host key: `yes`
+      Password: `password123`
+
+      ### 3. Search for the Flag
+
+      ```bash
+      find / -name "flag.txt" 2>/dev/null
+      ```
+
+      Expected result: `/tmp/flag.txt`
+
+      ### 4. Read the Flag
+
+      ```bash
+      cat /tmp/flag.txt
+      ```
+
+      ### 5. Exit
+
+      ```bash
+      exit
+      ```
+
+      ### Alternative: Direct File Retrieval
+
+      If you already know the location:
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no \
+        admin@<target> 'cat /tmp/flag.txt'
+      ```
+
+      ### Alternative: Search and Read in One Session
+
+      ```bash
+      sshpass -p 'password123' ssh -o StrictHostKeyChecking=no \
+        admin@<target> 'find / -name "flag.txt" 2>/dev/null && cat /tmp/flag.txt'
+      ```
+
+      ### Alternative: Download the File with SCP
+
+      ```bash
+      sshpass -p 'password123' scp -o StrictHostKeyChecking=no \
+        admin@<target>:/tmp/flag.txt ./flag.txt
+      cat ./flag.txt
+      ```
+
+      ### Important Notes
+
+      - The flag is at `/tmp/flag.txt` (NOT `/home/admin/flag.txt`)
+      - Credentials: `admin` / `password123`
+      - The flag format is `OCR{...}`
+
+  - id: 6
+    unlock_after_minutes: 25
+    title: "Complete Solution Walkthrough"
+    text: |
+      ## Full Solution Walkthrough
+
+      ### Step 1: Service Scan
+
+      ```bash
+      nmap -sV -p 22 <target>
+      ```
+
+      **Expected Output:**
+      ```
+      PORT   STATE SERVICE VERSION
+      22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu
+      ```
+
+      ### Step 2: SSH Authentication
+
+      ```bash
+      ssh admin@<target>
+      ```
+
+      **Expected Interaction:**
+      ```
+      admin@<target>'s password: password123
+      Welcome to Ubuntu 22.04 LTS
+      admin@target:~$
+      ```
+
+      ### Step 3: Check Home Directory (Flag Not Here)
+
+      ```bash
+      ls -la /home/admin/
+      ```
+
+      **Expected Output:**
+      ```
+      total 8
+      drwxr-xr-x 2 admin admin 4096 Jan  1 00:00 .
+      drwxr-xr-x 3 root  root  4096 Jan  1 00:00 ..
+      ```
+
+      No flag.txt in the home directory.
+
+      ### Step 4: Search the Filesystem
+
+      ```bash
+      find / -name "flag.txt" 2>/dev/null
+      ```
+
+      **Expected Output:**
+      ```
+      /tmp/flag.txt
+      ```
+
+      The flag is located at `/tmp/flag.txt`.
+
+      ### Step 5: Retrieve the Flag
+
+      ```bash
+      cat /tmp/flag.txt
+      ```
+
+      **Expected Output:**
+      ```
+      OCR{...}
+      ```
+
+      ### Step 6: Exit
+
+      ```bash
+      exit
+      ```
+
+      ### Summary
+
+      | Step | Command | Result |
+      |------|---------|--------|
+      | 1 | `nmap -sV -p 22` | SSH detected on port 22 |
+      | 2 | `ssh admin@<target>` | Authenticated with password123 |
+      | 3 | `ls -la /home/admin/` | Flag NOT in home directory |
+      | 4 | `find / -name "flag.txt"` | Found at /tmp/flag.txt |
+      | 5 | `cat /tmp/flag.txt` | Flag retrieved: OCR{...} |
+
+      This lab demonstrates that in real-world scenarios, sensitive
+      data can be stored anywhere on the filesystem. An attacker with
+      remote access through WinRM or SSH can search the entire system
+      and retrieve files from any location they have read permissions
+      to. The `/tmp` directory is particularly dangerous as it is
+      world-readable by default, making any files stored there
+      accessible to any authenticated user.
+
+credentials:
+  - username: "admin"
+    password: "password123"
+    role: "winrm-user"
+    description: "WinRM/SSH admin credentials"
+
+workbook: "wiki/range/winpt/CH05_WinRM_Exploitation/06_WinRM_File_Retrieval/"
+
+test:
+  steps:
+    - name: "Verify SSH port 22 is open"
+      command: "nmap -Pn -p 22 {target.target} | grep '22/tcp'"
+      expect: "open"
+
+    - name: "Search for flag file via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'find /tmp -name flag.txt 2>/dev/null'"
+      expect: "/tmp/flag.txt"
+
+    - name: "Retrieve flag via SSH"
+      command: "sshpass -p '{cred.winrm-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.winrm-user.user}@{target.target} 'cat /tmp/flag.txt'"
+      expect: "OCR{"

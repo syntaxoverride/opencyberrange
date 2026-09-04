@@ -1,0 +1,1507 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 7.6: LDAP Comprehensive Enumeration - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-76-ldap-comprehensive-enumeration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 7.6: LDAP Comprehensive Enumeration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-ldap-enumeration-methodology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The LDAP Enumeration Methodology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tool-primer-full-directory-dump-and-nmap-ldap-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Primer: Full Directory Dump and Nmap LDAP Scripts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-launch-the-exercise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Launch the Exercise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-detect-the-ldap-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Detect the LDAP Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-confirm-anonymous-bind-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Confirm Anonymous Bind Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-discover-the-base-dn-from-root-dse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Discover the Base DN from Root DSE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-enumerate-organizational-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Enumerate Organizational Units
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-extract-all-user-accounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Extract All User Accounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-map-all-group-memberships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Map All Group Memberships
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-8-perform-a-full-directory-dump" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Perform a Full Directory Dump
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#record-your-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record Your Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-9-record-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 9: Record the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-76-ldap-comprehensive-enumeration">Exercise 7.6: LDAP Comprehensive Enumeration</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>In Exercises 7.1 through 7.5 you learned each step of LDAP enumeration individually; detecting the service, testing anonymous binds, discovering the Base DN, extracting users, and mapping groups. A real penetration tester executes all of these steps together as a single methodology. In this exercise you will combine every technique into one complete enumeration pass against the FinanceCorp LDAP directory.</p>
+<h2 id="scenario">Scenario</h2>
+<p>You are wrapping up the LDAP enumeration phase of the FinanceCorp penetration test. The engagement lead has asked you to produce a single, thorough report of everything the LDAP directory exposes to an unauthenticated attacker. Your deliverable is a full directory dump: the service version, Base DN, every organizational unit, every user account, every group and its members, and any sensitive data visible in the directory. Run the complete methodology from detection through extraction in one session.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Execute the full LDAP enumeration methodology in sequence</li>
+<li>Combine Nmap detection with ldapsearch queries for complete coverage</li>
+<li>Extract and organize all directory data: OUs, users, groups, and attributes</li>
+<li>Identify sensitive or interesting data patterns in the directory</li>
+<li>Produce a structured summary suitable for a penetration test report</li>
+<li>Capture the flag embedded in the directory data</li>
+</ul>
+<hr />
+<h2 id="background-the-ldap-enumeration-methodology">Background: The LDAP Enumeration Methodology</h2>
+<p>Professional penetration testers follow a structured methodology when enumerating LDAP. Each step builds on the previous one, and skipping steps means missing information. The complete flow covers six phases that mirror the labs you have already completed.</p>
+<pre class="mermaid"><code>graph TD
+    A["1. Service Detection&lt;br/&gt;nmap -p 389 -sV"]
+    A --&gt; B["2. Anonymous Bind Test&lt;br/&gt;ldapsearch -x -H -b"]
+    B --&gt; C["3. Base DN Discovery&lt;br/&gt;Root DSE query"]
+    C --&gt; D["4. OU Enumeration&lt;br/&gt;organizationalUnit filter"]
+    D --&gt; E["5. User Extraction&lt;br/&gt;inetOrgPerson filter"]
+    E --&gt; F["6. Group Mapping&lt;br/&gt;posixGroup / groupOfNames"]
+    F --&gt; G["Complete Directory Profile"]
+
+    style A fill:#4a90d9,color:#fff
+    style G fill:#6aaa64,color:#fff</code></pre>
+<p>Running these steps in order ensures nothing is missed. The Nmap scan confirms the service is running and identifies the software. The anonymous bind test determines whether credentials are needed. The Root DSE query discovers the Base DN. From there, targeted queries extract the organizational structure, user accounts, and group memberships.</p>
+<p>In addition to the individual ldapsearch queries, you can perform a full directory dump with a single command. A wildcard search from the Base DN returns every entry in the directory, which is useful as a final sweep to catch anything the targeted queries might have missed.</p>
+<p>Nmap's LDAP scripts also provide automated enumeration that complements manual ldapsearch queries. Running both tools ensures you get the most complete picture possible; each tool may extract data that the other misses.</p>
+<h2 id="tool-primer-full-directory-dump-and-nmap-ldap-scripts">Tool Primer: Full Directory Dump and Nmap LDAP Scripts</h2>
+<p>Two techniques form the core of a thorough enumeration: the ldapsearch wildcard dump and the Nmap LDAP script suite.</p>
+<div class="admonition kali">
+<p class="admonition-title">Full directory dump with ldapsearch</p>
+<p>Replace <code>&lt;target_ip&gt;</code> with the target IP from the Active Lab View. The wildcard query below pulls the entire directory in one pass.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s2">&quot;(objectclass=*)&quot;</span>
+</code></pre></div>
+<p>The wildcard filter <code>(objectclass=*)</code> matches every entry in the directory. Combined with the domain-level Base DN, this query returns the complete directory tree; every OU, user, group, and any other objects stored in the directory.</p>
+</div>
+<div class="admonition kali">
+<p class="admonition-title">Nmap full LDAP scan</p>
+<p>Nmap's LDAP scripts automate much of the same enumeration. The command below runs three scripts against port 389.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>nmap<span class="w"> </span>-p<span class="w"> </span><span class="m">389</span><span class="w"> </span>-sV<span class="w"> </span>--script<span class="o">=</span>ldap-rootdse,ldap-search,ldap-brute<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>The scripts in this command perform different functions:</p>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ldap-rootdse</code></td>
+<td>Extract Root DSE information (Base DN, supported versions)</td>
+</tr>
+<tr>
+<td><code>ldap-search</code></td>
+<td>Perform automated LDAP searches and return directory entries</td>
+</tr>
+<tr>
+<td><code>ldap-brute</code></td>
+<td>Attempt common credential combinations against the LDAP bind</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Targeted queries for the full pass:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Query Target</th>
+<th>ldapsearch Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Root DSE</td>
+<td><code>ldapsearch -x -H ldap://&lt;target_ip&gt; -b "" -s base "(objectclass=*)"</code></td>
+</tr>
+<tr>
+<td>All OUs</td>
+<td><code>ldapsearch -x -H ldap://&lt;target_ip&gt; -b "dc=financecorp,dc=local" "(objectClass=organizationalUnit)"</code></td>
+</tr>
+<tr>
+<td>All Users</td>
+<td><code>ldapsearch -x -H ldap://&lt;target_ip&gt; -b "ou=Users,dc=financecorp,dc=local" "(objectClass=inetOrgPerson)"</code></td>
+</tr>
+<tr>
+<td>All Groups</td>
+<td><code>ldapsearch -x -H ldap://&lt;target_ip&gt; -b "ou=Groups,dc=financecorp,dc=local" "(objectClass=posixGroup)"</code></td>
+</tr>
+<tr>
+<td>Specific User</td>
+<td><code>ldapsearch -x -H ldap://&lt;target_ip&gt; -b "dc=financecorp,dc=local" "(uid=jmitchell)"</code></td>
+</tr>
+<tr>
+<td>Specific Group</td>
+<td><code>ldapsearch -x -H ldap://&lt;target_ip&gt; -b "dc=financecorp,dc=local" "(cn=admins)"</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-1-launch-the-exercise">Step 1: Launch the Exercise</h3>
+<p>Open the platform in your browser and start the exercise environment.</p>
+<ul>
+<li>Navigate to <strong>Exercises</strong> then <strong>Windows</strong> then <strong>Level 1</strong></li>
+<li>Click <strong>Launch</strong> on "LDAP Comprehensive Enumeration"</li>
+<li>Wait for the status to change to <strong>Running</strong></li>
+<li>Note the <strong>target IP</strong> displayed in the Active Lab View</li>
+</ul>
+<h3 id="step-2-detect-the-ldap-service">Step 2: Detect the LDAP Service</h3>
+<div class="admonition kali">
+<p class="admonition-title">Detect the LDAP service</p>
+<p>Start the methodology with service detection. Run an Nmap scan with version detection and LDAP scripts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>nmap<span class="w"> </span>-p<span class="w"> </span><span class="m">389</span><span class="w"> </span>-sV<span class="w"> </span>--script<span class="o">=</span>ldap-rootdse,ldap-search<span class="w"> </span>&lt;target_ip&gt;
+</code></pre></div>
+<p>Record the service version (OpenLDAP / slapd), the Base DN from the Root DSE output, and any directory entries the scripts return. Compare the Nmap script results with what you found using ldapsearch in earlier labs.</p>
+</div>
+<h3 id="step-3-confirm-anonymous-bind-access">Step 3: Confirm Anonymous Bind Access</h3>
+<div class="admonition kali">
+<p class="admonition-title">Confirm anonymous bind access</p>
+<p>Verify that anonymous queries still work by running a simple ldapsearch against the Base DN:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="s2">&quot;(objectclass=*)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>dn
+</code></pre></div>
+<p>Appending <code>dn</code> as the only requested attribute returns just the Distinguished Name of each entry, giving you a compact overview of every object in the directory without the full attribute data. A successful response confirms anonymous bind access is permitted.</p>
+</div>
+<h3 id="step-4-discover-the-base-dn-from-root-dse">Step 4: Discover the Base DN from Root DSE</h3>
+<div class="admonition kali">
+<p class="admonition-title">Discover the Base DN from Root DSE</p>
+<p>Even though you already know the Base DN, practice the discovery step as part of the full methodology:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span>-b<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span>-s<span class="w"> </span>base<span class="w"> </span><span class="s2">&quot;(objectclass=*)&quot;</span>
+</code></pre></div>
+<p>Record the <code>namingContexts</code> value. In a real engagement, you would always start here rather than assuming you know the domain.</p>
+</div>
+<h3 id="step-5-enumerate-organizational-units">Step 5: Enumerate Organizational Units</h3>
+<div class="admonition kali">
+<p class="admonition-title">Enumerate organizational units</p>
+<p>Map the directory structure by querying for all OUs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="s2">&quot;(objectClass=organizationalUnit)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>ou<span class="w"> </span>description
+</code></pre></div>
+<p>Requesting only the <code>ou</code> and <code>description</code> attributes produces a concise list of containers. Note each OU name; these tell you how the organization structures its directory.</p>
+</div>
+<h3 id="step-6-extract-all-user-accounts">Step 6: Extract All User Accounts</h3>
+<div class="admonition kali">
+<p class="admonition-title">Extract all user accounts</p>
+<p>Pull the complete user listing with key attributes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;ou=Users,dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="s2">&quot;(objectClass=inetOrgPerson)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>uid<span class="w"> </span>cn<span class="w"> </span>sn<span class="w"> </span>mail<span class="w"> </span>uidNumber<span class="w"> </span>gidNumber
+</code></pre></div>
+<p>Count the total number of user entries. Record each username, full name, and email address in your findings table.</p>
+</div>
+<h3 id="step-7-map-all-group-memberships">Step 7: Map All Group Memberships</h3>
+<div class="admonition kali">
+<p class="admonition-title">Map all group memberships</p>
+<p>Extract groups and their members:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;ou=Groups,dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="s2">&quot;(objectClass=posixGroup)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>cn<span class="w"> </span>gidNumber<span class="w"> </span>memberUid
+</code></pre></div>
+<p>Also check for groupOfNames entries:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;ou=Groups,dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="s2">&quot;(objectClass=groupOfNames)&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span>cn<span class="w"> </span>member
+</code></pre></div>
+<p>Cross-reference the group members against your user list from Step 6. Identify any users with memberships in multiple privileged groups.</p>
+</div>
+<h3 id="step-8-perform-a-full-directory-dump">Step 8: Perform a Full Directory Dump</h3>
+<div class="admonition kali">
+<p class="admonition-title">Perform a full directory dump</p>
+<p>As a final sweep, dump the entire directory to catch anything the targeted queries missed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="s2">&quot;(objectclass=*)&quot;</span>
+</code></pre></div>
+<p>Scroll through the complete output looking for entries that did not appear in your earlier queries; objects stored outside the Users and Groups OUs, the service accounts under <code>ou=ServiceAccounts</code>, or entries with unusual attributes. The flag rides in the <code>description</code> attribute of the <code>svc-backup</code> service account, so a quick way to find it is to grep the dump:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>ldapsearch<span class="w"> </span>-x<span class="w"> </span>-H<span class="w"> </span>ldap://&lt;target_ip&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span>-b<span class="w"> </span><span class="s2">&quot;dc=financecorp,dc=local&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="s2">&quot;(objectclass=*)&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;OCR{&quot;</span>
+</code></pre></div>
+</div>
+<hr />
+<h3 id="record-your-findings">Record Your Findings</h3>
+<blockquote>
+<p><strong>Service Detection:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service</td>
+<td></td>
+</tr>
+<tr>
+<td>Version</td>
+<td></td>
+</tr>
+<tr>
+<td>Base DN</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Anonymous Bind:</strong> Permitted / Denied</p>
+<p><strong>Organizational Units:</strong></p>
+<table>
+<thead>
+<tr>
+<th>OU Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>User Accounts:</strong></p>
+<table>
+<thead>
+<tr>
+<th>uid</th>
+<th>cn</th>
+<th>mail</th>
+<th>uidNumber</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Groups and Members:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Group Name</th>
+<th>Members</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Domain Admin Accounts:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>Total directory entries:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+<p><strong>How to submit:</strong> enter the flag on the exercise page exactly as you recovered it, keeping the <code>OCR{...}</code> wrapper.</p>
+<p><strong>Flag:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>______</p>
+</blockquote>
+<hr />
+<h3 id="step-9-record-the-flag">Step 9: Record the Flag</h3>
+<p>The flag appears within the directory data in <code>OCR{&lt;flag_here&gt;}</code> format. Copy it and paste it into the <strong>Submit Flag</strong> form on the platform and click <strong>Submit</strong>.</p>
+<hr />
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>1. Why is it important to run both Nmap scripts and manual ldapsearch queries during a thorough enumeration?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Each tool may extract data the other misses. Nmap LDAP scripts use predefined query patterns that are good for quick discovery but may not search every OU or apply every relevant filter. Manual ldapsearch queries let you target specific containers, filter by exact object classes, and request specific attributes. Running both tools ensures the most complete coverage. In a professional engagement, overlooking a single account or group could mean missing the path to domain compromise.</p>
+</details>
+<p><strong>2. In a real penetration test, how would you organize and present this LDAP data in your report?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>A professional report would include a summary of findings (anonymous bind enabled, N users exposed, N groups enumerable), a risk rating for the anonymous bind misconfiguration, a complete user list table, a group membership matrix showing which users belong to which groups with privilege levels highlighted, and specific recommendations for remediation. The raw ldapsearch output would go into an appendix. The executive summary would focus on the business impact; an unauthenticated attacker can enumerate the entire directory.</p>
+</details>
+<p><strong>3. What remediation steps would you recommend to the FinanceCorp team?</strong></p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>The primary recommendation is to disable anonymous LDAP binds so that all queries require authentication. Access Control Lists (ACLs) should be configured to restrict which attributes authenticated users can read; not everyone needs to see every attribute on every entry. LDAP traffic should be encrypted using LDAPS (port 636) or StartTLS to prevent credential sniffing. Sensitive attributes like password hashes should be restricted to administrative accounts only. Network segmentation should limit which systems can reach port 389 at all.</p>
+</details>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>A complete LDAP enumeration follows a structured methodology: detect, bind, discover Base DN, enumerate OUs, extract users, map groups</li>
+<li>Running both Nmap LDAP scripts and manual ldapsearch queries provides the most complete coverage</li>
+<li>A full directory dump with <code>(objectclass=*)</code> catches entries that targeted queries might miss</li>
+<li>Cross-referencing users and groups reveals the highest-value targets for credential attacks</li>
+<li>The enumeration data you gathered in this chapter feeds directly into Chapter 8, where you will test credentials against the accounts you discovered</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

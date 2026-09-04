@@ -1,0 +1,499 @@
+name: Non-Standard Port Discovery
+description: TechStart has configured services on non-standard ports for security. Perform comprehensive port scanning to discover hidden services.
+difficulty: beginner
+category: reconnaissance
+duration_minutes: 120
+objectives:
+  - Understand that services can run on any port
+  - Perform comprehensive port range scanning
+  - Identify services on non-standard ports
+  - Use efficient port scanning strategies
+  - Capture the flag
+
+scenario: |
+  Your TechStart penetration test has revealed an interesting security configuration.
+  Sarah Chen informs you that some administrators configure services on non-standard
+  ports as a "security through obscurity" measure.
+
+  While changing default ports doesn't provide real security, it's a common practice.
+  Services like SSH (normally port 22) might run on port 2222, 22222, or any other
+  port. Web servers (normally 80/443) might use ports 8080, 8443, or custom ports.
+
+  This configuration can hide services from basic scans that only check default ports.
+  Comprehensive enumeration requires scanning broader port ranges to discover all
+  services, regardless of their configured port numbers.
+
+  Your objective: Discover all services on TechStart's Linux server, including
+  those running on non-standard ports. Use appropriate scanning techniques to
+  ensure no services are missed.
+
+flag: "OCR{n0n_st4nd4rd}"
+
+hints:
+  - text: |
+      **Non-Standard Ports** are a common security-through-obscurity measure:
+
+      **Why administrators change default ports:**
+      - **Reduce automated attacks**: Bots scan common ports
+      - **Hide from casual scans**: Basic enumeration misses them
+      - **Compliance requirements**: Some policies require non-standard ports
+      - **Multiple instances**: Run same service multiple times
+      - **Organizational policy**: Security procedures mandate it
+
+      **Common non-standard port patterns:**
+      - **SSH alternatives**: 2222, 22222, 2022, 2200
+      - **HTTP alternatives**: 8000, 8080, 8888, 3000, 4000
+      - **HTTPS alternatives**: 8443, 4443, 9443
+      - **Database alternatives**: 33060, 54320, 13306
+      - **Custom services**: 10000-65535 range
+
+      **Why this matters in penetration testing:**
+      - **Incomplete enumeration**: Scanning only default ports misses services
+      - **Hidden attack surface**: Non-standard ports may have same vulnerabilities
+      - **False sense of security**: Admins think obscurity provides protection
+      - **Comprehensive assessment**: Must find ALL services
+      - **Real-world scenario**: Very common in production environments
+
+      **Security through obscurity limitations:**
+      - Doesn't fix vulnerabilities
+      - Easily discovered with proper scanning
+      - Provides no real security
+      - May give false confidence
+      - Still subject to same attacks
+
+      **Enumeration strategy:**
+      - Default port scans first (quick reconnaissance)
+      - Expanded port ranges for thorough enumeration
+      - Full port scans when completeness is critical
+      - Service version detection on ALL discovered ports
+
+      **Examples of non-standard port discoveries:**
+      - SSH on 2222 instead of 22
+      - Web admin panel on 8443 instead of 443
+      - Database on 33060 instead of 3306
+      - RDP on 3390 instead of 3389
+
+      Comprehensive port scanning is essential to discover all services.
+    unlock_after_minutes: 0
+
+  - text: |
+      **nmap port scanning strategies** for comprehensive enumeration:
+
+      **Default behavior (most common 1000 ports):**
+      ```bash
+      nmap <target>
+      ```
+      - Scans 1000 most common ports
+      - Fast but may miss non-standard ports
+      - Good for initial reconnaissance
+
+      **Specific port scanning:**
+      ```bash
+      nmap -p 22 <target>              # Single port
+      nmap -p 21,22,80 <target>        # Multiple specific ports
+      nmap -p 1-1000 <target>          # Port range
+      ```
+
+      **Comprehensive port ranges:**
+      ```bash
+      nmap -p 1-10000 <target>         # First 10,000 ports
+      nmap -p 1-65535 <target>         # All TCP ports (slow)
+      nmap -p- <target>                # Same as above (shorthand)
+      ```
+
+      **Top ports scanning:**
+      ```bash
+      nmap --top-ports 100 <target>    # Top 100 most common
+      nmap --top-ports 1000 <target>   # Top 1000 ports
+      nmap --top-ports 5000 <target>   # Top 5000 ports
+      ```
+
+      **Service-specific ranges:**
+      ```bash
+      nmap -p 1-1024 <target>          # Well-known ports
+      nmap -p 1024-49151 <target>      # Registered ports
+      nmap -p 49152-65535 <target>     # Dynamic/private ports
+      ```
+
+      **Optimizing scan speed:**
+      - **-T4**: Faster timing (aggressive)
+      - **--min-rate 1000**: Minimum packets per second
+      - **-F**: Fast scan (100 most common ports only)
+
+      **Recommended strategies:**
+
+      **Quick scan (default ports):**
+      ```bash
+      nmap <target>
+      ```
+
+      **Extended scan (common alternatives):**
+      ```bash
+      nmap -p 1-10000 -T4 <target>
+      ```
+
+      **Comprehensive scan (all ports):**
+      ```bash
+      nmap -p- -T4 <target>
+      ```
+
+      **With version detection:**
+      ```bash
+      nmap -p- -sV <target>
+      ```
+
+      **Balancing speed vs thoroughness:**
+      - Narrow ranges (1-1024): Fast, may miss services
+      - Medium ranges (1-10000): Balanced, catches most services
+      - Full scans (1-65535): Slow but comprehensive
+
+      For finding non-standard ports, scan beyond the default 1000 ports.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Identifying services on non-standard ports:**
+
+      **Step 1: Expand port range**
+      Start with a full port scan:
+      ```bash
+      nmap -p- <target>
+      ```
+      - Scans all 65535 ports
+      - Ensures no services are missed
+      - Required when services may be on high-numbered ports
+
+      **Step 2: Add version detection**
+      ```bash
+      nmap -p- -sV <target>
+      ```
+      - Identifies service on discovered ports
+      - Critical for non-standard ports
+      - Reveals what service is actually running
+      - SSH on port 22222 still identifies as SSH
+
+      **Step 3: Analyze results**
+      Look for services on unexpected ports:
+      ```
+      PORT      STATE SERVICE VERSION
+      22222/tcp open  ssh     OpenSSH 8.2p1        <- Non-standard!
+      34567/tcp open  http    Apache httpd 2.4.41  <- Non-standard!
+      ```
+
+      **Identifying patterns:**
+      - **Similar numbers**: 22 → 2222, 80 → 8080
+      - **Common alternatives**: 8000, 8080, 8888 for HTTP
+      - **Sequential ports**: 22, 2222, 22222
+      - **Round numbers**: 2000, 3000, 4000, 5000
+
+      **Why version detection matters:**
+      Without `-sV`:
+      ```
+      22222/tcp open  unknown
+      ```
+      With `-sV`:
+      ```
+      22222/tcp open  ssh     OpenSSH 8.2p1
+      ```
+      - Identifies the actual service
+      - Reveals it's SSH despite wrong port
+      - Provides version for vulnerability research
+
+      **Documentation strategy:**
+      For each non-standard service:
+      - **Port number**: What port is it on?
+      - **Expected port**: Where should this service be?
+      - **Service type**: SSH, HTTP, etc.
+      - **Version**: Specific software version
+      - **Why non-standard**: Security policy, multiple instances, etc.
+
+      **Red flags to note:**
+      - Services on unusual ports (possible backdoors)
+      - Multiple instances of same service
+      - Old versions on hidden ports (security debt)
+      - Administrative services on non-standard ports
+
+      Extended port scanning with version detection reveals hidden services.
+    unlock_after_minutes: 10
+
+  - text: |
+      **Practical port scanning for non-standard services:**
+
+      **Scenario: SSH on non-standard port**
+
+      **Default scan misses it:**
+      ```bash
+      $ nmap <target>
+
+      PORT   STATE SERVICE
+      ```
+      - Only scanned common 1000 ports
+      - Missed SSH on port 22222 and HTTP on port 34567
+      - Incomplete enumeration
+
+      **Full scan finds them:**
+      ```bash
+      $ nmap -p- <target>
+
+      PORT      STATE SERVICE
+      22222/tcp open  unknown
+      34567/tcp open  unknown
+      ```
+      - Full port range scanned
+      - Discovered ports 22222 and 34567
+      - But service type unknown
+
+      **Version detection identifies them:**
+      ```bash
+      $ nmap -p- -sV <target>
+
+      PORT      STATE SERVICE VERSION
+      34567/tcp open  http    Apache httpd 2.4.41
+      22222/tcp open  ssh     OpenSSH 8.2p1 Ubuntu
+      ```
+      - Services identified
+      - Versions detected
+      - Full service information
+
+      **Command progression for TechStart:**
+
+      **1. Quick check (may miss non-standard):**
+      ```bash
+      nmap <target>
+      ```
+
+      **2. Full port scan (recommended):**
+      ```bash
+      nmap -p- <target>
+      ```
+      - Finds all open ports regardless of number
+      - Catches high-numbered non-standard ports
+      - Ensures nothing is missed
+
+      **3. Full scan with version detection:**
+      ```bash
+      nmap -p- -sV <target>
+      ```
+      - Identifies services on non-standard ports
+      - Provides version information
+      - Complete enumeration
+
+      **4. Comprehensive scan (if time permits):**
+      ```bash
+      nmap -p- -sV <target>
+      ```
+      - All 65535 ports
+      - Guarantees nothing is missed
+      - Slow but thorough
+
+      **For TechStart assessment:**
+      The target has both HTTP and SSH running on non-standard high-numbered ports.
+      Use a full port scan to discover them.
+
+      **Recommended command:**
+      ```bash
+      nmap -p- -sV <target>
+      ```
+
+      This finds services on non-standard ports and identifies them properly.
+      After discovering HTTP, visit the web page to gather SSH credentials.
+    unlock_after_minutes: 15
+
+  - text: |
+      To discover TechStart's non-standard services:
+
+      **Recommended command:**
+      ```bash
+      nmap -p- -sV <target>
+      ```
+
+      **Why this command:**
+      - **`-p-`**: Scans all 65535 ports (necessary since ports exceed 10000)
+      - **`-sV`**: Identifies service on each discovered port
+      - **Thorough**: Ensures high-numbered ports are not missed
+
+      **What to expect:**
+      The scan will take longer than a default scan because it's checking
+      all ports. You'll see:
+      ```
+      PORT      STATE SERVICE VERSION
+      34567/tcp open  http    Apache httpd 2.4.41
+      22222/tcp open  ssh     OpenSSH X.X
+      ```
+
+      **How to complete the lab:**
+      1. Run the full port scan
+      2. Review all discovered ports
+      3. Look for services NOT on their default ports
+      4. HTTP (normally 80) will be on port 34567
+      5. SSH (normally 22) will be on port 22222
+      6. Visit the HTTP server to get SSH credentials
+      7. Connect to SSH using the credentials
+
+      **Access the web server:**
+      ```bash
+      curl http://<target>:34567
+      ```
+      or open in browser: `http://<target>:34567`
+
+      The web page displays SSH credentials needed for access.
+
+      **Connect to SSH:**
+      ```bash
+      ssh -p 22222 techstart@<target>
+      ```
+      Use the password from the web page.
+
+      **Retrieve the flag:**
+      ```bash
+      cat flag.txt
+      ```
+
+      **Important notes:**
+      - Default nmap scan (no -p flag) will NOT find these services
+      - Must scan full port range
+      - Service version detection (-sV) identifies services
+      - Web server provides credentials needed for SSH access
+    unlock_after_minutes: 20
+
+  - text: |
+      Successful non-standard port discovery:
+
+      **Step 1: Full port scan**
+      ```bash
+      $ nmap -p- -sV <target_ip>
+
+      Starting Nmap 7.94
+      Nmap scan report for <target_ip>
+      Host is up (0.00052s latency).
+      Not shown: 65533 closed tcp ports (conn-refused)
+
+      PORT      STATE SERVICE VERSION
+      34567/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
+      22222/tcp open  ssh     OpenSSH 8.2p1 Ubuntu-4ubuntu0.5
+
+      Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+      Service detection performed. Please report any incorrect results.
+      Nmap done: 1 IP address (1 host up) scanned in 15.32 seconds
+      ```
+
+      **Step 2: Access the web server**
+      ```bash
+      $ curl http://<target_ip>:34567
+      ```
+      or visit in browser: `http://<target_ip>:34567`
+
+      The web page displays an engineering demo page with SSH credentials:
+      - SSH Port: 22222
+      - Username: techstart
+      - Password: TechStart2024#
+
+      **Step 3: Connect to SSH on non-standard port**
+      ```bash
+      $ ssh -p 22222 techstart@<target_ip>
+      techstart@<target_ip>'s password: TechStart2024#
+      ```
+
+      **Step 4: Retrieve the flag**
+      ```bash
+      $ cat flag.txt
+      OCR{...}
+      ```
+
+      **Flag location: File accessible via SSH**
+      - **HTTP Service**: Port 34567 (non-standard, normally port 80)
+      - **SSH Service**: Port 22222 (non-standard, normally port 22)
+      - **Flag**: `OCR{...}`
+      - **Location**: `/home/techstart/flag.txt`
+
+      **Analysis:**
+
+      **Port 34567 (HTTP):**
+      - NON-STANDARD port for HTTP service
+      - Apache 2.4.41 web server
+      - Normally HTTP runs on port 80
+
+      **Port 22222 (SSH):**
+      - NON-STANDARD port for SSH
+      - Normally SSH runs on port 22
+      - TechStart configured SSH on alternative port
+      - Service version detection identifies it as SSH
+      - Must connect with `-p 22222` to specify the port
+
+      **Why default scanning failed:**
+      ```bash
+      $ nmap <target>
+      # Only scans top 1000 common ports
+      # Ports 22222 and 34567 are not in the default scan range
+      # Would miss both services entirely
+      ```
+
+      **Why full port scanning succeeded:**
+      ```bash
+      $ nmap -p- -sV <target>
+      # Scans all 65535 ports
+      # Includes ports 22222 and 34567
+      # Service version detection identifies SSH and HTTP
+      # Then connect with ssh -p 22222 to retrieve flag
+      ```
+
+      **Critical lessons:**
+
+      **1. Default scans are insufficient:**
+      - Standard nmap scan checks ~1000 common ports
+      - Misses services on alternative ports
+      - Incomplete enumeration
+
+      **2. Full port scans required:**
+      - Non-standard ports can be anywhere (1-65535)
+      - Must scan beyond defaults
+      - `-p-` scans all ports and catches any configuration
+
+      **3. Version detection is critical:**
+      - Identifies service type on any port
+      - SSH on port 22222 still identified as SSH
+      - Retrieves service banners with detailed info
+
+      **4. Security through obscurity fails:**
+      - Changing default port doesn't provide security
+      - Proper enumeration discovers it quickly
+      - Service still has same vulnerabilities
+
+      **Real-world applications:**
+      - SSH on 2222, 22222, or other alternative ports (very common)
+      - Web admin panels on 8443, 9443 (common)
+      - Databases on non-standard ports (common)
+      - Custom applications on high-numbered ports
+
+      **Professional practice:**
+      - Always scan extended port ranges
+      - Use version detection on all ports
+      - Document non-standard configurations
+      - Consider why services are on alternative ports
+      - Test the same attacks regardless of port number
+
+      Scan for non-standard ports, visit the HTTP server on port 34567 to get SSH credentials, then connect to SSH on port 22222 using `ssh -p 22222 techstart@<target>` with the password from the web page, and run `cat flag.txt` to retrieve the flag.
+    unlock_after_minutes: 25
+
+credentials:
+  - username: "techstart"
+    password: "TechStart2024#"
+    role: "ssh-user"
+    description: "SSH login credentials found on web page"
+
+workbook: "wiki/range/linpt/CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/"
+
+test:
+  steps:
+    - name: "Verify HTTP on non-standard port 34567"
+      command: "curl -s http://{target.target}:34567/ 2>&1 | grep -o 'TechStart Engineering'"
+      expect: "TechStart Engineering"
+    - name: "Verify SSH on non-standard port 22222"
+      command: "nc -z -w 5 {target.target} 22222 && echo 'port_open'"
+      expect: "port_open"
+    - name: "Scan non-standard ports with nmap"
+      command: "nmap -Pn -n -p 22222,34567 -sV {target.target} 2>&1"
+      expect: "ssh"
+    - name: "SSH login and retrieve flag"
+      command: "sshpass -p '{cred.ssh-user.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p 22222 {cred.ssh-user.user}@{target.target} 'cat /home/techstart/flag.txt' 2>/dev/null"
+      expect: "OCR{n0n_st4nd4rd}"

@@ -1,0 +1,1412 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Network forensics exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 12A: HTTP vs HTTPS: See the Difference - Network Forensics</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-12a-http-vs-https-see-the-difference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Network Forensics" class="md-header__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Network Forensics
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 12A: HTTP vs HTTPS: See the Difference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Network Forensics" class="md-nav__button md-logo" aria-label="Network Forensics" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Network Forensics
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N1 -- Log Analysis
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N1 -- Log Analysis
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/01_Port_Scan_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.1 -- Port Scan Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/02_HTTP_Traffic_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.2 -- HTTP Traffic Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/03_DNS_Anomaly_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.3 -- DNS Anomaly Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/04_Failed_Login_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 1.4 -- Failed Login Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET01_Log_Analysis/05_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N2 -- PCAP Forensics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N2 -- PCAP Forensics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/01_FTP_Credential_Extraction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.1 -- FTP Credential Extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/02_SMTP_Email_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.2 -- SMTP Email Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/03_HTTP_Session_Hijacking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.3 -- HTTP Session Hijacking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/04_DNS_Data_Exfiltration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.4 -- DNS Data Exfiltration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/05_Attack_Chain_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 2.5 -- Attack Chain Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NET02_PCAP_Forensics/06_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH N3 -- Firewalls
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH N3 -- Firewalls
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/01_Firewall_Fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.1 -- Firewall Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_NETSY12_Firewalls/02_Firewall_Policy_Hardening/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise 3.2 -- Firewall Policy Hardening
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engagement-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engagement Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objective
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#section-1-what-tls-actually-protects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Section 1: What TLS Actually Protects
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Section 1: What TLS Actually Protects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-padlock-in-your-browser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Padlock in Your Browser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-brief-history-ssl-to-tls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Brief History: SSL to TLS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-the-difference-matters-here" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the Difference Matters Here
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#section-2-how-the-capture-reaches-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Section 2: How the Capture Reaches You
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Section 2: How the Capture Reaches You">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-note-on-where-captures-come-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Note on Where Captures Come From
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#see-both-services-in-a-browser-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Both Services in a Browser First
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-0-ssh-into-the-network-tap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0: SSH into the Network Tap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-1-read-the-http-capture-from-the-pos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Read the HTTP Capture from the POS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-see-the-whole-request-not-just-the-body" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: See the Whole Request, Not Just the Body
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-confirm-the-secure-portal-protects-the-same-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Confirm the Secure Portal Protects the Same Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-submit-the-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Submit the Flag
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Matters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-12a-http-vs-https-see-the-difference">Exercise 12A: HTTP vs HTTPS: See the Difference</h1>
+<h2 id="engagement-status">Engagement Status</h2>
+<p><strong>Client:</strong> Bean &amp; Byte Cafe
+<strong>Role:</strong> Security Auditor
+<strong>Phase:</strong> Reconnaissance <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> Service Enumeration <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> Exploitation <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> ARP <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span> <strong>Encryption in Transit</strong></p>
+<p><strong>What you know so far:</strong></p>
+<ul>
+<li>You have mapped the cafe network and identified every device.</li>
+<li>You have performed ARP reconnaissance and spoofing attacks.</li>
+<li>You have learned about encryption concepts (symmetric, asymmetric, hybrid).</li>
+<li>The cafe is mid-upgrade: the old POS terminal still answers on plain HTTP, while a new secure portal answers on HTTPS.</li>
+</ul>
+<p><strong>Your task:</strong> Read a destination-side packet capture from two cafe services, the POS terminal on HTTP and the secure portal on HTTPS, then compare what each one reveals. The HTTP capture exposes a staff login in plain text, flag and all. The HTTPS capture protects the same kind of login behind TLS so it never appears on the wire in readable form.</p>
+<hr />
+<h2 id="objective">Objective</h2>
+<p>Compare an HTTP service against an HTTPS service using real captured traffic. Read the cleartext credentials from the HTTP capture, confirm that the HTTPS service exposes nothing readable, and explain why that single difference, TLS, decides whether a password is private or public. Extract the flag from the plaintext HTTP traffic.</p>
+<p><strong>Difficulty:</strong> Beginner
+<strong>Estimated time:</strong> 45 minutes</p>
+<hr />
+<h2 id="section-1-what-tls-actually-protects">Section 1: What TLS Actually Protects</h2>
+<h3 id="the-padlock-in-your-browser">The Padlock in Your Browser</h3>
+<p>TLS (Transport Layer Security) is encryption for network traffic. When the padlock icon shows in a browser address bar, TLS is protecting the data in transit. Every value sent between the browser and the server, passwords, card numbers, personal messages, is encrypted before it leaves the machine and decrypted only after it arrives.</p>
+<p>HTTP has no such protection. An HTTP request travels as readable ASCII text. Anyone positioned to read the traffic, a destination host, a tapped switch port, a compromised router, sees the request exactly as the sender typed it.</p>
+<h3 id="a-brief-history-ssl-to-tls">A Brief History: SSL to TLS</h3>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Year</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSL 2.0</td>
+<td>1995</td>
+<td>Deprecated (insecure)</td>
+</tr>
+<tr>
+<td>SSL 3.0</td>
+<td>1996</td>
+<td>Deprecated (POODLE attack)</td>
+</tr>
+<tr>
+<td>TLS 1.0</td>
+<td>1999</td>
+<td>Deprecated</td>
+</tr>
+<tr>
+<td>TLS 1.1</td>
+<td>2006</td>
+<td>Deprecated</td>
+</tr>
+<tr>
+<td>TLS 1.2</td>
+<td>2008</td>
+<td>Widely supported standard</td>
+</tr>
+<tr>
+<td>TLS 1.3</td>
+<td>2018</td>
+<td>Latest and fastest</td>
+</tr>
+</tbody>
+</table>
+<p>SSL (Secure Sockets Layer) was the original protocol from the 1990s. The IETF renamed it to TLS when development moved over. People still say "SSL" out of habit, but every modern secure connection uses TLS. When someone says "SSL certificate," they mean a TLS certificate.</p>
+<h3 id="why-the-difference-matters-here">Why the Difference Matters Here</h3>
+<p>A login is a login. The POS staff login and the secure portal login carry the same kind of data: a username and a password. The only thing that changes between the two services is the transport:</p>
+<ul>
+<li>The POS terminal answers on <strong>HTTP</strong>, port 8080. The login POST crosses the wire as plain text.</li>
+<li>The secure portal answers on <strong>HTTPS</strong>, port 443. The same login POST crosses the wire as TLS ciphertext.</li>
+</ul>
+<p>By the end of this exercise you will have read both captures with your own eyes and seen that one hands you the password and the other hands you nothing.</p>
+<hr />
+<h2 id="section-2-how-the-capture-reaches-you">Section 2: How the Capture Reaches You</h2>
+<h3 id="a-note-on-where-captures-come-from">A Note on Where Captures Come From</h3>
+<p>A passive third host on a switched or bridged network cannot simply sniff another pair of hosts talking. The switch forwards frames only to the port that owns the destination MAC, so traffic between the login simulator and the POS never reaches an uninvolved listener.</p>
+<p>The destination host, on the other hand, receives every byte addressed to it. In this lab each plaintext-HTTP service runs a packet capture on its own interface and publishes that capture over a small read endpoint. The POS terminal serves its running capture at <code>http://&lt;POS_IP&gt;:8080/tap</code>. You read it from the network tap, so you are looking at genuine captured packets, not a contrived text file.</p>
+<p>The secure portal does no such thing, and it does not need to. Its traffic is already TLS ciphertext on the wire, so there is nothing readable to publish.</p>
+<h3 id="network-layout">Network Layout</h3>
+<table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Hostname</th>
+<th>IP Offset</th>
+<th>Port</th>
+<th>Transport</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cafe Gateway</td>
+<td>cafe-gateway</td>
+<td>.1</td>
+<td>80/443</td>
+<td>mixed</td>
+</tr>
+<tr>
+<td>POS Terminal</td>
+<td>cafe-pos</td>
+<td>.17</td>
+<td>8080</td>
+<td>HTTP</td>
+</tr>
+<tr>
+<td>Secure Portal</td>
+<td>cafe-secure-portal</td>
+<td>.180</td>
+<td>443</td>
+<td>HTTPS</td>
+</tr>
+<tr>
+<td>Login Simulator</td>
+<td>cafe-login-sim</td>
+<td>.190</td>
+<td>none</td>
+<td>client</td>
+</tr>
+<tr>
+<td>Network Tap</td>
+<td>nettap</td>
+<td>.250</td>
+<td>22</td>
+<td>SSH</td>
+</tr>
+</tbody>
+</table>
+<p>The placeholders <code>&lt;SUBNET&gt;</code>, <code>&lt;POS_IP&gt;</code>, and <code>&lt;PORTAL_IP&gt;</code> stand in for values from your lab page. If your subnet base is <code>10.100.121</code>, then the POS is <code>10.100.121.17</code>, the portal is <code>10.100.121.180</code>, and the tap is <code>10.100.121.250</code>. The transcripts below use those exact addresses.</p>
+<h3 id="see-both-services-in-a-browser-first">See Both Services in a Browser First</h3>
+<p>Before reading a single capture, open the two services in a browser so the difference between them is something you have looked at, not just something you have been told. Both pages handle a staff login. Only one of them protects it on the wire.</p>
+<div class="admonition kali">
+<p class="admonition-title">Browse the plain-HTTP POS terminal</p>
+<p>From a browser on your Kali machine, open the POS register over plain HTTP. Substitute your own subnet base for <code>&lt;POS_IP&gt;</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>http://&lt;POS_IP&gt;:8080/
+</code></pre></div>
+<p>The address bar shows <code>http://</code> with no padlock. The POS register loads in the clear: live transaction log, card numbers, revenue totals, and a <strong>Manager Login</strong> tab. Every byte of this page, and every credential typed into that login, crosses the wire as readable text.</p>
+</div>
+<p><img alt="POS register served over plain HTTP, no padlock in the address bar" src="../img/10_pos_http_page.png" /></p>
+<div class="admonition kali">
+<p class="admonition-title">Browse the HTTPS secure portal</p>
+<p>Now open the secure portal over HTTPS in the same browser. Substitute your own subnet base for <code>&lt;PORTAL_IP&gt;</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>https://&lt;PORTAL_IP&gt;/
+</code></pre></div>
+<p>The portal uses a self-signed certificate, so the browser shows a certificate warning the first time; accept it to continue. The page is the cafe employee login, and it states <strong>Connection secured with TLS</strong> with a padlock. The login form looks the same as the POS, but the transport underneath it is TLS ciphertext, not cleartext.</p>
+</div>
+<p><img alt="Secure portal login served over HTTPS with a TLS padlock" src="../img/11_portal_https_page.png" /></p>
+<p>Hold the two pages side by side. The POS on the left is <code>http://</code> and exposes its data in the open; the portal on the right is <code>https://</code> and wraps the identical kind of login in TLS. The rest of this exercise proves, from the captures, that the page you just loaded over HTTP hands its password to anyone on the wire while the HTTPS page hands over nothing readable.</p>
+<hr />
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="step-0-ssh-into-the-network-tap">Step 0: SSH into the Network Tap</h3>
+<p>Start <strong>"Bean &amp; Byte Cafe: HTTP vs HTTPS"</strong> from the Coffee Shop labs and wait for <strong>Running</strong>. Note the subnet on the lab page. All capture reading happens from the tap device, an on-subnet jump box, because you must be on the same broadcast domain as the cafe traffic.</p>
+<div class="admonition kali">
+<p class="admonition-title">Connect to the tap over SSH</p>
+<p>From your Kali machine, SSH into the tap at offset <code>.250</code>. The password is <code>Security1#</code>. Replace the address with your subnet if it differs.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ssh<span class="w"> </span>pentest@&lt;SUBNET&gt;.250
+</code></pre></div>
+<p>Once connected, the prompt changes to <code>pentest@nettap</code>. Everything from here runs on the tap.</p>
+</div>
+<h3 id="step-1-read-the-http-capture-from-the-pos">Step 1: Read the HTTP Capture from the POS</h3>
+<p>The POS terminal publishes its running capture at <code>/tap</code>. The login simulator sends a staff login every few seconds, so within a few seconds of the lab starting there is captured traffic to read.</p>
+<div class="admonition target">
+<p class="admonition-title">Pull the POS capture and find the login POST</p>
+<p>From the tap, read the served capture and isolate the login request. The first command shows the IP header line so you can see who is talking to whom; the second pulls the line that carries the credential token.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;POS_IP&gt;:8080/tap<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-a<span class="w"> </span>-B1<span class="w"> </span><span class="s1">&#39;POST /login&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-2
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;POS_IP&gt;:8080/tap<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-a<span class="w"> </span><span class="s1">&#39;OCR-SN&#39;</span>
+</code></pre></div>
+</div>
+<p>The captured output looks like the screenshot below. The IP header line shows the login simulator at <code>10.100.121.190</code> sending to the POS at <code>10.100.121.17</code> on port 8080. The body line carries the username, the password, and the flag token, all in clear text.</p>
+<p><img alt="POS HTTP capture showing cleartext credentials" src="../img/01_http_cleartext.png" /></p>
+<p>Read the body line carefully:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>username=barista&amp;password=C0ff33_OCR-SN:&lt;TOKEN&gt;&amp;token=OCR-SN:&lt;TOKEN&gt;
+</code></pre></div>
+<p>The username is <code>barista</code>. The password and a token both carry the marker <code>OCR-SN:</code>, and the value after that marker is the flag content. Nothing here is hashed, masked, or encrypted. The wire carried the password as plainly as if it were printed on a receipt.</p>
+<h3 id="step-2-see-the-whole-request-not-just-the-body">Step 2: See the Whole Request, Not Just the Body</h3>
+<p>The credential is not an isolated leak. The entire HTTP request is readable, headers and all, which means an observer learns the target host, the content type, the exact field names, and the values.</p>
+<div class="admonition target">
+<p class="admonition-title">Read the full HTTP request from the capture</p>
+<p>Pull a few lines of context around the POST so you can see the complete request as it crossed the wire.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;POS_IP&gt;:8080/tap<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-a<span class="w"> </span>-A6<span class="w"> </span><span class="s1">&#39;POST /login&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-8
+</code></pre></div>
+</div>
+<p><img alt="Full HTTP POST request captured in the clear" src="../img/02_http_full_post.png" /></p>
+<p>A defender reading this should feel the weight of it. Anyone on the path, a malicious destination, a switch-port tap, a router admin, reconstructs the entire login with no effort and no cracking. HTTP made the password public the moment it was sent.</p>
+<h3 id="step-3-confirm-the-secure-portal-protects-the-same-data">Step 3: Confirm the Secure Portal Protects the Same Data</h3>
+<p>Now look at the HTTPS service. The secure portal carries the same kind of staff login, but over TLS. Test three things: that the portal answers over a real TLS connection, that it offers no plaintext capture to read, and that the HTTPS credential never appears anywhere in the clear.</p>
+<div class="admonition target">
+<p class="admonition-title">Probe the HTTPS portal and prove the data is protected</p>
+<p>The <code>-k</code> flag tells curl to accept the portal self-signed certificate. The verbose probe prints the negotiated TLS version and the certificate subject. The last two commands show that the portal has no capture feed and that the HTTPS password is absent from the POS capture.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-ks<span class="w"> </span>https://&lt;PORTAL_IP&gt;/<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>title
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>curl<span class="w"> </span>-ksv<span class="w"> </span>https://&lt;PORTAL_IP&gt;/<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;SSL connection|subject:&#39;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>curl<span class="w"> </span>-ks<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;GET /tap -&gt; HTTP %{http_code}\n&#39;</span><span class="w"> </span>https://&lt;PORTAL_IP&gt;/tap
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>curl<span class="w"> </span>-s<span class="w"> </span>http://&lt;POS_IP&gt;:8080/tap<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;S3cur3_N0t_V1s1bl3&#39;</span>
+</code></pre></div>
+</div>
+<p><img alt="HTTPS portal answering over TLS with no readable credentials" src="../img/03_https_protected.png" /></p>
+<p>Read the four results together:</p>
+<ul>
+<li>The portal returns its application page, so the service is live and working.</li>
+<li>The connection negotiated <strong>TLSv1.3</strong> with an AES-256-GCM cipher, and the certificate identifies <code>cafe-secure-portal</code>. The traffic on the wire is genuine TLS ciphertext.</li>
+<li>The portal has no <code>/tap</code> feed, so the request returns <strong>HTTP 404</strong>. There is no plaintext capture to read, because there is no plaintext.</li>
+<li>The portal login password <code>S3cur3_N0t_V1s1bl3</code> appears <strong>0</strong> times in the POS capture. Even when the same simulator sends an HTTPS login every cycle, that credential never shows up in readable form anywhere on the network.</li>
+</ul>
+<p>Same login pattern, same kind of secret, opposite outcome. TLS is the only thing that changed.</p>
+<h3 id="step-4-submit-the-flag">Step 4: Submit the Flag</h3>
+<div class="admonition note">
+<p class="admonition-title">Assemble the flag</p>
+<p>The token you read from the POS capture sits after the <code>OCR-SN:</code> marker in the cleartext password and token fields. Its value expresses exactly what happened: a cleartext credential exposed on the wire.</p>
+<p>Wrap the token in the flag format and submit it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>OCR{ ... }
+</code></pre></div>
+</div>
+<p>Place the token you captured inside the <code>OCR{}</code> wrapper and submit it on the lab page.</p>
+<hr />
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>A password is only as private as the transport carrying it. In this exercise the POS and the portal handled the same kind of staff login, but only one of them kept it secret. HTTP put the username, the password, and a token into readable ASCII that any host on the path could lift without cracking anything. HTTPS wrapped the identical exchange in TLS, so the wire carried only ciphertext and a 404 where the plaintext capture would have been.</p>
+<p>The lesson is not that the cafe staff chose weak passwords. The lesson is that on plain HTTP the strength of the password does not matter, because the attacker never has to guess it. TLS is what turns a readable credential into a string of random bytes. Every service that handles a login, a session cookie, a card number, or any private value belongs on HTTPS for exactly this reason. A service still answering on plain HTTP, like the cafe POS, is handing its secrets to anyone who can read its traffic.</p>
+<p>When you audit a network, treat every plain-HTTP service that accepts sensitive input as already breached. The fix is not a stronger password. The fix is TLS.</p>
+<hr />
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>HTTP traffic crosses the wire as readable text; a destination-side capture exposes the full request, credentials included.</li>
+<li>HTTPS wraps the same request in TLS, so the wire carries ciphertext and an observer sees nothing useful.</li>
+<li>A TLS handshake is visible (version and cipher negotiation), but the application data after it is not.</li>
+<li>Password strength is irrelevant on plain HTTP, because the credential is captured rather than cracked.</li>
+<li>Any service accepting sensitive input over HTTP should be treated as exposed until it is moved to HTTPS.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

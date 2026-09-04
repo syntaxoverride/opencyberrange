@@ -1,0 +1,1505 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Linux penetration testing exercises for OpenCyberRange">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Exercise 2.5: Attack Chain Analysis - Linux Penetration Testing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exercise-25-attack-chain-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Linux Penetration Testing" class="md-header__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Linux Penetration Testing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exercise 2.5: Attack Chain Analysis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Linux Penetration Testing" class="md-nav__button md-logo" aria-label="Linux Penetration Testing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Linux Penetration Testing
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L1 -- Linux Service Enumeration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/01_SSH_Service_Detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.1 -- SSH Service Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/02_Multi_Service_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.2 -- Multi-Service Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/03_Service_Interaction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.3 -- Service Interaction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/04_Non_Standard_Port_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.4 -- Non-Standard Port Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/05_NSE_Script_Enumeration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.5 -- NSE Script Enumeration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/06_Version_Vulnerability_Identification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L1.6 -- Version Vulnerability Identification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN01_Linux_Service_Enumeration/07_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L2 -- SSH Authentication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L2 -- SSH Authentication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/01_SSH_Basic_Login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.1 -- SSH Basic Login
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/02_SSH_User_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.2 -- SSH User Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/03_SSH_File_Discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L2.3 -- SSH File Discovery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN02_SSH_Authentication/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CH L3 -- SSH Post-Exploitation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/00_Introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/01_SSH_Command_Execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.1 -- SSH Command Execution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/02_SSH_History_Analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.2 -- SSH History Analysis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/03_SSH_Privilege_Escalation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercise L3.3 -- SSH Privilege Escalation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CH_LIN03_SSH_Post_Exploitation/04_Chapter_Review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#your-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Your Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-the-cyber-kill-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background: The Cyber Kill Chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Walkthrough
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Walkthrough">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-initial-assessment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1: Initial Assessment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-initial-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2: Initial Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-3-command-and-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3: Command and Control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-4-credential-harvesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 4: Credential Harvesting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-5-lateral-movement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 5: Lateral Movement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-6-data-exfiltration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 6: Data Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-attack-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Attack Timeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Questions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-takeaways" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Takeaways
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exercise-25-attack-chain-analysis">Exercise 2.5: Attack Chain Analysis</h1>
+<h2 id="before-you-begin">Before You Begin</h2>
+<p>Exercise 2.5 is the capstone lab of Chapter N2. You will use every skill from the previous four labs; HTTP analysis, SMTP investigation, session tracking, DNS detection, and FTP credential extraction; combined into a single multi-stage attack investigation. The PCAP is larger and more complex than anything you have seen so far. Take your time, work through each stage methodically, and build a complete picture of the attack before moving on.</p>
+<p><strong>Connection Details</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSH</td>
+<td><code>ssh analyst@&lt;target_ip&gt;</code></td>
+</tr>
+<tr>
+<td>Password</td>
+<td><code>MediCare2024#</code></td>
+</tr>
+<tr>
+<td>PCAP</td>
+<td><code>/home/analyst/captures/full-attack.pcap</code></td>
+</tr>
+</tbody>
+</table>
+<p>All analysis in this exercise is performed with <code>tshark</code> over SSH. You do not have access to Wireshark.</p>
+<blockquote>
+<p><strong>Estimated time:</strong> 60-90 minutes. this exercise is significantly longer than previous labs. You may want to keep a text file open to organize your notes as you work through each stage.</p>
+</blockquote>
+<h2 id="scenario">Scenario</h2>
+<p>MediCare's SOC detected suspicious outbound traffic from the patient records department late on a Friday evening. Initial triage revealed multiple compromised systems and unusual authentication patterns on the domain controller. The CISO activated the incident response team and escalated the investigation to priority one.</p>
+<p>Marcus Thompson, the senior network engineer, captured 5 hours of network traffic from the affected subnet before the systems were isolated. The capture contains the complete attack; from the moment the attacker gained access to the moment they exfiltrated data. Your task is to analyze this traffic and reconstruct the complete attack chain from initial compromise through data exfiltration.</p>
+<h2 id="your-objectives">Your Objectives</h2>
+<ul>
+<li>Map all hosts and protocols in the capture</li>
+<li>Identify the initial compromise vector</li>
+<li>Detect command-and-control communication</li>
+<li>Find evidence of credential harvesting</li>
+<li>Track lateral movement to other systems</li>
+<li>Locate the data exfiltration and extract the flag</li>
+<li>Build a complete attack timeline</li>
+</ul>
+<p>By the end of this exercise, you will have a complete incident report showing the full scope of the compromise.</p>
+<h2 id="background-the-cyber-kill-chain">Background: The Cyber Kill Chain</h2>
+<p>Real-world intrusions rarely happen in a single step. Attackers follow a predictable progression, and each stage leaves distinct network evidence. Understanding this chain helps you know what to look for and where to look next.</p>
+<ol>
+<li><strong>Initial Access</strong>: The attacker delivers malware to a victim, often through a malicious download or phishing link. Network evidence includes HTTP requests to suspicious domains and executable file transfers.</li>
+<li><strong>Command and Control (C2)</strong>: The malware phones home to an attacker-controlled server, establishing a persistent communication channel. Network evidence includes regular outbound HTTPS connections to unusual domains at fixed intervals (beaconing).</li>
+<li><strong>Credential Harvesting</strong>: The attacker uses the compromised host to gather valid credentials for other internal systems. Network evidence includes repeated failed authentication attempts followed by a success.</li>
+<li><strong>Lateral Movement</strong>: With stolen credentials, the attacker accesses other systems on the network. Network evidence includes SMB or RDP connections from the compromised host to servers it does not normally contact.</li>
+<li><strong>Data Exfiltration</strong>: The attacker transfers stolen data out of the network. Network evidence includes unusual protocols like FTP carrying large transfers to external IP addresses.</li>
+</ol>
+<p>Each of these stages is visible in a packet capture. Your job is to find them all.</p>
+<p>The key insight is that attackers must use the network to accomplish their goals, and every network action produces packets. Even when traffic is encrypted, metadata like connection timing, destination addresses, and protocol selection reveals the attacker's intent.</p>
+<h2 id="walkthrough">Walkthrough</h2>
+<h3 id="stage-1-initial-assessment">Stage 1: Initial Assessment</h3>
+<p>Before diving into specific attacks, you need to understand what is in the capture. Start with a high-level overview of protocols and hosts. A scope-first overview is the same approach you would take in a real investigation; understand the scope before focusing on details.</p>
+<div class="admonition target">
+<p class="admonition-title">Generate a protocol hierarchy</p>
+<p>Run this on the analysis container, which you reach with the SSH details at the top of the exercise. The protocol hierarchy tells you which protocols to investigate.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>io,phs
+</code></pre></div>
+<p>Look for HTTP, TLS, SMB, and FTP; each corresponds to an attack stage.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">Examine IP conversations</p>
+<p>Run this on the analysis container. The IP conversation summary identifies which hosts are communicating and how much data they exchange.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>conv,ip
+</code></pre></div>
+<p>Large byte counts between an internal host and an external IP hint at exfiltration.</p>
+</div>
+<div class="admonition target">
+<p class="admonition-title">List all endpoints</p>
+<p>Run this on the analysis container. The endpoint list maps every host that appears in the capture.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>endpoints,ip
+</code></pre></div>
+<p>The internal network is <code>10.0.10.0/24</code>. Any addresses outside this range are external and deserve scrutiny. Pay attention to the byte counts in the conversation output; large transfers to external IPs may indicate exfiltration.</p>
+</div>
+<p>Take note of key internal hosts. In this network, <code>10.0.10.5</code> is the domain controller, <code>10.0.10.50</code> is the file server, and workstations occupy the rest of the subnet. Knowing the role of each host helps you interpret the traffic patterns in later stages.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>What protocols are present in the capture?</li>
+<li>Which internal hosts appear most active?</li>
+<li>Which external IP addresses do you see?</li>
+<li>What is the internal network range?</li>
+<li>Can you identify the roles of the key internal hosts?</li>
+</ul>
+<hr />
+<h3 id="stage-2-initial-access">Stage 2: Initial Access</h3>
+<p>With the network mapped, investigate how the attacker gained their initial foothold. HTTP traffic is unencrypted, so you can see the full request details including the domain, URI path, and filename. Look at HTTP requests to find suspicious downloads.</p>
+<div class="admonition target">
+<p class="admonition-title">List all HTTP GET requests</p>
+<p>Run this on the analysis container. The filter lists every HTTP GET with its timestamp, source, destination, host, and URI.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;http.request.method == &quot;GET&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.time<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>http.host<span class="w"> </span>-e<span class="w"> </span>http.request.uri
+</code></pre></div>
+<p>Review the output for anything unusual; executable downloads, connections to suspicious domains, or requests to uncommon TLDs.</p>
+</div>
+<p>Narrow your search to executable file downloads specifically.</p>
+<div class="admonition target">
+<p class="admonition-title">Find executable downloads</p>
+<p>Run this on the analysis container. The filter matches any request whose URI contains <code>.exe</code>, which surfaces malware delivery.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;http.request.uri contains &quot;.exe&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.time<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>http.host<span class="w"> </span>-e<span class="w"> </span>http.request.uri
+</code></pre></div>
+<p>You should see an internal host downloading an executable from a domain that does not belong to MediCare. The download marks the initial compromise: the victim at <code>10.0.10.25</code> downloaded <code>system-update.exe</code> from <code>malicious-cdn.tk</code>: malware disguised as a legitimate update.</p>
+</div>
+<p>Note the <code>.tk</code> top-level domain. The <code>.tk</code> TLD offers free domain registration and is disproportionately used for malicious purposes. Seeing an executable download from a <code>.tk</code> domain is a strong indicator of compromise.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Which internal host downloaded the file? (victim IP)</li>
+<li>What domain served the file?</li>
+<li>What was the filename?</li>
+<li>At what time offset did this occur?</li>
+</ul>
+<hr />
+<h3 id="stage-3-command-and-control">Stage 3: Command and Control</h3>
+<p>After the malware was executed, it needed to establish communication with the attacker. Without a C2 channel, the attacker cannot issue commands or receive data from the compromised host.</p>
+<p>C2 traffic is often encrypted with TLS, but the Server Name Indication (SNI) field in the TLS handshake reveals the destination domain. The SNI is sent in cleartext during the handshake, before encryption begins.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract TLS SNI values</p>
+<p>Run this on the analysis container. The filter pulls the Server Name Indication from each TLS handshake, revealing the destination domain even though the rest of the session is encrypted.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;tls.handshake.extensions_server_name&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.time<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>tls.handshake.extensions_server_name
+</code></pre></div>
+<p>Look for a domain that appears repeatedly at regular intervals. A beaconing pattern (the same host connecting to the same external domain every few minutes) is a hallmark of C2 communication. Legitimate HTTPS traffic does not follow such rigid timing.</p>
+</div>
+<p>Note the interval between connections. Malware authors configure a beacon interval to balance responsiveness with stealth. A 5-minute interval is common because it blends into normal traffic volume while still allowing the attacker to issue commands promptly.</p>
+<p>To calculate the beacon interval, compare the timestamps of consecutive connections to the C2 domain. If you see connections at roughly 5-minute intervals, this confirms automated beaconing rather than human-initiated browsing. You can also count the total number of beacons to estimate how long the C2 channel was active.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>What is the C2 domain?</li>
+<li>How often does the compromised host beacon? (interval)</li>
+<li>How many C2 connections do you observe?</li>
+<li>When did C2 communication begin relative to the initial download?</li>
+</ul>
+<hr />
+<h3 id="stage-4-credential-harvesting">Stage 4: Credential Harvesting</h3>
+<p>With a C2 channel established, the attacker begins probing for credentials to move deeper into the network. The compromised workstation alone is not the attacker's goal; they need credentials to access more valuable systems like file servers and databases. Look for SMB authentication attempts against the domain controller.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract SMB2 session setup attempts</p>
+<p>Run this on the analysis container. The filter pulls SMB2 Session Setup requests along with the status code that records whether each authentication succeeded or failed.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;smb2.cmd == 1&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.time<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>smb2.nt_status
+</code></pre></div>
+<p>SMB2 command 1 is Session Setup; the authentication request. The <code>nt_status</code> field tells you whether each attempt succeeded or failed. A status of <code>0x00000000</code> means success; any other value is a failure.</p>
+</div>
+<p>A pattern of many failures followed by a success is a brute-force attack. The attacker tried multiple username and password combinations against the domain controller until one worked. Count the failed and successful attempts to understand the scope of the attack.</p>
+<p>In a real investigation, you would also correlate the successful authentication with the account name to determine which credentials were compromised. The domain controller at <code>10.0.10.5</code> is a high-value target because domain admin credentials grant access to every system on the network.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>How many failed authentication attempts do you see?</li>
+<li>How many successful authentications followed?</li>
+<li>What is the target system? (domain controller IP)</li>
+<li>At what time offset did the brute force begin?</li>
+</ul>
+<hr />
+<h3 id="stage-5-lateral-movement">Stage 5: Lateral Movement</h3>
+<p>Armed with valid credentials, the attacker pivots from the initially compromised host to access other systems on the internal network. The pivot is lateral movement; the attacker expands their footprint beyond the single compromised workstation. Look for SMB connections from the victim to new targets.</p>
+<div class="admonition target">
+<p class="admonition-title">Track SMB traffic from the compromised host</p>
+<p>Run this on the analysis container. The filter scopes the capture to SMB2 traffic leaving the compromised workstation so you can see which new systems it reaches.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;ip.src == 10.0.10.25 and smb2&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.time<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>smb2.cmd
+</code></pre></div>
+<p>You should see the compromised host connecting to a file server that it did not contact before the credential harvesting stage. The SMB commands tell you what the attacker did on that server; tree connects indicate share access, and create/read commands indicate file operations.</p>
+</div>
+<p>The SMB activity is classic lateral movement: the attacker uses the compromised workstation as a stepping stone to reach more valuable targets, in this case the file server at <code>10.0.10.50</code> containing patient records.</p>
+<p>Compare the timing of this activity with the credential harvesting in Stage 4. Lateral movement should begin shortly after the attacker obtained valid credentials. The timing correlation strengthens your conclusion that the stolen credentials were used to access the file server.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>Which new system did the attacker access?</li>
+<li>What SMB operations were performed?</li>
+<li>What shares or files were accessed?</li>
+<li>At what time offset did lateral movement begin?</li>
+</ul>
+<hr />
+<h3 id="stage-6-data-exfiltration">Stage 6: Data Exfiltration</h3>
+<p>The final stage is the attacker's true objective: stealing data. Everything up to this point; the malware download, the C2 channel, the brute-forced credentials, the lateral movement; was preparation for this moment. With access to the file server, the attacker packages the target data and transfers it out of the network.</p>
+<p>Look for FTP traffic, which is unusual for a workstation in a healthcare environment.</p>
+<div class="admonition target">
+<p class="admonition-title">Extract all FTP commands</p>
+<p>Run this on the analysis container. The broad <code>ftp</code> filter shows every FTP command and argument, which is itself suspicious for a healthcare workstation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;ftp&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>frame.time<span class="w"> </span>-e<span class="w"> </span>ip.src<span class="w"> </span>-e<span class="w"> </span>ip.dst<span class="w"> </span>-e<span class="w"> </span>ftp.request.command<span class="w"> </span>-e<span class="w"> </span>ftp.request.arg
+</code></pre></div>
+<p>Any outbound FTP from a workstation is a red flag worth investigating.</p>
+</div>
+<p>Then focus specifically on STOR commands, which upload files to the FTP server.</p>
+<div class="admonition target">
+<p class="admonition-title">Find the uploaded file</p>
+<p>Run this on the analysis container. The filter isolates STOR commands, which upload files and reveal what the attacker exfiltrated.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>tshark<span class="w"> </span>-r<span class="w"> </span>captures/full-attack.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s1">&#39;ftp.request.command == &quot;STOR&quot;&#39;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>ftp.request.arg
+</code></pre></div>
+<p>The filename in the STOR command contains the flag in <code>OCR{&lt;flag_here&gt;}</code> format. The attacker uploaded the file to the external FTP server at <code>198.51.100.42</code>: a clear case of data exfiltration.</p>
+</div>
+<p>Note that the attacker chose FTP, an unencrypted protocol. Choosing FTP is a common mistake by attackers; FTP transmits filenames, credentials, and data in cleartext, making it trivially detectable. More sophisticated attackers use encrypted channels such as HTTPS or DNS tunneling to exfiltrate data.</p>
+<hr />
+<p><strong>Record Your Findings</strong></p>
+<ul>
+<li>What is the external FTP server IP?</li>
+<li>What filename was uploaded?</li>
+<li>What is the flag?</li>
+<li>What FTP credentials were used?</li>
+<li>At what time offset did exfiltration occur?</li>
+<li>How large was the transferred file?</li>
+</ul>
+<hr />
+<h3 id="complete-attack-timeline">Complete Attack Timeline</h3>
+<p>After working through all six stages, assemble your findings into a single timeline. The completed timeline is the deliverable you would present to the incident response team.</p>
+<table>
+<thead>
+<tr>
+<th>Time</th>
+<th>Stage</th>
+<th>Activity</th>
+<th>Source</th>
+<th>Destination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T+0</td>
+<td>Capture Start</td>
+<td>Traffic recording begins</td>
+<td>;</td>
+<td>;</td>
+</tr>
+<tr>
+<td>T+30</td>
+<td>Initial Access</td>
+<td>Downloaded system-update.exe</td>
+<td>10.0.10.25</td>
+<td>malicious-cdn.tk</td>
+</tr>
+<tr>
+<td>T+45</td>
+<td>C2 Setup</td>
+<td>First beacon to C2 server</td>
+<td>10.0.10.25</td>
+<td>c2-server.tk</td>
+</tr>
+<tr>
+<td>T+90</td>
+<td>Credential Harvest</td>
+<td>SMB brute force against DC</td>
+<td>10.0.10.25</td>
+<td>10.0.10.5 (DC)</td>
+</tr>
+<tr>
+<td>T+120</td>
+<td>Lateral Movement</td>
+<td>SMB connection to file server</td>
+<td>10.0.10.25</td>
+<td>10.0.10.50</td>
+</tr>
+<tr>
+<td>T+180</td>
+<td>Data Exfiltration</td>
+<td>FTP upload of patient records</td>
+<td>10.0.10.25</td>
+<td>198.51.100.42</td>
+</tr>
+</tbody>
+</table>
+<p>The timeline shows the entire attack chain from initial compromise to data theft in 3 hours. Every stage was visible in the packet capture, and every stage represented a detection opportunity that was missed.</p>
+<p>In an incident response report, this timeline is one of the most valuable deliverables. It allows the security team to understand the scope and speed of the attack, identify which systems and accounts were affected, and determine what defensive controls failed at each stage.</p>
+<h2 id="analysis-questions">Analysis Questions</h2>
+<p><strong>Question 1.</strong> The attack took 3 hours from initial access to data exfiltration. At which stage could the earliest detection have occurred, and how?</p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Stage 2 (Initial Access); the HTTP download of <code>system-update.exe</code> from <code>malicious-cdn.tk</code> could have been caught by a web proxy or DNS filtering service blocking known-malicious domains. The <code>.tk</code> TLD is frequently associated with malicious activity and is often blocked by default in enterprise environments. Alternatively, Stage 3 (C2) could have been detected by monitoring for HTTPS connections to suspicious TLDs with regular beaconing intervals. Either detection would have prevented the subsequent credential harvesting, lateral movement, and exfiltration.</p>
+</details>
+<p><strong>Question 2.</strong> The attacker used FTP to exfiltrate data. Why is this unusual for a workstation, and what controls would have caught it?</p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Normal workstations do not use FTP. An outbound FTP connection from a desktop PC to an external IP address is highly anomalous. A network-based anomaly detection system or a firewall rule blocking outbound FTP from workstation subnets would have prevented the exfiltration entirely. Even a simple egress filtering policy that only allows HTTP, HTTPS, and DNS from workstation VLANs would have stopped this stage of the attack.</p>
+</details>
+<p><strong>Question 3.</strong> How would you use the IOCs from this analysis to protect other systems on the network?</p>
+<details class="note">
+<summary>Reveal Answer</summary>
+<p>Block the domains (<code>malicious-cdn.tk</code>, <code>c2-server.tk</code>) in DNS filtering and proxy blacklists. Block the external IP addresses (<code>198.51.100.42</code> and the C2 server IP) at the perimeter firewall. Search all systems for the file <code>system-update.exe</code> using endpoint tools. Check all workstations for HTTPS connections to the C2 domain in proxy logs. Reset credentials for any accounts that were accessed from the compromised host <code>10.0.10.25</code>. Deploy endpoint detection and response (EDR) agents across the environment to detect similar malware and lateral movement in the future.</p>
+</details>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+<li>Real attacks follow a predictable chain: access, command and control, credentials, lateral movement, and exfiltration. Recognizing this pattern helps you investigate efficiently.</li>
+<li>Each stage leaves distinct network evidence that <code>tshark</code> can detect; HTTP downloads, TLS beaconing, SMB authentication failures, and FTP uploads all tell part of the story.</li>
+<li>The protocol hierarchy overview is always the first step in any PCAP investigation. It tells you what protocols are present and guides your analysis.</li>
+<li>Building a timeline is critical for incident response. It shows the progression of the attack and identifies the earliest point where detection could have interrupted the chain.</li>
+<li>this exercise combined HTTP, TLS, SMB, and FTP analysis; all skills from the previous four labs. In real incident response, you will use these techniques together, not in isolation.</li>
+<li>Documenting indicators of compromise (IOCs); domains, IPs, filenames, and behavioral patterns; enables your organization to detect the same attacker targeting other systems.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/mermaid-fix.js?v=4"></script>
+      
+        <script src="../../javascripts/pdf-export.js?v=2"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      
+    
+  </body>
+</html>

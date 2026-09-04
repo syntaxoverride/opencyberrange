@@ -1,0 +1,176 @@
+name: SMB Share Listing
+description: Continuing your FinanceCorp SMB assessment, enumerate all available shares to identify exposed resources.
+difficulty: beginner
+category: enumeration
+duration_minutes: 120
+objectives:
+  - List SMB shares using smbclient -L
+  - Understand share enumeration techniques
+  - Identify available shares on target
+  - Capture the flag
+
+scenario: |
+  Your connection test to FinanceCorp's SMB service was successful. James Mitchell 
+  wants to know what shares are available and whether any sensitive information might 
+  be exposed through improperly configured shares.
+  
+  SMB shares can contain sensitive business data, configuration files, or other 
+  information that should not be publicly accessible. Identifying all available shares 
+  is a critical step in assessing SMB security.
+  
+  Your objective: Enumerate all SMB shares available on FinanceCorp's server. Document 
+  each share you discover, as this information will help identify potential information 
+  disclosure risks.
+
+
+flag: "OCR{smb_sh4r3_l1st}"
+
+hints:
+  - text: |
+      **Share enumeration** is the process of listing all available SMB shares on a Windows system. Shares represent network-accessible directories that can contain files, folders, and sensitive information.
+
+      **Why share enumeration matters:**
+      - **Attack surface mapping**: Identifies all potential entry points
+      - **Information disclosure**: Reveals what data is network-accessible
+      - **Misconfiguration detection**: Finds improperly secured shares
+      - **Target selection**: Helps prioritize which shares to investigate
+      - **Access planning**: Determines what requires authentication
+
+      Comprehensive share enumeration is essential before attempting to access specific shares.
+    unlock_after_minutes: 0
+
+  - text: |
+      **Windows share types** have different purposes and security implications:
+
+      **Default administrative shares:**
+      - `ADMIN$`: Remote administration (requires admin privileges)
+      - `C$`, `D$`: Drive shares (requires admin privileges)
+      - `IPC$`: Inter-Process Communication (used for enumeration)
+      - `PRINT$`: Printer drivers
+
+      **User-created shares:**
+      - Custom names (e.g., "Public", "Shared", "Files")
+      - May have weak or no access controls
+      - Often contain business data
+      - Primary targets for enumeration
+
+      Administrative shares are typically restricted, while user-created shares may be misconfigured.
+    unlock_after_minutes: 5
+
+  - text: |
+      **Share listing techniques** vary based on access level and tools:
+
+      **Using smbclient:**
+      - `-L` flag lists all shares
+      - Works with anonymous or authenticated access
+      - Shows share names, types, and comments
+      - Standard enumeration method
+
+      **Using enum4linux:**
+      - Comprehensive SMB enumeration tool
+      - Automated share, user, and group enumeration
+      - Useful for gathering multiple types of information
+
+      **Using nmap NSE scripts:**
+      - `smb-enum-shares`: Automated share enumeration
+      - Can test share access permissions
+      - Part of comprehensive nmap scans
+
+      smbclient is the simplest and most direct method for share listing.
+    unlock_after_minutes: 10
+
+  - text: |
+      **smbclient share listing syntax:**
+
+      ```bash
+      smbclient -L //target [options]
+      ```
+
+      **Key flags for enumeration:**
+      - `-L host`: List shares on the specified host
+      - `-N`: No password (anonymous access)
+      - `-U username`: Specify username for authentication
+      - `-W workgroup`: Specify workgroup/domain
+
+      **Examples:**
+      ```bash
+      smbclient -L //192.168.1.10 -N              # Anonymous listing
+      smbclient -L //server -U administrator      # Authenticated listing
+      smbclient -L //target -N -W WORKGROUP       # Specify workgroup
+      ```
+
+      The `-L` flag is specifically designed for share enumeration.
+    unlock_after_minutes: 15
+
+  - text: |
+      To enumerate shares on FinanceCorp's SMB server:
+
+      ```bash
+      smbclient -L //<target> -N
+      ```
+
+      This command:
+      - Lists all available SMB shares
+      - Attempts anonymous connection (`-N`)
+      - Returns share names, types, and descriptions
+      - Reveals the attack surface
+
+      **What you'll discover:**
+      - Administrative shares (ADMIN$, C$, IPC$)
+      - User-created shares
+      - Share descriptions/comments
+      - Which shares are visible anonymously
+
+      If successful, you'll see a formatted table of all shares accessible to anonymous users.
+    unlock_after_minutes: 20
+
+  - text: |
+      smbclient share listing output format:
+
+      ```
+      Sharename       Type      Comment
+      ---------       ----      -------
+      ADMIN$          Disk      Remote Admin
+      C$              Disk      Default share
+      IPC$            IPC       Remote IPC
+      Public          Disk      Public Files
+      SharedDocs      Disk      Shared Documents
+      ```
+
+      **Analyzing the output:**
+      - **Sharename**: The share's network name
+      - **Type**: Share type (Disk, IPC, Printer)
+      - **Comment**: Administrator-provided description
+
+      **What to document:**
+      1. All share names (especially non-default shares)
+      2. Shares with interesting comments
+      3. User-created shares (potential targets)
+      4. Total number of accessible shares
+
+      **Next steps:**
+      - Test access to each user-created share
+      - Document share permissions
+      - Look for sensitive naming (backup, admin, finance, etc.)
+
+      The flag is related to successfully enumerating the shares. Look carefully at the share listing output.
+    unlock_after_minutes: 25
+workbook: "wiki/range/winpt/CH02_SMB_Reconnaissance/02_Share_Listing/"
+
+test:
+  steps:
+    - name: "Verify SMB port 445 is open"
+      command: "nmap -Pn -p 445 {target.target} | grep '445/tcp'"
+      expect: "open"
+
+    - name: "List SMB shares and find multiple shares"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "backup"
+
+    - name: "Confirm public share is listed"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "public"
+
+    - name: "Retrieve flag from share listing comments"
+      command: "smbclient -L //{target.target} -N 2>&1"
+      expect: "OCR{"
