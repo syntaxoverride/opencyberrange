@@ -50,8 +50,8 @@ RUN printf '# Crestline Financial. API Key Configuration\n\
 # Generated: 2024-07-15\n\
 # Contact: nathan.cole@crestline-financial.com\n\
 \n\
-stripe_key=sk_live_4eC39HqLyjWDarjtT1zdp7dc\n\
-plaid_key=pk_live_2bP8vQ7wT5yA1jF6uH0iD4oS\n\
+stripe_key=sk_test_FAKEdemoKEYpivot0002\n\
+plaid_key=pk_test_FAKEdemoKEYplaid0004\n\
 assessment_token=cr3d\n\
 internal_api_key=cfl_prod_a8f2e1b9c4d7\n' > /var/www/crestline-portal/config/api_keys.bak
 

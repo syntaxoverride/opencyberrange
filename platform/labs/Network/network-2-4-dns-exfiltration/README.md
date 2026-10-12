@@ -164,15 +164,15 @@ tshark -r dns-tunnel.pcap -Y "dns.qry.name contains data-exfil.tk and dns.flags.
 
 ### Step 10: Analyze the Exfiltrated Data
 
-The decoded output will show:
+The decoded output will show (synthetic test data &mdash; SSNs use the never-issued group "00" and are not real):
 
 ```
 PATIENT_DATABASE_EXPORT|Records:347|Date:2024-12-15|
-Patient:John_Doe,SSN:123-45-6789,DOB:1975-03-21,Diagnosis:Hypertension|
-Patient:Jane_Smith,SSN:987-65-4321,DOB:1982-07-14,Diagnosis:Diabetes_Type2|
-Patient:Robert_Johnson,SSN:456-78-9123,DOB:1968-11-30,Diagnosis:COPD|
+Patient:John_Doe,SSN:900-00-6789,DOB:1975-03-21,Diagnosis:Hypertension|
+Patient:Jane_Smith,SSN:900-00-4321,DOB:1982-07-14,Diagnosis:Diabetes_Type2|
+Patient:Robert_Johnson,SSN:900-00-9123,DOB:1968-11-30,Diagnosis:COPD|
 FLAG:OCR{dns_tunn3l_d3t3ct3d}|
-Patient:Mary_Williams,SSN:321-54-9876,DOB:1990-05-18,Diagnosis:Asthma|
+Patient:Mary_Williams,SSN:900-00-9876,DOB:1990-05-18,Diagnosis:Asthma|
 EXFIL_COMPLETE:TRUE
 ```
 
